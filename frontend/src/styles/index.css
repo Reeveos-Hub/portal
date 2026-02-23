@@ -1,0 +1,74 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* BRAND ENFORCEMENT — DO NOT REMOVE */
+body, p, span, a, button, input, select, textarea, li, td, th, label, div {
+  font-family: 'Figtree', system-ui, sans-serif;
+}
+
+h1, h2, h3, h4, h5, h6,
+.font-heading, .font-display {
+  font-family: 'Bricolage Grotesque', system-ui, sans-serif !important;
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-primary antialiased;
+  }
+}
+
+@layer components {
+  .btn {
+    @apply px-6 py-3 rounded-input font-medium transition-all duration-fast;
+  }
+
+  .btn-primary {
+    @apply btn bg-forest text-white hover:bg-sage;
+  }
+
+  .btn-secondary {
+    @apply btn bg-off-white text-text hover:bg-border;
+  }
+
+  .btn-outline {
+    @apply btn border-2 border-forest text-forest hover:bg-forest hover:text-white;
+  }
+
+  .input {
+    @apply w-full px-4 py-3 rounded-input border border-border bg-white text-text placeholder:text-subtle focus:outline-none focus:ring-2 focus:ring-mint transition-all duration-fast;
+  }
+
+  .card {
+    @apply bg-white rounded-card shadow-card p-6;
+  }
+
+  .badge {
+    @apply inline-flex items-center px-3 py-1 rounded-pill text-sm font-medium;
+  }
+
+  .badge-success {
+    @apply badge bg-pale-green text-forest;
+  }
+
+  .badge-warning {
+    @apply badge bg-gold/20 text-gold;
+  }
+
+  .badge-error {
+    @apply badge bg-coral/20 text-coral;
+  }
+
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+}

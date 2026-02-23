@@ -1,0 +1,51 @@
+from pydantic_settings import BaseSettings
+from typing import Optional
+
+
+class Settings(BaseSettings):
+    app_name: str = "Rezvo"
+    app_version: str = "1.0.0"
+    
+    mongodb_url: str
+    mongodb_db_name: str = "rezvo"
+    
+    jwt_secret_key: str
+    jwt_algorithm: str = "HS256"
+    jwt_access_token_expire_minutes: int = 60 * 24 * 7
+    
+    google_places_api_key: str
+    google_maps_api_key: str
+    google_geocoding_api_key: str
+    
+    stripe_secret_key: str
+    stripe_publishable_key: str
+    stripe_webhook_secret: str
+    
+    resend_api_key: Optional[str] = None
+    sendgrid_api_key: Optional[str] = None
+    
+    twilio_account_sid: Optional[str] = None
+    twilio_auth_token: Optional[str] = None
+    twilio_phone_number: Optional[str] = None
+    
+    aws_access_key_id: Optional[str] = None
+    aws_secret_access_key: Optional[str] = None
+    aws_s3_bucket: Optional[str] = None
+    aws_s3_region: Optional[str] = "eu-west-2"
+    
+    cloudflare_r2_access_key_id: Optional[str] = None
+    cloudflare_r2_secret_access_key: Optional[str] = None
+    cloudflare_r2_bucket: Optional[str] = None
+    cloudflare_r2_endpoint: Optional[str] = None
+    
+    frontend_url: str = "https://rezvo.app"
+    backend_url: str = "https://rezvo.app/api"
+    
+    environment: str = "production"
+
+    class Config:
+        env_file = ".env"
+        case_sensitive = False
+
+
+settings = Settings()

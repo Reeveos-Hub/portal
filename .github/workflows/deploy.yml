@@ -1,0 +1,70 @@
+name: Deploy Rezvo.app to Production
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy to DigitalOcean
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: 178.128.33.73
+          username: root
+          password: ${{ secrets.SERVER_PASSWORD }}
+          script: |
+            set -e
+
+            # First-time setup: clone repo if not exists
+            if [ ! -d "/opt/rezvo-app/.git" ]; then
+              echo "First deploy — cloning repo..."
+              git clone https://github.com/Ambassadorbtc/Rezvo.app.git /opt/rezvo-app
+            fi
+
+            cd /opt/rezvo-app
+            git pull origin main
+
+            # Backend: install deps
+            cd /opt/rezvo-app/backend
+            pip install -r requirements.txt -q 2>/dev/null || pip3 install -r requirements.txt -q
+
+            # Frontend: install + build
+            cd /opt/rezvo-app/frontend
+            npm install --silent
+            npm run build
+
+            # Systemd service for backend (create if missing)
+            if [ ! -f /etc/systemd/system/rezvo-backend.service ]; then
+              cat > /etc/systemd/system/rezvo-backend.service << 'SVCEOF'
+            [Unit]
+            Description=Rezvo Backend API
+            After=network.target mongod.service
+
+            [Service]
+            Type=simple
+            User=root
+            WorkingDirectory=/opt/rezvo-app/backend
+            ExecStart=/usr/bin/python3 server.py
+            Restart=always
+            RestartSec=10
+            Environment=PATH=/usr/local/bin:/usr/bin:/bin
+
+            [Install]
+            WantedBy=multi-user.target
+            SVCEOF
+              systemctl daemon-reload
+              systemctl enable rezvo-backend
+            fi
+
+            # Copy Nginx configs
+            cp /opt/rezvo-app/nginx.conf /etc/nginx/sites-available/rezvo-app
+            ln -sf /etc/nginx/sites-available/rezvo-app /etc/nginx/sites-enabled/rezvo-app
+
+            # Restart services
+            systemctl restart rezvo-backend
+            nginx -t && systemctl reload nginx
+
+            echo "✅ REZVO.APP DEPLOYMENT COMPLETE"

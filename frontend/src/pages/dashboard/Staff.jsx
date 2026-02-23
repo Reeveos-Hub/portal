@@ -1,0 +1,699 @@
+/**
+ * Run 5: Staff Management — team list, working hours, permissions, invites
+ */
+
+import { useState, useEffect } from 'react'
+import { useBusiness } from '../../contexts/BusinessContext'
+import api from '../../utils/api'
+import Card from '../../components/shared/Card'
+import Button from '../../components/shared/Button'
+import Input from '../../components/shared/Input'
+import { STAFF_TIER_LIMITS, PERMISSION_LABELS, DAY_LABELS, TIME_SLOTS } from '../../config/staff'
+import { TIER_ORDER, TIERS } from '../../config/tiers'
+import UpgradeModal from '../../components/layout/UpgradeModal'
+
+const DEFAULT_HOURS = {
+  mon: { active: true, start: '09:00', end: '17:00' },
+  tue: { active: true, start: '09:00', end: '17:00' },
+  wed: { active: true, start: '09:00', end: '17:00' },
+  thu: { active: true, start: '09:00', end: '17:00' },
+  fri: { active: true, start: '09:00', end: '17:00' },
+  sat: { active: false },
+  sun: { active: false },
+}
+
+const ROLES = ['Senior Stylist', 'Stylist', 'Junior Stylist', 'Receptionist', 'Manager', 'Custom']
+
+const Staff = () => {
+  const { business, tier } = useBusiness()
+  const [staff, setStaff] = useState([])
+  const [services, setServices] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
+  const [panel, setPanel] = useState(null) // { mode: 'add'|'edit', staff: {...} }
+  const [upgradeModal, setUpgradeModal] = useState(null)
+  const [saving, setSaving] = useState(false)
+  const [addSuccess, setAddSuccess] = useState(null)
+
+  const staffLimit = STAFF_TIER_LIMITS[tier] ?? STAFF_TIER_LIMITS.free
+  const atLimit = staff.length >= staffLimit
+  const canAdd = !atLimit
+
+  const fetchStaff = async () => {
+    if (!business?.id) return
+    try {
+      const res = await api.get(`/staff-v2/business/${business.id}`)
+      setStaff(res.staff || [])
+      setError(null)
+    } catch (err) {
+      setError(err.message || 'Failed to load staff')
+      setStaff([])
+    }
+  }
+
+  const fetchServices = async () => {
+    if (!business?.id) return
+    try {
+      const res = await api.get(`/services-v2/business/${business.id}`).catch(() => ({ categories: [] }))
+      const flat = (res.categories || []).flatMap((c) => (c.services || []).map((s) => ({ id: s.id, name: s.name, duration: s.duration })))
+      setServices(flat)
+    } catch {
+      setServices([])
+    }
+  }
+
+  useEffect(() => {
+    if (business?.id) {
+      setLoading(true)
+      Promise.all([fetchStaff(), fetchServices()]).finally(() => setLoading(false))
+    }
+  }, [business?.id])
+
+  const handleAddClick = () => {
+    if (!canAdd) {
+      const nextIdx = TIER_ORDER.indexOf(tier) + 1
+      const nextTier = TIER_ORDER[nextIdx] || 'scale'
+      const nextLimit = STAFF_TIER_LIMITS[nextTier] ?? 999
+      setUpgradeModal({
+        tierLabel: TIERS[nextTier]?.label || nextTier,
+        limit: staffLimit,
+        nextLimit,
+      })
+      return
+    }
+    setPanel({
+      mode: 'add',
+      staff: {
+        name: '',
+        email: '',
+        phone: '',
+        role: 'Stylist',
+        permissions: 'staff',
+        serviceIds: [],
+        workingHours: { ...JSON.parse(JSON.stringify(DEFAULT_HOURS)) },
+        timeOff: [],
+        sendInvite: true,
+      },
+    })
+    setAddSuccess(null)
+  }
+
+  const handleEditClick = (s) => {
+    setPanel({
+      mode: 'edit',
+      staff: {
+        ...s,
+        workingHours: s.workingHours ? { ...s.workingHours } : { ...JSON.parse(JSON.stringify(DEFAULT_HOURS)) },
+        timeOff: s.timeOff ? [...s.timeOff] : [],
+      },
+    })
+  }
+
+  const handleClosePanel = () => {
+    setPanel(null)
+    setAddSuccess(null)
+  }
+
+  const handleSave = async (formData) => {
+    if (!business?.id) return
+    setSaving(true)
+    try {
+      if (panel.mode === 'add') {
+        const payload = {
+          name: formData.name.trim(),
+          email: formData.email.trim(),
+          phone: formData.phone?.trim() || '',
+          role: formData.role || 'Staff',
+          permissions: formData.permissions || 'staff',
+          serviceIds: formData.serviceIds || [],
+          workingHours: formData.workingHours || DEFAULT_HOURS,
+          sendInvite: formData.sendInvite !== false,
+        }
+        await api.post(`/staff-v2/business/${business.id}`, payload)
+        setAddSuccess(`Invite sent to ${formData.email}`)
+        fetchStaff()
+        setTimeout(() => {
+          handleClosePanel()
+        }, 1500)
+      } else {
+        await api.put(`/staff-v2/business/${business.id}/${formData.id}`, {
+          name: formData.name.trim(),
+          phone: formData.phone?.trim() || '',
+          role: formData.role || 'Staff',
+          permissions: formData.permissions || 'staff',
+          serviceIds: formData.serviceIds || [],
+          workingHours: formData.workingHours,
+        })
+        if (formData.inviteStatus !== 'accepted') {
+          await api.put(`/staff-v2/business/${business.id}/${formData.id}`, { email: formData.email?.trim() })
+        }
+        fetchStaff()
+        handleClosePanel()
+      }
+    } catch (err) {
+      alert(err.message || 'Save failed')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const handleDelete = async (s) => {
+    if (!confirm(`Remove ${s.name}? They will no longer appear in the team.`)) return
+    try {
+      const res = await api.delete(`/staff-v2/business/${business.id}/${s.id}`)
+      if (res?.futureBookings > 0) {
+        const ok = confirm(res.warning + ' Continue anyway?')
+        if (!ok) return
+        await api.delete(`/staff-v2/business/${business.id}/${s.id}?confirm=true`)
+      }
+      fetchStaff()
+    } catch (err) {
+      alert(err.message || 'Delete failed')
+    }
+  }
+
+  const handleReinvite = async (s) => {
+    try {
+      await api.post(`/staff-v2/business/${business.id}/${s.id}/reinvite`)
+      fetchStaff()
+    } catch (err) {
+      alert(err.message || 'Resend failed')
+    }
+  }
+
+  if (loading && !staff.length) {
+    return (
+      <div className="text-center py-12">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto" />
+        <p className="mt-4 text-muted">Loading staff...</p>
+      </div>
+    )
+  }
+
+  return (
+    <div>
+      <div className="mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-heading font-bold mb-2">Staff</h1>
+          <p className="text-muted">
+            {staff.length} team {staff.length === 1 ? 'member' : 'members'}
+          </p>
+        </div>
+        <Button
+          variant="primary"
+          onClick={handleAddClick}
+          disabled={!canAdd}
+          className={!canAdd ? 'opacity-75' : ''}
+        >
+          {canAdd ? (
+            'Add Staff Member'
+          ) : (
+            <>
+              <i className="fa-solid fa-lock mr-2" />
+              Add Staff Member
+            </>
+          )}
+        </Button>
+      </div>
+
+      {error && (
+        <Card className="mb-6 border-red/30 bg-red/5">
+          <p className="text-red">{error}</p>
+        </Card>
+      )}
+
+      {staff.length === 0 ? (
+        <Card>
+          <p className="text-center text-muted py-12">
+            No staff members yet. Add your first team member!
+          </p>
+        </Card>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {staff.map((s) => (
+            <StaffCard
+              key={s.id}
+              staff={s}
+              onEdit={() => handleEditClick(s)}
+              onDelete={() => handleDelete(s)}
+              onReinvite={() => handleReinvite(s)}
+            />
+          ))}
+        </div>
+      )}
+
+      {panel && (
+        <StaffEditPanel
+          mode={panel.mode}
+          staff={panel.staff}
+          services={services}
+          businessId={business?.id}
+          onSave={handleSave}
+          onClose={handleClosePanel}
+          saving={saving}
+          addSuccess={addSuccess}
+        />
+      )}
+
+      {upgradeModal && (
+        <UpgradeModal
+          tierName={upgradeModal.tierLabel}
+          message={`Your plan allows ${upgradeModal.limit} staff. Upgrade for up to ${upgradeModal.nextLimit}.`}
+          onClose={() => setUpgradeModal(null)}
+          onViewPlans={() => setUpgradeModal(null)}
+        />
+      )}
+    </div>
+  )
+}
+
+const StaffCard = ({ staff, onEdit, onDelete, onReinvite }) => {
+  const initials = (staff.name || '?').split(' ').map((n) => n[0]).join('').slice(0, 2).toUpperCase()
+  const statusLabel =
+    staff.status === 'holiday'
+      ? 'On Holiday'
+      : staff.inviteStatus === 'pending'
+        ? 'Invite Pending'
+        : staff.isWorkingToday
+          ? 'Active'
+          : 'Off Today'
+  const statusClass =
+    staff.status === 'holiday'
+      ? 'bg-blue-100 text-blue-800'
+      : staff.inviteStatus === 'pending'
+        ? 'bg-amber-100 text-amber-800'
+        : staff.isWorkingToday
+          ? 'bg-green-100 text-green-800'
+          : 'bg-gray-100 text-gray-600'
+  const hoursText = staff.todayHours
+    ? `${staff.todayHours.start} - ${staff.todayHours.end}`
+    : 'Not working today'
+
+  return (
+    <Card>
+      <div className="flex gap-4">
+        <div className="w-16 h-16 rounded-full bg-primary/20 flex items-center justify-center shrink-0 overflow-hidden">
+          {staff.avatar ? (
+            <img src={staff.avatar} alt="" className="w-full h-full object-cover" />
+          ) : (
+            <span className="text-xl font-semibold text-primary">{initials}</span>
+          )}
+        </div>
+        <div className="min-w-0 flex-1">
+          <h3 className="font-semibold text-lg truncate">{staff.name}</h3>
+          <p className="text-sm text-muted truncate">{staff.role}</p>
+          <span
+            className={`inline-block mt-2 px-2 py-0.5 rounded-full text-xs font-medium ${statusClass}`}
+          >
+            {statusLabel}
+          </span>
+          <p className="text-sm text-muted mt-2">{hoursText}</p>
+          <p className="text-sm text-muted">
+            {staff.bookingsToday ?? 0} bookings today
+          </p>
+          {staff.inviteStatus === 'pending' && (
+            <button
+              onClick={onReinvite}
+              className="text-sm text-primary hover:underline mt-1"
+            >
+              Resend invite
+            </button>
+          )}
+          <div className="flex gap-2 mt-3">
+            <button
+              onClick={onEdit}
+              className="p-2 text-muted hover:text-primary hover:bg-primary/10 rounded-lg transition-colors"
+              title="Edit"
+            >
+              <i className="fa-solid fa-pencil text-sm" />
+            </button>
+            <button
+              onClick={() => (window.location.href = '/dashboard/calendar')}
+              className="p-2 text-muted hover:text-primary hover:bg-primary/10 rounded-lg transition-colors"
+              title="Schedule"
+            >
+              <i className="fa-solid fa-calendar text-sm" />
+            </button>
+            {staff.permissions !== 'owner' && (
+              <button
+                onClick={onDelete}
+                className="p-2 text-muted hover:text-red hover:bg-red/10 rounded-lg transition-colors"
+                title="Delete"
+              >
+                <i className="fa-solid fa-trash text-sm" />
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+    </Card>
+  )
+}
+
+const StaffEditPanel = ({ mode, staff, services, businessId, onSave, onClose, saving, addSuccess }) => {
+  const [form, setForm] = useState(staff)
+  const [timeOffForm, setTimeOffForm] = useState({ startDate: '', endDate: '', reason: '' })
+  const [showTimeOffForm, setShowTimeOffForm] = useState(false)
+
+  useEffect(() => {
+    setForm(staff)
+  }, [staff])
+
+  const update = (key, value) => setForm((f) => ({ ...f, [key]: value }))
+  const updateHours = (day, field, value) => {
+    setForm((f) => {
+      const wh = { ...(f.workingHours || {}), [day]: { ...(f.workingHours?.[day] || {}), [field]: value } }
+      return { ...f, workingHours: wh }
+    })
+  }
+
+  const copyToAllDays = () => {
+    const firstActive = Object.entries(form.workingHours || {}).find(([, d]) => d?.active)
+    if (!firstActive) return
+    const [_, val] = firstActive
+    const start = val?.start || '09:00'
+    const end = val?.end || '17:00'
+    const wh = {}
+    for (const d of Object.keys(DAY_LABELS)) {
+      wh[d] = { ...(form.workingHours?.[d] || {}), active: true, start, end }
+    }
+    update('workingHours', wh)
+  }
+
+  const toggleService = (id) => {
+    const ids = form.serviceIds || []
+    update('serviceIds', ids.includes(id) ? ids.filter((x) => x !== id) : [...ids, id])
+  }
+
+  const addTimeOff = async () => {
+    if (!timeOffForm.startDate || !timeOffForm.endDate) return
+    if (!businessId || !form.id) return
+    try {
+      const updated = await api.post(
+        `/staff-v2/business/${businessId}/${form.id}/time-off`,
+        timeOffForm
+      )
+      setForm((f) => ({ ...f, timeOff: updated.timeOff || f.timeOff || [] }))
+      setTimeOffForm({ startDate: '', endDate: '', reason: '' })
+      setShowTimeOffForm(false)
+    } catch (err) {
+      alert(err.message || 'Failed to add time off')
+    }
+  }
+
+  const removeTimeOff = async (toId) => {
+    if (!businessId || !form.id) return
+    try {
+      const updated = await api.delete(
+        `/staff-v2/business/${businessId}/${form.id}/time-off/${toId}`
+      )
+      setForm((f) => ({ ...f, timeOff: updated.timeOff || (f.timeOff || []).filter((t) => t.id !== toId) }))
+    } catch (err) {
+      alert(err.message || 'Failed to remove time off')
+    }
+  }
+
+  const isMobile = typeof window !== 'undefined' && window.innerWidth < 768
+
+  return (
+    <div
+      className={`fixed inset-0 z-50 flex ${isMobile ? 'items-stretch' : 'items-center justify-end'}`}
+      aria-modal="true"
+    >
+      <div
+        className="absolute inset-0 bg-black/40"
+        onClick={onClose}
+        aria-hidden="true"
+      />
+      <div
+        className={`relative bg-white shadow-xl overflow-y-auto ${
+          isMobile ? 'w-full max-h-full' : 'w-full max-w-[400px] h-full max-h-screen'
+        }`}
+      >
+        <div className="sticky top-0 bg-white border-b border-border px-6 py-4 flex items-center justify-between z-10">
+          <h2 className="text-xl font-heading font-bold">
+            {mode === 'add' ? 'Add Staff Member' : 'Edit Staff Member'}
+          </h2>
+          <button onClick={onClose} className="p-2 text-muted hover:text-primary rounded-lg">
+            <i className="fa-solid fa-times text-lg" />
+          </button>
+        </div>
+
+        <div className="p-6 space-y-6">
+          {addSuccess && (
+            <p className="text-green-600 text-sm font-medium">{addSuccess}</p>
+          )}
+
+          {/* Avatar */}
+          <div className="flex flex-col items-center">
+            <div className="w-24 h-24 rounded-full bg-primary/20 flex items-center justify-center overflow-hidden relative">
+              {form.avatar ? (
+                <img src={form.avatar} alt="" className="w-full h-full object-cover" />
+              ) : (
+                <span className="text-3xl font-semibold text-primary">
+                  {(form.name || '?').slice(0, 2).toUpperCase()}
+                </span>
+              )}
+              <button
+                className="absolute bottom-0 right-0 w-8 h-8 bg-primary text-white rounded-full flex items-center justify-center text-sm"
+                title="Upload (placeholder)"
+              >
+                <i className="fa-solid fa-camera" />
+              </button>
+            </div>
+          </div>
+
+          {/* Details */}
+          <Input
+            label="Name"
+            value={form.name || ''}
+            onChange={(e) => update('name', e.target.value)}
+          />
+          <Input
+            label="Email"
+            type="email"
+            value={form.email || ''}
+            onChange={(e) => update('email', e.target.value)}
+            readOnly={form.inviteStatus === 'accepted'}
+          />
+          <Input
+            label="Phone"
+            value={form.phone || ''}
+            onChange={(e) => update('phone', e.target.value)}
+          />
+          <div>
+            <label className="block text-sm font-medium text-text mb-2">Role</label>
+            <select
+              className="input w-full"
+              value={form.role || ''}
+              onChange={(e) => update('role', e.target.value)}
+            >
+              {ROLES.map((r) => (
+                <option key={r} value={r}>
+                  {r}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-text mb-2">Permissions</label>
+            <select
+              className="input w-full"
+              value={form.permissions || 'staff'}
+              onChange={(e) => update('permissions', e.target.value)}
+            >
+              {Object.entries(PERMISSION_LABELS).map(([k, v]) => (
+                <option key={k} value={k}>
+                  {v}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Working Hours */}
+          <div>
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="font-semibold">Working Hours</h3>
+              <button
+                type="button"
+                onClick={copyToAllDays}
+                className="text-sm text-primary hover:underline"
+              >
+                Copy to all days
+              </button>
+            </div>
+            <div className="space-y-2">
+              {Object.entries(DAY_LABELS).map(([key, label]) => {
+                const d = form.workingHours?.[key] || {}
+                const active = d.active !== false
+                return (
+                  <div key={key} className="flex items-center gap-2 flex-wrap">
+                    <span className="w-24 text-sm">{label}</span>
+                    <label className="flex items-center gap-1">
+                      <input
+                        type="checkbox"
+                        checked={active}
+                        onChange={(e) => updateHours(key, 'active', e.target.checked)}
+                      />
+                      <span className="text-sm">On</span>
+                    </label>
+                    {active && (
+                      <>
+                        <select
+                          className="input py-1.5 text-sm flex-1 min-w-0"
+                          value={d.start || '09:00'}
+                          onChange={(e) => updateHours(key, 'start', e.target.value)}
+                        >
+                          {TIME_SLOTS.map((t) => (
+                            <option key={t} value={t}>
+                              {t}
+                            </option>
+                          ))}
+                        </select>
+                        <span className="text-muted">–</span>
+                        <select
+                          className="input py-1.5 text-sm flex-1 min-w-0"
+                          value={d.end || '17:00'}
+                          onChange={(e) => updateHours(key, 'end', e.target.value)}
+                        >
+                          {TIME_SLOTS.map((t) => (
+                            <option key={t} value={t}>
+                              {t}
+                            </option>
+                          ))}
+                        </select>
+                      </>
+                    )}
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+
+          {/* Services */}
+          {services.length > 0 && (
+            <div>
+              <div className="flex gap-2 mb-2">
+                <button
+                  type="button"
+                  className="text-sm text-primary hover:underline"
+                  onClick={() => update('serviceIds', services.map((s) => s.id))}
+                >
+                  Select All
+                </button>
+                <button
+                  type="button"
+                  className="text-sm text-primary hover:underline"
+                  onClick={() => update('serviceIds', [])}
+                >
+                  Deselect All
+                </button>
+              </div>
+              <div className="space-y-1 max-h-32 overflow-y-auto">
+                {services.map((s) => (
+                  <label key={s.id} className="flex items-center gap-2 text-sm">
+                    <input
+                      type="checkbox"
+                      checked={(form.serviceIds || []).includes(s.id)}
+                      onChange={() => toggleService(s.id)}
+                    />
+                    {s.name}
+                    {s.duration && <span className="text-muted">({s.duration} min)</span>}
+                  </label>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Time Off (edit only - staff must exist first) */}
+          {mode === 'edit' && form.id && (
+          <div>
+            <h3 className="font-semibold mb-2">Time Off</h3>
+            {(form.timeOff || []).map((t) => (
+              <div
+                key={t.id}
+                className="flex items-center justify-between py-2 border-b border-border last:border-0"
+              >
+                <span className="text-sm">
+                  {t.startDate} – {t.endDate}
+                  {t.reason && ` (${t.reason})`}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => removeTimeOff(t.id)}
+                  className="text-red hover:underline text-sm"
+                >
+                  Delete
+                </button>
+              </div>
+            ))}
+            {showTimeOffForm ? (
+              <div className="mt-2 p-3 border border-border rounded-lg space-y-2">
+                <Input
+                  label="Start"
+                  type="date"
+                  value={timeOffForm.startDate}
+                  onChange={(e) => setTimeOffForm((f) => ({ ...f, startDate: e.target.value }))}
+                />
+                <Input
+                  label="End"
+                  type="date"
+                  value={timeOffForm.endDate}
+                  onChange={(e) => setTimeOffForm((f) => ({ ...f, endDate: e.target.value }))}
+                />
+                <Input
+                  label="Reason"
+                  value={timeOffForm.reason}
+                  onChange={(e) => setTimeOffForm((f) => ({ ...f, reason: e.target.value }))}
+                />
+                <div className="flex gap-2">
+                  <Button size="sm" onClick={addTimeOff}>
+                    Add
+                  </Button>
+                  <button
+                    type="button"
+                    className="text-sm text-muted hover:underline"
+                    onClick={() => setShowTimeOffForm(false)}
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <button
+                type="button"
+                onClick={() => setShowTimeOffForm(true)}
+                className="text-sm text-primary hover:underline mt-1"
+              >
+                + Add Time Off
+              </button>
+            )}
+          </div>
+          )}
+
+          {mode === 'add' && (
+            <label className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                checked={form.sendInvite !== false}
+                onChange={(e) => update('sendInvite', e.target.checked)}
+              />
+              <span className="text-sm">Send email invite</span>
+            </label>
+          )}
+        </div>
+
+        <div className="sticky bottom-0 bg-white border-t border-border px-6 py-4 flex gap-3">
+          <Button variant="primary" onClick={() => onSave(form)} disabled={saving}>
+            {saving ? 'Saving...' : 'Save Changes'}
+          </Button>
+          <button onClick={onClose} className="text-sm text-muted hover:text-primary py-2">
+            Cancel
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+export default Staff
