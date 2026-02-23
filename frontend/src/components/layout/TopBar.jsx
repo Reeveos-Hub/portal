@@ -1,15 +1,14 @@
 /**
- * TopBar — Clean minimal style matching sidebar
- * Rezvo locked brand tokens
+ * Run 1: Top bar — page title, date, notifications, avatar, dev toggle, hamburger
  */
 
 import { useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../contexts/AuthContext'
 import { useBusiness } from '../../contexts/BusinessContext'
-import { Bell, Menu, X, LogOut } from 'lucide-react'
+import { getNavItems } from '../../config/navigation'
 
 const PAGE_TITLES = {
-  '/dashboard': 'Overview',
+  '/dashboard': 'Home Dashboard',
   '/dashboard/calendar': 'Calendar',
   '/dashboard/bookings': 'Bookings',
   '/dashboard/booking-link': 'Booking Link',
@@ -40,60 +39,71 @@ const TopBar = ({ onMenuClick, sidebarOpen }) => {
     month: 'long',
   })
 
+  const initials = user?.name
+    ? user.name.split(' ').map((n) => n[0]).join('').toUpperCase().slice(0, 2)
+    : '?'
+
   return (
-    <header className="h-16 bg-white border-b border-[#F0EDE7] sticky top-0 z-10 flex items-center justify-between px-4 lg:px-6 shrink-0">
+    <header className="h-16 bg-white border-b border-border sticky top-0 z-10 flex items-center justify-between px-4 lg:px-6 shrink-0">
       <div className="flex items-center gap-4">
         {/* Hamburger (mobile) */}
         <button
           onClick={onMenuClick}
-          className="lg:hidden w-9 h-9 rounded-lg flex items-center justify-center text-[#7A776F] hover:text-[#1B4332] hover:bg-[#F0EDE7] transition-all"
+          className="lg:hidden p-2 -ml-2 text-primary hover:bg-border rounded-lg transition-colors"
           aria-label="Toggle menu"
         >
-          {sidebarOpen ? <X size={20} /> : <Menu size={20} />}
+          <i className={`fa-solid ${sidebarOpen ? 'fa-xmark' : 'fa-bars'} text-lg`} />
         </button>
 
         <div>
-          <h1 className="text-[20px] font-bold text-[#2C2C2A] tracking-[-0.01em]">
+          <h1 className="font-heading text-[22px] font-bold text-primary">
             {pageTitle}
           </h1>
-          <p className="text-[12px] text-[#7A776F] font-medium">{today}</p>
+          <p className="font-body text-xs text-muted">{today}</p>
         </div>
       </div>
 
-      <div className="flex items-center gap-2">
-        {/* Dev toggles */}
+      <div className="flex items-center gap-3">
+        {/* Dev toggle — remove before launch */}
         {import.meta.env.DEV && (
-          <div className="hidden sm:flex items-center gap-1.5 pr-3 border-r border-[#E8E4DD]">
+          <div className="hidden sm:flex items-center gap-2 pr-3 border-r border-border">
             <button
               onClick={() => setBusinessType(businessType === 'restaurant' ? 'services' : 'restaurant')}
-              className="text-[11px] px-2 py-1 rounded-md bg-[#F0EDE7] text-[#7A776F] hover:bg-[#1B4332] hover:text-[#FAF7F2] transition-colors font-medium"
+              className="text-xs px-2 py-1 rounded bg-border text-muted hover:bg-primary hover:text-white transition-colors"
             >
               {businessType === 'restaurant' ? '🍴' : '✂️'} {businessType}
             </button>
             <button
               onClick={cycleTier}
-              className="text-[11px] px-2 py-1 rounded-md bg-[#F0EDE7] text-[#7A776F] hover:bg-[#1B4332] hover:text-[#FAF7F2] transition-colors font-medium"
+              className="text-xs px-2 py-1 rounded bg-border text-muted hover:bg-primary hover:text-white transition-colors"
             >
-              {tier}
+              Tier: {tier}
             </button>
           </div>
         )}
 
         <button
-          className="relative w-9 h-9 rounded-lg flex items-center justify-center text-[#7A776F] hover:text-[#2C2C2A] hover:bg-[#F0EDE7] transition-all"
+          className="relative p-2 text-muted hover:text-primary hover:bg-border rounded-lg transition-colors"
           aria-label="Notifications"
         >
-          <Bell size={18} strokeWidth={1.5} />
-          <span className="absolute top-2 right-2 w-2 h-2 rounded-full bg-[#991B1B] ring-2 ring-white" />
+          <i className="fa-solid fa-bell text-lg" />
+          <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-error" aria-hidden="true" />
         </button>
 
-        <button
-          onClick={() => { logout?.(); navigate('/login') }}
-          className="hidden sm:flex w-9 h-9 rounded-lg items-center justify-center text-[#7A776F] hover:text-[#2C2C2A] hover:bg-[#F0EDE7] transition-all"
-          title="Log out"
-        >
-          <LogOut size={18} strokeWidth={1.5} />
-        </button>
+        <div className="flex items-center gap-3 pl-2 border-l border-border">
+          <div className="w-[34px] h-[34px] rounded-full bg-primary flex items-center justify-center text-background font-semibold text-sm">
+            {initials}
+          </div>
+          <button
+            onClick={() => {
+              logout?.()
+              navigate('/login')
+            }}
+            className="hidden sm:block text-sm text-muted hover:text-primary"
+          >
+            Log out
+          </button>
+        </div>
       </div>
     </header>
   )
