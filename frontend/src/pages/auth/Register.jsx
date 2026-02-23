@@ -1,9 +1,11 @@
+/**
+ * Register — split layout matching Login page design
+ * Left: brand hero / Right: signup form
+ */
 import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { useAuth } from '../../contexts/AuthContext'
-import { isRezvoApp } from '../../utils/domain'
-import Input from '../../components/shared/Input'
-import Button from '../../components/shared/Button'
+import { Eye, EyeOff, UtensilsCrossed, User, Building2, ArrowRight } from 'lucide-react'
 
 const Register = () => {
   const [formData, setFormData] = useState({
@@ -11,20 +13,16 @@ const Register = () => {
     email: '',
     password: '',
     confirmPassword: '',
-    role: 'diner'
+    role: 'owner'
   })
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
-  
+  const [showPw, setShowPw] = useState(false)
+
   const { register } = useAuth()
   const navigate = useNavigate()
 
-  const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value
-    })
-  }
+  const update = (key, val) => setFormData((p) => ({ ...p, [key]: val }))
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -34,140 +32,204 @@ const Register = () => {
       setError('Passwords do not match')
       return
     }
+    if (formData.password.length < 6) {
+      setError('Password must be at least 6 characters')
+      return
+    }
 
     setLoading(true)
-
     const result = await register({
       name: formData.name,
       email: formData.email,
       password: formData.password,
       role: formData.role
     })
-    
+
     if (result.success) {
-      if (formData.role === 'owner') {
-        navigate('/onboarding')
-      } else {
-        if (isRezvoApp()) window.location.href = '/' // Marketing site, not directory
-        else navigate('/')
-      }
+      navigate(formData.role === 'owner' ? '/onboarding' : '/dashboard')
     } else {
       setError(result.error)
     }
-    
     setLoading(false)
   }
 
   return (
-    <div className="min-h-screen bg-cream flex items-center justify-center px-4">
-      <div className="max-w-md w-full">
-        <div className="text-center mb-8">
-          <Link to="/">
-            <h1 className="text-4xl font-heading font-bold text-forest">Rezvo</h1>
-          </Link>
-          <p className="mt-2 text-text-secondary">Create your account</p>
+    <div className="min-h-screen flex flex-col lg:flex-row overflow-hidden">
+      {/* Left: Brand Hero */}
+      <section className="hidden lg:flex lg:w-1/2 xl:w-7/12 bg-primary relative overflow-hidden flex-col justify-between p-12 text-white h-screen">
+        <div className="absolute inset-0 bg-gradient-to-t from-[#1B4332] via-[#1B4332]/80 to-[#1B4332]/40 z-0" />
+
+        {/* Logo */}
+        <div className="relative z-10 flex items-center gap-3">
+          <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center">
+            <span className="text-primary font-heading font-bold text-lg">R</span>
+          </div>
+          <span className="font-heading font-bold text-2xl tracking-tight">Rezvo</span>
         </div>
 
-        <div className="bg-white rounded-card shadow-card p-8">
-          <form onSubmit={handleSubmit} className="space-y-6">
-            {error && (
-              <div className="bg-red/10 border border-red rounded-lg p-4">
-                <p className="text-sm text-red">{error}</p>
+        {/* Testimonial */}
+        <div className="relative z-10 max-w-xl mb-12">
+          <div className="flex gap-1 mb-6 text-yellow-400">
+            {[1,2,3,4,5].map(i => <i key={i} className="fa-solid fa-star" />)}
+          </div>
+          <h2 className="font-heading text-4xl xl:text-5xl font-bold leading-tight mb-6">
+            "We switched from OpenTable and saved over £800 a month. Setup took 5 minutes."
+          </h2>
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center text-white font-bold text-lg">MK</div>
+            <div>
+              <p className="font-bold text-lg">Marcus Kennedy</p>
+              <p className="text-white/70 text-sm">Owner, The Kitchen Nottingham</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Stats */}
+        <div className="relative z-10 grid grid-cols-3 gap-6">
+          {[
+            { num: '2,400+', label: 'Businesses' },
+            { num: '£0', label: 'Commission' },
+            { num: '5 min', label: 'Setup' },
+          ].map((s) => (
+            <div key={s.label}>
+              <div className="text-2xl font-extrabold">{s.num}</div>
+              <div className="text-white/50 text-sm">{s.label}</div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* Right: Register Form */}
+      <section className="flex-1 flex items-center justify-center px-6 py-12 lg:px-12 bg-background">
+        <div className="w-full max-w-md">
+          {/* Mobile logo */}
+          <div className="lg:hidden flex items-center gap-2.5 mb-8">
+            <div className="w-9 h-9 rounded-lg bg-primary flex items-center justify-center">
+              <span className="text-background font-heading font-bold text-sm">R</span>
+            </div>
+            <span className="font-heading font-bold text-primary text-xl">Rezvo</span>
+          </div>
+
+          <h1 className="text-3xl font-heading font-extrabold text-primary mb-1">Create your account</h1>
+          <p className="text-gray-500 mb-8 font-body text-sm">
+            Already have an account?{' '}
+            <Link to="/login" className="text-primary font-semibold hover:underline">Log in</Link>
+          </p>
+
+          {error && (
+            <div className="mb-6 px-4 py-3 bg-red-50 border border-red-200 rounded-xl text-red-700 text-sm font-medium">
+              {error}
+            </div>
+          )}
+
+          <form onSubmit={handleSubmit} className="space-y-5">
+            {/* Role selector */}
+            <div>
+              <label className="block text-sm font-bold text-primary mb-2">I am a...</label>
+              <div className="grid grid-cols-2 gap-3">
+                {[
+                  { value: 'owner', label: 'Business Owner', desc: 'Manage bookings', Icon: Building2 },
+                  { value: 'diner', label: 'Diner', desc: 'Book venues', Icon: User },
+                ].map((opt) => (
+                  <button
+                    key={opt.value}
+                    type="button"
+                    onClick={() => update('role', opt.value)}
+                    className={`p-4 rounded-xl border-2 text-left transition-all duration-200 ${
+                      formData.role === opt.value
+                        ? 'border-primary bg-primary/[0.04]'
+                        : 'border-border bg-white hover:border-primary/30'
+                    }`}
+                  >
+                    <opt.Icon size={20} className={formData.role === opt.value ? 'text-primary' : 'text-gray-400'} />
+                    <p className="font-bold text-primary text-sm mt-2">{opt.label}</p>
+                    <p className="text-gray-400 text-xs">{opt.desc}</p>
+                  </button>
+                ))}
               </div>
-            )}
+            </div>
 
             <div>
-              <label className="block text-sm font-medium text-text mb-2">
-                I am a
-              </label>
-              <div className="grid grid-cols-2 gap-4">
+              <label className="block text-sm font-bold text-primary mb-1.5">Full Name</label>
+              <input
+                type="text"
+                required
+                value={formData.name}
+                onChange={(e) => update('name', e.target.value)}
+                placeholder="John Smith"
+                className="w-full px-4 py-3 border border-border rounded-xl text-sm font-medium text-primary bg-white focus:ring-2 focus:ring-primary/15 focus:border-primary outline-none transition-all"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-bold text-primary mb-1.5">Email</label>
+              <input
+                type="email"
+                required
+                value={formData.email}
+                onChange={(e) => update('email', e.target.value)}
+                placeholder="you@example.com"
+                className="w-full px-4 py-3 border border-border rounded-xl text-sm font-medium text-primary bg-white focus:ring-2 focus:ring-primary/15 focus:border-primary outline-none transition-all"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-bold text-primary mb-1.5">Password</label>
+              <div className="relative">
+                <input
+                  type={showPw ? 'text' : 'password'}
+                  required
+                  value={formData.password}
+                  onChange={(e) => update('password', e.target.value)}
+                  placeholder="At least 6 characters"
+                  className="w-full px-4 py-3 border border-border rounded-xl text-sm font-medium text-primary bg-white focus:ring-2 focus:ring-primary/15 focus:border-primary outline-none transition-all pr-12"
+                />
                 <button
                   type="button"
-                  onClick={() => setFormData({ ...formData, role: 'diner' })}
-                  className={`p-4 rounded-lg border-2 transition-colors ${
-                    formData.role === 'diner'
-                      ? 'border-forest bg-forest-30/20'
-                      : 'border-border hover:border-sage'
-                  }`}
+                  onClick={() => setShowPw(!showPw)}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-primary"
                 >
-                  <p className="font-medium text-text">Diner</p>
-                  <p className="text-sm text-text-secondary">Book services</p>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setFormData({ ...formData, role: 'owner' })}
-                  className={`p-4 rounded-lg border-2 transition-colors ${
-                    formData.role === 'owner'
-                      ? 'border-forest bg-forest-30/20'
-                      : 'border-border hover:border-sage'
-                  }`}
-                >
-                  <p className="font-medium text-text">Business Owner</p>
-                  <p className="text-sm text-text-secondary">Manage business</p>
+                  {showPw ? <EyeOff size={18} /> : <Eye size={18} />}
                 </button>
               </div>
             </div>
 
-            <Input
-              label="Full Name"
-              type="text"
-              name="name"
-              value={formData.name}
-              onChange={handleChange}
-              required
-              placeholder="John Smith"
-            />
+            <div>
+              <label className="block text-sm font-bold text-primary mb-1.5">Confirm Password</label>
+              <input
+                type="password"
+                required
+                value={formData.confirmPassword}
+                onChange={(e) => update('confirmPassword', e.target.value)}
+                placeholder="Repeat your password"
+                className="w-full px-4 py-3 border border-border rounded-xl text-sm font-medium text-primary bg-white focus:ring-2 focus:ring-primary/15 focus:border-primary outline-none transition-all"
+              />
+            </div>
 
-            <Input
-              label="Email"
-              type="email"
-              name="email"
-              value={formData.email}
-              onChange={handleChange}
-              required
-              placeholder="your@email.com"
-            />
-
-            <Input
-              label="Password"
-              type="password"
-              name="password"
-              value={formData.password}
-              onChange={handleChange}
-              required
-              placeholder="••••••••"
-            />
-
-            <Input
-              label="Confirm Password"
-              type="password"
-              name="confirmPassword"
-              value={formData.confirmPassword}
-              onChange={handleChange}
-              required
-              placeholder="••••••••"
-            />
-
-            <Button
+            <button
               type="submit"
-              variant="primary"
-              className="w-full"
-              loading={loading}
+              disabled={loading}
+              className="w-full py-3.5 bg-primary text-white font-bold rounded-xl hover:bg-primary-hover transition-all shadow-lg disabled:opacity-50 text-sm flex items-center justify-center gap-2"
             >
-              Create account
-            </Button>
+              {loading ? (
+                <span className="flex items-center gap-2">
+                  <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  Creating account...
+                </span>
+              ) : (
+                <>Create Account <ArrowRight size={16} /></>
+              )}
+            </button>
           </form>
 
-          <div className="mt-6 text-center">
-            <p className="text-text-secondary">
-              Already have an account?{' '}
-              <Link to="/login" className="text-forest hover:text-forest-90 font-medium">
-                Log in
-              </Link>
-            </p>
-          </div>
+          <p className="text-xs text-gray-400 mt-6 text-center font-body">
+            By signing up you agree to our{' '}
+            <a href="https://rezvo.co.uk/terms" className="underline hover:text-primary" target="_blank" rel="noreferrer">Terms</a>
+            {' '}and{' '}
+            <a href="https://rezvo.co.uk/privacy" className="underline hover:text-primary" target="_blank" rel="noreferrer">Privacy Policy</a>
+          </p>
         </div>
-      </div>
+      </section>
     </div>
   )
 }
