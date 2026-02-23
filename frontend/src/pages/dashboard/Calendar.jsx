@@ -19,7 +19,7 @@ const STATUS_COLORS = {
 }
 
 const Calendar = () => {
-  const { business, businessType } = useBusiness()
+  const { business, businessType, isDemo } = useBusiness()
   const [selectedDate, setSelectedDate] = useState(() => new Date().toISOString().slice(0, 10))
   const [view, setView] = useState('day')
   const [data, setData] = useState(null)
@@ -31,7 +31,7 @@ const Calendar = () => {
   const bid = business?.id ?? business?._id
 
   useEffect(() => {
-    if (!bid) { setLoading(false); return }
+    if (!bid || isDemo) { setLoading(false); setData({ staff: [], bookings: [] }); return }
     setLoading(true)
     setError(null)
     const endpoint = isRestaurant

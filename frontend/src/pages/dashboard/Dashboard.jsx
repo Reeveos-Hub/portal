@@ -10,7 +10,7 @@ import { useAuth } from '../../contexts/AuthContext'
 import api from '../../utils/api'
 
 const Dashboard = () => {
-  const { business } = useBusiness()
+  const { business, isDemo } = useBusiness()
   const { user } = useAuth()
   const navigate = useNavigate()
   const [summary, setSummary] = useState(null)
@@ -20,7 +20,7 @@ const Dashboard = () => {
 
   const fetchAll = async () => {
     const bid = business?.id ?? business?._id
-    if (!bid) {
+    if (!bid || isDemo) {
       setLoading(false)
       return
     }

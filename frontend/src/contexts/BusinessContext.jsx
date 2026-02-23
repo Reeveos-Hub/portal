@@ -48,6 +48,7 @@ export const BusinessProvider = ({ children }) => {
       setDevTierOverride(next)
     }
 
+    const isDemo = !business
     const displayBusiness = business || {
       id: 'demo-001',
       name: businessType === 'restaurant' ? 'The Oak Kitchen' : 'Luxe Hair Studio',
@@ -61,6 +62,7 @@ export const BusinessProvider = ({ children }) => {
       business: displayBusiness,
       businessType,
       tier,
+      isDemo,
       setBusinessType,
       cycleTier,
       loading: tierCtx?.loading ?? false,
