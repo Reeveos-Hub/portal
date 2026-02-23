@@ -501,11 +501,10 @@ const Settings = () => {
             <div className="mt-4">
               <label className="block text-sm font-bold text-primary mb-1.5">Booking page URL</label>
               <p className="text-sm text-gray-500 mb-1">{getDomainConfig().baseUrl}/book/</p>
-              <Input
-                value={biz.slug || ''}
-                onChange={(e) => updateBusiness('slug', e.target.value.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, ''))}
+              <input value={biz.slug || ""}
+                onChange={(e) => updateBusiness("slug", e.target.value.toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, ""))}
                 placeholder="your-business"
-              />
+                className="w-full px-3 py-2.5 border border-border rounded-lg text-sm font-medium text-primary focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none bg-white" />
             </div>
             <div className="mt-6">
               <button onClick={saveBusiness}
@@ -777,8 +776,9 @@ const Settings = () => {
                   <p className="text-gray-500">{p.price != null ? `£${p.price}/mo` : 'Contact us'}</p>
                   {subscription?.tier !== p.tier && (
                     <button
-              className="bg-primary text-white font-bold text-sm px-3 py-1.5 rounded-lg shadow-lg hover:bg-primary-hover transition-colors mt-2">
-              changePlan(p.tier)}>
+                      className="bg-primary text-white font-bold text-sm px-3 py-1.5 rounded-lg shadow-lg hover:bg-primary-hover transition-colors mt-2"
+                      onClick={() => changePlan(p.tier)}
+                    >
                       {PLANS.findIndex((x) => x.tier === p.tier) > PLANS.findIndex((x) => x.tier === subscription?.tier) ? 'Upgrade' : 'Downgrade'}
             </button>
                   )}

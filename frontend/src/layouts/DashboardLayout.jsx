@@ -63,18 +63,9 @@ const DashboardLayout = () => {
 
   return (
     <div className="h-screen flex overflow-hidden bg-background">
-      {/* Mobile backdrop */}
-      {sidebarOpen && (
-        <div
-          className="fixed inset-0 bg-black/50 z-30 lg:hidden"
-          onClick={() => setSidebarOpen(false)}
-          aria-hidden="true"
-        />
-      )}
-
       <Sidebar open={sidebarOpen} onNavigate={() => setSidebarOpen(false)} />
 
-      <div className="flex-1 flex flex-col overflow-hidden min-w-0">
+      <div className="flex-1 flex flex-col overflow-hidden min-w-0 transition-all duration-300 ease-[cubic-bezier(0.25,0.1,0.25,1)]">
         <TopBar
           onMenuClick={() => setSidebarOpen((o) => !o)}
           sidebarOpen={sidebarOpen}
