@@ -149,3 +149,34 @@ async def notify_business(business_id: str):
     )
     
     return {"detail": "Notification recorded"}
+
+@router.get("/home")
+async def get_home_page():
+    """Homepage data: trending, featured, categories summary"""
+    db = get_database()
+    
+    # Get featured/promoted businesses
+    trending = await db.businesses.find(
+        {"$or": [{"promoted": True}, {"rating": {"$gte": 4.0}}]}
+    ).sort("rating", -1).limit(12).to_list(length=None)
+    
+    # Get category counts
+    pipeline = [
+        {"$group": {"_id": "$category", "count": {"$sum": 1}}},
+        {"$sort": {"count": -1}}
+    ]
+    category_counts = await db.businesses.aggregate(pipeline).to_list(length=None)
+    
+    # Get location counts  
+    loc_pipeline = [
+        {"$group": {"_id": "$city", "count": {"$sum": 1}}},
+        {"$sort": {"count": -1}},
+        {"$limit": 12}
+    ]
+    location_counts = await db.businesses.aggregate(loc_pipeline).to_list(length=None)
+    
+    return {
+        "trending": trending,
+        "categories": category_counts,
+        "locations": location_counts
+    }
