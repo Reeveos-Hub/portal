@@ -1,54 +1,75 @@
 /**
- * Run 2: Business hero — cover, logo, name, rating, address, open badge
- * Run 6: Supports description and accentColour from booking page editor
+ * Booking page header — business identity, address, open badge
+ * Mobile-first, Lucide icons, Figtree font
  */
+
+import { MapPin, Store } from 'lucide-react'
 
 const BookingHeader = ({ business }) => {
   if (!business) return null
   const accent = business.accentColour || '#1B4332'
 
   return (
-    <div className="mb-6">
+    <div className="mb-5">
+      {/* Cover photo */}
       {business.coverPhoto && (
         <div
-          className="h-32 rounded-t-2xl bg-border bg-cover bg-center"
+          className="h-36 sm:h-44 rounded-2xl bg-border/40 bg-cover bg-center"
           style={{ backgroundImage: `url(${business.coverPhoto})` }}
         />
       )}
-      <div className="flex items-center gap-4 p-4 -mt-12 relative">
+
+      {/* Logo + name row */}
+      <div className={`flex items-start gap-3 ${business.coverPhoto ? '-mt-8 relative' : ''}`}>
         {business.logo ? (
           <img
             src={business.logo}
             alt={business.name}
-            className="w-16 h-16 rounded-xl border-2 border-white shadow-lg object-cover bg-white"
+            className="w-14 h-14 rounded-xl border-2 border-white shadow-md object-cover bg-white shrink-0"
           />
         ) : (
-          <div className="w-16 h-16 rounded-xl border-2 border-white shadow-lg flex items-center justify-center" style={{ backgroundColor: accent }}>
-            <i className="fa-solid fa-store text-white text-2xl" />
+          <div
+            className="w-14 h-14 rounded-xl border-2 border-white shadow-md flex items-center justify-center shrink-0"
+            style={{ backgroundColor: accent }}
+          >
+            <Store className="w-6 h-6 text-white" />
           </div>
         )}
-        <div className="flex-1 min-w-0">
-          <h1 className="font-heading text-xl font-bold truncate" style={{ color: accent }}>{business.name}</h1>
+
+        <div className="flex-1 min-w-0 pt-1">
+          <div className="flex items-start justify-between gap-2">
+            <h1 className="text-lg font-semibold leading-tight text-[#1B4332]">
+              {business.name}
+            </h1>
+            {business.isOpen && (
+              <span className="shrink-0 inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 text-xs font-medium">
+                <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full" />
+                Open
+              </span>
+            )}
+          </div>
+
           {business.rating != null && (
-            <div className="flex items-center gap-1 text-sm text-muted">
-              <i className="fa-solid fa-star text-amber-400" />
+            <div className="flex items-center gap-1 text-sm text-gray-500 mt-0.5">
+              <span className="text-amber-400">★</span>
               <span>{business.rating.toFixed(1)}</span>
               {business.reviewCount > 0 && (
-                <span>({business.reviewCount} reviews)</span>
+                <span className="text-gray-400">({business.reviewCount})</span>
               )}
             </div>
           )}
         </div>
-        {business.isOpen && (
-          <span className="badge-success text-xs shrink-0">Open</span>
-        )}
       </div>
+
+      {/* Description */}
       {business.description && (
-        <p className="px-4 pb-2 text-sm text-muted">{business.description}</p>
+        <p className="text-sm text-gray-500 mt-2 leading-relaxed">{business.description}</p>
       )}
+
+      {/* Address */}
       {business.address && (
-        <p className="px-4 pb-4 text-sm text-muted flex items-center gap-2">
-          <i className="fa-solid fa-location-dot text-primary" />
+        <p className="text-sm text-gray-500 mt-1.5 flex items-center gap-1.5">
+          <MapPin className="w-3.5 h-3.5 text-[#1B4332] shrink-0" />
           {business.address}
         </p>
       )}

@@ -1,9 +1,11 @@
 /**
- * Run 2: Confirmation page after booking
+ * Booking confirmed — reference, summary, calendar links
+ * Mobile-first, polished
  */
 
 import { useState, useEffect } from 'react'
 import { Link, useParams } from 'react-router-dom'
+import { CheckCircle, Copy, Calendar, MapPin, Mail, Clock, Loader2 } from 'lucide-react'
 import { getBooking } from '../../utils/bookingApi'
 
 const BookingConfirmation = () => {
@@ -11,6 +13,7 @@ const BookingConfirmation = () => {
   const [booking, setBooking] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const [copied, setCopied] = useState(false)
 
   useEffect(() => {
     getBooking(businessSlug, bookingId)
@@ -19,24 +22,32 @@ const BookingConfirmation = () => {
       .finally(() => setLoading(false))
   }, [businessSlug, bookingId])
 
-  const handleCopyRef = () => {
+  const handleCopy = () => {
     if (booking?.reference) {
       navigator.clipboard.writeText(booking.reference)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
     }
+  }
+
+  const formatDate = (d) => {
+    if (!d) return ''
+    const dt = new Date(d + 'T12:00:00')
+    return dt.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
   }
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary" />
+      <div className="min-h-screen flex items-center justify-center bg-[#FEFBF4]">
+        <Loader2 className="w-8 h-8 text-[#1B4332] animate-spin" />
       </div>
     )
   }
 
   if (error || !booking) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background p-8">
-        <p className="text-muted">{error || 'Booking not found'}</p>
+      <div className="min-h-screen flex items-center justify-center bg-[#FEFBF4] px-5">
+        <p className="text-gray-500">{error || 'Booking not found'}</p>
       </div>
     )
   }
@@ -45,61 +56,93 @@ const BookingConfirmation = () => {
   const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(biz.address || '')}`
 
   return (
-    <div className="min-h-screen bg-background p-6 max-w-lg mx-auto">
-      <div className="text-center py-8">
-        <div className="w-16 h-16 rounded-full bg-success/20 flex items-center justify-center mx-auto mb-4">
-          <i className="fa-solid fa-check text-success text-2xl" />
+    <div className="min-h-screen bg-[#FEFBF4] px-5 pt-10 pb-12 max-w-xl mx-auto">
+      {/* Success icon */}
+      <div className="text-center mb-8">
+        <div className="w-16 h-16 rounded-full bg-emerald-50 flex items-center justify-center mx-auto mb-4">
+          <CheckCircle className="w-8 h-8 text-emerald-600" />
         </div>
-        <h1 className="font-heading text-2xl font-bold text-primary">Booking Confirmed!</h1>
-        <div className="mt-4 flex items-center justify-center gap-2">
-          <code className="text-xl font-mono font-bold text-primary">{booking.reference}</code>
+        <h1 className="text-2xl font-semibold text-[#1B4332]">Booking Confirmed</h1>
+        <p className="text-sm text-gray-500 mt-1">
+          We've sent a confirmation to {booking.customer?.email}
+        </p>
+
+        {/* Reference code */}
+        <div className="mt-4 inline-flex items-center gap-2 bg-white border border-gray-200 rounded-lg px-4 py-2">
+          <span className="font-mono text-lg font-bold text-[#1B4332] tracking-wider">{booking.reference}</span>
           <button
-            onClick={handleCopyRef}
-            className="p-2 text-muted hover:text-primary"
+            onClick={handleCopy}
+            className="p-1 text-gray-400 hover:text-[#1B4332] transition-colors"
             aria-label="Copy reference"
           >
-            <i className="fa-solid fa-copy" />
+            <Copy className="w-4 h-4" />
           </button>
+          {copied && <span className="text-xs text-emerald-600">Copied</span>}
         </div>
       </div>
 
-      <div className="bg-white rounded-xl border border-border p-4 mb-6">
-        <p className="font-heading font-semibold text-primary">{biz.name}</p>
-        <p className="text-sm text-muted mt-1">
-          {booking.service?.name && `${booking.service.name} · `}
-          {booking.date} at {booking.time}
-        </p>
-        {booking.staff?.name && <p className="text-sm text-muted">{booking.staff.name}</p>}
-        <p className="text-sm text-muted mt-2">{biz.address}</p>
-        <p className="text-sm text-muted">Confirmation sent to {booking.customer?.email}</p>
+      {/* Details card */}
+      <div className="bg-white rounded-xl border border-gray-200 p-4 mb-6">
+        <h3 className="font-semibold text-[#1B4332] mb-3">{biz.name}</h3>
+        <div className="space-y-2 text-sm">
+          {booking.service?.name && (
+            <div className="flex items-start gap-2 text-gray-600">
+              <Clock className="w-4 h-4 text-gray-400 mt-0.5 shrink-0" />
+              <span>{booking.service.name} · {booking.service?.duration || 60} min</span>
+            </div>
+          )}
+          <div className="flex items-start gap-2 text-gray-600">
+            <Calendar className="w-4 h-4 text-gray-400 mt-0.5 shrink-0" />
+            <span>{formatDate(booking.date)} at {booking.time}</span>
+          </div>
+          {booking.staff?.name && (
+            <div className="flex items-start gap-2 text-gray-600">
+              <span className="w-4 h-4 text-gray-400 mt-0.5 shrink-0 text-center text-xs">👤</span>
+              <span>{booking.staff.name}</span>
+            </div>
+          )}
+          {biz.address && (
+            <div className="flex items-start gap-2 text-gray-600">
+              <MapPin className="w-4 h-4 text-gray-400 mt-0.5 shrink-0" />
+              <span>{biz.address}</span>
+            </div>
+          )}
+        </div>
       </div>
 
-      <div className="space-y-3">
-        <a
-          href={booking.calendarLinks?.google}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="block w-full py-3 rounded-xl border-2 border-primary text-primary font-medium text-center hover:bg-primary hover:text-white transition-colors"
-        >
-          Add to Calendar
-        </a>
-        <a
-          href={mapsUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="block w-full py-3 rounded-xl border-2 border-border text-primary font-medium text-center hover:bg-border transition-colors"
-        >
-          Get Directions
-        </a>
+      {/* Actions */}
+      <div className="space-y-2.5">
+        {booking.calendarLinks?.google && (
+          <a
+            href={booking.calendarLinks.google}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center justify-center gap-2 w-full py-3 rounded-xl border border-[#1B4332] text-[#1B4332] font-medium text-[15px] hover:bg-[#1B4332] hover:text-white transition-all"
+          >
+            <Calendar className="w-4 h-4" />
+            Add to Calendar
+          </a>
+        )}
+        {biz.address && (
+          <a
+            href={mapsUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center justify-center gap-2 w-full py-3 rounded-xl border border-gray-200 text-gray-700 font-medium text-[15px] hover:bg-gray-50 transition-all"
+          >
+            <MapPin className="w-4 h-4" />
+            Get Directions
+          </a>
+        )}
         <Link
           to={`/book/${businessSlug}/manage/${bookingId}`}
-          className="block w-full py-3 text-center text-sm text-muted hover:text-primary"
+          className="block w-full py-3 text-center text-sm text-gray-500 hover:text-[#1B4332] transition-colors"
         >
-          Modify or Cancel
+          Modify or Cancel Booking
         </Link>
       </div>
 
-      <p className="text-center text-xs text-muted mt-8">Powered by Rezvo</p>
+      <p className="text-center text-xs text-gray-400 mt-10">Powered by Rezvo</p>
     </div>
   )
 }

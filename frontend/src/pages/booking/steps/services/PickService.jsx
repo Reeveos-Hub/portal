@@ -1,10 +1,13 @@
 /**
- * Run 2: Step 1 — Pick a service (Services flow)
+ * Step 1 — Pick a service
+ * Mobile-first, contained CTA, Lucide icons
  */
 
 import { useState } from 'react'
+import { Check, Clock, ChevronRight } from 'lucide-react'
 import BookingHeader from '../../components/BookingHeader'
 import StepIndicator from '../../components/StepIndicator'
+import StickyFooter from '../../components/StickyFooter'
 
 const PickService = ({ data, onContinue }) => {
   const [selectedId, setSelectedId] = useState(null)
@@ -16,20 +19,22 @@ const PickService = ({ data, onContinue }) => {
     : services.filter((s) => s.category === category)
 
   return (
-    <div className="max-w-lg mx-auto">
+    <div className="max-w-xl mx-auto px-5 pt-6">
       <BookingHeader business={business} />
       <StepIndicator step={1} total={3} />
 
-      {/* Category pills */}
-      <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide mb-4">
+      <h2 className="text-base font-semibold text-[#1B4332] mb-3">Choose a service</h2>
+
+      {/* Category pills — horizontal scroll */}
+      <div className="flex gap-2 overflow-x-auto pb-3 scrollbar-hide -mx-5 px-5 mb-4">
         {(categories || ['All']).map((cat) => (
           <button
             key={cat}
             onClick={() => setCategory(cat)}
-            className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${
+            className={`px-3.5 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-all ${
               category === cat
-                ? 'bg-primary text-white'
-                : 'bg-border text-muted hover:bg-border/80'
+                ? 'bg-[#1B4332] text-white shadow-sm'
+                : 'bg-white text-gray-600 border border-gray-200 hover:border-[#1B4332]/30'
             }`}
           >
             {cat}
@@ -38,45 +43,61 @@ const PickService = ({ data, onContinue }) => {
       </div>
 
       {/* Service cards */}
-      <div className="space-y-2 mb-24">
+      <div className="space-y-2.5 pb-28">
         {filtered.map((svc) => {
           const selected = selectedId === svc.id
+          const price = svc.price > 0 ? `£${(svc.price / 100).toFixed(2)}` : 'Free'
           return (
             <button
               key={svc.id}
               onClick={() => setSelectedId(svc.id)}
-              className={`w-full text-left p-4 rounded-xl border-2 transition-all ${
+              className={`w-full text-left p-3.5 rounded-xl border transition-all ${
                 selected
-                  ? 'border-primary bg-primary/5'
-                  : 'border-border hover:border-primary/50'
+                  ? 'border-[#1B4332] bg-[#1B4332]/[0.03] ring-1 ring-[#1B4332]/20'
+                  : 'border-gray-200 bg-white hover:border-gray-300'
               }`}
             >
-              <div className="flex justify-between items-start">
-                <div>
-                  <p className="font-heading font-semibold text-primary">{svc.name}</p>
-                  <p className="text-sm text-muted mt-0.5">
-                    {svc.duration} min · £{(svc.price / 100).toFixed(2)}
+              <div className="flex justify-between items-start gap-3">
+                <div className="flex-1 min-w-0">
+                  <p className={`font-medium text-[15px] ${selected ? 'text-[#1B4332]' : 'text-gray-900'}`}>
+                    {svc.name}
                   </p>
+                  {svc.description && (
+                    <p className="text-xs text-gray-400 mt-0.5 line-clamp-1">{svc.description}</p>
+                  )}
+                  <div className="flex items-center gap-2 mt-1.5 text-sm text-gray-500">
+                    <Clock className="w-3.5 h-3.5" />
+                    <span>{svc.duration} min</span>
+                    <span className="text-gray-300">·</span>
+                    <span className="font-medium text-gray-700">{price}</span>
+                  </div>
                 </div>
-                {selected && (
-                  <i className="fa-solid fa-check text-primary" />
-                )}
+                <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 mt-0.5 transition-all ${
+                  selected ? 'border-[#1B4332] bg-[#1B4332]' : 'border-gray-300'
+                }`}>
+                  {selected && <Check className="w-3 h-3 text-white" strokeWidth={3} />}
+                </div>
               </div>
             </button>
           )
         })}
       </div>
 
-      {/* Fixed CTA */}
-      <div className="fixed bottom-0 left-0 right-0 p-4 bg-background border-t border-border">
+      {/* Contained CTA */}
+      <StickyFooter>
         <button
           onClick={() => selectedId && onContinue({ serviceId: selectedId })}
           disabled={!selectedId}
-          className="w-full py-3 rounded-xl bg-primary text-white font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+          className={`w-full py-3.5 rounded-xl font-medium text-[15px] transition-all flex items-center justify-center gap-2 ${
+            selectedId
+              ? 'bg-[#1B4332] text-white hover:bg-[#143326] shadow-sm'
+              : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+          }`}
         >
           Continue
+          {selectedId && <ChevronRight className="w-4 h-4" />}
         </button>
-      </div>
+      </StickyFooter>
     </div>
   )
 }

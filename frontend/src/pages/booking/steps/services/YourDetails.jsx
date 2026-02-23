@@ -1,14 +1,16 @@
 /**
- * Run 2: Step 3 — Your details + confirm (Services flow)
+ * Step 3 — Your details + booking summary + confirm
+ * Mobile-first, form with validation, contained CTA
  */
 
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { ArrowLeft, Calendar, Clock, User, Loader2 } from 'lucide-react'
 import BookingHeader from '../../components/BookingHeader'
 import StepIndicator from '../../components/StepIndicator'
+import StickyFooter from '../../components/StickyFooter'
 
-const YourDetails = ({ data, onCreate }) => {
-  const { business, service, staff, date, time, slug } = data
+const YourDetails = ({ data, onCreate, onBack }) => {
+  const { business, service, staff, date, time, slug, services } = data
   const [name, setName] = useState('')
   const [phone, setPhone] = useState('')
   const [email, setEmail] = useState('')
@@ -16,12 +18,23 @@ const YourDetails = ({ data, onCreate }) => {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
-  const svc = data.service || data.services?.find((s) => s.id === data.serviceId)
+  const svc = service || services?.find((s) => s.id === data.serviceId)
+
+  // Format date nicely
+  const formatDate = (d) => {
+    if (!d) return ''
+    const dt = new Date(d + 'T12:00:00')
+    return dt.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' })
+  }
 
   const handleSubmit = async (e) => {
-    e.preventDefault()
+    if (e) e.preventDefault()
     if (!name.trim() || !phone.trim() || !email.trim()) {
       setError('Please fill in all required fields')
+      return
+    }
+    if (!/\S+@\S+\.\S+/.test(email)) {
+      setError('Please enter a valid email address')
       return
     }
     setError('')
@@ -39,89 +52,129 @@ const YourDetails = ({ data, onCreate }) => {
         window.location.href = `/book/${slug}/confirm/${res.booking.id}`
       }
     } catch (err) {
-      setError(err.message || 'Booking failed')
+      setError(err.message || 'Something went wrong. Please try again.')
     } finally {
       setLoading(false)
     }
   }
 
   return (
-    <div className="max-w-lg mx-auto">
-      <Link to={`/book/${slug}`} className="inline-flex items-center gap-2 text-muted hover:text-primary mb-4">
-        <i className="fa-solid fa-arrow-left" />
+    <div className="max-w-xl mx-auto px-5 pt-6">
+      {/* Back */}
+      <button
+        onClick={onBack}
+        className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-[#1B4332] mb-4 transition-colors"
+      >
+        <ArrowLeft className="w-4 h-4" />
         Back
-      </Link>
+      </button>
+
       <BookingHeader business={business} />
       <StepIndicator step={3} total={3} />
 
-      {/* Summary */}
-      <div className="bg-border/30 rounded-xl p-4 mb-6">
-        <p className="font-heading font-semibold text-primary">{svc?.name || 'Service'}</p>
-        <p className="text-sm text-muted">
-          {(data.staff?.find((s) => s.id === data.staffId)?.name || staff?.name) && `${data.staff?.find((s) => s.id === data.staffId)?.name || staff?.name} · `}
-          {date} at {time} · {svc?.duration || 60} min
-        </p>
-        {svc?.price != null && (
-          <p className="text-sm font-medium mt-1">£{((svc.price || 0) / 100).toFixed(2)}</p>
+      {/* Booking summary card */}
+      <div className="bg-white rounded-xl border border-gray-200 p-4 mb-6">
+        <h3 className="text-sm font-semibold text-[#1B4332] mb-2">Booking Summary</h3>
+        <div className="space-y-1.5 text-sm">
+          <div className="flex items-center gap-2 text-gray-600">
+            <User className="w-3.5 h-3.5 text-gray-400" />
+            <span className="font-medium text-gray-800">{svc?.name || 'Service'}</span>
+          </div>
+          <div className="flex items-center gap-2 text-gray-600">
+            <Calendar className="w-3.5 h-3.5 text-gray-400" />
+            <span>{formatDate(date)}</span>
+            <span className="text-gray-300">·</span>
+            <span>{time}</span>
+          </div>
+          <div className="flex items-center gap-2 text-gray-600">
+            <Clock className="w-3.5 h-3.5 text-gray-400" />
+            <span>{svc?.duration || 60} minutes</span>
+          </div>
+        </div>
+        {svc?.price > 0 && (
+          <div className="mt-3 pt-3 border-t border-gray-100 flex justify-between">
+            <span className="text-sm text-gray-500">Total</span>
+            <span className="font-semibold text-[#1B4332]">£{((svc.price || 0) / 100).toFixed(2)}</span>
+          </div>
         )}
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-4 mb-24">
+      {/* Form */}
+      <h2 className="text-base font-semibold text-[#1B4332] mb-3">Your details</h2>
+
+      <form onSubmit={handleSubmit} className="space-y-3.5 pb-28">
         <div>
-          <label className="block text-sm font-medium text-primary mb-1">Name *</label>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Full name *</label>
           <input
             type="text"
             value={name}
             onChange={(e) => setName(e.target.value)}
-            className="input"
-            placeholder="Your name"
+            className="w-full px-3.5 py-2.5 rounded-lg border border-gray-200 bg-white text-gray-900 text-[15px] placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#1B4332]/20 focus:border-[#1B4332] transition-all"
+            placeholder="Your full name"
             required
+            autoComplete="name"
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-primary mb-1">Phone *</label>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Phone *</label>
           <input
             type="tel"
             value={phone}
             onChange={(e) => setPhone(e.target.value)}
-            className="input"
+            className="w-full px-3.5 py-2.5 rounded-lg border border-gray-200 bg-white text-gray-900 text-[15px] placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#1B4332]/20 focus:border-[#1B4332] transition-all"
             placeholder="07xxx xxxxxx"
             required
+            autoComplete="tel"
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-primary mb-1">Email *</label>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Email *</label>
           <input
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="input"
+            className="w-full px-3.5 py-2.5 rounded-lg border border-gray-200 bg-white text-gray-900 text-[15px] placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#1B4332]/20 focus:border-[#1B4332] transition-all"
             placeholder="you@email.com"
             required
+            autoComplete="email"
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-primary mb-1">Notes</label>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Notes <span className="text-gray-400 font-normal">(optional)</span></label>
           <textarea
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
-            className="input min-h-[80px]"
+            className="w-full px-3.5 py-2.5 rounded-lg border border-gray-200 bg-white text-gray-900 text-[15px] placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#1B4332]/20 focus:border-[#1B4332] transition-all min-h-[80px] resize-none"
             placeholder="Anything we should know?"
             rows={3}
           />
         </div>
-        {error && <p className="text-error text-sm">{error}</p>}
+        {error && (
+          <p className="text-red-600 text-sm bg-red-50 rounded-lg px-3 py-2">{error}</p>
+        )}
       </form>
 
-      <div className="fixed bottom-0 left-0 right-0 p-4 bg-background border-t border-border">
+      {/* Contained CTA */}
+      <StickyFooter>
         <button
           onClick={handleSubmit}
           disabled={loading}
-          className="w-full py-3 rounded-xl bg-primary text-white font-medium disabled:opacity-50"
+          className={`w-full py-3.5 rounded-xl font-medium text-[15px] transition-all flex items-center justify-center gap-2 ${
+            loading
+              ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
+              : 'bg-[#1B4332] text-white hover:bg-[#143326] shadow-sm'
+          }`}
         >
-          {loading ? 'Booking...' : 'Confirm Booking'}
+          {loading ? (
+            <>
+              <Loader2 className="w-4 h-4 animate-spin" />
+              Booking...
+            </>
+          ) : (
+            'Confirm Booking'
+          )}
         </button>
-      </div>
+      </StickyFooter>
     </div>
   )
 }
