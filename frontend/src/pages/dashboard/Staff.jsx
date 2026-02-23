@@ -194,19 +194,27 @@ const Staff = () => {
     <div>
       <div className="mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-heading font-bold mb-2">Staff</h1>
-          <p className="text-gray-500">
-            {staff.length} team {staff.length === 1 ? 'member' : 'members'}
+          <h1 className="text-3xl font-heading font-bold mb-1">Staff</h1>
+          <p className="text-gray-500 text-sm">
+            Manage your team members and their schedules
           </p>
         </div>
-        <button
-          onClick={handleAddClick}
-          disabled={!canAdd}
-          className={`bg-primary text-white font-bold text-sm px-4 py-2.5 rounded-lg shadow-lg hover:bg-primary-hover transition-colors flex items-center gap-2 ${!canAdd ? 'opacity-75 cursor-not-allowed' : ''}`}
-        >
-          {!canAdd && <i className="fa-solid fa-lock" />}
-          Add Staff Member
-        </button>
+        <div className="flex items-center gap-3">
+          <button className="text-sm font-semibold text-gray-500 hover:text-primary border border-border rounded-lg px-4 py-2.5 hover:bg-gray-50 transition-colors flex items-center gap-2">
+            <i className="fa-solid fa-download text-xs" /> Export
+          </button>
+          <button className="text-sm font-semibold text-gray-500 hover:text-primary border border-border rounded-lg px-4 py-2.5 hover:bg-gray-50 transition-colors flex items-center gap-2">
+            <i className="fa-solid fa-filter text-xs" /> Filter
+          </button>
+          <button
+            onClick={handleAddClick}
+            disabled={!canAdd}
+            className={`bg-primary text-white font-bold text-sm px-4 py-2.5 rounded-lg shadow-lg hover:bg-primary-hover transition-colors flex items-center gap-2 ${!canAdd ? 'opacity-75 cursor-not-allowed' : ''}`}
+          >
+            {!canAdd && <i className="fa-solid fa-lock" />}
+            <i className="fa-solid fa-plus text-xs" /> Add Staff Member
+          </button>
+        </div>
       </div>
 
       {error && (
@@ -222,7 +230,7 @@ const Staff = () => {
           </p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6">
           {staff.map((s) => (
             <StaffCard
               key={s.id}
@@ -270,74 +278,93 @@ const StaffCard = ({ staff, onEdit, onDelete, onReinvite }) => {
         : staff.isWorkingToday
           ? 'Active'
           : 'Off Today'
-  const statusClass =
+  const statusDot =
     staff.status === 'holiday'
-      ? 'bg-blue-100 text-blue-800'
+      ? 'text-blue-500'
       : staff.inviteStatus === 'pending'
-        ? 'bg-amber-100 text-amber-800'
+        ? 'text-amber-500'
         : staff.isWorkingToday
-          ? 'bg-green-100 text-green-800'
-          : 'bg-gray-100 text-gray-600'
+          ? 'text-green-500'
+          : 'text-gray-400'
+  const statusBg =
+    staff.status === 'holiday'
+      ? 'bg-blue-50 text-blue-700 border-blue-200'
+      : staff.inviteStatus === 'pending'
+        ? 'bg-amber-50 text-amber-700 border-amber-200'
+        : staff.isWorkingToday
+          ? 'bg-green-50 text-green-700 border-green-200'
+          : 'bg-gray-50 text-gray-600 border-gray-200'
   const hoursText = staff.todayHours
     ? `${staff.todayHours.start} - ${staff.todayHours.end}`
-    : 'Not working today'
+    : 'Not scheduled'
 
   return (
-    <div className="bg-white border border-border rounded-xl shadow-sm p-6">
-      <div className="flex gap-4">
-        <div className="w-16 h-16 rounded-full bg-primary/20 flex items-center justify-center shrink-0 overflow-hidden">
+    <div className="bg-white border border-border rounded-xl shadow-sm p-6 hover:shadow-md transition-shadow">
+      {/* Header: Avatar + Name/Role/Status */}
+      <div className="flex items-start gap-4 mb-4">
+        <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center shrink-0 overflow-hidden ring-2 ring-white shadow-sm">
           {staff.avatar ? (
             <img src={staff.avatar} alt="" className="w-full h-full object-cover" />
           ) : (
-            <span className="text-xl font-semibold text-primary">{initials}</span>
+            <span className="text-lg font-bold text-primary">{initials}</span>
           )}
         </div>
         <div className="min-w-0 flex-1">
-          <h3 className="font-semibold text-lg truncate">{staff.name}</h3>
+          <h3 className="font-heading font-bold text-lg text-primary truncate">{staff.name}</h3>
           <p className="text-sm text-gray-500 truncate">{staff.role}</p>
-          <span
-            className={`inline-block mt-2 px-2 py-0.5 rounded-full text-xs font-medium ${statusClass}`}
-          >
+          <span className={`inline-flex items-center gap-1.5 mt-2 px-2.5 py-1 rounded-full text-xs font-semibold border ${statusBg}`}>
+            <i className={`fa-solid fa-circle text-[6px] ${statusDot}`} />
             {statusLabel}
           </span>
-          <p className="text-sm text-gray-500 mt-2">{hoursText}</p>
-          <p className="text-sm text-gray-500">
-            {staff.bookingsToday ?? 0} bookings today
-          </p>
-          {staff.inviteStatus === 'pending' && (
-            <button
-              onClick={onReinvite}
-              className="text-sm text-primary hover:underline mt-1"
-            >
-              Resend invite
-            </button>
-          )}
-          <div className="flex gap-2 mt-3">
-            <button
-              onClick={onEdit}
-              className="p-2 text-gray-500 hover:text-primary hover:bg-primary/10 rounded-lg transition-colors"
-              title="Edit"
-            >
-              <i className="fa-solid fa-pencil text-sm" />
-            </button>
-            <button
-              onClick={() => (window.location.href = '/dashboard/calendar')}
-              className="p-2 text-gray-500 hover:text-primary hover:bg-primary/10 rounded-lg transition-colors"
-              title="Schedule"
-            >
-              <i className="fa-solid fa-calendar text-sm" />
-            </button>
-            {staff.permissions !== 'owner' && (
-              <button
-                onClick={onDelete}
-                className="p-2 text-gray-500 hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-colors"
-                title="Delete"
-              >
-                <i className="fa-solid fa-trash text-sm" />
-              </button>
-            )}
-          </div>
         </div>
+      </div>
+
+      {/* Info rows */}
+      <div className="space-y-2 mb-4">
+        <div className="flex items-center justify-between text-sm">
+          <span className="flex items-center gap-2 text-gray-500">
+            <i className="fa-regular fa-clock text-xs w-4 text-center" /> Working Hours
+          </span>
+          <span className="font-semibold text-primary">{hoursText}</span>
+        </div>
+        <div className="flex items-center justify-between text-sm">
+          <span className="flex items-center gap-2 text-gray-500">
+            <i className="fa-solid fa-calendar-check text-xs w-4 text-center" /> Bookings Today
+          </span>
+          <span className="font-semibold text-primary">{staff.bookingsToday ?? 0} appointments</span>
+        </div>
+      </div>
+
+      {staff.inviteStatus === 'pending' && (
+        <button onClick={onReinvite} className="text-sm text-primary hover:underline mb-3 block">
+          Resend invite
+        </button>
+      )}
+
+      {/* Action buttons */}
+      <div className="flex items-center gap-2 pt-3 border-t border-border">
+        <button
+          onClick={onEdit}
+          className="flex-1 text-sm font-bold text-primary border border-border rounded-lg px-3 py-2.5 hover:bg-gray-50 transition-colors flex items-center justify-center gap-2"
+        >
+          <i className="fa-solid fa-pen-to-square text-xs" /> Edit
+        </button>
+        <button
+          onClick={() => (window.location.href = '/dashboard/calendar')}
+          className="flex-1 text-sm font-bold text-primary border border-border rounded-lg px-3 py-2.5 hover:bg-gray-50 transition-colors flex items-center justify-center gap-2"
+        >
+          <i className="fa-regular fa-calendar text-xs" /> Schedule
+        </button>
+        {staff.permissions !== 'owner' && (
+          <button
+            onClick={onDelete}
+            className="w-10 h-10 flex items-center justify-center text-red-400 hover:text-red-600 hover:bg-red-50 border border-border rounded-lg transition-colors shrink-0"
+            title="Delete"
+          >
+            <i className="fa-solid fa-trash text-sm" />
+          </button>
+        )}
+      </div>
       </div>
     </div>
   )
