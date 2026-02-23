@@ -42,6 +42,11 @@ jobs:
             ln -sf /etc/nginx/sites-available/rezvo-app /etc/nginx/sites-enabled/rezvo-app
             nginx -t && systemctl reload nginx
 
+            # Copy marketing pages to web root
+            mkdir -p /var/www/rezvo-app/competitors
+            cp /opt/rezvo-app/marketing/index.html /var/www/rezvo-app/index.html
+            cp /opt/rezvo-app/marketing/competitors/*.html /var/www/rezvo-app/competitors/
+
             sleep 3
 
             # Run setup script if it exists
