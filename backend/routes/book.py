@@ -13,6 +13,14 @@ from datetime import datetime, date, time, timedelta
 router = APIRouter(prefix="/book", tags=["book"])
 
 
+def _get_address_str(business):
+    """Extract address as string from either string or dict format."""
+    raw = business.get("address", "")
+    if isinstance(raw, dict):
+        return f"{raw.get('line1', '')}, {raw.get('city', '')} {raw.get('postcode', '')}".strip(", ")
+    return raw
+
+
 # --- Request/Response models ---
 
 class CustomerInfo(BaseModel):
@@ -129,7 +137,7 @@ async def get_booking_page(business_slug: str):
             "accentColour": branding.get("accentColour", "#1B4332"),
             "rating": business.get("rating"),
             "reviewCount": business.get("review_count", 0),
-            "address": business.get("address", ""),
+            "address": _get_address_str(business),
             "phone": business.get("phone", ""),
             "isOpen": True,
             "currency": "GBP",
@@ -276,7 +284,7 @@ async def create_booking(business_slug: str, payload: dict):
             "id": doc["_id"],
             "reference": reference,
             "status": doc["status"],
-            "business": {"name": business.get("name"), "address": business.get("address")},
+            "business": {"name": business.get("name"), "address": _get_address_str(business)},
             "service": doc.get("service"),
             "staff": {"name": _get_staff_name(business, doc.get("staffId"))} if doc.get("staffId") else None,
             "date": doc["date"],
@@ -309,7 +317,7 @@ def _get_staff_name(business, staff_id):
 
 
 def _calendar_links(business, doc):
-    addr = business.get("address", "")
+    addr = _get_address_str(business)
     name = business.get("name", "")
     dt = f"{doc['date']}T{doc['time']}:00"
     return {
@@ -376,7 +384,7 @@ async def cancel_booking(business_slug: str, booking_id: str):
 
 
 def _format_booking(bkg, business):
-    addr = business.get("address", "")
+    addr = _get_address_str(business)
     name = business.get("name", "")
     dt = f"{bkg.get('date', '')}T{bkg.get('time', '00:00')}:00"
     return {
