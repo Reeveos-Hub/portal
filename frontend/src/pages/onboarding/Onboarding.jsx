@@ -33,7 +33,7 @@ const Onboarding = () => {
   const handleSubmit = async () => {
     setLoading(true)
     try {
-      await api.post('/businesses', formData)
+      await api.post('/businesses/', formData)
       navigate('/dashboard')
     } catch (error) {
       console.error('Failed to create business:', error)

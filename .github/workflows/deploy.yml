@@ -32,7 +32,7 @@ jobs:
 
             cd /opt/rezvo-app/frontend
             npm install --silent
-            npm run build
+            VITE_API_URL=https://rezvo.app/api npm run build
 
             printf '[Unit]\nDescription=Rezvo Backend API\nAfter=network.target mongod.service\n\n[Service]\nType=simple\nUser=root\nWorkingDirectory=/opt/rezvo-app/backend\nExecStart=/usr/local/bin/uvicorn server:app --host 0.0.0.0 --port 8000\nRestart=always\nRestartSec=10\n\n[Install]\nWantedBy=multi-user.target\n' > /etc/systemd/system/rezvo-backend.service
             systemctl daemon-reload
