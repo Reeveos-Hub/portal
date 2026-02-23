@@ -13,9 +13,14 @@ from passlib.context import CryptContext
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
-# MongoDB connection
-MONGO_URL = "mongodb://localhost:27017/rezvo"
-DB_NAME = "rezvo"
+# MongoDB connection — reads from .env if available, falls back to local
+import os
+from pathlib import Path
+from dotenv import load_dotenv
+load_dotenv(Path(__file__).parent / ".env")
+
+MONGO_URL = os.getenv("MONGODB_URL", "mongodb://localhost:27017/rezvo")
+DB_NAME = os.getenv("MONGODB_DB_NAME", "rezvo")
 
 # ============================================================
 # REJUVENATE - Skin Care Experts, Cardiff
@@ -23,10 +28,12 @@ DB_NAME = "rezvo"
 REJUVENATE = {
     "name": "Rejuvenate Skin Experts",
     "type": "salon",
-    "category": "skincare",
+    "category": "salon",
+    "subcategory": "skincare",
     "tier": "enterprise",
     "rezvo_tier": "enterprise",
     "slug": "rejuvenate-skin-experts-cardiff",
+    "claimed": True,
     "description": "Award-winning skin clinic in Cardiff specialising in advanced facials, laser treatments, chemical peels, and anti-ageing therapies. Expert team delivering visible results.",
     "phone": "02920 123456",
     "email": "hello@rejuvenateskinexperts.co.uk",
@@ -94,10 +101,12 @@ REJUVENATE_SERVICES = [
 MICHO = {
     "name": "Micho Turkish Bar & Grill",
     "type": "restaurant",
-    "category": "turkish",
+    "category": "restaurant",
+    "subcategory": "turkish",
     "tier": "enterprise",
     "rezvo_tier": "enterprise",
     "slug": "micho-turkish-bar-grill-sheffield",
+    "claimed": True,
     "description": "Authentic Turkish cuisine in the heart of Sheffield. From sizzling kebabs and mezes to fresh-baked pide and baklava. Live entertainment weekends.",
     "phone": "01onal 123 4567",
     "email": "peter.griffin8222@gmail.com",
@@ -289,6 +298,18 @@ async def main():
     
     REJUVENATE["owner_id"] = nat_id
     REJUVENATE["staff"] = REJUVENATE_STAFF
+    # Embed menu for booking API (book.py reads business.menu)
+    REJUVENATE["menu"] = []
+    for i, svc in enumerate(REJUVENATE_SERVICES):
+        REJUVENATE["menu"].append({
+            "id": f"rej-svc-{i+1}",
+            "name": svc["name"],
+            "category": svc["category"],
+            "duration_minutes": svc["duration"],
+            "price": svc["price"],
+            "description": svc["description"],
+            "active": True,
+        })
     REJUVENATE["created_at"] = datetime.utcnow() - timedelta(days=180)
     REJUVENATE["updated_at"] = datetime.utcnow()
     rej_result = await db.businesses.insert_one(REJUVENATE)
@@ -298,6 +319,18 @@ async def main():
     MICHO["owner_id"] = sak_id
     MICHO["staff"] = MICHO_STAFF
     MICHO["tables"] = MICHO_TABLES
+    # Embed menu for booking API
+    MICHO["menu"] = []
+    for i, item in enumerate(MICHO_MENU):
+        MICHO["menu"].append({
+            "id": f"mic-menu-{i+1}",
+            "name": item["name"],
+            "category": item["category"],
+            "price": item["price"],
+            "duration_minutes": 0,
+            "description": "",
+            "active": True,
+        })
     MICHO["created_at"] = datetime.utcnow() - timedelta(days=180)
     MICHO["updated_at"] = datetime.utcnow()
     mic_result = await db.businesses.insert_one(MICHO)
