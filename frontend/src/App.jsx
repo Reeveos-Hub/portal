@@ -2,6 +2,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { AuthProvider } from './contexts/AuthContext'
 import { TierProvider } from './contexts/TierContext'
 import { BusinessProvider } from './contexts/BusinessContext'
+import ScrollToTop from './components/ScrollToTop'
 
 import DashboardLayout from './layouts/DashboardLayout'
 
@@ -30,6 +31,7 @@ import Onboarding from './pages/onboarding/Onboarding'
 const App = () => {
   return (
     <Router>
+      <ScrollToTop />
       <AuthProvider>
         <TierProvider>
           <Routes>
