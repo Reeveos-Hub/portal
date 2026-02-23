@@ -52,12 +52,11 @@ const YourDetailsRestaurant = ({ data, onBack, onCreate }) => {
     try {
       const payload = {
         type: 'restaurant',
-        guests,
+        partySize: guests,
         date,
         time,
         customer: {
-          firstName: form.firstName.trim(),
-          lastName: form.lastName.trim(),
+          name: `${form.firstName.trim()} ${form.lastName.trim()}`.trim(),
           email: form.email.trim(),
           phone: form.phone.trim(),
         },
