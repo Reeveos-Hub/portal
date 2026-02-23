@@ -1,0 +1,87 @@
+name: Setup Enterprise User
+
+on:
+  workflow_dispatch:
+
+jobs:
+  setup:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Create business and link to user
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: 178.128.33.73
+          username: root
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            cd /opt/rezvo-app/backend
+            python3 << 'PYEOF'
+import asyncio
+from motor.motor_asyncio import AsyncIOMotorClient
+from bson import ObjectId
+from datetime import datetime
+
+async def main():
+    from config import settings
+    client = AsyncIOMotorClient(settings.mongodb_url)
+    db = client[settings.database_name]
+    
+    user = await db.users.find_one({"email": "adda@coffeehaven.com"})
+    if not user:
+        print("USER NOT FOUND")
+        return
+    
+    print(f"Found user: {user['name']} ({user['email']}) - ID: {user['_id']}")
+    
+    existing = await db.businesses.find_one({"owner_id": str(user["_id"])})
+    if existing:
+        print(f"Business already exists: {existing['name']} - updating to enterprise")
+        await db.businesses.update_one({"_id": existing["_id"]}, {"$set": {"tier": "enterprise", "rezvo_tier": "enterprise"}})
+        await db.users.update_one({"_id": user["_id"]}, {"$set": {"business_ids": [str(existing["_id"])], "role": "owner"}})
+        print("DONE")
+        return
+    
+    business = {
+        "name": "Coffee Haven",
+        "type": "restaurant",
+        "category": "cafe",
+        "tier": "enterprise",
+        "rezvo_tier": "enterprise",
+        "owner_id": str(user["_id"]),
+        "slug": "coffee-haven",
+        "description": "Premium coffee house",
+        "phone": "",
+        "email": "adda@coffeehaven.com",
+        "address": {"line1": "", "city": "Nottingham", "postcode": "", "country": "UK"},
+        "staff": [
+            {"id": "staff-1", "name": "Manager", "role": "manager", "active": True},
+            {"id": "staff-2", "name": "Barista 1", "role": "staff", "active": True},
+            {"id": "staff-3", "name": "Barista 2", "role": "staff", "active": True},
+        ],
+        "booking_settings": {
+            "slot_duration": 30,
+            "max_party_size": 12,
+            "opening_hours": {"open": "07:00", "close": "22:00"},
+        },
+        "features_enabled": [
+            "calendar", "bookings", "staff", "services", "floor_plan",
+            "tables", "analytics", "reviews", "crm", "marketing",
+            "orders", "payments", "online_booking", "booking_link"
+        ],
+        "stripe_connected": False,
+        "created_at": datetime.utcnow(),
+        "updated_at": datetime.utcnow(),
+    }
+    
+    result = await db.businesses.insert_one(business)
+    biz_id = str(result.inserted_id)
+    print(f"Created business: Coffee Haven - ID: {biz_id}")
+    
+    await db.users.update_one(
+        {"_id": user["_id"]},
+        {"$set": {"business_ids": [biz_id], "role": "owner"}}
+    )
+    print(f"Linked to user. DONE - Enterprise plan active")
+
+asyncio.run(main())
+PYEOF
