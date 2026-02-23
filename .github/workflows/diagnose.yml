@@ -1,0 +1,43 @@
+name: Diagnose Server
+
+on:
+  workflow_dispatch:
+
+jobs:
+  diagnose:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check server state
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: 178.128.33.73
+          username: root
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            echo "=== NGINX CONFIG TEST ==="
+            nginx -t 2>&1
+
+            echo "=== NGINX ERROR LOG ==="
+            tail -20 /var/log/nginx/error.log
+
+            echo "=== REZVO.APP FILES ==="
+            ls -la /opt/rezvo-app/ 2>/dev/null || echo "NOT FOUND"
+            ls -la /opt/rezvo-app/frontend/dist/ 2>/dev/null || echo "NO DIST"
+            ls -la /var/www/rezvo-app/ 2>/dev/null || echo "NO /var/www/rezvo-app"
+
+            echo "=== SSL CERTS ==="
+            ls -la /etc/letsencrypt/live/ 2>/dev/null || echo "NO CERTS DIR"
+            ls /etc/letsencrypt/live/rezvo.app/ 2>/dev/null || echo "NO rezvo.app CERT"
+            ls /etc/letsencrypt/live/rezvo.co.uk/ 2>/dev/null || echo "NO rezvo.co.uk CERT"
+
+            echo "=== NGINX SITES ==="
+            ls -la /etc/nginx/sites-enabled/
+
+            echo "=== ACTIVE NGINX CONFIG ==="
+            cat /etc/nginx/sites-enabled/rezvo-app 2>/dev/null || echo "NO rezvo-app config"
+
+            echo "=== BACKEND STATUS ==="
+            systemctl status rezvo-backend 2>&1 | head -15
+
+            echo "=== PORT 8000 ==="
+            ss -tlnp | grep 8000
