@@ -18,27 +18,29 @@ jobs:
           script: |
             set -e
 
-            # First-time setup: clone repo if not exists
+            # Clone if first time
             if [ ! -d "/opt/rezvo-app/.git" ]; then
-              echo "First deploy — cloning repo..."
               git clone https://github.com/Ambassadorbtc/Rezvo.app.git /opt/rezvo-app
             fi
 
             cd /opt/rezvo-app
-            git pull origin main
+            git fetch origin main
+            git reset --hard origin/main
 
-            # Backend: install deps
+            # Backend: install deps in venv
             cd /opt/rezvo-app/backend
-            pip install -r requirements.txt -q 2>/dev/null || pip3 install -r requirements.txt -q
+            if [ ! -d "venv" ]; then
+              python3 -m venv venv
+            fi
+            ./venv/bin/pip install -r requirements.txt -q
 
             # Frontend: install + build
             cd /opt/rezvo-app/frontend
             npm install --silent
             npm run build
 
-            # Systemd service for backend (create if missing)
-            if [ ! -f /etc/systemd/system/rezvo-backend.service ]; then
-              cat > /etc/systemd/system/rezvo-backend.service << 'SVCEOF'
+            # Update systemd service
+            cat > /etc/systemd/system/rezvo-backend.service << 'SVCEOF'
             [Unit]
             Description=Rezvo Backend API
             After=network.target mongod.service
@@ -47,24 +49,26 @@ jobs:
             Type=simple
             User=root
             WorkingDirectory=/opt/rezvo-app/backend
-            ExecStart=/usr/bin/python3 server.py
+            ExecStart=/opt/rezvo-app/backend/venv/bin/uvicorn server:app --host 0.0.0.0 --port 8000
             Restart=always
             RestartSec=10
-            Environment=PATH=/usr/local/bin:/usr/bin:/bin
+            Environment=PATH=/opt/rezvo-app/backend/venv/bin:/usr/local/bin:/usr/bin:/bin
 
             [Install]
             WantedBy=multi-user.target
             SVCEOF
-              systemctl daemon-reload
-              systemctl enable rezvo-backend
-            fi
 
-            # Copy Nginx configs
+            systemctl daemon-reload
+            systemctl restart rezvo-backend
+
+            # Nginx
             cp /opt/rezvo-app/nginx.conf /etc/nginx/sites-available/rezvo-app
             ln -sf /etc/nginx/sites-available/rezvo-app /etc/nginx/sites-enabled/rezvo-app
-
-            # Restart services
-            systemctl restart rezvo-backend
             nginx -t && systemctl reload nginx
 
+            # Verify
+            sleep 3
+            curl -s -o /dev/null -w "Backend: %{http_code}" http://127.0.0.1:8000/ || echo "Backend not responding"
+
+            echo ""
             echo "✅ REZVO.APP DEPLOYMENT COMPLETE"
