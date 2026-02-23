@@ -1,0 +1,20 @@
+name: Get Env Info
+
+on:
+  workflow_dispatch:
+
+jobs:
+  get-env:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get env from server
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: 178.128.33.73
+          username: root
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            echo "=== MONGODB ==="
+            grep MONGODB /opt/rezvo-app/backend/.env 2>/dev/null || grep MONGO /opt/rezvo/backend/.env 2>/dev/null || echo "NO .env FOUND"
+            echo "=== ALL ENV KEYS ==="
+            cat /opt/rezvo-app/backend/.env 2>/dev/null | sed 's/=.*/=***/' || echo "no .env"
