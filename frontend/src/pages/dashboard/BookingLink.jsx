@@ -9,6 +9,7 @@ import { useBusiness } from '../../contexts/BusinessContext'
 const BookingLink = () => {
   const { business } = useBusiness()
   const [copied, setCopied] = useState(false)
+  const [activeChannelTab, setActiveChannelTab] = useState('channels')
   const slug = business?.slug || 'your-business'
   const bookingUrl = `https://rezvo.co.uk/book/${slug}`
 
@@ -17,173 +18,158 @@ const BookingLink = () => {
   }
 
   const channels = [
-    { name: 'Reserve with Google', icon: 'fa-google', brand: 'fa-brands', desc: 'Allow clients to book directly from Google Search and Maps. Increase visibility by up to 30%.', connected: false },
-    { name: 'Instagram Book Button', icon: 'fa-instagram', brand: 'fa-brands', desc: 'Add a "Book Now" button to your Instagram profile. Syncs directly with your calendar.', connected: true },
-    { name: 'Facebook Page', icon: 'fa-facebook-f', brand: 'fa-brands', desc: 'Turn your Facebook page followers into bookings with an integrated action button.', connected: false },
+    { name: 'Reserve with Google', icon: 'fa-google', brand: 'fa-brands', desc: 'Allow clients to book directly from Google Search and Maps. Increase visibility by up to 30%.', connected: false, color: 'bg-red-50 text-red-600' },
+    { name: 'Instagram Book Button', icon: 'fa-instagram', brand: 'fa-brands', desc: 'Add a "Book Now" button to your Instagram profile. Syncs directly with your calendar.', connected: true, color: 'bg-pink-50 text-pink-600' },
+    { name: 'Facebook Page', icon: 'fa-facebook-f', brand: 'fa-brands', desc: 'Turn your Facebook page followers into bookings with an integrated action button.', connected: false, color: 'bg-blue-50 text-blue-700' },
+    { name: 'WhatsApp Business', icon: 'fa-whatsapp', brand: 'fa-brands', desc: 'Enable customers to book via WhatsApp with a quick-reply booking link.', connected: false, color: 'bg-green-50 text-green-600' },
   ]
 
   const stats = [
-    { label: 'Page Views', value: '1,248', trend: '12%', sub: 'Last 30 days' },
-    { label: 'Click Through', value: '42.5%', trend: '3.2%', sub: 'Avg. session duration 2m 15s' },
-    { label: 'Bookings', value: '156', trend: '8%', sub: 'Conversion rate 12.5%' },
+    { label: 'Page Views', value: '1,248', trend: '12%', trendUp: true, sub: 'Last 30 days', icon: 'fa-eye' },
+    { label: 'Click Through', value: '42.5%', trend: '3.2%', trendUp: true, sub: 'Avg. session 2m 15s', icon: 'fa-mouse-pointer' },
+    { label: 'Bookings', value: '156', trend: '8%', trendUp: true, sub: 'Conversion rate 12.5%', icon: 'fa-calendar-check' },
   ]
 
+  const embedCode = `<iframe src="${bookingUrl}" width="100%" height="600" frameborder="0"></iframe>`
+
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-      {/* Left Column */}
-      <div className="lg:col-span-8 space-y-6">
-        {/* Main Link Card */}
-        <div className="bg-white border border-border rounded-xl shadow-sm p-6">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-            <div>
-              <h2 className="text-lg font-heading font-bold text-primary">Your Booking Link</h2>
-              <p className="text-sm text-gray-500 mt-1">Share this link directly with clients to accept bookings 24/7.</p>
-            </div>
-            <span className="inline-flex items-center px-2 py-1 rounded text-xs font-bold bg-green-50 text-green-700 border border-green-200">
-              <i className="fa-solid fa-circle-check mr-1.5 text-[10px]" /> Active
-            </span>
+    <div className="space-y-6">
+      {/* Booking Link Card */}
+      <div className="bg-white rounded-xl border border-border p-6 shadow-sm relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-40 h-40 bg-primary/5 rounded-bl-full -mr-12 -mt-12" />
+        <div className="relative z-10">
+          <div className="flex items-center gap-2 mb-2">
+            <h3 className="font-heading font-bold text-lg text-primary">Your Booking Link</h3>
+            <span className="w-2 h-2 rounded-full bg-green-500" />
+            <span className="text-xs font-bold text-green-600">Live</span>
           </div>
+          <p className="text-sm text-gray-500 mb-4">Share this link with clients to let them book online. It works on all devices.</p>
           <div className="flex flex-col sm:flex-row gap-3">
-            <div className="flex-1 relative">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"><i className="fa-solid fa-link text-gray-400 text-sm" /></div>
-              <input type="text" readOnly value={bookingUrl} className="block w-full pl-10 pr-3 py-2.5 border border-border rounded-lg bg-gray-50 text-sm text-primary font-medium" />
+            <div className="flex-1 flex items-center bg-gray-50 border border-border rounded-lg px-4 py-2.5 group hover:border-primary/50 transition-colors">
+              <i className="fa-solid fa-link text-gray-400 mr-3" />
+              <span className="text-sm font-medium text-primary truncate flex-1">{bookingUrl}</span>
             </div>
             <div className="flex gap-2">
-              <button onClick={handleCopy} className="px-4 py-2.5 bg-white border border-border rounded-lg text-sm font-bold text-primary hover:bg-gray-50 hover:border-primary/50 transition-colors shadow-sm flex items-center gap-2">
-                <i className={`fa-regular ${copied ? 'fa-circle-check' : 'fa-copy'}`} /><span>{copied ? 'Copied!' : 'Copy'}</span>
+              <button onClick={handleCopy} className="bg-primary text-white font-bold text-sm px-5 py-2.5 rounded-lg shadow-lg hover:bg-primary-hover transition-colors flex items-center gap-2">
+                <i className={`fa-solid ${copied ? 'fa-check' : 'fa-copy'}`} /> {copied ? 'Copied!' : 'Copy Link'}
               </button>
-              <button className="px-4 py-2.5 bg-white border border-border rounded-lg text-sm font-bold text-primary hover:bg-gray-50 hover:border-primary/50 transition-colors shadow-sm flex items-center gap-2">
-                <i className="fa-solid fa-qrcode" /><span>QR Code</span>
+              <button className="bg-white text-primary border border-border font-bold text-sm px-4 py-2.5 rounded-lg hover:bg-gray-50 transition-colors shadow-sm">
+                <i className="fa-solid fa-qrcode" />
               </button>
             </div>
-          </div>
-        </div>
-
-        {/* Booking Channels */}
-        <div className="bg-white border border-border rounded-xl shadow-sm overflow-hidden">
-          <div className="p-6 border-b border-border">
-            <h3 className="text-lg font-heading font-bold text-primary">Booking Channels</h3>
-            <p className="text-sm text-gray-500 mt-1">Connect your booking page to your social media and search profiles.</p>
-          </div>
-          <div className="divide-y divide-border">
-            {channels.map(ch => (
-              <div key={ch.name} className="p-6 flex items-start gap-4">
-                <div className="w-12 h-12 rounded-lg bg-gray-50 border border-border flex items-center justify-center shrink-0">
-                  <i className={`${ch.brand} ${ch.icon} text-2xl text-gray-700`} />
-                </div>
-                <div className="flex-1">
-                  <div className="flex items-center justify-between mb-1">
-                    <h4 className="font-bold text-primary">{ch.name}</h4>
-                    {ch.connected ? (
-                      <button className="text-sm font-bold text-white bg-primary border border-primary rounded px-3 py-1 hover:bg-primary-hover transition-colors">
-                        <i className="fa-solid fa-check mr-1 text-xs" /> Connected
-                      </button>
-                    ) : (
-                      <button className="text-sm font-bold text-primary border border-primary rounded px-3 py-1 hover:bg-primary hover:text-white transition-colors">Connect</button>
-                    )}
-                  </div>
-                  <p className="text-sm text-gray-500">{ch.desc}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Website Widget */}
-        <div className="bg-white border border-border rounded-xl shadow-sm p-6">
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <h3 className="text-lg font-heading font-bold text-primary">Website Widget</h3>
-              <p className="text-sm text-gray-500 mt-1">Embed a floating booking button on your existing website.</p>
-            </div>
-            <div className="px-3 py-1 bg-gray-100 rounded text-xs font-mono text-gray-500 border border-border hidden sm:block">v2.1.0</div>
-          </div>
-          <div className="bg-gray-900 rounded-lg p-4 relative group">
-            <button onClick={() => navigator.clipboard.writeText(`<script src="https://rezvo.co.uk/widget/v2.js"></script>\n<script>\n  Rezvo.init({\n    businessId: "${business?.id || 'biz_xxx'}",\n    color: "#1B4332",\n    position: "bottom-right"\n  });\n</script>`)} className="absolute top-2 right-2 p-2 bg-gray-800 text-gray-300 rounded hover:text-white hover:bg-gray-700 transition-colors" title="Copy Code">
-              <i className="fa-regular fa-copy" />
-            </button>
-            <code className="text-xs text-gray-300 font-mono block leading-relaxed">
-              {`<script src="https://rezvo.co.uk/widget/v2.js"></script>`}<br />
-              {`<script>`}<br />
-              {'  Rezvo.init({'}<br />
-              {`    businessId: "${business?.id || 'biz_xxx'}",`}<br />
-              {'    color: "#1B4332",'}<br />
-              {'    position: "bottom-right"'}<br />
-              {'  });'}<br />
-              {'</script>'}
-            </code>
-          </div>
-          <div className="mt-4 flex justify-end">
-            <button className="text-sm font-bold text-blue-600 hover:underline">View Implementation Guide</button>
-          </div>
-        </div>
-
-        {/* Conversion Tracking */}
-        <div className="bg-white border border-border rounded-xl shadow-sm overflow-hidden">
-          <div className="p-6 border-b border-border flex justify-between items-center">
-            <h3 className="text-lg font-heading font-bold text-primary">Conversion Tracking</h3>
-            <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-primary/10 text-primary border border-primary/20">GROWTH</span>
-          </div>
-          <div className="p-6 grid grid-cols-1 sm:grid-cols-3 gap-6">
-            {stats.map(s => (
-              <div key={s.label} className="p-4 rounded-lg bg-gray-50 border border-border">
-                <p className="text-xs font-bold text-gray-500 uppercase tracking-wide">{s.label}</p>
-                <div className="mt-2 flex items-baseline gap-2">
-                  <span className="text-2xl font-heading font-bold text-primary">{s.value}</span>
-                  <span className="text-xs font-bold text-green-600 flex items-center"><i className="fa-solid fa-arrow-up text-[10px] mr-0.5" /> {s.trend}</span>
-                </div>
-                <p className="text-[10px] text-gray-400 mt-1">{s.sub}</p>
-              </div>
-            ))}
           </div>
         </div>
       </div>
 
-      {/* Right Column — Mobile Preview */}
-      <div className="lg:col-span-4">
-        <div className="sticky top-6">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-sm font-bold text-gray-500 uppercase tracking-wide">Live Preview</h3>
-            <button className="w-8 h-8 rounded bg-white border border-border flex items-center justify-center text-primary hover:bg-gray-50 transition-colors shadow-sm" title="Refresh">
-              <i className="fa-solid fa-rotate-right text-xs" />
-            </button>
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        {stats.map((s, i) => (
+          <div key={i} className="bg-white rounded-xl border border-border p-5 shadow-sm">
+            <div className="flex justify-between items-start mb-3">
+              <div>
+                <p className="text-xs font-bold text-gray-500 uppercase tracking-wider">{s.label}</p>
+                <h3 className="text-2xl font-heading font-bold text-primary mt-1">{s.value}</h3>
+              </div>
+              <div className="p-2 bg-primary/5 rounded-lg text-primary"><i className={`fa-solid ${s.icon}`} /></div>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className={`text-xs font-bold flex items-center gap-1 ${s.trendUp ? 'text-green-600' : 'text-red-500'}`}>
+                <i className={`fa-solid ${s.trendUp ? 'fa-arrow-trend-up' : 'fa-arrow-trend-down'}`} /> {s.trend}
+              </span>
+              <span className="text-xs text-gray-500">{s.sub}</span>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Channels & Widget Section */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Booking Channels */}
+        <div className="lg:col-span-2 bg-white rounded-xl border border-border shadow-sm overflow-hidden">
+          <div className="border-b border-border">
+            <nav className="flex -mb-px">
+              <button onClick={() => setActiveChannelTab('channels')}
+                className={`flex-1 py-4 px-4 text-sm font-bold text-center border-b-2 transition-colors ${activeChannelTab === 'channels' ? 'border-primary text-primary' : 'border-transparent text-gray-500 hover:text-primary'}`}>
+                <i className="fa-solid fa-globe mr-2" />Booking Channels
+              </button>
+              <button onClick={() => setActiveChannelTab('widget')}
+                className={`flex-1 py-4 px-4 text-sm font-bold text-center border-b-2 transition-colors ${activeChannelTab === 'widget' ? 'border-primary text-primary' : 'border-transparent text-gray-500 hover:text-primary'}`}>
+                <i className="fa-solid fa-code mr-2" />Widget Embed
+              </button>
+            </nav>
           </div>
 
-          {/* Phone Frame */}
-          <div className="relative mx-auto max-w-[300px] bg-black rounded-[3rem] p-3 shadow-2xl">
-            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-6 bg-black rounded-b-2xl z-10" />
-            <div className="rounded-[2.2rem] overflow-hidden bg-[#FEFBF4] h-[550px] flex flex-col">
-              {/* Cover */}
-              <div className="h-32 bg-gradient-to-br from-primary to-green-700 relative shrink-0">
-                <div className="absolute -bottom-8 left-5 w-16 h-16 rounded-xl border-4 border-white shadow-md bg-white flex items-center justify-center">
-                  <span className="font-heading font-bold text-primary text-lg">R</span>
-                </div>
-              </div>
-              <div className="mt-10 px-5 pb-4 border-b border-border/50">
-                <h2 className="text-base font-heading font-bold text-primary">{business?.name || 'Your Business'}</h2>
-                <p className="text-[10px] text-gray-500 mt-0.5">Premium bookings powered by Rezvo</p>
-                <div className="flex items-center gap-1 mt-2">
-                  <i className="fa-solid fa-star text-amber-400 text-[10px]" /><span className="text-[10px] font-bold text-primary">4.9</span><span className="text-[9px] text-gray-400">(124)</span>
-                </div>
-              </div>
-              <div className="flex-1 p-4 space-y-2 overflow-y-auto">
-                <div className="text-[10px] font-bold text-gray-500 uppercase tracking-wide mb-1 pl-1">Popular Services</div>
-                {['Ladies Cut & Blow Dry', 'Full Head Colour', 'Balayage'].map((s, i) => (
-                  <div key={s} className="bg-white p-2.5 rounded-lg border border-border shadow-sm flex justify-between items-center">
-                    <div><p className="text-xs font-bold text-primary">{s}</p><p className="text-[9px] text-gray-400 mt-0.5">{['45 mins • from £45', '2 hrs • from £120', '3 hrs • from £180'][i]}</p></div>
-                    <div className="w-5 h-5 rounded-full bg-primary text-white flex items-center justify-center text-[8px]"><i className="fa-solid fa-plus" /></div>
+          {activeChannelTab === 'channels' ? (
+            <div className="p-6 space-y-4">
+              {channels.map((ch, i) => (
+                <div key={i} className="flex items-start gap-4 p-4 rounded-lg border border-border hover:border-primary/30 hover:shadow-sm transition-all">
+                  <div className={`w-10 h-10 rounded-lg ${ch.color} flex items-center justify-center shrink-0`}>
+                    <i className={`${ch.brand} ${ch.icon} text-lg`} />
                   </div>
-                ))}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2">
+                      <h4 className="text-sm font-bold text-primary">{ch.name}</h4>
+                      {ch.connected && <span className="text-[10px] font-bold text-green-600 bg-green-50 px-2 py-0.5 rounded border border-green-200">Connected</span>}
+                    </div>
+                    <p className="text-xs text-gray-500 mt-1">{ch.desc}</p>
+                  </div>
+                  <button className={`text-sm font-bold px-4 py-2 rounded-lg shrink-0 transition-colors ${ch.connected ? 'text-gray-500 bg-gray-100 hover:bg-gray-200' : 'text-white bg-primary hover:bg-primary-hover shadow-md'}`}>
+                    {ch.connected ? 'Manage' : 'Connect'}
+                  </button>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="p-6 space-y-4">
+              <p className="text-sm text-gray-500">Add this code to your website to embed a booking widget. It automatically adapts to your site's design.</p>
+              <div className="bg-gray-50 border border-border rounded-lg p-4 font-mono text-xs text-primary overflow-x-auto">
+                {embedCode}
               </div>
-              <div className="p-3 bg-white border-t border-border">
-                <button className="w-full bg-primary text-white font-bold py-2.5 rounded-lg text-xs shadow-lg">Book Now</button>
+              <div className="flex gap-3">
+                <button onClick={() => navigator.clipboard.writeText(embedCode)} className="text-sm font-bold text-primary border border-border px-4 py-2 rounded-lg hover:bg-gray-50 flex items-center gap-2 shadow-sm">
+                  <i className="fa-solid fa-copy" /> Copy Code
+                </button>
+                <button className="text-sm font-bold text-gray-500 border border-border px-4 py-2 rounded-lg hover:bg-gray-50 flex items-center gap-2">
+                  <i className="fa-solid fa-palette" /> Customise
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Mobile Preview */}
+        <div className="bg-white rounded-xl border border-border p-6 shadow-sm flex flex-col items-center">
+          <h3 className="font-heading font-bold text-lg text-primary mb-4 self-start">Mobile Preview</h3>
+          <div className="w-[220px] h-[420px] bg-gray-900 rounded-[2rem] p-2 shadow-xl">
+            <div className="w-full h-full bg-white rounded-[1.5rem] overflow-hidden flex flex-col">
+              <div className="bg-primary p-4 text-center">
+                <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-2">
+                  <i className="fa-solid fa-calendar-check text-white text-sm" />
+                </div>
+                <h4 className="text-white font-bold text-sm">{business?.name || 'Your Business'}</h4>
+                <p className="text-white/70 text-[10px] mt-0.5">Book your appointment</p>
+              </div>
+              <div className="flex-1 p-3 space-y-2">
+                <div className="bg-gray-50 rounded-lg p-2 text-center">
+                  <p className="text-[10px] font-bold text-primary">Select Service</p>
+                </div>
+                <div className="bg-gray-50 rounded-lg p-2 text-center">
+                  <p className="text-[10px] font-bold text-primary">Pick a Date</p>
+                </div>
+                <div className="bg-gray-50 rounded-lg p-2 text-center">
+                  <p className="text-[10px] font-bold text-primary">Choose Time</p>
+                </div>
+                <div className="mt-auto">
+                  <div className="bg-primary rounded-lg py-2 text-center">
+                    <span className="text-white font-bold text-[10px]">Confirm Booking</span>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
-
-          <div className="text-center mt-4">
-            <a href="#" className="text-xs text-gray-500 hover:text-primary underline">Customize appearance in Online Booking settings</a>
-          </div>
+          <button className="mt-4 text-sm font-bold text-primary hover:underline flex items-center gap-2">
+            <i className="fa-solid fa-arrow-up-right-from-square text-xs" /> Open Full Preview
+          </button>
         </div>
       </div>
     </div>

@@ -1,7 +1,6 @@
 /**
- * Analytics — Redirects to Payments page (combined as Business Hub)
+ * Analytics — redirects to Payments page (analytics tab)
  */
-
 import { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 

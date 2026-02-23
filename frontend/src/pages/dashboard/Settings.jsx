@@ -6,9 +6,6 @@ import { useState, useEffect, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useBusiness } from '../../contexts/BusinessContext'
 import api, { API_BASE_URL } from '../../utils/api'
-import Card from '../../components/shared/Card'
-import Button from '../../components/shared/Button'
-import Input from '../../components/shared/Input'
 import { isFeatureUnlocked } from '../../config/tiers'
 import { getDomainConfig } from '../../utils/domain'
 
@@ -360,7 +357,7 @@ const Settings = () => {
     return (
       <div className="text-center py-12">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-forest mx-auto" />
-        <p className="mt-4 text-text-secondary">Loading settings...</p>
+        <p className="mt-4 text-gray-500">Loading settings...</p>
       </div>
     )
   }
@@ -376,7 +373,7 @@ const Settings = () => {
       <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
         <div>
           <h1 className="text-3xl font-heading font-bold">Settings</h1>
-          <p className="text-text-secondary">Configure your business</p>
+          <p className="text-gray-500">Configure your business</p>
         </div>
         {toast && (
           <span className="text-sm px-3 py-1 bg-forest/10 text-forest rounded-full">{toast}</span>
@@ -392,7 +389,7 @@ const Settings = () => {
             className={`px-4 py-2 rounded-t-lg font-medium whitespace-nowrap transition-colors ${
               activeTab === t.id
                 ? 'bg-forest text-white'
-                : 'bg-transparent hover:bg-border/50 text-text-secondary'
+                : 'bg-transparent hover:bg-border/50 text-gray-500'
             }`}
           >
             {t.label}
@@ -403,16 +400,20 @@ const Settings = () => {
       {/* Tab Content */}
       <div className="space-y-6">
         {activeTab === 'business' && (
-          <Card>
+          <div className="bg-white border border-border rounded-xl shadow-sm p-6">
             <h2 className="text-xl font-heading font-semibold mb-4">Business Details</h2>
             <div className="grid gap-4 sm:grid-cols-2">
-              <Input label="Business name" value={biz.name || ''} onChange={(e) => updateBusiness('name', e.target.value)} />
               <div>
-                <label className="block text-sm font-medium text-text mb-2">Business type</label>
+                  <label className="block text-sm font-bold text-primary mb-1.5">Business name</label>
+                  <input type="text" value={biz.name || ''} onChange={(e) => updateBusiness('name', e.target.value)}
+                    className="w-full px-3 py-2.5 border border-border rounded-lg text-sm font-medium text-primary focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none" />
+                </div>
+              <div>
+                <label className="block text-sm font-bold text-primary mb-1.5">Business type</label>
                 <select
                   value={biz.businessType || 'Salon'}
                   onChange={(e) => updateBusiness('businessType', e.target.value)}
-                  className="input w-full"
+                  className="w-full px-3 py-2.5 border border-border rounded-lg text-sm font-medium text-primary focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none bg-white"
                 >
                   {BUSINESS_TYPES.map((t) => (
                     <option key={t} value={t}>{t}</option>
@@ -421,61 +422,85 @@ const Settings = () => {
               </div>
             </div>
             <div className="mt-4">
-              <label className="block text-sm font-medium text-text mb-2">Description (max 500)</label>
+              <label className="block text-sm font-bold text-primary mb-1.5">Description (max 500)</label>
               <textarea
                 value={biz.description || ''}
                 onChange={(e) => updateBusiness('description', e.target.value.slice(0, 500))}
                 rows={3}
-                className="input w-full"
+                className="w-full px-3 py-2.5 border border-border rounded-lg text-sm font-medium text-primary focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none bg-white"
               />
-              <p className="text-xs text-muted mt-1">{(biz.description || '').length}/500</p>
+              <p className="text-xs text-gray-500 mt-1">{(biz.description || '').length}/500</p>
             </div>
             <div className="grid gap-4 sm:grid-cols-2 mt-4">
-              <Input label="Phone" value={biz.phone || ''} onChange={(e) => updateBusiness('phone', e.target.value)} />
-              <Input label="Email" type="email" value={biz.email || ''} onChange={(e) => updateBusiness('email', e.target.value)} />
+              <div>
+                  <label className="block text-sm font-bold text-primary mb-1.5">Phone</label>
+                  <input type="text" value={biz.phone || ''} onChange={(e) => updateBusiness('phone', e.target.value)}
+                    className="w-full px-3 py-2.5 border border-border rounded-lg text-sm font-medium text-primary focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none" />
+                </div>
+              <div>
+                  <label className="block text-sm font-bold text-primary mb-1.5">Email</label>
+                  <input type="email" value={biz.email || ''} onChange={(e) => updateBusiness('email', e.target.value)}
+                    className="w-full px-3 py-2.5 border border-border rounded-lg text-sm font-medium text-primary focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none" />
+                </div>
             </div>
             <div className="grid gap-4 sm:grid-cols-2 mt-4">
-              <Input label="Address line 1" value={biz.addressLine1 || biz.address || ''} onChange={(e) => updateBusiness('addressLine1', e.target.value)} />
-              <Input label="Address line 2" value={biz.addressLine2 || ''} onChange={(e) => updateBusiness('addressLine2', e.target.value)} />
+              <div>
+                  <label className="block text-sm font-bold text-primary mb-1.5">Address line 1</label>
+                  <input type="text" value={biz.addressLine1 || biz.address || ''} onChange={(e) => updateBusiness('addressLine1', e.target.value)}
+                    className="w-full px-3 py-2.5 border border-border rounded-lg text-sm font-medium text-primary focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none" />
+                </div>
+              <div>
+                  <label className="block text-sm font-bold text-primary mb-1.5">Address line 2</label>
+                  <input type="text" value={biz.addressLine2 || ''} onChange={(e) => updateBusiness('addressLine2', e.target.value)}
+                    className="w-full px-3 py-2.5 border border-border rounded-lg text-sm font-medium text-primary focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none" />
+                </div>
             </div>
             <div className="grid gap-4 sm:grid-cols-2 mt-4">
-              <Input label="City" value={biz.city || ''} onChange={(e) => updateBusiness('city', e.target.value)} />
-              <Input label="Postcode" value={biz.postcode || ''} onChange={(e) => updateBusiness('postcode', e.target.value)} />
+              <div>
+                  <label className="block text-sm font-bold text-primary mb-1.5">City</label>
+                  <input type="text" value={biz.city || ''} onChange={(e) => updateBusiness('city', e.target.value)}
+                    className="w-full px-3 py-2.5 border border-border rounded-lg text-sm font-medium text-primary focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none" />
+                </div>
+              <div>
+                  <label className="block text-sm font-bold text-primary mb-1.5">Postcode</label>
+                  <input type="text" value={biz.postcode || ''} onChange={(e) => updateBusiness('postcode', e.target.value)}
+                    className="w-full px-3 py-2.5 border border-border rounded-lg text-sm font-medium text-primary focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none" />
+                </div>
             </div>
             <div className="mt-4">
-              <label className="block text-sm font-medium text-text mb-2">Logo</label>
+              <label className="block text-sm font-bold text-primary mb-1.5">Logo</label>
               <label className="flex items-center gap-4 cursor-pointer">
                 <div className="w-24 h-24 rounded-full bg-border flex items-center justify-center overflow-hidden shrink-0 border-2 border-dashed">
                   {biz.logo ? (
                     <img src={toImageUrl(biz.logo)} alt="" className="w-full h-full object-cover" />
                   ) : (
-                    <i className="fa-solid fa-camera text-muted text-2xl" />
+                    <i className="fa-solid fa-camera text-gray-500 text-2xl" />
                   )}
                 </div>
-                <span className="text-sm text-muted">Click to upload</span>
+                <span className="text-sm text-gray-500">Click to upload</span>
                 <input type="file" accept=".jpg,.jpeg,.png,.webp,.svg" className="hidden" onChange={handleLogoUpload} />
               </label>
             </div>
             <div className="mt-4">
-              <label className="block text-sm font-medium text-text mb-2">Cover photo</label>
+              <label className="block text-sm font-bold text-primary mb-1.5">Cover photo</label>
               <label className="block aspect-video max-w-md rounded-lg bg-border border-2 border-dashed flex items-center justify-center cursor-pointer overflow-hidden">
                 {biz.coverPhoto ? (
                   <img src={toImageUrl(biz.coverPhoto)} alt="" className="w-full h-full object-cover" />
                 ) : (
-                  <i className="fa-solid fa-image text-muted text-3xl" />
+                  <i className="fa-solid fa-image text-gray-500 text-3xl" />
                 )}
                 <input type="file" accept=".jpg,.jpeg,.png,.webp" className="hidden" onChange={handleCoverUpload} />
               </label>
             </div>
             <div className="mt-4 flex items-center gap-2">
-              <span className="text-sm text-muted">Currency:</span>
+              <span className="text-sm text-gray-500">Currency:</span>
               <span>{biz.currency || 'GBP'}</span>
-              <span className="text-sm text-muted ml-4">Timezone:</span>
+              <span className="text-sm text-gray-500 ml-4">Timezone:</span>
               <span>{biz.timezone || 'Europe/London'}</span>
             </div>
             <div className="mt-4">
-              <label className="block text-sm font-medium text-text mb-2">Booking page URL</label>
-              <p className="text-sm text-muted mb-1">{getDomainConfig().baseUrl}/book/</p>
+              <label className="block text-sm font-bold text-primary mb-1.5">Booking page URL</label>
+              <p className="text-sm text-gray-500 mb-1">{getDomainConfig().baseUrl}/book/</p>
               <Input
                 value={biz.slug || ''}
                 onChange={(e) => updateBusiness('slug', e.target.value.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, ''))}
@@ -483,16 +508,22 @@ const Settings = () => {
               />
             </div>
             <div className="mt-6">
-              <Button variant="primary" onClick={saveBusiness} loading={saving}>Save</Button>
+              <button onClick={saveBusiness}
+              className="bg-primary text-white font-bold text-sm px-4 py-2 rounded-lg shadow-lg hover:bg-primary-hover transition-colors">
+              Save
+            </button>
             </div>
-          </Card>
+          </div>
         )}
 
         {activeTab === 'hours' && (
-          <Card>
+          <div className="bg-white border border-border rounded-xl shadow-sm p-6">
             <h2 className="text-xl font-heading font-semibold mb-4">Opening Hours</h2>
             <div className="flex justify-end mb-4">
-              <Button variant="outline" size="sm" onClick={copyToAllHours}>Copy to all</Button>
+              <button onClick={copyToAllHours}
+              className="bg-primary text-white font-bold text-sm px-3 py-1.5 rounded-lg shadow-lg hover:bg-primary-hover transition-colors">
+              Copy to all
+            </button>
             </div>
             <div className="space-y-3">
               {DAYS.map((d) => (
@@ -527,13 +558,13 @@ const Settings = () => {
                             },
                           }))
                         }
-                        className="input w-24"
+                        className="w-full px-3 py-2.5 border border-border rounded-lg text-sm font-medium text-primary focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none bg-white w-24"
                       >
                         {TIME_OPTIONS.map((t) => (
                           <option key={t} value={t}>{t}</option>
                         ))}
                       </select>
-                      <span className="text-muted">–</span>
+                      <span className="text-gray-500">–</span>
                       <select
                         value={hours[d.key]?.end || '17:00'}
                         onChange={(e) =>
@@ -545,7 +576,7 @@ const Settings = () => {
                             },
                           }))
                         }
-                        className="input w-24"
+                        className="w-full px-3 py-2.5 border border-border rounded-lg text-sm font-medium text-primary focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none bg-white w-24"
                       >
                         {TIME_OPTIONS.map((t) => (
                           <option key={t} value={t}>{t}</option>
@@ -558,44 +589,58 @@ const Settings = () => {
             </div>
             <h3 className="text-lg font-semibold mt-8 mb-3">Special hours</h3>
             <div className="flex flex-wrap gap-2 items-end">
-              <Input label="Date" type="date" value={specialHoursForm.date} onChange={(e) => setSpecialHoursForm((f) => ({ ...f, date: e.target.value }))} className="w-40" />
+              <div>
+                  <label className="block text-sm font-bold text-primary mb-1.5">Date</label>
+                  <input type="date" value={specialHoursForm.date} onChange={(e) => setSpecialHoursForm((f) => ({ ...f, date: e.target.value }))}
+                    className="w-full px-3 py-2.5 border border-border rounded-lg text-sm font-medium text-primary focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none" />
+                </div>
               <label className="flex items-center gap-2">
                 <input type="checkbox" checked={specialHoursForm.open} onChange={(e) => setSpecialHoursForm((f) => ({ ...f, open: e.target.checked }))} />
                 Open
               </label>
               {specialHoursForm.open && (
                 <>
-                  <select value={specialHoursForm.start} onChange={(e) => setSpecialHoursForm((f) => ({ ...f, start: e.target.value }))} className="input w-24">
+                  <select value={specialHoursForm.start} onChange={(e) => setSpecialHoursForm((f) => ({ ...f, start: e.target.value }))} className="w-full px-3 py-2.5 border border-border rounded-lg text-sm font-medium text-primary focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none bg-white w-24">
                     {TIME_OPTIONS.map((t) => (
                       <option key={t} value={t}>{t}</option>
                     ))}
                   </select>
-                  <select value={specialHoursForm.end} onChange={(e) => setSpecialHoursForm((f) => ({ ...f, end: e.target.value }))} className="input w-24">
+                  <select value={specialHoursForm.end} onChange={(e) => setSpecialHoursForm((f) => ({ ...f, end: e.target.value }))} className="w-full px-3 py-2.5 border border-border rounded-lg text-sm font-medium text-primary focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none bg-white w-24">
                     {TIME_OPTIONS.map((t) => (
                       <option key={t} value={t}>{t}</option>
                     ))}
                   </select>
                 </>
               )}
-              <Input label="Label" value={specialHoursForm.label} onChange={(e) => setSpecialHoursForm((f) => ({ ...f, label: e.target.value }))} placeholder="e.g. Christmas Eve" className="w-40" />
-              <Button variant="primary" size="sm" onClick={addSpecialHours} disabled={!specialHoursForm.date || saving}>Add</Button>
+              <div>
+                  <label className="block text-sm font-bold text-primary mb-1.5">Label</label>
+                  <input type="text" value={specialHoursForm.label} onChange={(e) => setSpecialHoursForm((f) => ({ ...f, label: e.target.value }))}
+                    className="w-full px-3 py-2.5 border border-border rounded-lg text-sm font-medium text-primary focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none" />
+                </div>
+              <button onClick={addSpecialHours} disabled={!specialHoursForm.date || saving}
+              className="bg-primary text-white font-bold text-sm px-3 py-1.5 rounded-lg shadow-lg hover:bg-primary-hover transition-colors">
+              Add
+            </button>
             </div>
             <ul className="mt-4 space-y-2">
               {(settings?.specialHours || []).map((sh) => (
                 <li key={sh.id} className="flex justify-between items-center py-2 px-3 bg-border/30 rounded">
                   <span>{sh.date} {sh.label && `— ${sh.label}`} {sh.open ? `${sh.start}–${sh.end}` : 'Closed'}</span>
-                  <button type="button" onClick={() => removeSpecialHours(sh.id)} className="text-red text-sm hover:underline">Remove</button>
+                  <button type="button" onClick={() => removeSpecialHours(sh.id)} className="text-red-500 text-sm hover:underline">Remove</button>
                 </li>
               ))}
             </ul>
             <div className="mt-6">
-              <Button variant="primary" onClick={saveHours} loading={saving}>Save Hours</Button>
+              <button onClick={saveHours}
+              className="bg-primary text-white font-bold text-sm px-4 py-2 rounded-lg shadow-lg hover:bg-primary-hover transition-colors">
+              Save Hours
+            </button>
             </div>
-          </Card>
+          </div>
         )}
 
         {activeTab === 'notifications' && (
-          <Card>
+          <div className="bg-white border border-border rounded-xl shadow-sm p-6">
             <h2 className="text-xl font-heading font-semibold mb-4">Notification Preferences</h2>
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
@@ -632,11 +677,11 @@ const Settings = () => {
               </label>
               {notifications.dailySummary?.enabled && (
                 <div className="flex items-center gap-2">
-                  <span className="text-sm text-muted">at</span>
+                  <span className="text-sm text-gray-500">at</span>
                   <select
                     value={notifications.dailySummary?.time || '07:00'}
                     onChange={(e) => updateNotification('dailySummary', 'time', e.target.value)}
-                    className="input w-24"
+                    className="w-full px-3 py-2.5 border border-border rounded-lg text-sm font-medium text-primary focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none bg-white w-24"
                   >
                     {TIME_OPTIONS.map((t) => (
                       <option key={t} value={t}>{t}</option>
@@ -646,13 +691,16 @@ const Settings = () => {
               )}
             </div>
             <div className="mt-6">
-              <Button variant="primary" onClick={saveNotifications} loading={saving}>Save Notifications</Button>
+              <button onClick={saveNotifications}
+              className="bg-primary text-white font-bold text-sm px-4 py-2 rounded-lg shadow-lg hover:bg-primary-hover transition-colors">
+              Save Notifications
+            </button>
             </div>
-          </Card>
+          </div>
         )}
 
         {activeTab === 'integrations' && (
-          <Card>
+          <div className="bg-white border border-border rounded-xl shadow-sm p-6">
             <h2 className="text-xl font-heading font-semibold mb-4">Integrations</h2>
             <div className="space-y-4">
               {INTEGRATIONS.map((int) => {
@@ -662,7 +710,7 @@ const Settings = () => {
                   <div key={int.type} className="flex flex-wrap items-center justify-between gap-4 p-4 rounded-lg bg-border/20">
                     <div>
                       <h3 className="font-medium">{int.name}</h3>
-                      <p className="text-sm text-muted">{int.desc}</p>
+                      <p className="text-sm text-gray-500">{int.desc}</p>
                       {locked && <span className="text-xs text-amber-600">({int.tier} tier)</span>}
                     </div>
                     <div className="flex items-center gap-3">
@@ -673,39 +721,47 @@ const Settings = () => {
                         connected ? (
                           <>
                             <a href="https://dashboard.stripe.com" target="_blank" rel="noopener noreferrer" className="text-sm text-forest hover:underline">Open Stripe Dashboard</a>
-                            <Button variant="outline" size="sm" onClick={disconnectStripe} disabled={saving || locked}>Disconnect</Button>
+                            <button onClick={disconnectStripe} disabled={saving || locked}
+              className="bg-primary text-white font-bold text-sm px-3 py-1.5 rounded-lg shadow-lg hover:bg-primary-hover transition-colors">
+              Disconnect
+            </button>
                           </>
                         ) : (
-                          <Button variant="primary" size="sm" onClick={connectStripe} disabled={saving || locked}>
-                            Connect with Stripe
-                          </Button>
+                          <button onClick={connectStripe} disabled={saving || locked}
+              className="bg-primary text-white font-bold text-sm px-3 py-1.5 rounded-lg shadow-lg hover:bg-primary-hover transition-colors">
+              Connect with Stripe
+            </button>
                         )
                       ) : (
-                        <Button variant="outline" size="sm" disabled={locked}>
-                          {connected ? 'Disconnect' : 'Connect'}
-                        </Button>
+                        <button disabled={locked}
+              className="bg-primary text-white font-bold text-sm px-3 py-1.5 rounded-lg shadow-lg hover:bg-primary-hover transition-colors">
+              {connected ? 'Disconnect' : 'Connect'}
+            </button>
                       )}
                     </div>
                   </div>
                 )
               })}
             </div>
-          </Card>
+          </div>
         )}
 
         {activeTab === 'subscription' && (
-          <Card>
+          <div className="bg-white border border-border rounded-xl shadow-sm p-6">
             <h2 className="text-xl font-heading font-semibold mb-4">Subscription</h2>
             <div className="p-4 rounded-lg bg-forest/5 border border-forest/20 mb-6">
               <h3 className="font-semibold text-lg">{subscription?.plan || 'Free'}</h3>
-              <p className="text-muted">
+              <p className="text-gray-500">
                 {subscription?.price != null ? `£${subscription.price}/month` : 'Custom pricing'}
               </p>
-              <p className="text-sm text-muted mt-2">Next billing: {subscription?.nextBillingDate || '—'}</p>
-              <p className="text-sm text-muted">Payment method: {subscription?.paymentMethod || '—'}</p>
+              <p className="text-sm text-gray-500 mt-2">Next billing: {subscription?.nextBillingDate || '—'}</p>
+              <p className="text-sm text-gray-500">Payment method: {subscription?.paymentMethod || '—'}</p>
               <div className="flex gap-3 mt-3">
-                <Button variant="outline" size="sm">Update payment method</Button>
-                <button type="button" onClick={cancelSubscription} className="text-sm text-muted hover:text-red">Cancel subscription</button>
+                <button
+              className="bg-primary text-white font-bold text-sm px-3 py-1.5 rounded-lg shadow-lg hover:bg-primary-hover transition-colors">
+              Update payment method
+            </button>
+                <button type="button" onClick={cancelSubscription} className="text-sm text-gray-500 hover:text-red-500">Cancel subscription</button>
               </div>
             </div>
             <h3 className="font-semibold mb-3">Plans</h3>
@@ -718,22 +774,24 @@ const Settings = () => {
                   }`}
                 >
                   <h4 className="font-medium">{p.name}</h4>
-                  <p className="text-muted">{p.price != null ? `£${p.price}/mo` : 'Contact us'}</p>
+                  <p className="text-gray-500">{p.price != null ? `£${p.price}/mo` : 'Contact us'}</p>
                   {subscription?.tier !== p.tier && (
-                    <Button variant="outline" size="sm" className="mt-2" onClick={() => changePlan(p.tier)}>
+                    <button
+              className="bg-primary text-white font-bold text-sm px-3 py-1.5 rounded-lg shadow-lg hover:bg-primary-hover transition-colors mt-2">
+              changePlan(p.tier)}>
                       {PLANS.findIndex((x) => x.tier === p.tier) > PLANS.findIndex((x) => x.tier === subscription?.tier) ? 'Upgrade' : 'Downgrade'}
-                    </Button>
+            </button>
                   )}
                 </div>
               ))}
             </div>
-          </Card>
+          </div>
         )}
 
         {activeTab === 'team' && (
-          <Card>
+          <div className="bg-white border border-border rounded-xl shadow-sm p-6">
             <h2 className="text-xl font-heading font-semibold mb-4">Team Permissions</h2>
-            <p className="text-muted text-sm mb-4">Quick summary. Use Staff page for full management.</p>
+            <p className="text-gray-500 text-sm mb-4">Quick summary. Use Staff page for full management.</p>
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
@@ -754,53 +812,67 @@ const Settings = () => {
                 </tbody>
               </table>
               {staff.length === 0 && (
-                <p className="py-4 text-muted text-sm">No staff yet. Add staff on the Staff page.</p>
+                <p className="py-4 text-gray-500 text-sm">No staff yet. Add staff on the Staff page.</p>
               )}
             </div>
             <div className="mt-4">
-              <Button variant="primary" onClick={() => navigate('/dashboard/staff')}>Manage Team</Button>
+              <button
+              onClick={() => navigate('/dashboard/staff')}
+              className="bg-primary text-white font-bold text-sm px-4 py-2 rounded-lg shadow-lg hover:bg-primary-hover transition-colors">
+              Manage Team
+            </button>
             </div>
-          </Card>
+          </div>
         )}
       </div>
 
       {/* Danger Zone */}
-      <Card className="mt-8 border-red/30 bg-red/5">
-        <h2 className="text-xl font-heading font-semibold text-red mb-4">Danger Zone</h2>
+      <div className="bg-white border border-border rounded-xl shadow-sm p-6 mt-8 border-red-500/30 bg-red-500/5">
+        <h2 className="text-xl font-heading font-semibold text-red-500 mb-4">Danger Zone</h2>
         <div className="space-y-4">
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div>
               <p className="font-medium">Export all data</p>
-              <p className="text-sm text-muted">Download a ZIP of clients, bookings, services</p>
+              <p className="text-sm text-gray-500">Download a ZIP of clients, bookings, services</p>
             </div>
-            <Button variant="outline" onClick={exportData}>Export</Button>
+            <button onClick={exportData}
+              className="bg-primary text-white font-bold text-sm px-4 py-2 rounded-lg shadow-lg hover:bg-primary-hover transition-colors">
+              Export
+            </button>
           </div>
-          <div className="flex flex-wrap items-center justify-between gap-4 pt-4 border-t border-red/20">
+          <div className="flex flex-wrap items-center justify-between gap-4 pt-4 border-t border-red-500/20">
             <div>
               <p className="font-medium">Delete business</p>
-              <p className="text-sm text-muted">Permanently remove your business. 30-day grace period.</p>
+              <p className="text-sm text-gray-500">Permanently remove your business. 30-day grace period.</p>
             </div>
-            <Button variant="outline" onClick={() => setDeleteModal(true)} className="border-red text-red hover:bg-red/10">Delete business</Button>
+            <button onClick={() => setDeleteModal(true)}
+              className="px-4 py-2 border border-red-500 text-red-500 font-bold text-sm rounded-lg hover:bg-red-500/10 transition-colors">
+              Delete business
+            </button>
           </div>
         </div>
-      </Card>
+      </div>
 
       {/* Delete Modal */}
       {deleteModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={() => setDeleteModal(false)}>
           <div className="bg-white rounded-xl p-6 max-w-md w-full mx-4 shadow-xl" onClick={(e) => e.stopPropagation()}>
-            <h3 className="text-lg font-semibold text-red mb-2">Delete business</h3>
-            <p className="text-muted text-sm mb-4">Type your business name to confirm: <strong>{business?.name}</strong></p>
-            <Input
-              value={deleteConfirmName}
-              onChange={(e) => setDeleteConfirmName(e.target.value)}
-              placeholder="Business name"
-            />
+            <h3 className="text-lg font-semibold text-red-500 mb-2">Delete business</h3>
+            <p className="text-gray-500 text-sm mb-4">Type your business name to confirm: <strong>{business?.name}</strong></p>
+            <div>
+                  <label className="block text-sm font-bold text-primary mb-1.5"></label>
+                  <input type="text" value={deleteConfirmName} onChange={(e) => setDeleteConfirmName(e.target.value)}
+                    className="w-full px-3 py-2.5 border border-border rounded-lg text-sm font-medium text-primary focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none" />
+                </div>
             <div className="flex gap-3 mt-4">
-              <Button variant="secondary" onClick={() => setDeleteModal(false)}>Cancel</Button>
-              <Button variant="primary" onClick={deleteBusiness} loading={saving} className="bg-red hover:bg-red/90">
-                Delete
-              </Button>
+              <button onClick={() => setDeleteModal(false)}
+              className="bg-white border border-border text-primary font-bold text-sm px-4 py-2 rounded-lg hover:bg-gray-50 shadow-sm">
+              Cancel
+            </button>
+              <button onClick={deleteBusiness}
+              className="bg-red-500 text-white font-bold text-sm px-4 py-2 rounded-lg shadow-lg hover:bg-red-600 transition-colors">
+              Delete
+            </button>
             </div>
           </div>
         </div>

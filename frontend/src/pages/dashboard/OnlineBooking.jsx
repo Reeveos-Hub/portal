@@ -3,11 +3,10 @@
  */
 
 import { useState, useEffect, useCallback, useRef } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useBusiness } from '../../contexts/BusinessContext'
 import api, { API_BASE_URL } from '../../utils/api'
 import { getDomainConfig } from '../../utils/domain'
-import Card from '../../components/shared/Card'
-import Button from '../../components/shared/Button'
 import { isFeatureUnlocked } from '../../config/tiers'
 import { TIERS } from '../../config/tiers'
 import UpgradeModal from '../../components/layout/UpgradeModal'
@@ -197,19 +196,20 @@ const OnlineBooking = () => {
         <div className="flex items-center justify-between">
           <h1 className="text-3xl font-heading font-bold">Online Booking</h1>
           <div className="flex items-center gap-2">
-            {toast && <span className="text-sm text-muted">{toast}</span>}
-            <Button variant="primary" onClick={handleSave} disabled={saving}>
+            {toast && <span className="text-sm text-gray-500">{toast}</span>}
+            <button onClick={handleSave} disabled={saving}
+              className="bg-primary text-white font-bold text-sm px-4 py-2 rounded-lg shadow-lg hover:bg-primary-hover transition-colors disabled:opacity-50">
               {saving ? 'Saving...' : 'Save'}
-            </Button>
+            </button>
           </div>
         </div>
 
         {/* Branding */}
-        <Card>
+        <div className="bg-white border border-border rounded-xl shadow-sm p-6">
           <h2 className="font-heading font-semibold text-lg mb-4">Branding</h2>
           <div className="space-y-4">
             <div>
-              <p className="text-sm font-medium text-muted mb-2">Logo</p>
+              <p className="text-sm font-bold text-primary mb-2">Logo</p>
               <label className="flex items-center gap-4 cursor-pointer">
                 <div className="w-24 h-24 rounded-full bg-primary/10 border-2 border-dashed border-primary/30 flex items-center justify-center overflow-hidden shrink-0">
                   {b.logo ? (
@@ -218,12 +218,12 @@ const OnlineBooking = () => {
                     <i className="fa-solid fa-camera text-primary/50 text-2xl" />
                   )}
                 </div>
-                <span className="text-sm text-muted">Click or drag to upload</span>
+                <span className="text-sm text-gray-500">Click or drag to upload</span>
                 <input type="file" accept=".jpg,.jpeg,.png,.webp,.svg" className="hidden" onChange={handleLogoUpload} />
               </label>
             </div>
             <div>
-              <p className="text-sm font-medium text-muted mb-2">Cover Photo</p>
+              <p className="text-sm font-bold text-primary mb-2">Cover Photo</p>
               <label className="block aspect-video rounded-lg bg-primary/10 border-2 border-dashed border-primary/30 flex items-center justify-center cursor-pointer overflow-hidden">
                 {b.coverPhoto ? (
                   <img src={toImageUrl(b.coverPhoto)} alt="" className="w-full h-full object-cover" />
@@ -234,19 +234,19 @@ const OnlineBooking = () => {
               </label>
             </div>
             <div>
-              <label className="block text-sm font-medium text-muted mb-2">Description</label>
+              <label className="block text-sm font-bold text-primary mb-2">Description</label>
               <textarea
                 value={b.description || ''}
                 onChange={(e) => updateDraft('branding', 'description', e.target.value.slice(0, 500))}
                 onBlur={handleBlur}
                 rows={3}
                 placeholder="Tell customers about your business..."
-                className="input w-full"
+                className="w-full px-3 py-2.5 border border-border rounded-lg text-sm font-medium text-primary focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none bg-white"
               />
             </div>
             <p className="text-xs text-muted">{(b.description || '').length}/500</p>
             <div>
-              <label className="block text-sm font-medium text-muted mb-2">Accent Colour</label>
+              <label className="block text-sm font-bold text-primary mb-2">Accent Colour</label>
               <div className="flex gap-2 items-center">
                 <input
                   type="color"
@@ -260,21 +260,21 @@ const OnlineBooking = () => {
                   value={b.accentColour || '#1B4332'}
                   onChange={(e) => updateDraft('branding', 'accentColour', e.target.value)}
                   onBlur={handleBlur}
-                  className="input flex-1 max-w-[120px] font-mono text-sm"
+                  className="flex-1 max-w-[120px] px-3 py-2.5 border border-border rounded-lg text-sm font-mono text-primary focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none bg-white"
                 />
               </div>
             </div>
           </div>
-        </Card>
+        </div>
 
         {/* Booking Settings */}
-        <Card>
+        <div className="bg-white border border-border rounded-xl shadow-sm p-6">
           <h2 className="font-heading font-semibold text-lg mb-4">Booking Settings</h2>
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-muted mb-1">Advance booking window</label>
+              <label className="block text-sm font-bold text-primary mb-1">Advance booking window</label>
               <select
-                className="input w-full"
+                className="w-full px-3 py-2.5 border border-border rounded-lg text-sm font-medium text-primary focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none bg-white"
                 value={s.advanceBookingDays ?? 60}
                 onChange={(e) => { updateDraft('settings', 'advanceBookingDays', +e.target.value); handleBlur() }}
               >
@@ -284,9 +284,9 @@ const OnlineBooking = () => {
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-muted mb-1">Booking intervals</label>
+              <label className="block text-sm font-bold text-primary mb-1">Booking intervals</label>
               <select
-                className="input w-full"
+                className="w-full px-3 py-2.5 border border-border rounded-lg text-sm font-medium text-primary focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none bg-white"
                 value={s.bookingIntervalMinutes ?? 30}
                 onChange={(e) => { updateDraft('settings', 'bookingIntervalMinutes', +e.target.value); handleBlur() }}
               >
@@ -304,9 +304,9 @@ const OnlineBooking = () => {
               <span className="text-sm">Auto-confirm bookings</span>
             </label>
             <div>
-              <label className="block text-sm font-medium text-muted mb-1">Buffer between bookings</label>
+              <label className="block text-sm font-bold text-primary mb-1">Buffer between bookings</label>
               <select
-                className="input w-full"
+                className="w-full px-3 py-2.5 border border-border rounded-lg text-sm font-medium text-primary focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none bg-white"
                 value={s.bufferMinutes ?? 15}
                 onChange={(e) => { updateDraft('settings', 'bufferMinutes', +e.target.value); handleBlur() }}
               >
@@ -316,9 +316,9 @@ const OnlineBooking = () => {
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-muted mb-1">Cancellation notice</label>
+              <label className="block text-sm font-bold text-primary mb-1">Cancellation notice</label>
               <select
-                className="input w-full"
+                className="w-full px-3 py-2.5 border border-border rounded-lg text-sm font-medium text-primary focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none bg-white"
                 value={s.cancellationNoticeHours ?? 24}
                 onChange={(e) => { updateDraft('settings', 'cancellationNoticeHours', +e.target.value); handleBlur() }}
               >
@@ -328,10 +328,10 @@ const OnlineBooking = () => {
               </select>
             </div>
           </div>
-        </Card>
+        </div>
 
         {/* Deposits - Growth+ */}
-        <Card>
+        <div className="bg-white border border-border rounded-xl shadow-sm p-6">
           <div className="flex items-center justify-between mb-4">
             <h2 className="font-heading font-semibold text-lg">Deposits</h2>
             {!hasDeposits && (
@@ -357,12 +357,12 @@ const OnlineBooking = () => {
               {s.depositEnabled && (
                 <>
                   <div>
-                    <label className="block text-sm font-medium text-muted mb-1">Amount (£)</label>
+                    <label className="block text-sm font-bold text-primary mb-1">Amount (£)</label>
                     <input
                       type="number"
                       step="0.01"
                       min="0"
-                      className="input w-full"
+                      className="w-full px-3 py-2.5 border border-border rounded-lg text-sm font-medium text-primary focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none bg-white"
                       value={(s.depositAmount || 0) / 100}
                       onChange={(e) => updateDraft('settings', 'depositAmount', Math.round(parseFloat(e.target.value || 0) * 100))}
                       onBlur={handleBlur}
@@ -372,28 +372,28 @@ const OnlineBooking = () => {
               )}
             </div>
           ) : (
-            <p className="text-sm text-muted">Deposits available on Growth plan.</p>
+            <p className="text-sm text-gray-500">Deposits available on Growth plan.</p>
           )}
-        </Card>
+        </div>
 
         {/* Share */}
-        <Card>
+        <div className="bg-white border border-border rounded-xl shadow-sm p-6">
           <h2 className="font-heading font-semibold text-lg mb-4">Share Your Booking Page</h2>
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-muted mb-1">Booking URL</label>
+              <label className="block text-sm font-bold text-primary mb-1">Booking URL</label>
               <div className="flex gap-2">
                 <input
                   type="text"
                   readOnly
                   value={bookingUrl}
-                  className="input flex-1 text-sm"
+                  className="flex-1 px-3 py-2.5 border border-border rounded-lg text-sm text-primary focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none bg-white"
                 />
-                <Button variant="secondary" onClick={handleCopyUrl}>Copy</Button>
+                <button onClick={handleCopyUrl} className="px-3 py-2 bg-white border border-border rounded-lg text-sm font-bold text-primary hover:bg-gray-50 shadow-sm">Copy</button>
               </div>
             </div>
             <div>
-              <p className="text-sm font-medium text-muted mb-2">QR Code</p>
+              <p className="text-sm font-bold text-primary mb-2">QR Code</p>
               <div className="flex flex-col items-start gap-2">
                 <QrPreview businessId={business?.id} />
                 <button type="button" onClick={handleDownloadQr} className="text-sm text-primary hover:underline">
@@ -438,10 +438,10 @@ const OnlineBooking = () => {
               </button>
             </div>
           </div>
-        </Card>
+        </div>
 
         {/* Integrations - Scale */}
-        <Card>
+        <div className="bg-white border border-border rounded-xl shadow-sm p-6">
           <div className="flex items-center justify-between mb-4">
             <h2 className="font-heading font-semibold text-lg">Integrations</h2>
             {!hasIntegrations && (
@@ -468,14 +468,14 @@ const OnlineBooking = () => {
                 <span className="text-sm">Facebook</span>
                 <span className="text-xs text-muted">Not connected</span>
               </div>
-              <Button variant="secondary" onClick={() => setEmbedModal(true)}>
+              <button onClick={() => setEmbedModal(true)} className="px-4 py-2 bg-white border border-border rounded-lg text-sm font-bold text-primary hover:bg-gray-50 shadow-sm">
                 Get Embed Code
-              </Button>
+              </button>
             </div>
           ) : (
-            <p className="text-sm text-muted">Integrations available on Scale plan.</p>
+            <p className="text-sm text-gray-500">Integrations available on Scale plan.</p>
           )}
-        </Card>
+        </div>
       </div>
 
       {/* Preview - desktop */}
@@ -585,21 +585,21 @@ const EmbedModal = ({ businessId, accentColour, onClose, onCopy }) => {
         <h3 className="font-heading font-bold text-lg mb-4">Embed Code</h3>
         <div className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-muted mb-1">Iframe</label>
+            <label className="block text-sm font-bold text-primary mb-1">Iframe</label>
             <div className="flex gap-2">
-              <textarea readOnly value={iframeCode} className="input flex-1 text-xs font-mono h-20" />
-              <Button size="sm" onClick={() => onCopy(iframeCode)}>Copy</Button>
+              <textarea readOnly value={iframeCode} className="flex-1 px-3 py-2.5 border border-border rounded-lg text-xs font-mono text-primary focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none bg-white h-20" />
+              <button onClick={() => onCopy(iframeCode)} className="px-3 py-1.5 bg-primary text-white text-sm font-bold rounded-lg hover:bg-primary-hover">Copy</button>
             </div>
           </div>
           <div>
-            <label className="block text-sm font-medium text-muted mb-1">Button</label>
+            <label className="block text-sm font-bold text-primary mb-1">Button</label>
             <div className="flex gap-2">
-              <textarea readOnly value={buttonCode} className="input flex-1 text-xs font-mono h-20" />
-              <Button size="sm" onClick={() => onCopy(buttonCode)}>Copy</Button>
+              <textarea readOnly value={buttonCode} className="flex-1 px-3 py-2.5 border border-border rounded-lg text-xs font-mono text-primary focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none bg-white h-20" />
+              <button onClick={() => onCopy(buttonCode)} className="px-3 py-1.5 bg-primary text-white text-sm font-bold rounded-lg hover:bg-primary-hover">Copy</button>
             </div>
           </div>
         </div>
-        <Button variant="secondary" className="mt-4 w-full" onClick={onClose}>Close</Button>
+        <button onClick={onClose} className="mt-4 w-full px-4 py-2 bg-white border border-border rounded-lg text-sm font-bold text-primary hover:bg-gray-50">Close</button>
       </div>
     </div>
   )
@@ -623,7 +623,7 @@ const BookingPreview = ({ business, services, accentColour }) => {
         )}
         <div className="flex-1 min-w-0 pb-1">
           <h2 className="font-heading font-bold text-lg truncate" style={{ color: accentColour }}>{business.name}</h2>
-          {business.description && <p className="text-sm text-muted line-clamp-2 mt-0.5">{business.description}</p>}
+          {business.description && <p className="text-sm text-gray-500 line-clamp-2 mt-0.5">{business.description}</p>}
         </div>
       </div>
       <div className="p-4 pt-2 space-y-2">

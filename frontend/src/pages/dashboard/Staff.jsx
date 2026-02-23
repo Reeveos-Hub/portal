@@ -5,9 +5,9 @@
 import { useState, useEffect } from 'react'
 import { useBusiness } from '../../contexts/BusinessContext'
 import api from '../../utils/api'
-import Card from '../../components/shared/Card'
-import Button from '../../components/shared/Button'
-import Input from '../../components/shared/Input'
+
+
+
 import { STAFF_TIER_LIMITS, PERMISSION_LABELS, DAY_LABELS, TIME_SLOTS } from '../../config/staff'
 import { TIER_ORDER, TIERS } from '../../config/tiers'
 import UpgradeModal from '../../components/layout/UpgradeModal'
@@ -185,7 +185,7 @@ const Staff = () => {
     return (
       <div className="text-center py-12">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto" />
-        <p className="mt-4 text-muted">Loading staff...</p>
+        <p className="mt-4 text-gray-500">Loading staff...</p>
       </div>
     )
   }
@@ -195,39 +195,32 @@ const Staff = () => {
       <div className="mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-3xl font-heading font-bold mb-2">Staff</h1>
-          <p className="text-muted">
+          <p className="text-gray-500">
             {staff.length} team {staff.length === 1 ? 'member' : 'members'}
           </p>
         </div>
-        <Button
-          variant="primary"
+        <button
           onClick={handleAddClick}
           disabled={!canAdd}
-          className={!canAdd ? 'opacity-75' : ''}
+          className={`bg-primary text-white font-bold text-sm px-4 py-2.5 rounded-lg shadow-lg hover:bg-primary-hover transition-colors flex items-center gap-2 ${!canAdd ? 'opacity-75 cursor-not-allowed' : ''}`}
         >
-          {canAdd ? (
-            'Add Staff Member'
-          ) : (
-            <>
-              <i className="fa-solid fa-lock mr-2" />
-              Add Staff Member
-            </>
-          )}
-        </Button>
+          {!canAdd && <i className="fa-solid fa-lock" />}
+          Add Staff Member
+        </button>
       </div>
 
       {error && (
-        <Card className="mb-6 border-red/30 bg-red/5">
-          <p className="text-red">{error}</p>
-        </Card>
+        <div className="bg-white border border-red-500-200 rounded-xl shadow-sm p-6 mb-6 bg-red-500-50">
+          <p className="text-red-500">{error}</p>
+        </div>
       )}
 
       {staff.length === 0 ? (
-        <Card>
-          <p className="text-center text-muted py-12">
+        <div className="bg-white border border-border rounded-xl shadow-sm p-6">
+          <p className="text-center text-gray-500 py-12">
             No staff members yet. Add your first team member!
           </p>
-        </Card>
+        </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {staff.map((s) => (
@@ -290,7 +283,7 @@ const StaffCard = ({ staff, onEdit, onDelete, onReinvite }) => {
     : 'Not working today'
 
   return (
-    <Card>
+    <div className="bg-white border border-border rounded-xl shadow-sm p-6">
       <div className="flex gap-4">
         <div className="w-16 h-16 rounded-full bg-primary/20 flex items-center justify-center shrink-0 overflow-hidden">
           {staff.avatar ? (
@@ -301,14 +294,14 @@ const StaffCard = ({ staff, onEdit, onDelete, onReinvite }) => {
         </div>
         <div className="min-w-0 flex-1">
           <h3 className="font-semibold text-lg truncate">{staff.name}</h3>
-          <p className="text-sm text-muted truncate">{staff.role}</p>
+          <p className="text-sm text-gray-500 truncate">{staff.role}</p>
           <span
             className={`inline-block mt-2 px-2 py-0.5 rounded-full text-xs font-medium ${statusClass}`}
           >
             {statusLabel}
           </span>
-          <p className="text-sm text-muted mt-2">{hoursText}</p>
-          <p className="text-sm text-muted">
+          <p className="text-sm text-gray-500 mt-2">{hoursText}</p>
+          <p className="text-sm text-gray-500">
             {staff.bookingsToday ?? 0} bookings today
           </p>
           {staff.inviteStatus === 'pending' && (
@@ -322,14 +315,14 @@ const StaffCard = ({ staff, onEdit, onDelete, onReinvite }) => {
           <div className="flex gap-2 mt-3">
             <button
               onClick={onEdit}
-              className="p-2 text-muted hover:text-primary hover:bg-primary/10 rounded-lg transition-colors"
+              className="p-2 text-gray-500 hover:text-primary hover:bg-primary/10 rounded-lg transition-colors"
               title="Edit"
             >
               <i className="fa-solid fa-pencil text-sm" />
             </button>
             <button
               onClick={() => (window.location.href = '/dashboard/calendar')}
-              className="p-2 text-muted hover:text-primary hover:bg-primary/10 rounded-lg transition-colors"
+              className="p-2 text-gray-500 hover:text-primary hover:bg-primary/10 rounded-lg transition-colors"
               title="Schedule"
             >
               <i className="fa-solid fa-calendar text-sm" />
@@ -337,7 +330,7 @@ const StaffCard = ({ staff, onEdit, onDelete, onReinvite }) => {
             {staff.permissions !== 'owner' && (
               <button
                 onClick={onDelete}
-                className="p-2 text-muted hover:text-red hover:bg-red/10 rounded-lg transition-colors"
+                className="p-2 text-gray-500 hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-colors"
                 title="Delete"
               >
                 <i className="fa-solid fa-trash text-sm" />
@@ -346,7 +339,7 @@ const StaffCard = ({ staff, onEdit, onDelete, onReinvite }) => {
           </div>
         </div>
       </div>
-    </Card>
+    </div>
   )
 }
 
@@ -434,7 +427,7 @@ const StaffEditPanel = ({ mode, staff, services, businessId, onSave, onClose, sa
           <h2 className="text-xl font-heading font-bold">
             {mode === 'add' ? 'Add Staff Member' : 'Edit Staff Member'}
           </h2>
-          <button onClick={onClose} className="p-2 text-muted hover:text-primary rounded-lg">
+          <button onClick={onClose} className="p-2 text-gray-500 hover:text-primary rounded-lg">
             <i className="fa-solid fa-times text-lg" />
           </button>
         </div>
@@ -464,27 +457,26 @@ const StaffEditPanel = ({ mode, staff, services, businessId, onSave, onClose, sa
           </div>
 
           {/* Details */}
-          <Input
-            label="Name"
-            value={form.name || ''}
-            onChange={(e) => update('name', e.target.value)}
-          />
-          <Input
-            label="Email"
-            type="email"
-            value={form.email || ''}
-            onChange={(e) => update('email', e.target.value)}
-            readOnly={form.inviteStatus === 'accepted'}
-          />
-          <Input
-            label="Phone"
-            value={form.phone || ''}
-            onChange={(e) => update('phone', e.target.value)}
-          />
           <div>
-            <label className="block text-sm font-medium text-text mb-2">Role</label>
+            <label className="block text-sm font-bold text-primary mb-1.5">Name</label>
+            <input type="text" value={form.name || ''} onChange={(e) => update('name', e.target.value)}
+              className="w-full px-3 py-2.5 border border-border rounded-lg text-sm font-medium text-primary focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all" />
+          </div>
+          <div>
+            <label className="block text-sm font-bold text-primary mb-1.5">Email</label>
+            <input type="email" value={form.email || ''} onChange={(e) => update('email', e.target.value)}
+              readOnly={form.inviteStatus === 'accepted'}
+              className="w-full px-3 py-2.5 border border-border rounded-lg text-sm font-medium text-primary focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all" />
+          </div>
+          <div>
+            <label className="block text-sm font-bold text-primary mb-1.5">Phone</label>
+            <input type="text" value={form.phone || ''} onChange={(e) => update('phone', e.target.value)}
+              className="w-full px-3 py-2.5 border border-border rounded-lg text-sm font-medium text-primary focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all" />
+          </div>
+          <div>
+            <label className="block text-sm font-bold text-primary mb-1.5">Role</label>
             <select
-              className="input w-full"
+              className="w-full px-3 py-2.5 border border-border rounded-lg text-sm font-medium text-primary focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none bg-white appearance-none"
               value={form.role || ''}
               onChange={(e) => update('role', e.target.value)}
             >
@@ -496,9 +488,9 @@ const StaffEditPanel = ({ mode, staff, services, businessId, onSave, onClose, sa
             </select>
           </div>
           <div>
-            <label className="block text-sm font-medium text-text mb-2">Permissions</label>
+            <label className="block text-sm font-bold text-primary mb-1.5">Permissions</label>
             <select
-              className="input w-full"
+              className="w-full px-3 py-2.5 border border-border rounded-lg text-sm font-medium text-primary focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none bg-white appearance-none"
               value={form.permissions || 'staff'}
               onChange={(e) => update('permissions', e.target.value)}
             >
@@ -540,7 +532,7 @@ const StaffEditPanel = ({ mode, staff, services, businessId, onSave, onClose, sa
                     {active && (
                       <>
                         <select
-                          className="input py-1.5 text-sm flex-1 min-w-0"
+                          className="w-full px-3 py-2.5 border border-border rounded-lg text-sm font-medium text-primary focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none py-1.5 text-sm flex-1 min-w-0"
                           value={d.start || '09:00'}
                           onChange={(e) => updateHours(key, 'start', e.target.value)}
                         >
@@ -550,9 +542,9 @@ const StaffEditPanel = ({ mode, staff, services, businessId, onSave, onClose, sa
                             </option>
                           ))}
                         </select>
-                        <span className="text-muted">–</span>
+                        <span className="text-gray-500">–</span>
                         <select
-                          className="input py-1.5 text-sm flex-1 min-w-0"
+                          className="w-full px-3 py-2.5 border border-border rounded-lg text-sm font-medium text-primary focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none py-1.5 text-sm flex-1 min-w-0"
                           value={d.end || '17:00'}
                           onChange={(e) => updateHours(key, 'end', e.target.value)}
                         >
@@ -598,7 +590,7 @@ const StaffEditPanel = ({ mode, staff, services, businessId, onSave, onClose, sa
                       onChange={() => toggleService(s.id)}
                     />
                     {s.name}
-                    {s.duration && <span className="text-muted">({s.duration} min)</span>}
+                    {s.duration && <span className="text-gray-500">({s.duration} min)</span>}
                   </label>
                 ))}
               </div>
@@ -621,7 +613,7 @@ const StaffEditPanel = ({ mode, staff, services, businessId, onSave, onClose, sa
                 <button
                   type="button"
                   onClick={() => removeTimeOff(t.id)}
-                  className="text-red hover:underline text-sm"
+                  className="text-red-500 hover:underline text-sm"
                 >
                   Delete
                 </button>
@@ -629,30 +621,28 @@ const StaffEditPanel = ({ mode, staff, services, businessId, onSave, onClose, sa
             ))}
             {showTimeOffForm ? (
               <div className="mt-2 p-3 border border-border rounded-lg space-y-2">
-                <Input
-                  label="Start"
-                  type="date"
-                  value={timeOffForm.startDate}
-                  onChange={(e) => setTimeOffForm((f) => ({ ...f, startDate: e.target.value }))}
-                />
-                <Input
-                  label="End"
-                  type="date"
-                  value={timeOffForm.endDate}
-                  onChange={(e) => setTimeOffForm((f) => ({ ...f, endDate: e.target.value }))}
-                />
-                <Input
-                  label="Reason"
-                  value={timeOffForm.reason}
-                  onChange={(e) => setTimeOffForm((f) => ({ ...f, reason: e.target.value }))}
-                />
+                <div>
+                  <label className="block text-sm font-bold text-primary mb-1.5">Start</label>
+                  <input type="date" value={timeOffForm.startDate} onChange={(e) => setTimeOffForm((f) => ({ ...f, startDate: e.target.value }))}
+                    className="w-full px-3 py-2.5 border border-border rounded-lg text-sm font-medium text-primary focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none" />
+                </div>
+                <div>
+                  <label className="block text-sm font-bold text-primary mb-1.5">End</label>
+                  <input type="date" value={timeOffForm.endDate} onChange={(e) => setTimeOffForm((f) => ({ ...f, endDate: e.target.value }))}
+                    className="w-full px-3 py-2.5 border border-border rounded-lg text-sm font-medium text-primary focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none" />
+                </div>
+                <div>
+                  <label className="block text-sm font-bold text-primary mb-1.5">Reason</label>
+                  <input type="text" value={timeOffForm.reason} onChange={(e) => setTimeOffForm((f) => ({ ...f, reason: e.target.value }))}
+                    className="w-full px-3 py-2.5 border border-border rounded-lg text-sm font-medium text-primary focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none" />
+                </div>
                 <div className="flex gap-2">
-                  <Button size="sm" onClick={addTimeOff}>
+                  <button onClick={addTimeOff} className="px-3 py-1.5 bg-primary text-white text-sm font-bold rounded-lg hover:bg-primary-hover">
                     Add
-                  </Button>
+                  </button>
                   <button
                     type="button"
-                    className="text-sm text-muted hover:underline"
+                    className="text-sm text-gray-500 hover:underline"
                     onClick={() => setShowTimeOffForm(false)}
                   >
                     Cancel
@@ -684,10 +674,11 @@ const StaffEditPanel = ({ mode, staff, services, businessId, onSave, onClose, sa
         </div>
 
         <div className="sticky bottom-0 bg-white border-t border-border px-6 py-4 flex gap-3">
-          <Button variant="primary" onClick={() => onSave(form)} disabled={saving}>
+          <button onClick={() => onSave(form)} disabled={saving}
+            className="bg-primary text-white font-bold text-sm px-6 py-2.5 rounded-lg shadow-lg hover:bg-primary-hover transition-colors disabled:opacity-50">
             {saving ? 'Saving...' : 'Save Changes'}
-          </Button>
-          <button onClick={onClose} className="text-sm text-muted hover:text-primary py-2">
+          </button>
+          <button onClick={onClose} className="text-sm text-gray-500 hover:text-primary py-2">
             Cancel
           </button>
         </div>
