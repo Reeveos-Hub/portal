@@ -259,7 +259,7 @@ export default function RezvoSupportBot() {
   return (
     <div style={{ fontFamily: '"Figtree", system-ui, sans-serif' }}>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@700;800&family=Figtree:wght@400;500;600;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700;800&display=swap');
         
         .rezvo-chat-bubble {
           position: fixed;
@@ -418,7 +418,7 @@ export default function RezvoSupportBot() {
                   alignItems: "center",
                   justifyContent: "center",
                   color: "#FAFAF7",
-                  fontFamily: '"Bricolage Grotesque", sans-serif',
+                  fontFamily: '"Figtree", sans-serif',
                   fontWeight: 800,
                   fontSize: 20,
                 }}
@@ -429,7 +429,7 @@ export default function RezvoSupportBot() {
                 <div
                   style={{
                     color: "white",
-                    fontFamily: '"Bricolage Grotesque", sans-serif',
+                    fontFamily: '"Figtree", sans-serif',
                     fontWeight: 800,
                     fontSize: 18,
                     letterSpacing: "0.02em",

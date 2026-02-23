@@ -6,15 +6,17 @@ from fastapi import APIRouter, HTTPException, Depends, Query
 from database import get_database
 from middleware.auth import get_current_staff
 from datetime import datetime, date, timedelta
+from bson import ObjectId
 
 router = APIRouter(prefix="/dashboard", tags=["dashboard"])
 
 
 async def _ensure_business_access(db, business_id: str, user: dict):
-    from bson import ObjectId
     try:
         business = await db.businesses.find_one({"_id": ObjectId(business_id)})
     except Exception:
+        business = None
+    if not business:
         business = await db.businesses.find_one({"_id": business_id})
     if not business:
         raise HTTPException(404, "Business not found")
@@ -23,6 +25,70 @@ async def _ensure_business_access(db, business_id: str, user: dict):
     if owner and owner != uid and str(user.get("role", "")).lower() not in ("staff", "admin", "owner"):
         raise HTTPException(403, "Not authorized")
     return business
+
+
+async def _query_all_bookings(db, business_id: str):
+    """Query both appointments and bookings collections with all field name variants."""
+    bid_values = [business_id]
+    try:
+        bid_values.append(ObjectId(business_id))
+    except Exception:
+        pass
+
+    all_docs = []
+    seen_ids = set()
+    for coll_name in ["appointments", "bookings"]:
+        coll = db[coll_name]
+        for field in ["business_id", "businessId"]:
+            try:
+                cursor = coll.find({field: {"$in": bid_values}})
+                docs = await cursor.to_list(length=10000)
+                for doc in docs:
+                    doc_id = str(doc.get("_id", ""))
+                    if doc_id not in seen_ids:
+                        seen_ids.add(doc_id)
+                        all_docs.append(doc)
+            except Exception:
+                pass
+    return all_docs
+
+
+def _extract_booking_fields(b):
+    """Normalize booking fields from both seed data and form data formats."""
+    customer_name = ""
+    if b.get("customer") and isinstance(b["customer"], dict):
+        customer_name = b["customer"].get("name", "")
+    elif b.get("client_name"):
+        customer_name = b["client_name"]
+    elif b.get("guest_name"):
+        customer_name = b["guest_name"]
+
+    service_name = "Booking"
+    if b.get("service") and isinstance(b["service"], dict):
+        service_name = b["service"].get("name", "Booking")
+    elif b.get("service_name"):
+        service_name = b["service_name"]
+    elif isinstance(b.get("service"), str):
+        service_name = b["service"]
+
+    price = 0
+    if b.get("service") and isinstance(b["service"], dict):
+        price = b["service"].get("price", 0)
+    elif b.get("price"):
+        price = b["price"]
+
+    time_val = b.get("time") or b.get("start_time") or ""
+    staff_id = b.get("staffId") or b.get("staff_id") or ""
+    staff_name = b.get("staffName") or b.get("staff_name") or ""
+
+    return {
+        "customer_name": customer_name,
+        "service_name": service_name,
+        "price": price,
+        "time": time_val,
+        "staff_id": staff_id,
+        "staff_name": staff_name,
+    }
 
 
 @router.get("/business/{business_id}/summary")
@@ -34,9 +100,7 @@ async def get_dashboard_summary(
     business = await _ensure_business_access(db, business_id, user)
     today_str = date.today().isoformat()
 
-    # Use bookings collection (Run 2)
-    cursor = db.bookings.find({"businessId": business_id})
-    all_bookings = await cursor.to_list(length=10000)
+    all_bookings = await _query_all_bookings(db, business_id)
 
     today_bookings = [b for b in all_bookings if b.get("date") == today_str and b.get("status") != "cancelled"]
     week_start = date.today() - timedelta(days=date.today().weekday())
@@ -49,12 +113,12 @@ async def get_dashboard_summary(
     ]
 
     revenue_today = sum(
-        (b.get("service") or {}).get("price", 0) or 0
+        _extract_booking_fields(b)["price"]
         for b in today_bookings
         if b.get("status") in ("confirmed", "checked_in", "completed")
     )
     revenue_week = sum(
-        (b.get("service") or {}).get("price", 0) or 0
+        _extract_booking_fields(b)["price"]
         for b in week_bookings
         if b.get("status") in ("confirmed", "checked_in", "completed")
     )
@@ -63,25 +127,28 @@ async def get_dashboard_summary(
     cancelled_today = len([b for b in all_bookings if b.get("date") == today_str and b.get("status") == "cancelled"])
 
     upcoming = [b for b in today_bookings if b.get("status") in ("confirmed", "checked_in", "pending")]
-    upcoming.sort(key=lambda x: x.get("time", ""))
+    upcoming.sort(key=lambda x: x.get("time") or x.get("start_time") or "")
 
     next_bkg = None
     now = datetime.now().strftime("%H:%M")
     for b in upcoming:
-        if (b.get("time") or "") >= now:
+        btime = b.get("time") or b.get("start_time") or ""
+        if btime >= now:
             next_bkg = b
             break
     if not next_bkg and upcoming:
         next_bkg = upcoming[-1]
 
-    customers_today = set(b.get("customer", {}).get("email", "") for b in today_bookings if b.get("customer"))
+    new_clients = len([b for b in today_bookings if b.get("is_new_client", False)])
+
+    next_fields = _extract_booking_fields(next_bkg) if next_bkg else {}
 
     return {
         "today": {
             "date": today_str,
             "bookings": len(today_bookings),
             "revenue": revenue_today,
-            "newClients": len(customers_today),
+            "newClients": new_clients,
             "completedBookings": completed_today,
             "upcomingBookings": len(upcoming),
             "cancelledToday": cancelled_today,
@@ -95,11 +162,11 @@ async def get_dashboard_summary(
             "revenueChange": 0,
         },
         "nextBooking": {
-            "id": next_bkg.get("_id"),
-            "customerName": (next_bkg.get("customer") or {}).get("name", ""),
-            "service": (next_bkg.get("service") or {}).get("name", "Booking"),
-            "time": next_bkg.get("time", ""),
-            "staff": _staff_name(business, next_bkg.get("staffId")),
+            "id": str(next_bkg.get("_id", "")),
+            "customerName": next_fields.get("customer_name", ""),
+            "service": next_fields.get("service_name", "Booking"),
+            "time": next_fields.get("time", ""),
+            "staff": next_fields.get("staff_name") or _staff_name(business, next_fields.get("staff_id")),
         } if next_bkg else None,
     }
 
@@ -122,28 +189,30 @@ async def get_today_bookings(
     business = await _ensure_business_access(db, business_id, user)
     today_str = date.today().isoformat()
 
-    cursor = db.bookings.find({
-        "businessId": business_id,
-        "date": today_str,
-        "status": {"$ne": "cancelled"},
-    }).sort("time", 1)
+    all_bookings = await _query_all_bookings(db, business_id)
+    today_bookings = [
+        b for b in all_bookings
+        if b.get("date") == today_str and b.get("status") != "cancelled"
+    ]
+    today_bookings.sort(key=lambda x: x.get("time") or x.get("start_time") or "")
 
-    bookings = await cursor.to_list(length=100)
     now = datetime.now().strftime("%H:%M")
     found_next = False
 
     result = []
-    for b in bookings:
-        is_next = not found_next and (b.get("time") or "") >= now
+    for b in today_bookings:
+        fields = _extract_booking_fields(b)
+        btime = fields["time"]
+        is_next = not found_next and btime >= now
         if is_next:
             found_next = True
         result.append({
-            "id": b.get("_id"),
-            "time": b.get("time", ""),
-            "endTime": b.get("endTime"),
-            "customerName": (b.get("customer") or {}).get("name", ""),
-            "service": (b.get("service") or {}).get("name", ""),
-            "staff": _staff_name(business, b.get("staffId")),
+            "id": str(b.get("_id", "")),
+            "time": btime,
+            "endTime": b.get("endTime") or b.get("end_time"),
+            "customerName": fields["customer_name"],
+            "service": fields["service_name"],
+            "staff": fields["staff_name"] or _staff_name(business, fields["staff_id"]),
             "status": b.get("status", "confirmed"),
             "isNext": is_next,
         })
@@ -160,7 +229,13 @@ async def get_activity_feed(
     db = get_database()
     await _ensure_business_access(db, business_id, user)
 
-    cursor = db.activity_log.find({"businessId": business_id}).sort("timestamp", -1).limit(limit)
+    bid_values = [business_id]
+    try:
+        bid_values.append(ObjectId(business_id))
+    except Exception:
+        pass
+    
+    cursor = db.activity_log.find({"$or": [{"businessId": {"$in": bid_values}}, {"business_id": {"$in": bid_values}}]}).sort("timestamp", -1).limit(limit)
     events = await cursor.to_list(length=limit)
 
     return {

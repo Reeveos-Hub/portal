@@ -3,10 +3,22 @@ from database import get_database
 from models.business import BusinessCreate, BusinessUpdate, BusinessResponse, RezvoTier
 from middleware.auth import get_current_owner
 from datetime import datetime
+from bson import ObjectId
 from typing import List
 import re
 
 router = APIRouter(prefix="/businesses", tags=["businesses"])
+
+
+async def _find_business(db, business_id: str):
+    """Find business by ID, handling both ObjectId and string formats."""
+    try:
+        biz = await db.businesses.find_one({"_id": ObjectId(business_id)})
+    except Exception:
+        biz = None
+    if not biz:
+        biz = await db.businesses.find_one({"_id": business_id})
+    return biz
 
 
 def slugify(text: str) -> str:
@@ -85,7 +97,7 @@ async def create_business(
 async def get_business(business_id: str):
     db = get_database()
     
-    business = await db.businesses.find_one({"_id": business_id})
+    business = await _find_business(db, business_id)
     if not business:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -122,7 +134,7 @@ async def update_business(
 ):
     db = get_database()
     
-    business = await db.businesses.find_one({"_id": business_id})
+    business = await _find_business(db, business_id)
     if not business:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -149,7 +161,7 @@ async def update_business(
         {"$set": update_data}
     )
     
-    updated_business = await db.businesses.find_one({"_id": business_id})
+    updated_business = await _find_business(db, business_id)
     
     return BusinessResponse(
         id=str(updated_business["_id"]),
@@ -180,7 +192,7 @@ async def delete_business(
 ):
     db = get_database()
     
-    business = await db.businesses.find_one({"_id": business_id})
+    business = await _find_business(db, business_id)
     if not business:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -210,7 +222,7 @@ async def claim_business(
 ):
     db = get_database()
     
-    business = await db.businesses.find_one({"_id": business_id})
+    business = await _find_business(db, business_id)
     if not business:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
