@@ -79,10 +79,16 @@ const DashboardLayout = () => {
           onMenuClick={() => setSidebarOpen((o) => !o)}
           sidebarOpen={sidebarOpen}
         />
-        <main className="flex-1 overflow-y-auto">
-          <div className="max-w-7xl mx-auto p-6 lg:p-8">
+        <main className="flex-1 overflow-hidden">
+          {location.pathname === '/dashboard/calendar' ? (
             <Outlet />
-          </div>
+          ) : (
+            <div className="h-full overflow-y-auto">
+              <div className="max-w-7xl mx-auto p-6 lg:p-8">
+                <Outlet />
+              </div>
+            </div>
+          )}
         </main>
       </div>
 
