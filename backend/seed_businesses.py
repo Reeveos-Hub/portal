@@ -16,8 +16,11 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 # MongoDB connection — reads from .env if available, falls back to local
 import os
 from pathlib import Path
-from dotenv import load_dotenv
-load_dotenv(Path(__file__).parent / ".env")
+try:
+    from dotenv import load_dotenv
+    load_dotenv(Path(__file__).parent / ".env")
+except ImportError:
+    pass
 
 MONGO_URL = os.getenv("MONGODB_URL", "mongodb://localhost:27017/rezvo")
 DB_NAME = os.getenv("MONGODB_DB_NAME", "rezvo")
