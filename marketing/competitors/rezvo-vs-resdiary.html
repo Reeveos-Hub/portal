@@ -63,6 +63,8 @@ h1,h2,h3,h4,h5,h6,.font-sans,[class*="font-sans"] { font-family:"Figtree",system
     <!-- Chart rendered with pure CSS -->
                 <style>
         ::-webkit-scrollbar { display: none; }
+        html, body { max-width: 100vw; overflow-x: hidden; }
+        img, video, iframe { max-width: 100%; height: auto; }
         .bg-grain {
             background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.05'/%3E%3C/svg%3E");
         }
@@ -389,7 +391,7 @@ nav, nav *, #navbar, #navbar * {
                         <span class="text-sm font-semibold text-rezvo-sage">Built for Restaurants</span>
                     </div>
                     
-                    <h1 class="font-sans text-5xl lg:text-6xl xl:text-7xl text-rezvo-dark leading-[0.95] mb-6" style="font-weight:900">
+                    <h1 class="font-sans text-3xl md:text-4xl lg:text-6xl xl:text-7xl text-rezvo-dark leading-[0.95] mb-6" style="font-weight:900">
                         Fill Every<br>
                         <span class="text-rezvo-mint">Table.</span><br>
                         Every Night.
@@ -538,7 +540,7 @@ nav, nav *, #navbar, #navbar * {
         <div class="absolute inset-0 bg-grain opacity-20"></div>
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
             <div class="text-center max-w-2xl mx-auto mb-16">
-                <h2 class="font-sans text-4xl lg:text-5xl text-rezvo-dark mb-6" style="font-weight:900">
+                <h2 class="font-sans text-3xl md:text-4xl lg:text-5xl text-rezvo-dark mb-6" style="font-weight:900">
                     Running a restaurant<br>is hard enough
                 </h2>
                 <p class="text-lg text-rezvo-muted">
@@ -600,7 +602,7 @@ nav, nav *, #navbar, #navbar * {
         <div class="absolute inset-0 bg-grain opacity-30"></div>
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
             <div class="text-center max-w-2xl mx-auto mb-16">
-                <h2 class="font-sans text-4xl lg:text-5xl text-rezvo-dark mb-6" style="font-weight:900">
+                <h2 class="font-sans text-3xl md:text-4xl lg:text-5xl text-rezvo-dark mb-6" style="font-weight:900">
                     Everything your<br>front-of-house needs
                 </h2>
                 <p class="text-lg text-rezvo-muted">
@@ -847,7 +849,7 @@ nav, nav *, #navbar, #navbar * {
         <div class="absolute inset-0 bg-grain opacity-20"></div>
         <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 relative">
             <div class="text-center max-w-2xl mx-auto mb-12">
-                <h2 class="font-sans text-4xl lg:text-5xl text-rezvo-dark mb-6" style="font-weight:900">
+                <h2 class="font-sans text-3xl md:text-4xl lg:text-5xl text-rezvo-dark mb-6" style="font-weight:900">
                     Rezvo vs ResDiary
                 </h2>
                 <p class="text-lg text-rezvo-muted">
@@ -921,7 +923,7 @@ nav, nav *, #navbar, #navbar * {
         <div class="absolute inset-0 bg-grain opacity-30"></div>
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
             <div class="text-center max-w-2xl mx-auto mb-14">
-                <h2 class="font-sans text-4xl lg:text-5xl text-rezvo-dark mb-6" style="font-weight:900">
+                <h2 class="font-sans text-3xl md:text-4xl lg:text-5xl text-rezvo-dark mb-6" style="font-weight:900">
                     Loved by restaurateurs
                 </h2>
             </div>
@@ -1077,7 +1079,7 @@ nav, nav *, #navbar, #navbar * {
 
             <!-- Giant watermark -->
             <div class="border-t border-white/10 pt-10 text-center">
-                <h1 class="font-sans font-extrabold text-[12vw] leading-none text-rezvo-mint opacity-10 select-none">REZVO</h1>
+                <h1 class="font-sans font-extrabold text-[20vw] md:text-[12vw] leading-none text-rezvo-mint opacity-10 select-none">REZVO</h1>
             </div>
 
             <!-- Bottom bar -->

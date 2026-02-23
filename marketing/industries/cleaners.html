@@ -39,6 +39,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Figtree:ital,wght@0,300..900;1,300..900&display=swap" rel="stylesheet">
     <style>
         ::-webkit-scrollbar { display: none; }
+        html, body { max-width: 100vw; overflow-x: hidden; }
+        img, video, iframe { max-width: 100%; height: auto; }
         .bg-grain {
             background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.05'/%3E%3C/svg%3E");
         }
@@ -48,7 +50,7 @@
         }
     </style>
 </head>
-<body class="bg-rezvo-cream font-body text-rezvo-text antialiased">
+<body class="bg-rezvo-cream font-body text-rezvo-text antialiased overflow-x-hidden">
     <nav class="fixed top-0 left-0 right-0 z-50 nav-blur border-b border-rezvo-border/50">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex items-center justify-between h-[72px]">
@@ -265,7 +267,7 @@
                 <i class="fa-solid fa-broom text-rezvo-forest text-sm"></i>
                 <span class="text-sm font-semibold text-rezvo-forest">For Cleaners</span>
             </div>
-            <h1 class="font-sans font-extrabold text-4xl lg:text-5xl text-rezvo-forest mb-6 leading-tight">
+            <h1 class="font-sans font-extrabold text-3xl md:text-4xl lg:text-5xl text-rezvo-forest mb-6 leading-tight">
                 Clean schedule, clean homes
             </h1>
             <p class="text-lg text-rezvo-forest/60 max-w-2xl mx-auto mb-10 leading-relaxed">
@@ -410,7 +412,7 @@
 
             <!-- Divider + giant watermark -->
             <div class="border-t border-white/10 pt-10 text-center">
-                <h1 class="font-sans font-extrabold text-[12vw] leading-none text-rezvo-mint opacity-10 select-none">REZVO</h1>
+                <h1 class="font-sans font-extrabold text-[20vw] md:text-[12vw] leading-none text-rezvo-mint opacity-10 select-none">REZVO</h1>
             </div>
 
             <!-- Bottom bar -->
