@@ -343,7 +343,7 @@ const Calendar = () => {
 
         if (!isDemo && bid) {
           const timeStr = `${Math.floor(newStart)}:${String(Math.round((newStart % 1) * 60)).padStart(2, '0')}`
-          api.patch(`/bookings/${d.id}`, {
+          api.patch(`/bookings/business/${bid}/detail/${d.id}/move`, {
             time: timeStr,
             duration: Math.round(newDur * 60),
             staffId: newStaffId,
@@ -388,7 +388,7 @@ const Calendar = () => {
     })
     if (!isDemo && bid) {
       const timeStr = `${Math.floor(origStart)}:${String(Math.round((origStart % 1) * 60)).padStart(2, '0')}`
-      api.patch(`/bookings/${id}`, { time: timeStr, duration: Math.round(origDur * 60), staffId: origStaffId }).catch(err => console.error('Undo API error:', err))
+      api.patch(`/bookings/business/${bid}/detail/${id}/move`, { time: timeStr, duration: Math.round(origDur * 60), staffId: origStaffId }).catch(err => console.error('Undo API error:', err))
     }
     setUndoToast(null)
   }, [undoToast, isDemo, bid])

@@ -11,6 +11,7 @@ import { getNavItems } from '../config/navigation'
 import Sidebar from '../components/layout/Sidebar'
 import TopBar from '../components/layout/TopBar'
 import UpgradeModal from '../components/layout/UpgradeModal'
+import RezvoSupportBot from '../components/RezvoSupportBot'
 import { TIERS } from '../config/tiers'
 import { useEffect } from 'react'
 
@@ -71,7 +72,7 @@ const DashboardLayout = () => {
           sidebarOpen={sidebarOpen}
         />
         <main className="flex-1 overflow-hidden">
-          {location.pathname === '/dashboard/calendar' ? (
+          {(location.pathname === '/dashboard/calendar' || location.pathname === '/dashboard/floor-plan') ? (
             <Outlet />
           ) : (
             <div className="h-full overflow-y-auto">
@@ -90,6 +91,8 @@ const DashboardLayout = () => {
           onViewPlans={() => setUpgradeModal(null)}
         />
       )}
+
+      <RezvoSupportBot />
     </div>
   )
 }

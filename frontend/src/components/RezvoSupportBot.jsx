@@ -102,6 +102,12 @@ export default function RezvoSupportBot() {
   const lastBotRef = useRef(null);
   const inputRef = useRef(null);
 
+  /* ── FAB & Panel State ── */
+  const [fabOpen, setFabOpen] = useState(false);
+  const [activePanel, setActivePanel] = useState(null); // null | 'booking' | 'walkin'
+  const [bookingForm, setBookingForm] = useState({ name: '', phone: '', email: '', party: 2, date: '', time: '', table: '', notes: '' });
+  const [walkinForm, setWalkinForm] = useState({ name: '', party: 2, table: '', notes: '' });
+
   useEffect(() => {
     if (messages.length > 0 && messages[messages.length - 1].role === "assistant") {
       setTimeout(() => {
@@ -358,23 +364,138 @@ export default function RezvoSupportBot() {
         .chat-scrollbar::-webkit-scrollbar-thumb { background: #DDD5C5; border-radius: 10px; }
       `}</style>
 
-      {/* Chat Bubble */}
+      {/* Fan-out Menu Pills */}
+      {fabOpen && !isOpen && !activePanel && (
+        <>
+          <div onClick={() => setFabOpen(false)} style={{ position:'fixed', inset:0, zIndex:9990 }} />
+          <div style={{ position:'fixed', bottom:100, right:24, zIndex:9998, display:'flex', flexDirection:'column', gap:8, alignItems:'flex-end' }}>
+            {[
+              { label: 'New Booking', icon: 'M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z', action: () => { setActivePanel('booking'); setFabOpen(false); } },
+              { label: 'Walk-in', icon: 'M13 10V3L4 14h7v7l9-11h-7z', action: () => { setActivePanel('walkin'); setFabOpen(false); } },
+              { label: 'Chat Support', icon: 'M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z', action: () => { setIsOpen(true); setFabOpen(false); } },
+            ].map((item, i) => (
+              <button key={i} onClick={item.action} style={{
+                display:'flex', alignItems:'center', gap:8, padding:'10px 18px', borderRadius:999,
+                background:'white', border:'1px solid #E8E4DD', boxShadow:'0 4px 16px rgba(0,0,0,.1)',
+                cursor:'pointer', fontFamily:'inherit', fontSize:13, fontWeight:600, color:'#1B4332',
+                animation: `slide-up 0.2s ease ${i * 0.05}s both`,
+              }}>
+                <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="#1B4332" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d={item.icon}/></svg>
+                {item.label}
+              </button>
+            ))}
+          </div>
+        </>
+      )}
+
+      {/* FAB Button */}
       <button
         className={`rezvo-chat-bubble ${isOpen ? "open" : ""}`}
-        onClick={() => setIsOpen(!isOpen)}
-        aria-label={isOpen ? "Close chat" : "Open chat"}
+        onClick={() => {
+          if (isOpen) { setIsOpen(false); return; }
+          if (activePanel) { setActivePanel(null); return; }
+          setFabOpen(!fabOpen);
+        }}
+        aria-label="Actions"
       >
-        {!isOpen && pulseCount < 3 && <div className="pulse-ring" />}
-        {isOpen ? (
+        {!isOpen && !activePanel && !fabOpen && pulseCount < 3 && <div className="pulse-ring" />}
+        {isOpen || activePanel ? (
+          <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        ) : fabOpen ? (
           <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
             <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
           </svg>
         ) : (
-          <svg width="28" height="28" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.8">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+          <svg width="28" height="28" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+            <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
           </svg>
         )}
       </button>
+
+      {/* ── New Booking Panel ── */}
+      {activePanel === 'booking' && (
+        <div className="chat-window-enter" style={{ position:'fixed', bottom:100, right:24, width:380, maxHeight:'calc(100vh - 140px)', background:'white', borderRadius:20, boxShadow:'0 20px 60px rgba(0,0,0,.15)', zIndex:9998, overflow:'hidden', display:'flex', flexDirection:'column' }}>
+          <div style={{ background:'linear-gradient(135deg,#1B4332,#2D6A4F)', padding:'16px 20px', color:'white' }}>
+            <div style={{ fontSize:16, fontWeight:700 }}>New Booking</div>
+            <div style={{ fontSize:12, opacity:.7 }}>Add a reservation</div>
+          </div>
+          <div style={{ padding:20, overflowY:'auto', flex:1, display:'flex', flexDirection:'column', gap:14 }}>
+            <div>
+              <label style={{ fontSize:12, fontWeight:600, color:'#6B7280', marginBottom:4, display:'block' }}>Guest name</label>
+              <input value={bookingForm.name} onChange={e => setBookingForm({...bookingForm, name:e.target.value})} placeholder="Name" style={{ width:'100%', padding:'10px 14px', borderRadius:10, border:'1px solid #E8E4DD', fontSize:14, fontFamily:'inherit' }} />
+            </div>
+            <div style={{ display:'flex', gap:10 }}>
+              <div style={{ flex:1 }}>
+                <label style={{ fontSize:12, fontWeight:600, color:'#6B7280', marginBottom:4, display:'block' }}>Phone</label>
+                <input value={bookingForm.phone} onChange={e => setBookingForm({...bookingForm, phone:e.target.value})} placeholder="07..." style={{ width:'100%', padding:'10px 14px', borderRadius:10, border:'1px solid #E8E4DD', fontSize:14, fontFamily:'inherit' }} />
+              </div>
+              <div style={{ flex:1 }}>
+                <label style={{ fontSize:12, fontWeight:600, color:'#6B7280', marginBottom:4, display:'block' }}>Party size</label>
+                <select value={bookingForm.party} onChange={e => setBookingForm({...bookingForm, party:+e.target.value})} style={{ width:'100%', padding:'10px 14px', borderRadius:10, border:'1px solid #E8E4DD', fontSize:14, fontFamily:'inherit', background:'white' }}>
+                  {[1,2,3,4,5,6,7,8,9,10].map(n => <option key={n} value={n}>{n} {n===1?'guest':'guests'}</option>)}
+                </select>
+              </div>
+            </div>
+            <div style={{ display:'flex', gap:10 }}>
+              <div style={{ flex:1 }}>
+                <label style={{ fontSize:12, fontWeight:600, color:'#6B7280', marginBottom:4, display:'block' }}>Date</label>
+                <input type="date" value={bookingForm.date} onChange={e => setBookingForm({...bookingForm, date:e.target.value})} style={{ width:'100%', padding:'10px 14px', borderRadius:10, border:'1px solid #E8E4DD', fontSize:14, fontFamily:'inherit' }} />
+              </div>
+              <div style={{ flex:1 }}>
+                <label style={{ fontSize:12, fontWeight:600, color:'#6B7280', marginBottom:4, display:'block' }}>Time</label>
+                <input type="time" value={bookingForm.time} onChange={e => setBookingForm({...bookingForm, time:e.target.value})} style={{ width:'100%', padding:'10px 14px', borderRadius:10, border:'1px solid #E8E4DD', fontSize:14, fontFamily:'inherit' }} />
+              </div>
+            </div>
+            <div>
+              <label style={{ fontSize:12, fontWeight:600, color:'#6B7280', marginBottom:4, display:'block' }}>Notes</label>
+              <textarea value={bookingForm.notes} onChange={e => setBookingForm({...bookingForm, notes:e.target.value})} placeholder="Allergies, occasion, preferences..." rows={2} style={{ width:'100%', padding:'10px 14px', borderRadius:10, border:'1px solid #E8E4DD', fontSize:14, fontFamily:'inherit', resize:'none' }} />
+            </div>
+          </div>
+          <div style={{ padding:'12px 20px 16px', borderTop:'1px solid #E8E4DD' }}>
+            <button style={{ width:'100%', padding:'12px', borderRadius:12, border:'none', background:'linear-gradient(135deg,#1B4332,#2D6A4F)', color:'white', fontSize:14, fontWeight:700, cursor:'pointer', fontFamily:'inherit' }}>Confirm Booking</button>
+          </div>
+        </div>
+      )}
+
+      {/* ── Walk-in Panel ── */}
+      {activePanel === 'walkin' && (
+        <div className="chat-window-enter" style={{ position:'fixed', bottom:100, right:24, width:380, background:'white', borderRadius:20, boxShadow:'0 20px 60px rgba(0,0,0,.15)', zIndex:9998, overflow:'hidden' }}>
+          <div style={{ background:'linear-gradient(135deg,#D4A373,#B8895A)', padding:'16px 20px', color:'white' }}>
+            <div style={{ display:'flex', alignItems:'center', gap:8 }}>
+              <div style={{ fontSize:16, fontWeight:700 }}>Walk-in</div>
+              <span style={{ background:'rgba(255,255,255,.25)', padding:'2px 10px', borderRadius:999, fontSize:11, fontWeight:700 }}>Starting now</span>
+            </div>
+            <div style={{ fontSize:12, opacity:.8 }}>Quick-seat a walk-in guest</div>
+          </div>
+          <div style={{ padding:20, display:'flex', flexDirection:'column', gap:14 }}>
+            <div>
+              <label style={{ fontSize:12, fontWeight:600, color:'#6B7280', marginBottom:4, display:'block' }}>Guest name (optional)</label>
+              <input value={walkinForm.name} onChange={e => setWalkinForm({...walkinForm, name:e.target.value})} placeholder="Name" style={{ width:'100%', padding:'10px 14px', borderRadius:10, border:'1px solid #E8E4DD', fontSize:14, fontFamily:'inherit' }} />
+            </div>
+            <div>
+              <label style={{ fontSize:12, fontWeight:600, color:'#6B7280', marginBottom:4, display:'block' }}>Party size</label>
+              <div style={{ display:'flex', gap:6, flexWrap:'wrap' }}>
+                {[1,2,3,4,5,6,7,8].map(n => (
+                  <button key={n} onClick={() => setWalkinForm({...walkinForm, party:n})} style={{
+                    width:44, height:44, borderRadius:10, border: walkinForm.party===n ? '2px solid #D4A373' : '1px solid #E8E4DD',
+                    background: walkinForm.party===n ? '#FFF7ED' : 'white', color: walkinForm.party===n ? '#D4A373' : '#6B7280',
+                    fontSize:15, fontWeight:700, cursor:'pointer', fontFamily:'inherit',
+                  }}>{n}</button>
+                ))}
+              </div>
+            </div>
+            <div>
+              <label style={{ fontSize:12, fontWeight:600, color:'#6B7280', marginBottom:4, display:'block' }}>Notes</label>
+              <input value={walkinForm.notes} onChange={e => setWalkinForm({...walkinForm, notes:e.target.value})} placeholder="Quick note..." style={{ width:'100%', padding:'10px 14px', borderRadius:10, border:'1px solid #E8E4DD', fontSize:14, fontFamily:'inherit' }} />
+            </div>
+          </div>
+          <div style={{ padding:'12px 20px 16px', borderTop:'1px solid #E8E4DD' }}>
+            <button style={{ width:'100%', padding:'12px', borderRadius:12, border:'none', background:'linear-gradient(135deg,#D4A373,#B8895A)', color:'white', fontSize:14, fontWeight:700, cursor:'pointer', fontFamily:'inherit' }}>Seat Walk-in</button>
+          </div>
+        </div>
+      )}
 
       {/* Chat Window */}
       {isOpen && (

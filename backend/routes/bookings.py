@@ -456,3 +456,47 @@ async def get_business_calendar(
         "date": {"$gte": start_str, "$lte": end_str}
     }).sort("date", 1).sort("time", 1).to_list(length=None)
     return bookings
+
+
+@router.patch("/business/{business_id}/detail/{booking_id}/move")
+async def move_booking(
+    business_id: str,
+    booking_id: str,
+    payload: dict = Body(...),
+    current_user: dict = Depends(get_current_staff),
+):
+    """Calendar drag-drop: update time, duration, staffId, tableId."""
+    db = get_database()
+    business = await db.businesses.find_one({"_id": business_id})
+    if not business:
+        raise HTTPException(404, "Business not found")
+    if str(business.get("owner_id")) != str(current_user.get("_id")) and current_user.get("role") not in ["staff", "admin"]:
+        raise HTTPException(403, "Not authorized")
+
+    b = await db.bookings.find_one({"_id": booking_id, "businessId": business_id})
+    if not b:
+        raise HTTPException(404, "Booking not found")
+
+    update = {"updatedAt": datetime.utcnow()}
+    if "time" in payload:
+        update["time"] = payload["time"]
+    if "duration" in payload:
+        update["duration"] = payload["duration"]
+        if "service" in b and isinstance(b["service"], dict):
+            update["service"] = {**b["service"], "duration": payload["duration"]}
+    if "staffId" in payload:
+        update["staffId"] = payload["staffId"]
+    if "tableId" in payload:
+        update["tableId"] = payload["tableId"]
+
+    await db.bookings.update_one({"_id": booking_id}, {"$set": update})
+
+    updated = await db.bookings.find_one({"_id": booking_id})
+    return {
+        "id": updated.get("_id"),
+        "time": updated.get("time"),
+        "duration": (updated.get("service") or {}).get("duration", updated.get("duration", 60)),
+        "staffId": updated.get("staffId"),
+        "tableId": updated.get("tableId"),
+        "status": updated.get("status"),
+    }
