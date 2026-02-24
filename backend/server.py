@@ -36,15 +36,25 @@ from routes import (
     marketing_router,
     email_webhooks_router,
     linkedin_router,
+    agent_router,
 )
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     await database.connect_to_mongo()
-    # Start background email scheduler (drip sequences, reminders)
+    # Start background email scheduler (drip sequences, reminders, agent tasks)
     from helpers.scheduler import start_scheduler, stop_scheduler
     start_scheduler()
+    # Create agent indexes + register tools
+    try:
+        from agent.indexes import ensure_agent_indexes
+        await ensure_agent_indexes()
+        from agent.tools.all_tools import register_all_tools
+        register_all_tools()
+    except Exception as e:
+        import logging
+        logging.getLogger("agent").error(f"Agent init error: {e}")
     yield
     stop_scheduler()
     await database.close_mongo_connection()
@@ -89,6 +99,7 @@ app.include_router(insights_router)
 app.include_router(marketing_router)
 app.include_router(email_webhooks_router)
 app.include_router(linkedin_router)
+app.include_router(agent_router)
 
 # Static uploads for booking page logo/cover
 static_dir = Path(__file__).parent / "static" / "uploads"

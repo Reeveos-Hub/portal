@@ -61,6 +61,13 @@ async def _run_scheduler():
                 except Exception as e:
                     logger.error(f"Insights drip error: {e}")
 
+            # ─── AI Agent Tasks ─── #
+            try:
+                from agent.scheduler import run_agent_tick
+                await run_agent_tick()
+            except Exception as e:
+                logger.error(f"Agent tick error: {e}")
+
             await asyncio.sleep(60)  # Check every minute
 
         except asyncio.CancelledError:
