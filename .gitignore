@@ -7,3 +7,4 @@ backend/venv/
 .env
 *.pyc
 .DS_Store
+Marketing.old.bak

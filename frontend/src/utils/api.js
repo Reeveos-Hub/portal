@@ -20,7 +20,8 @@ const api = {
 
     if (!response.ok) {
       const error = await response.json().catch(() => ({ detail: 'Request failed' }))
-      throw new Error(error.detail || 'Request failed')
+      const msg = error.detail || 'Request failed'
+      throw new Error(`${response.status}: ${msg}`)
     }
 
     return response.json()

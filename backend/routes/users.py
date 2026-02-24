@@ -11,15 +11,15 @@ router = APIRouter(prefix="/users", tags=["users"])
 async def get_current_user_profile(current_user: dict = Depends(get_current_user)):
     return UserResponse(
         id=str(current_user["_id"]),
-        email=current_user["email"],
-        name=current_user["name"],
+        email=current_user.get("email", ""),
+        name=current_user.get("name", "User"),
         phone=current_user.get("phone"),
-        role=UserRole(current_user["role"]),
+        role=UserRole(current_user.get("role", "owner")),
         avatar=current_user.get("avatar"),
         saved_businesses=current_user.get("saved_businesses", []),
         business_ids=current_user.get("business_ids", []),
         stripe_connected=current_user.get("stripe_connected", False),
-        created_at=current_user["created_at"]
+        created_at=current_user.get("created_at", datetime.utcnow())
     )
 
 

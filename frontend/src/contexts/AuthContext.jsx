@@ -12,25 +12,39 @@ export const useAuth = () => {
 }
 
 export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null)
+  // Restore cached user for instant render, then validate with API
+  const [user, setUser] = useState(() => {
+    try {
+      const cached = localStorage.getItem('user')
+      return cached ? JSON.parse(cached) : null
+    } catch { return null }
+  })
   const [loading, setLoading] = useState(true)
   const [token, setToken] = useState(localStorage.getItem('token'))
 
   useEffect(() => {
-    if (token && !user) {
+    if (token) {
       fetchCurrentUser()
     } else {
+      setUser(null)
       setLoading(false)
     }
-  }, [token, user])
+  }, [token])
 
   const fetchCurrentUser = async () => {
     try {
       const userData = await api.get('/users/me')
       setUser(userData)
+      localStorage.setItem('user', JSON.stringify(userData))
     } catch (error) {
       console.error('Failed to fetch user:', error)
-      logout()
+      // Only logout if token is actually invalid (401)
+      // Don't logout on network errors, 500s, etc.
+      const msg = error.message || ''
+      if (msg.startsWith('401') || msg.includes('Could not validate') || msg.includes('Not authenticated')) {
+        logout()
+      }
+      // Otherwise keep the cached user — API might just be temporarily down
     } finally {
       setLoading(false)
     }
@@ -42,6 +56,7 @@ export const AuthProvider = ({ children }) => {
       const { access_token, user: userData } = response
       
       localStorage.setItem('token', access_token)
+      localStorage.setItem('user', JSON.stringify(userData))
       setToken(access_token)
       setUser(userData)
       
@@ -60,6 +75,7 @@ export const AuthProvider = ({ children }) => {
       const { access_token, user: newUser } = response
       
       localStorage.setItem('token', access_token)
+      localStorage.setItem('user', JSON.stringify(newUser))
       setToken(access_token)
       setUser(newUser)
       
@@ -74,6 +90,7 @@ export const AuthProvider = ({ children }) => {
 
   const logout = () => {
     localStorage.removeItem('token')
+    localStorage.removeItem('user')
     setToken(null)
     setUser(null)
   }
