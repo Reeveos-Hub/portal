@@ -313,8 +313,13 @@ export default function RezvoSupportBot() {
           from { opacity: 1; transform: translateY(0) scale(1); }
           to { opacity: 0; transform: translateY(20px) scale(0.95); }
         }
+        @keyframes slide-in-right {
+          from { transform: translateX(100%); }
+          to { transform: translateX(0); }
+        }
         .chat-window-enter { animation: slide-up 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) forwards; }
         .chat-window-exit { animation: slide-down 0.25s ease-in forwards; }
+        .panel-slide-in { animation: slide-in-right 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards; }
         
         @keyframes msg-in {
           from { opacity: 0; transform: translateY(12px); }
@@ -378,7 +383,7 @@ export default function RezvoSupportBot() {
                 display:'flex', alignItems:'center', gap:8, padding:'10px 18px', borderRadius:999,
                 background:'white', border:'1px solid #E8E4DD', boxShadow:'0 4px 16px rgba(0,0,0,.1)',
                 cursor:'pointer', fontFamily:'inherit', fontSize:13, fontWeight:600, color:'#1B4332',
-                animation: `slide-up 0.2s ease ${i * 0.05}s both`,
+                animation: `slide-up 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) ${i * 0.08}s both`,
               }}>
                 <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="#1B4332" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d={item.icon}/></svg>
                 {item.label}
@@ -390,7 +395,7 @@ export default function RezvoSupportBot() {
 
       {/* FAB Button */}
       <button
-        className={`rezvo-chat-bubble ${isOpen ? "open" : ""}`}
+        className={`rezvo-chat-bubble ${(isOpen || fabOpen || activePanel) ? "open" : ""}`}
         onClick={() => {
           if (isOpen) { setIsOpen(false); return; }
           if (activePanel) { setActivePanel(null); return; }
@@ -399,11 +404,7 @@ export default function RezvoSupportBot() {
         aria-label="Actions"
       >
         {!isOpen && !activePanel && !fabOpen && pulseCount < 3 && <div className="pulse-ring" />}
-        {isOpen || activePanel ? (
-          <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-          </svg>
-        ) : fabOpen ? (
+        {isOpen || activePanel || fabOpen ? (
           <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
             <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
           </svg>
@@ -414,87 +415,151 @@ export default function RezvoSupportBot() {
         )}
       </button>
 
-      {/* ── New Booking Panel ── */}
-      {activePanel === 'booking' && (
-        <div className="chat-window-enter" style={{ position:'fixed', bottom:84, right:20, width:380, maxHeight:'calc(100vh - 140px)', background:'white', borderRadius:20, boxShadow:'0 20px 60px rgba(0,0,0,.15)', zIndex:9998, overflow:'hidden', display:'flex', flexDirection:'column' }}>
-          <div style={{ background:'linear-gradient(135deg,#1B4332,#2D6A4F)', padding:'16px 20px', color:'white' }}>
-            <div style={{ fontSize:16, fontWeight:700 }}>New Booking</div>
-            <div style={{ fontSize:12, opacity:.7 }}>Add a reservation</div>
-          </div>
-          <div style={{ padding:20, overflowY:'auto', flex:1, display:'flex', flexDirection:'column', gap:14 }}>
-            <div>
-              <label style={{ fontSize:12, fontWeight:600, color:'#6B7280', marginBottom:4, display:'block' }}>Guest name</label>
-              <input value={bookingForm.name} onChange={e => setBookingForm({...bookingForm, name:e.target.value})} placeholder="Name" style={{ width:'100%', padding:'10px 14px', borderRadius:10, border:'1px solid #E8E4DD', fontSize:14, fontFamily:'inherit' }} />
-            </div>
-            <div style={{ display:'flex', gap:10 }}>
-              <div style={{ flex:1 }}>
-                <label style={{ fontSize:12, fontWeight:600, color:'#6B7280', marginBottom:4, display:'block' }}>Phone</label>
-                <input value={bookingForm.phone} onChange={e => setBookingForm({...bookingForm, phone:e.target.value})} placeholder="07..." style={{ width:'100%', padding:'10px 14px', borderRadius:10, border:'1px solid #E8E4DD', fontSize:14, fontFamily:'inherit' }} />
+      {/* ── New Booking Side Panel ── */}
+      {activePanel === "booking" && (
+        <>
+          <div onClick={() => setActivePanel(null)} style={{ position:'fixed', inset:0, background:'rgba(0,0,0,.3)', zIndex:9996, transition:'opacity .3s' }} />
+          <div className="panel-slide-in" style={{ position:'fixed', top:0, right:0, bottom:0, width:420, maxWidth:'90vw', background:'white', zIndex:9997, display:'flex', flexDirection:'column', boxShadow:'-8px 0 40px rgba(0,0,0,.12)' }}>
+            {/* Header */}
+            <div style={{ background:'linear-gradient(135deg,#1B4332,#2D6A4F)', padding:'20px 24px', color:'white', flexShrink:0 }}>
+              <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between' }}>
+                <div>
+                  <div style={{ fontSize:18, fontWeight:700 }}>New Booking</div>
+                  <div style={{ fontSize:12, opacity:.7, marginTop:2 }}>Add a reservation</div>
+                </div>
+                <button onClick={() => setActivePanel(null)} style={{ background:'rgba(255,255,255,.15)', border:'none', borderRadius:8, width:32, height:32, display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer' }}>
+                  <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="white" strokeWidth="2.5"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
               </div>
-              <div style={{ flex:1 }}>
-                <label style={{ fontSize:12, fontWeight:600, color:'#6B7280', marginBottom:4, display:'block' }}>Party size</label>
-                <select value={bookingForm.party} onChange={e => setBookingForm({...bookingForm, party:+e.target.value})} style={{ width:'100%', padding:'10px 14px', borderRadius:10, border:'1px solid #E8E4DD', fontSize:14, fontFamily:'inherit', background:'white' }}>
-                  {[1,2,3,4,5,6,7,8,9,10].map(n => <option key={n} value={n}>{n} {n===1?'guest':'guests'}</option>)}
+            </div>
+
+            {/* Form */}
+            <div style={{ flex:1, overflowY:'auto', padding:24, display:'flex', flexDirection:'column', gap:18 }}>
+              <div>
+                <label style={{ fontSize:12, fontWeight:600, color:'#6B7280', marginBottom:6, display:'block' }}>Guest name</label>
+                <input value={bookingForm.name} onChange={e => setBookingForm({...bookingForm, name:e.target.value})} placeholder="Full name" style={{ width:'100%', padding:'12px 16px', borderRadius:10, border:'1px solid #E8E4DD', fontSize:14, fontFamily:'inherit' }} />
+              </div>
+
+              <div style={{ display:'flex', gap:12 }}>
+                <div style={{ flex:1 }}>
+                  <label style={{ fontSize:12, fontWeight:600, color:'#6B7280', marginBottom:6, display:'block' }}>Phone</label>
+                  <input value={bookingForm.phone} onChange={e => setBookingForm({...bookingForm, phone:e.target.value})} placeholder="07..." style={{ width:'100%', padding:'12px 16px', borderRadius:10, border:'1px solid #E8E4DD', fontSize:14, fontFamily:'inherit' }} />
+                </div>
+                <div style={{ flex:1 }}>
+                  <label style={{ fontSize:12, fontWeight:600, color:'#6B7280', marginBottom:6, display:'block' }}>Email</label>
+                  <input value={bookingForm.email} onChange={e => setBookingForm({...bookingForm, email:e.target.value})} placeholder="email@..." style={{ width:'100%', padding:'12px 16px', borderRadius:10, border:'1px solid #E8E4DD', fontSize:14, fontFamily:'inherit' }} />
+                </div>
+              </div>
+
+              <div style={{ display:'flex', gap:12 }}>
+                <div style={{ flex:1 }}>
+                  <label style={{ fontSize:12, fontWeight:600, color:'#6B7280', marginBottom:6, display:'block' }}>Party size</label>
+                  <div style={{ display:'flex', gap:6, flexWrap:'wrap' }}>
+                    {[1,2,3,4,5,6,7,8].map(n => (
+                      <button key={n} onClick={() => setBookingForm({...bookingForm, party:n})} style={{
+                        width:42, height:42, borderRadius:10, border: bookingForm.party===n ? '2px solid #1B4332' : '1px solid #E8E4DD',
+                        background: bookingForm.party===n ? '#1B4332' : 'white', color: bookingForm.party===n ? 'white' : '#6B7280',
+                        fontSize:14, fontWeight:700, cursor:'pointer', fontFamily:'inherit',
+                      }}>{n}</button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              <div style={{ display:'flex', gap:12 }}>
+                <div style={{ flex:1 }}>
+                  <label style={{ fontSize:12, fontWeight:600, color:'#6B7280', marginBottom:6, display:'block' }}>Date</label>
+                  <input type="date" value={bookingForm.date} onChange={e => setBookingForm({...bookingForm, date:e.target.value})} style={{ width:'100%', padding:'12px 16px', borderRadius:10, border:'1px solid #E8E4DD', fontSize:14, fontFamily:'inherit' }} />
+                </div>
+                <div style={{ flex:1 }}>
+                  <label style={{ fontSize:12, fontWeight:600, color:'#6B7280', marginBottom:6, display:'block' }}>Time</label>
+                  <input type="time" value={bookingForm.time} onChange={e => setBookingForm({...bookingForm, time:e.target.value})} style={{ width:'100%', padding:'12px 16px', borderRadius:10, border:'1px solid #E8E4DD', fontSize:14, fontFamily:'inherit' }} />
+                </div>
+              </div>
+
+              <div>
+                <label style={{ fontSize:12, fontWeight:600, color:'#6B7280', marginBottom:6, display:'block' }}>Table (optional)</label>
+                <select value={bookingForm.table} onChange={e => setBookingForm({...bookingForm, table:e.target.value})} style={{ width:'100%', padding:'12px 16px', borderRadius:10, border:'1px solid #E8E4DD', fontSize:14, fontFamily:'inherit', background:'white' }}>
+                  <option value="">Auto-assign</option>
+                  {Array.from({length:15}, (_,i) => <option key={i+1} value={i+1}>Table {i+1}</option>)}
                 </select>
               </div>
-            </div>
-            <div style={{ display:'flex', gap:10 }}>
-              <div style={{ flex:1 }}>
-                <label style={{ fontSize:12, fontWeight:600, color:'#6B7280', marginBottom:4, display:'block' }}>Date</label>
-                <input type="date" value={bookingForm.date} onChange={e => setBookingForm({...bookingForm, date:e.target.value})} style={{ width:'100%', padding:'10px 14px', borderRadius:10, border:'1px solid #E8E4DD', fontSize:14, fontFamily:'inherit' }} />
-              </div>
-              <div style={{ flex:1 }}>
-                <label style={{ fontSize:12, fontWeight:600, color:'#6B7280', marginBottom:4, display:'block' }}>Time</label>
-                <input type="time" value={bookingForm.time} onChange={e => setBookingForm({...bookingForm, time:e.target.value})} style={{ width:'100%', padding:'10px 14px', borderRadius:10, border:'1px solid #E8E4DD', fontSize:14, fontFamily:'inherit' }} />
+
+              <div>
+                <label style={{ fontSize:12, fontWeight:600, color:'#6B7280', marginBottom:6, display:'block' }}>Notes</label>
+                <textarea value={bookingForm.notes} onChange={e => setBookingForm({...bookingForm, notes:e.target.value})} placeholder="Allergies, occasion, preferences..." rows={3} style={{ width:'100%', padding:'12px 16px', borderRadius:10, border:'1px solid #E8E4DD', fontSize:14, fontFamily:'inherit', resize:'none' }} />
               </div>
             </div>
-            <div>
-              <label style={{ fontSize:12, fontWeight:600, color:'#6B7280', marginBottom:4, display:'block' }}>Notes</label>
-              <textarea value={bookingForm.notes} onChange={e => setBookingForm({...bookingForm, notes:e.target.value})} placeholder="Allergies, occasion, preferences..." rows={2} style={{ width:'100%', padding:'10px 14px', borderRadius:10, border:'1px solid #E8E4DD', fontSize:14, fontFamily:'inherit', resize:'none' }} />
+
+            {/* Footer actions */}
+            <div style={{ padding:'16px 24px 20px', borderTop:'1px solid #E8E4DD', flexShrink:0 }}>
+              <button style={{ width:'100%', padding:'14px', borderRadius:12, border:'none', background:'linear-gradient(135deg,#1B4332,#2D6A4F)', color:'white', fontSize:15, fontWeight:700, cursor:'pointer', fontFamily:'inherit', boxShadow:'0 4px 12px rgba(27,67,50,.25)' }}>Confirm Booking</button>
             </div>
           </div>
-          <div style={{ padding:'12px 20px 16px', borderTop:'1px solid #E8E4DD' }}>
-            <button style={{ width:'100%', padding:'12px', borderRadius:12, border:'none', background:'linear-gradient(135deg,#1B4332,#2D6A4F)', color:'white', fontSize:14, fontWeight:700, cursor:'pointer', fontFamily:'inherit' }}>Confirm Booking</button>
-          </div>
-        </div>
+        </>
       )}
 
-      {/* ── Walk-in Panel ── */}
+      {/* ── Walk-in Side Panel ── */}
       {activePanel === 'walkin' && (
-        <div className="chat-window-enter" style={{ position:'fixed', bottom:84, right:20, width:380, background:'white', borderRadius:20, boxShadow:'0 20px 60px rgba(0,0,0,.15)', zIndex:9998, overflow:'hidden' }}>
-          <div style={{ background:'linear-gradient(135deg,#D4A373,#B8895A)', padding:'16px 20px', color:'white' }}>
-            <div style={{ display:'flex', alignItems:'center', gap:8 }}>
-              <div style={{ fontSize:16, fontWeight:700 }}>Walk-in</div>
-              <span style={{ background:'rgba(255,255,255,.25)', padding:'2px 10px', borderRadius:999, fontSize:11, fontWeight:700 }}>Starting now</span>
-            </div>
-            <div style={{ fontSize:12, opacity:.8 }}>Quick-seat a walk-in guest</div>
-          </div>
-          <div style={{ padding:20, display:'flex', flexDirection:'column', gap:14 }}>
-            <div>
-              <label style={{ fontSize:12, fontWeight:600, color:'#6B7280', marginBottom:4, display:'block' }}>Guest name (optional)</label>
-              <input value={walkinForm.name} onChange={e => setWalkinForm({...walkinForm, name:e.target.value})} placeholder="Name" style={{ width:'100%', padding:'10px 14px', borderRadius:10, border:'1px solid #E8E4DD', fontSize:14, fontFamily:'inherit' }} />
-            </div>
-            <div>
-              <label style={{ fontSize:12, fontWeight:600, color:'#6B7280', marginBottom:4, display:'block' }}>Party size</label>
-              <div style={{ display:'flex', gap:6, flexWrap:'wrap' }}>
-                {[1,2,3,4,5,6,7,8].map(n => (
-                  <button key={n} onClick={() => setWalkinForm({...walkinForm, party:n})} style={{
-                    width:44, height:44, borderRadius:10, border: walkinForm.party===n ? '2px solid #D4A373' : '1px solid #E8E4DD',
-                    background: walkinForm.party===n ? '#FFF7ED' : 'white', color: walkinForm.party===n ? '#D4A373' : '#6B7280',
-                    fontSize:15, fontWeight:700, cursor:'pointer', fontFamily:'inherit',
-                  }}>{n}</button>
-                ))}
+        <>
+          <div onClick={() => setActivePanel(null)} style={{ position:'fixed', inset:0, background:'rgba(0,0,0,.3)', zIndex:9996 }} />
+          <div className="panel-slide-in" style={{ position:'fixed', top:0, right:0, bottom:0, width:420, maxWidth:'90vw', background:'white', zIndex:9997, display:'flex', flexDirection:'column', boxShadow:'-8px 0 40px rgba(0,0,0,.12)' }}>
+            {/* Header */}
+            <div style={{ background:'linear-gradient(135deg,#D4A373,#B8895A)', padding:'20px 24px', color:'white', flexShrink:0 }}>
+              <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between' }}>
+                <div>
+                  <div style={{ display:'flex', alignItems:'center', gap:10 }}>
+                    <span style={{ fontSize:18, fontWeight:700 }}>Walk-in</span>
+                    <span style={{ background:'rgba(255,255,255,.25)', padding:'3px 12px', borderRadius:999, fontSize:11, fontWeight:700 }}>Starting now</span>
+                  </div>
+                  <div style={{ fontSize:12, opacity:.8, marginTop:2 }}>Quick-seat a walk-in guest</div>
+                </div>
+                <button onClick={() => setActivePanel(null)} style={{ background:'rgba(255,255,255,.15)', border:'none', borderRadius:8, width:32, height:32, display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer' }}>
+                  <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="white" strokeWidth="2.5"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
               </div>
             </div>
-            <div>
-              <label style={{ fontSize:12, fontWeight:600, color:'#6B7280', marginBottom:4, display:'block' }}>Notes</label>
-              <input value={walkinForm.notes} onChange={e => setWalkinForm({...walkinForm, notes:e.target.value})} placeholder="Quick note..." style={{ width:'100%', padding:'10px 14px', borderRadius:10, border:'1px solid #E8E4DD', fontSize:14, fontFamily:'inherit' }} />
+
+            {/* Form */}
+            <div style={{ flex:1, overflowY:'auto', padding:24, display:'flex', flexDirection:'column', gap:18 }}>
+              <div>
+                <label style={{ fontSize:12, fontWeight:600, color:'#6B7280', marginBottom:6, display:'block' }}>Guest name (optional)</label>
+                <input value={walkinForm.name} onChange={e => setWalkinForm({...walkinForm, name:e.target.value})} placeholder="Name" style={{ width:'100%', padding:'12px 16px', borderRadius:10, border:'1px solid #E8E4DD', fontSize:14, fontFamily:'inherit' }} />
+              </div>
+
+              <div>
+                <label style={{ fontSize:12, fontWeight:600, color:'#6B7280', marginBottom:6, display:'block' }}>Party size</label>
+                <div style={{ display:'flex', gap:8, flexWrap:'wrap' }}>
+                  {[1,2,3,4,5,6,7,8].map(n => (
+                    <button key={n} onClick={() => setWalkinForm({...walkinForm, party:n})} style={{
+                      width:48, height:48, borderRadius:12, border: walkinForm.party===n ? '2px solid #D4A373' : '1px solid #E8E4DD',
+                      background: walkinForm.party===n ? '#D4A373' : 'white', color: walkinForm.party===n ? 'white' : '#6B7280',
+                      fontSize:16, fontWeight:700, cursor:'pointer', fontFamily:'inherit',
+                    }}>{n}</button>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <label style={{ fontSize:12, fontWeight:600, color:'#6B7280', marginBottom:6, display:'block' }}>Table (optional)</label>
+                <select value={walkinForm.table} onChange={e => setWalkinForm({...walkinForm, table:e.target.value})} style={{ width:'100%', padding:'12px 16px', borderRadius:10, border:'1px solid #E8E4DD', fontSize:14, fontFamily:'inherit', background:'white' }}>
+                  <option value="">Auto-assign</option>
+                  {Array.from({length:15}, (_,i) => <option key={i+1} value={i+1}>Table {i+1}</option>)}
+                </select>
+              </div>
+
+              <div>
+                <label style={{ fontSize:12, fontWeight:600, color:'#6B7280', marginBottom:6, display:'block' }}>Notes</label>
+                <input value={walkinForm.notes} onChange={e => setWalkinForm({...walkinForm, notes:e.target.value})} placeholder="Quick note..." style={{ width:'100%', padding:'12px 16px', borderRadius:10, border:'1px solid #E8E4DD', fontSize:14, fontFamily:'inherit' }} />
+              </div>
+            </div>
+
+            {/* Footer */}
+            <div style={{ padding:'16px 24px 20px', borderTop:'1px solid #E8E4DD', flexShrink:0 }}>
+              <button style={{ width:'100%', padding:'14px', borderRadius:12, border:'none', background:'linear-gradient(135deg,#D4A373,#B8895A)', color:'white', fontSize:15, fontWeight:700, cursor:'pointer', fontFamily:'inherit', boxShadow:'0 4px 12px rgba(212,163,115,.3)' }}>Seat Walk-in</button>
             </div>
           </div>
-          <div style={{ padding:'12px 20px 16px', borderTop:'1px solid #E8E4DD' }}>
-            <button style={{ width:'100%', padding:'12px', borderRadius:12, border:'none', background:'linear-gradient(135deg,#D4A373,#B8895A)', color:'white', fontSize:14, fontWeight:700, cursor:'pointer', fontFamily:'inherit' }}>Seat Walk-in</button>
-          </div>
-        </div>
+        </>
       )}
 
       {/* Chat Window */}
