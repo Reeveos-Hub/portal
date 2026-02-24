@@ -15,8 +15,14 @@
 
   /* ─── Knowledge Base ─── */
   const KB = {
-    greeting: "Hi! 👋 I'm Rezvo's AI assistant. I can help with pricing, features, getting started, or any questions about our platform. What would you like to know?",
-    fallback: "Great question! I want to make sure you get the best answer. You can reach our team directly at hello@rezvo.app or use our contact page. Is there anything else I can help with?",
+    greeting: "Hey! 👋 I'm the Rezvo chatbot — the budget one. I know the basics like pricing, features, and how to get started. For the really clever stuff, hit the mic button and talk to our Smart AI. What can I help with?",
+    fallbacks: [
+      "Okay that one's above my pay grade 😅 I'm the budget bot — I handle pricing, features, and getting started. For the brainy stuff, tap the 🎙️ mic and talk to our Smart AI. That one actually went to university.",
+      "I genuinely have no idea. I'm basically a FAQ with a chat bubble. Try our Smart AI via the mic button — it's the one with the actual brain cells. Or email hello@rezvo.app and a real human will help!",
+      "You've officially outsmarted me, and honestly that's not hard. 😂 Hit the mic button for our Smart AI, or drop us a line at hello@rezvo.app — the humans there are much better at this.",
+      "Right... that's not in my tiny brain. I know about 15 things really well and that wasn't one of them. The Smart AI (🎙️ mic button) is way sharper, or you can email the actual humans at hello@rezvo.app!",
+      "I wish I could help with that but I'm literally a keyword matcher pretending to be intelligent. 😄 For real answers, use the mic button to chat with our Smart AI — it actually understands things."
+    ],
     topics: [
       {
         keys: ['price', 'pricing', 'cost', 'how much', 'plan', 'plans', 'subscription', 'free', 'tier'],
@@ -83,16 +89,44 @@
         answer: "**Rezvo works on every device:**\n\n• **Diner App** — Book and manage reservations on the go\n• **Owner App** — Quick daily operations from your phone\n• **Tablet View** — Optimised floor plan for host stand iPad\n• **Web Dashboard** — Full management from any browser\n\nNo downloads needed for the web dashboard — works in any modern browser."
       },
       {
-        keys: ['hello', 'hi', 'hey', 'good morning', 'good afternoon', 'good evening', 'yo', 'sup'],
-        answer: "Hey there! 👋 Welcome to Rezvo. I'm here to help with anything you need — pricing, features, getting started, or just learning more about the platform. What can I help you with?"
+        keys: ['hello', 'hi', 'hey', 'good morning', 'good afternoon', 'good evening', 'yo', 'sup', 'howdy', 'alright'],
+        answer: "Hey! 👋 I'm the Rezvo chatbot — think of me as the FAQ that learned to type. I know about pricing, features, getting started, and a few other things. What's on your mind?"
       },
       {
-        keys: ['thank', 'thanks', 'cheers', 'ta', 'appreciate'],
-        answer: "You're welcome! 😊 If you have any other questions, I'm here. You can also reach our team at hello@rezvo.app anytime. Have a great day!"
+        keys: ['thank', 'thanks', 'cheers', 'ta', 'appreciate', 'helpful'],
+        answer: "Aww, cheers! 😊 That means a lot to a little chatbot like me. If you need anything else, I'm literally always here. No holidays, no sleep, no complaints. Living the dream."
       },
       {
         keys: ['bye', 'goodbye', 'see you', 'later', 'that\'s all', 'nothing else'],
-        answer: "Thanks for chatting! If you need anything else, I'm always here. Have a great day! 👋"
+        answer: "See ya! 👋 I'll be here if you need me — not like I've got anywhere else to be. Have a good one!"
+      },
+      {
+        keys: ['launch', 'when launch', 'when do you launch', 'live', 'go live', 'release', 'ready', 'when available'],
+        answer: "Ha! You're asking the chatbot when we launch? 😂 God knows — I'm the dumb one. The Smart AI wakes up when you click the mic 🎙️ and talk to us. That one might actually know things. Or email hello@rezvo.app and ask the humans who are actually building this thing!"
+      },
+      {
+        keys: ['who are you', 'what are you', 'are you ai', 'are you real', 'are you human', 'bot', 'robot'],
+        answer: "I'm the Rezvo chatbot — basically a FAQ page that got promoted. I can answer the basics but let's be honest, I'm not winning any Turing tests. 😄 For the really smart conversations, hit the 🎙️ mic button and talk to our actual AI. That one has brains."
+      },
+      {
+        keys: ['smart ai', 'voice', 'mic', 'microphone', 'talk', 'speak'],
+        answer: "The Smart AI is the clever one! 🎙️ Click the mic button and you can have an actual conversation about anything Rezvo-related. It understands context, remembers what you said, and doesn't just match keywords like yours truly. 😅"
+      },
+      {
+        keys: ['joke', 'funny', 'laugh', 'bored', 'entertain'],
+        answer: "Why did the restaurant switch to Rezvo? Because paying 30% commission was no laughing matter! 🥁 ...I'll stick to answering questions. 😄"
+      },
+      {
+        keys: ['nottingham', 'burg', 'burg burger', 'first', 'city'],
+        answer: "Rezvo is launching city by city, starting with **Nottingham**! 🏙️ The platform is available nationwide for any UK business to sign up, but our featured directory launches roll out by city for the best local experience."
+      },
+      {
+        keys: ['love', 'amazing', 'great', 'awesome', 'brilliant', 'cool', 'nice', 'good job', 'impressive'],
+        answer: "Aww stop it, you'll make me blush! 😊 (Can chatbots blush? Asking for a friend.) Glad you like what you see — wait until you try the actual platform!"
+      },
+      {
+        keys: ['rubbish', 'useless', 'terrible', 'bad', 'worst', 'hate', 'stupid', 'dumb', 'suck'],
+        answer: "Fair enough 😅 I never claimed to be the smart one! I'm basically a glorified FAQ. For a proper conversation, hit the 🎙️ mic button — the Smart AI there actually has feelings... and answers. Or email hello@rezvo.app for human-grade intelligence."
       }
     ]
   };
@@ -114,7 +148,7 @@
         best = topic;
       }
     }
-    return best ? best.answer : KB.fallback;
+    return best ? best.answer : KB.fallbacks[Math.floor(Math.random() * KB.fallbacks.length)];
   }
 
   function formatMsg(text) {

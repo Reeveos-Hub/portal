@@ -753,8 +753,23 @@
     {keys:['restaurant','table','floor plan','covers'],answer:"**Restaurant Features:**\n\n• Floor plan view with real-time table status\n• Covers tracking by party size\n• Service period management (lunch, dinner, late)\n• Online booking widget\n• Kitchen orders board\n• Analytics & cover trends"},
     {keys:['no show','no-show','deposit','cancellation'],answer:"**No-show Protection:**\n\n• Collect card-on-file deposits at booking\n• Set custom deposit amounts\n• Automated reminders reduce no-shows by up to 70%\n• Charge no-show fees automatically\n\nAvailable on Growth plan and above."},
     {keys:['analytics','report','data','insight','crm','customer'],answer:"**CRM & Analytics:**\n\n• Full customer database with visit history\n• Booking trends and peak time analysis\n• Revenue tracking and forecasting\n• Staff performance metrics\n• No-show rate monitoring\n\nYOU own your data — unlike third-party platforms."},
+    {keys:['launch','when launch','live','go live','release','ready','when available'],answer:"Ha! You're asking the chatbot when we launch? 😂 God knows — I'm the dumb one. The Smart AI wakes up when you click the mic 🎙️ and talk to us. That one might actually know things. Or email hello@rezvo.app and ask the humans who are actually building this thing!"},
+    {keys:['who are you','what are you','bot','robot','ai'],answer:"I'm the Rezvo chatbot — basically a FAQ page that got promoted. For the really smart conversations, hit the 🎙️ mic button. That one has brains. 😄"},
+    {keys:['joke','funny','bored'],answer:"Why did the restaurant switch to Rezvo? Because paying 30% commission was no laughing matter! 🥁 ...I'll stick to answering questions."},
+    {keys:['hello','hi','hey','yo','sup','alright'],answer:"Hey! 👋 I'm the budget bot — I know the basics. For the clever stuff, hit the mic 🎙️ and talk to our Smart AI. What can I help with?"},
+    {keys:['thank','thanks','cheers','ta'],answer:"Aww, cheers! 😊 That means a lot to a little chatbot like me. I'm literally always here — no holidays, no sleep, no complaints."},
+    {keys:['love','amazing','great','awesome','brilliant','cool'],answer:"Aww stop it, you'll make me blush! 😊 Glad you like what you see — wait until you try the actual platform!"},
+    {keys:['rubbish','useless','terrible','bad','hate','stupid','dumb','suck'],answer:"Fair enough 😅 I never claimed to be the smart one! For a proper conversation, hit the 🎙️ mic button — or email hello@rezvo.app for human-grade intelligence."},
     {keys:['contact','help','email','phone','speak','human','person'],answer:"**Get in touch:**\n\n• **Email:** hello@rezvo.app\n• **Contact page:** rezvo.app/contact.html\n• We typically reply within a few hours\n\nOur UK-based team is always happy to help!"},
     {keys:['start','get started','sign up','register','trial','begin'],answer:"**Getting Started:**\n\n1. Sign up free at rezvo.app — no credit card needed\n2. Set up your profile, services, and staff\n3. Start accepting bookings immediately\n\n30-day free trial on any plan!"}
+  ];
+
+  const FALLBACKS = [
+    "Okay that one's above my pay grade 😅 I handle pricing, features, and getting started. For the brainy stuff, tap the 🎙️ mic — the Smart AI actually went to university.",
+    "You've officially outsmarted me, and honestly that's not hard. 😂 Hit the mic button for our Smart AI, or drop us a line at hello@rezvo.app.",
+    "I genuinely have no idea. I'm basically a FAQ with a chat bubble. Try our Smart AI via the mic button — it's the one with the actual brain cells.",
+    "Right... that's not in my tiny brain. The Smart AI (🎙️ mic button) is way sharper, or you can email the actual humans at hello@rezvo.app!",
+    "I wish I could help but I'm literally a keyword matcher pretending to be intelligent. 😄 Use the mic button for our Smart AI — it actually understands things."
   ];
 
   function findAnswer(q){
@@ -765,7 +780,7 @@
       for(const k of t.keys){if(low.includes(k))score+=k.split(' ').length;}
       if(score>bestScore){bestScore=score;best=t;}
     }
-    return best?best.answer:"Great question! I want to make sure you get the best answer. You can reach our team at **hello@rezvo.app** or visit our [contact page](/contact.html). Is there anything else I can help with?";
+    return best?best.answer:FALLBACKS[Math.floor(Math.random()*FALLBACKS.length)];
   }
 
   function fmt(t){return t.replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>').replace(/\n/g,'<br>').replace(/• /g,'<span class="inline-block w-1.5 h-1.5 bg-rezvo-forest rounded-full mr-2 relative top-[-2px]"></span>');}
