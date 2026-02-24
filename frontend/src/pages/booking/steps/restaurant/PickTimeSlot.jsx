@@ -20,7 +20,23 @@ const generateSlots = (settings, date) => {
 
   // Check if business has hours defined
   const hours = settings?.hours?.[dayName]
-  if (!hours || hours.closed) return []
+  if (hours?.closed) return []
+
+  // If no hours configured at all, use restaurant defaults
+  if (!hours || !hours.open) {
+    const defaults = []
+    // Restaurant default: 12-14:30 lunch, 17:30-22 dinner
+    for (let h = 12; h <= 14; h++) {
+      defaults.push(`${h.toString().padStart(2, '0')}:00`)
+      defaults.push(`${h.toString().padStart(2, '0')}:30`)
+    }
+    for (let h = 17; h <= 21; h++) {
+      defaults.push(`${h.toString().padStart(2, '0')}:00`)
+      if (h < 21) defaults.push(`${h.toString().padStart(2, '0')}:30`)
+      else defaults.push(`${h.toString().padStart(2, '0')}:30`)
+    }
+    return defaults
+  }
 
   const openH = parseInt(hours.open?.split(':')[0] || '11')
   const openM = parseInt(hours.open?.split(':')[1] || '0')
@@ -107,14 +123,14 @@ const PickTimeSlot = ({ data, onContinue, onBack }) => {
         Back
       </button>
 
-      <div className="flex items-center gap-3 p-3 bg-[#1B4332]/[0.03] rounded-xl border border-[#1B4332]/10 mb-6">
-        <div className="flex items-center gap-4">
-          <div className="flex items-center gap-1.5 text-sm text-[#1B4332]">
-            <Users className="w-4 h-4" />
+      <div className="flex items-center gap-3 px-3 py-2 bg-[#1B4332]/[0.03] rounded-lg border border-[#1B4332]/10 mb-4">
+        <div className="flex items-center gap-3 text-xs">
+          <div className="flex items-center gap-1 text-[#1B4332]">
+            <Users className="w-3.5 h-3.5" />
             <span className="font-medium">{guests} {guests === 1 ? 'guest' : 'guests'}</span>
           </div>
-          <div className="flex items-center gap-1.5 text-sm text-[#1B4332]">
-            <Calendar className="w-4 h-4" />
+          <div className="flex items-center gap-1 text-[#1B4332]">
+            <Calendar className="w-3.5 h-3.5" />
             <span className="font-medium">{dateLabel}</span>
           </div>
         </div>
