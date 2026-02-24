@@ -478,19 +478,33 @@ async def move_booking(
         raise HTTPException(403, "Not authorized")
 
     bid_str = str(business.get("_id"))
-    b = await db.bookings.find_one({"_id": booking_id, "businessId": business_id})
-    if not b:
+    # Try all combinations like calendar.py does
+    bid_values = list(set([v for v in [business_id, bid_str] if v]))
+    bid_oid_values = []
+    for v in bid_values:
         try:
-            b = await db.bookings.find_one({"_id": ObjectId(booking_id), "businessId": business_id})
+            bid_oid_values.append(ObjectId(v))
         except Exception:
             pass
-    if not b:
-        b = await db.bookings.find_one({"_id": booking_id, "businessId": bid_str})
-    if not b:
-        try:
-            b = await db.bookings.find_one({"_id": ObjectId(booking_id), "businessId": bid_str})
-        except Exception:
-            pass
+    all_bids = bid_values + bid_oid_values
+
+    booking_ids = [booking_id]
+    try:
+        booking_ids.append(ObjectId(booking_id))
+    except Exception:
+        pass
+
+    b = None
+    for bid_field in ["businessId", "business_id"]:
+        if b:
+            break
+        for bk_id in booking_ids:
+            for bz_id in all_bids:
+                b = await db.bookings.find_one({"_id": bk_id, bid_field: bz_id})
+                if b:
+                    break
+            if b:
+                break
     if not b:
         raise HTTPException(404, "Booking not found")
 
