@@ -6,10 +6,12 @@ import ScrollToTop from './components/ScrollToTop'
 import ChatWidget from './components/ChatWidget'
 
 import DashboardLayout from './layouts/DashboardLayout'
+import AdminLayout from './layouts/AdminLayout'
 
 import Login from './pages/auth/Login'
 import Register from './pages/auth/Register'
 
+/* Customer dashboard pages */
 import Dashboard from './pages/dashboard/Dashboard'
 import Bookings from './pages/dashboard/Bookings'
 import Calendar from './pages/dashboard/Calendar'
@@ -24,11 +26,15 @@ import OnlineBooking from './pages/dashboard/OnlineBooking'
 import Orders from './pages/dashboard/Orders'
 import Clients from './pages/dashboard/Clients'
 import Marketing from './pages/dashboard/Marketing'
-import LinkedIn from './pages/dashboard/LinkedIn'
-import AIOps from './pages/dashboard/AIOps'
-import EmailOutreach from './pages/dashboard/EmailOutreach'
 import Payments from './pages/dashboard/Payments'
 import Help from './pages/dashboard/Help'
+
+/* Admin pages — internal ops only */
+import AdminOverview from './pages/admin/AdminOverview'
+import AdminAIOps from './pages/admin/AIOps'
+import AdminOutreach from './pages/admin/EmailOutreach'
+import AdminLinkedIn from './pages/admin/LinkedIn'
+import AdminPlaceholder from './pages/admin/AdminPlaceholder'
 
 import Onboarding from './pages/onboarding/Onboarding'
 
@@ -74,11 +80,33 @@ const App = () => {
               <Route path="analytics" element={<Analytics />} />
               <Route path="payments" element={<Payments />} />
               <Route path="marketing" element={<Marketing />} />
-              <Route path="linkedin" element={<LinkedIn />} />
-              <Route path="ai-ops" element={<AIOps />} />
-              <Route path="email-outreach" element={<EmailOutreach />} />
               <Route path="settings" element={<Settings />} />
               <Route path="help" element={<Help />} />
+            </Route>
+
+            {/* Admin — internal ops portal (PIN protected) */}
+            <Route path="/admin" element={<AdminLayout />}>
+              <Route index element={<AdminOverview />} />
+              <Route path="ai-ops" element={<AdminAIOps />} />
+              <Route path="outreach" element={<AdminOutreach />} />
+              <Route path="linkedin" element={<AdminLinkedIn />} />
+              <Route path="pipeline" element={<AdminPlaceholder section="pipeline" />} />
+              <Route path="businesses" element={<AdminPlaceholder section="businesses" />} />
+              <Route path="bookings" element={<AdminPlaceholder section="bookings" />} />
+              <Route path="users" element={<AdminPlaceholder section="users" />} />
+              <Route path="subscriptions" element={<AdminPlaceholder section="subscriptions" />} />
+              <Route path="directory" element={<AdminPlaceholder section="directory" />} />
+              <Route path="support" element={<AdminPlaceholder section="support" />} />
+              <Route path="reviews" element={<AdminPlaceholder section="reviews" />} />
+              <Route path="churn" element={<AdminPlaceholder section="churn" />} />
+              <Route path="email-marketing" element={<AdminPlaceholder section="email-marketing" />} />
+              <Route path="seo" element={<AdminPlaceholder section="seo" />} />
+              <Route path="content" element={<AdminPlaceholder section="content" />} />
+              <Route path="analytics" element={<AdminPlaceholder section="analytics" />} />
+              <Route path="health" element={<AdminPlaceholder section="health" />} />
+              <Route path="audit" element={<AdminPlaceholder section="audit" />} />
+              <Route path="errors" element={<AdminPlaceholder section="errors" />} />
+              <Route path="settings" element={<AdminPlaceholder section="settings" />} />
             </Route>
 
             {/* Public booking flow */}
