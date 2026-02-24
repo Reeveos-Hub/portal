@@ -102,7 +102,7 @@ const YourDetails = ({ data, onCreate, onBack }) => {
       {/* Form */}
       <h2 className="text-base font-semibold text-[#1B4332] mb-3">Your details</h2>
 
-      <form onSubmit={handleSubmit} className="space-y-3.5 pb-28">
+      <form onSubmit={handleSubmit} className="space-y-3.5 pb-6">
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Full name *</label>
           <input

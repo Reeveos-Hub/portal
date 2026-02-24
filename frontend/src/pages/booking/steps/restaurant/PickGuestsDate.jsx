@@ -171,7 +171,7 @@ const PickGuestsDate = ({ data, onContinue }) => {
         </div>
       )}
 
-      <div className="pb-28" />
+      <div className="pb-6" />
 
       <StickyFooter>
         <button

@@ -43,7 +43,7 @@ const PickService = ({ data, onContinue }) => {
       </div>
 
       {/* Service cards */}
-      <div className="space-y-2.5 pb-28">
+      <div className="space-y-2.5 pb-6">
         {filtered.map((svc) => {
           const selected = selectedId === svc.id
           const price = svc.price > 0 ? `£${(svc.price / 100).toFixed(2)}` : 'Free'

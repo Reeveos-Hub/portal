@@ -156,7 +156,7 @@ const PickTimeSlot = ({ data, onContinue, onBack }) => {
           </button>
         </div>
       ) : (
-        <div className="space-y-6 pb-28">
+        <div className="space-y-6 pb-6">
           {Object.entries(grouped).map(([period, times]) => {
             if (times.length === 0) return null
             return (

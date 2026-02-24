@@ -134,7 +134,7 @@ const PickDateTime = ({ data, onContinue, onBack }) => {
 
           {/* Time slots */}
           {selectedDate && (
-            <div className="mt-2 pb-28">
+            <div className="mt-2 pb-6">
               {slotsLoading ? (
                 <div className="flex items-center justify-center py-8">
                   <Loader2 className="w-5 h-5 text-[#1B4332] animate-spin" />

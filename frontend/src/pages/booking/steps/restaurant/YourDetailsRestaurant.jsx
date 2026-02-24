@@ -5,7 +5,6 @@
 
 import { useState } from 'react'
 import { ArrowLeft, Users, Calendar, Clock, MapPin, Loader2, CheckCircle, MessageSquare } from 'lucide-react'
-import { useNavigate } from 'react-router-dom'
 import BookingHeader from '../../components/BookingHeader'
 import StepIndicator from '../../components/StepIndicator'
 import StickyFooter from '../../components/StickyFooter'
@@ -16,7 +15,6 @@ const DAY_NAMES = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Frid
 const OCCASIONS = ['Birthday', 'Anniversary', 'Date Night', 'Business Meal', 'Celebration', 'Just Because']
 
 const YourDetailsRestaurant = ({ data, onBack, onCreate }) => {
-  const navigate = useNavigate()
   const { business, guests, date, time } = data
 
   const [form, setForm] = useState({ firstName: '', lastName: '', email: '', phone: '', occasion: '', notes: '' })
@@ -81,60 +79,66 @@ const YourDetailsRestaurant = ({ data, onBack, onCreate }) => {
   // Confirmation screen
   if (confirmed) {
     return (
-      <div className="max-w-xl mx-auto px-5 pt-6 overflow-hidden">
-        <div className="text-center pt-12 pb-8">
-          <div className="w-16 h-16 rounded-full bg-emerald-50 flex items-center justify-center mx-auto mb-4">
-            <CheckCircle className="w-8 h-8 text-emerald-600" />
+      <div className="max-w-xl mx-auto px-4 sm:px-5 pt-4 sm:pt-6 overflow-hidden">
+        <div className="text-center pt-8 sm:pt-12 pb-6 sm:pb-8">
+          <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-emerald-50 flex items-center justify-center mx-auto mb-3 sm:mb-4">
+            <CheckCircle className="w-7 h-7 sm:w-8 sm:h-8 text-emerald-600" />
           </div>
-          <h1 className="text-2xl font-bold text-[#1B4332] mb-2">Booking Confirmed!</h1>
-          <p className="text-sm text-gray-500">We've sent a confirmation to {form.email}</p>
+          <h1 className="text-xl sm:text-2xl font-bold text-[#1B4332] mb-1.5 sm:mb-2">Booking Confirmed!</h1>
+          <p className="text-xs sm:text-sm text-gray-500">We've sent a confirmation to {form.email}</p>
         </div>
 
-        <div className="bg-white rounded-2xl border border-gray-200 p-5 space-y-4 mb-6">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-[#1B4332]/10 flex items-center justify-center">
-              <MapPin className="w-5 h-5 text-[#1B4332]" />
+        <div className="bg-white rounded-xl sm:rounded-2xl border border-gray-200 p-4 sm:p-5 space-y-3 sm:space-y-4 mb-5 sm:mb-6">
+          <div className="flex items-center gap-2.5 sm:gap-3">
+            <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl bg-[#1B4332]/10 flex items-center justify-center">
+              <MapPin className="w-4 h-4 sm:w-5 sm:h-5 text-[#1B4332]" />
             </div>
             <div>
-              <p className="text-sm font-semibold text-[#1B4332]">{business.name}</p>
-              <p className="text-xs text-gray-500">{business.address}</p>
+              <p className="text-xs sm:text-sm font-semibold text-[#1B4332]">{business.name}</p>
+              <p className="text-[11px] sm:text-xs text-gray-500">{business.address}</p>
             </div>
           </div>
 
           <div className="h-px bg-gray-100" />
 
-          <div className="grid grid-cols-3 gap-3 text-center">
+          <div className="grid grid-cols-3 gap-2 sm:gap-3 text-center">
             <div>
-              <Users className="w-4 h-4 text-gray-400 mx-auto mb-1" />
-              <p className="text-sm font-semibold text-[#1B4332]">{guests}</p>
-              <p className="text-xs text-gray-400">{guests === 1 ? 'Guest' : 'Guests'}</p>
+              <Users className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-gray-400 mx-auto mb-0.5 sm:mb-1" />
+              <p className="text-xs sm:text-sm font-semibold text-[#1B4332]">{guests}</p>
+              <p className="text-[10px] sm:text-xs text-gray-400">{guests === 1 ? 'Guest' : 'Guests'}</p>
             </div>
             <div>
-              <Calendar className="w-4 h-4 text-gray-400 mx-auto mb-1" />
-              <p className="text-sm font-semibold text-[#1B4332]">{dateObj.getDate()} {MONTH_NAMES[dateObj.getMonth()].slice(0, 3)}</p>
-              <p className="text-xs text-gray-400">{DAY_NAMES[dateObj.getDay()].slice(0, 3)}</p>
+              <Calendar className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-gray-400 mx-auto mb-0.5 sm:mb-1" />
+              <p className="text-xs sm:text-sm font-semibold text-[#1B4332]">{dateObj.getDate()} {MONTH_NAMES[dateObj.getMonth()].slice(0, 3)}</p>
+              <p className="text-[10px] sm:text-xs text-gray-400">{DAY_NAMES[dateObj.getDay()].slice(0, 3)}</p>
             </div>
             <div>
-              <Clock className="w-4 h-4 text-gray-400 mx-auto mb-1" />
-              <p className="text-sm font-semibold text-[#1B4332]">{formatTime(time)}</p>
-              <p className="text-xs text-gray-400">Time</p>
+              <Clock className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-gray-400 mx-auto mb-0.5 sm:mb-1" />
+              <p className="text-xs sm:text-sm font-semibold text-[#1B4332]">{formatTime(time)}</p>
+              <p className="text-[10px] sm:text-xs text-gray-400">Time</p>
             </div>
           </div>
 
           {form.occasion && (
             <>
               <div className="h-px bg-gray-100" />
-              <p className="text-xs text-gray-500">🎉 {form.occasion}</p>
+              <p className="text-[11px] sm:text-xs text-gray-500">🎉 {form.occasion}</p>
             </>
           )}
         </div>
 
-        <button
-          onClick={() => navigate('/')}
-          className="w-full py-3.5 rounded-xl text-sm font-semibold bg-[#1B4332] text-white hover:bg-[#1B4332]/90 transition-all"
-        >
-          Back to Home
-        </button>
+        {/* Exit message */}
+        <div className="text-center space-y-3 pb-8">
+          <div className="bg-emerald-50/60 rounded-lg sm:rounded-xl px-4 py-3 sm:px-5 sm:py-4 border border-emerald-100">
+            <p className="text-xs sm:text-sm text-emerald-800 font-medium mb-1">You're all set!</p>
+            <p className="text-[11px] sm:text-xs text-emerald-600 leading-relaxed">
+              We'll confirm your booking via email and text. You can safely close this page now.
+            </p>
+          </div>
+          <p className="text-[11px] sm:text-xs text-gray-400">
+            Need to make changes? Reply to your confirmation email.
+          </p>
+        </div>
       </div>
     )
   }
@@ -263,7 +267,7 @@ const YourDetailsRestaurant = ({ data, onBack, onCreate }) => {
         />
       </div>
 
-      <div className="pb-24 sm:pb-28" />
+      <div className="pb-6" />
 
       <StickyFooter>
         <button
