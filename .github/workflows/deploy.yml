@@ -19,6 +19,7 @@ jobs:
           script: |
             set -e
 
+            # ── Pull latest code ──
             if [ ! -d "/opt/rezvo-app/.git" ]; then
               git clone https://github.com/Ambassadorbtc/Rezvo.app.git /opt/rezvo-app
             fi
@@ -27,32 +28,47 @@ jobs:
             git fetch origin main
             git reset --hard origin/main
 
+            # ── Backend deps ──
             cd /opt/rezvo-app/backend
             pip3 install -r requirements.txt --break-system-packages -q 2>/dev/null || pip3 install -r requirements.txt -q
 
+            # ── Frontend build ──
             cd /opt/rezvo-app/frontend
             npm install --silent
-            VITE_API_URL=https://rezvo.app/api npm run build
+            VITE_API_URL=/api npm run build
 
-            printf '[Unit]\nDescription=Rezvo Backend API\nAfter=network.target mongod.service\n\n[Service]\nType=simple\nUser=root\nWorkingDirectory=/opt/rezvo-app/backend\nExecStart=/usr/local/bin/uvicorn server:app --host 0.0.0.0 --port 8000\nRestart=always\nRestartSec=10\n\n[Install]\nWantedBy=multi-user.target\n' > /etc/systemd/system/rezvo-backend.service
+            # ── Backend service ──
+            cat > /etc/systemd/system/rezvo-backend.service << 'EOF'
+            [Unit]
+            Description=Rezvo Backend API
+            After=network.target mongod.service
+
+            [Service]
+            Type=simple
+            User=root
+            WorkingDirectory=/opt/rezvo-app/backend
+            EnvironmentFile=-/opt/rezvo-app/backend/.env
+            ExecStart=/usr/local/bin/uvicorn server:app --host 0.0.0.0 --port 8000
+            Restart=always
+            RestartSec=10
+
+            [Install]
+            WantedBy=multi-user.target
+            EOF
             systemctl daemon-reload
             systemctl restart rezvo-backend
 
+            # ── Nginx — all paths serve from /opt/rezvo-app directly ──
             cp /opt/rezvo-app/nginx.conf /etc/nginx/sites-available/rezvo-app
             ln -sf /etc/nginx/sites-available/rezvo-app /etc/nginx/sites-enabled/rezvo-app
             nginx -t && systemctl reload nginx
 
-            # Copy marketing pages to web root
-            mkdir -p /var/www/rezvo-app/competitors
-            cp /opt/rezvo-app/marketing/index.html /var/www/rezvo-app/index.html
-            cp /opt/rezvo-app/marketing/competitors/*.html /var/www/rezvo-app/competitors/
-
             sleep 3
 
-            # Run setup script if it exists
-            if [ -f /opt/rezvo-app/backend/setup_enterprise.py ]; then
+            # ── Ensure admin account ──
+            if [ -f /opt/rezvo-app/backend/setup_admin.py ]; then
               cd /opt/rezvo-app/backend
-              python3 setup_enterprise.py || echo "Setup script failed (may be ok if already run)"
+              python3 setup_admin.py || echo "Admin setup note: check logs"
             fi
 
             echo "✅ DEPLOY COMPLETE"
