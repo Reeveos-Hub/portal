@@ -6,6 +6,7 @@ import RezvoLoader from "../../components/shared/RezvoLoader"
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Camera, Image, Lock, Phone, Mail, MessageCircle, X, Store } from 'lucide-react'
+import ImageCropModal from '../../components/shared/ImageCropModal'
 import { useBusiness } from '../../contexts/BusinessContext'
 import api, { API_BASE_URL } from '../../utils/api'
 import { getDomainConfig } from '../../utils/domain'
@@ -29,6 +30,7 @@ const OnlineBooking = () => {
   const [savedAt, setSavedAt] = useState(null)
   const [toast, setToast] = useState(null)
   const [showPreview, setShowPreview] = useState(false)
+  const [cropModal, setCropModal] = useState({ open: false, src: null, type: null })
   const [previewMode, setPreviewMode] = useState('mobile')
   const [embedModal, setEmbedModal] = useState(false)
   const [upgradeModal, setUpgradeModal] = useState(null)
@@ -123,21 +125,34 @@ const OnlineBooking = () => {
 
   const handleLogoUpload = async (e) => {
     const file = e?.target?.files?.[0]
-    if (!file || !business?.id) return
-    try {
-      const res = await api.upload(`/booking-page/${business.id}/logo`, file)
-      updateDraft('branding', 'logo', res.url)
-    } catch (err) {
-      setToast(err.message || 'Upload failed')
-    }
+    if (!file) return
+    const reader = new FileReader()
+    reader.onload = () => setCropModal({ open: true, src: reader.result, type: 'logo' })
+    reader.readAsDataURL(file)
+    e.target.value = ''
   }
 
   const handleCoverUpload = async (e) => {
     const file = e?.target?.files?.[0]
-    if (!file || !business?.id) return
+    if (!file) return
+    const reader = new FileReader()
+    reader.onload = () => setCropModal({ open: true, src: reader.result, type: 'cover' })
+    reader.readAsDataURL(file)
+    e.target.value = ''
+  }
+
+  const handleCropSave = async (blob) => {
+    if (!business?.id) return
+    const file = new File([blob], `${cropModal.type}.jpg`, { type: 'image/jpeg' })
     try {
-      const res = await api.upload(`/booking-page/${business.id}/cover`, file)
-      updateDraft('branding', 'coverPhoto', res.url)
+      if (cropModal.type === 'logo') {
+        const res = await api.upload(`/booking-page/${business.id}/logo`, file)
+        updateDraft('branding', 'logo', res.url)
+      } else {
+        const res = await api.upload(`/booking-page/${business.id}/cover`, file)
+        updateDraft('branding', 'coverPhoto', res.url)
+      }
+      setCropModal({ open: false, src: null, type: null })
     } catch (err) {
       setToast(err.message || 'Upload failed')
     }
@@ -212,7 +227,12 @@ const OnlineBooking = () => {
           <div className="space-y-4">
             <div>
               <p className="text-sm font-bold text-primary mb-2">Logo</p>
-              <label className="flex items-center gap-4 cursor-pointer">
+              <label
+                className="flex items-center gap-4 cursor-pointer"
+                onDragOver={e => { e.preventDefault(); e.currentTarget.classList.add('ring-2', 'ring-primary/30') }}
+                onDragLeave={e => e.currentTarget.classList.remove('ring-2', 'ring-primary/30')}
+                onDrop={e => { e.preventDefault(); e.currentTarget.classList.remove('ring-2', 'ring-primary/30'); const file = e.dataTransfer?.files?.[0]; if (file) { const reader = new FileReader(); reader.onload = () => setCropModal({ open: true, src: reader.result, type: 'logo' }); reader.readAsDataURL(file) } }}
+              >
                 <div className="w-24 h-24 rounded-full bg-primary/10 border-2 border-dashed border-primary/30 flex items-center justify-center overflow-hidden shrink-0">
                   {b.logo ? (
                     <img src={toImageUrl(b.logo)} alt="" className="w-full h-full object-cover" />
@@ -226,7 +246,12 @@ const OnlineBooking = () => {
             </div>
             <div>
               <p className="text-sm font-bold text-primary mb-2">Cover Photo</p>
-              <label className="block aspect-video rounded-lg bg-primary/10 border-2 border-dashed border-primary/30 flex items-center justify-center cursor-pointer overflow-hidden">
+              <label
+                className="block aspect-video rounded-lg bg-primary/10 border-2 border-dashed border-primary/30 flex items-center justify-center cursor-pointer overflow-hidden"
+                onDragOver={e => { e.preventDefault(); e.currentTarget.classList.add('ring-2', 'ring-primary/30') }}
+                onDragLeave={e => e.currentTarget.classList.remove('ring-2', 'ring-primary/30')}
+                onDrop={e => { e.preventDefault(); e.currentTarget.classList.remove('ring-2', 'ring-primary/30'); const file = e.dataTransfer?.files?.[0]; if (file) { const reader = new FileReader(); reader.onload = () => setCropModal({ open: true, src: reader.result, type: 'cover' }); reader.readAsDataURL(file) } }}
+              >
                 {b.coverPhoto ? (
                   <img src={toImageUrl(b.coverPhoto)} alt="" className="w-full h-full object-cover" />
                 ) : (
@@ -549,6 +574,17 @@ const OnlineBooking = () => {
           onViewPlans={() => setUpgradeModal(null)}
         />
       )}
+
+      {/* Image Crop Modal */}
+      <ImageCropModal
+        isOpen={cropModal.open}
+        onClose={() => setCropModal({ open: false, src: null, type: null })}
+        onSave={handleCropSave}
+        imageSrc={cropModal.src}
+        aspect={cropModal.type === 'logo' ? 1 : 16 / 9}
+        cropShape={cropModal.type === 'logo' ? 'round' : 'rect'}
+        title={cropModal.type === 'logo' ? 'Adjust Logo' : 'Adjust Cover Photo'}
+      />
     </div>
   )
 }
