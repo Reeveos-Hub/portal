@@ -95,19 +95,38 @@ const TopBar = ({ onMenuClick, sidebarOpen }) => {
           <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-error" aria-hidden="true" />
         </button>
 
-        <div className="flex items-center gap-3 pl-2 border-l border-border">
-          <div className="w-[34px] h-[34px] rounded-full bg-primary flex items-center justify-center text-background font-semibold text-sm">
+        <div className="relative flex items-center gap-3 pl-2 border-l border-border">
+          <div 
+            onClick={() => {
+              const dd = document.getElementById('profile-dropdown')
+              dd.style.display = dd.style.display === 'none' ? 'block' : 'none'
+            }}
+            className="w-[34px] h-[34px] rounded-full bg-primary flex items-center justify-center text-background font-semibold text-sm cursor-pointer hover:ring-2 hover:ring-primary/30 transition-all"
+          >
             {initials}
           </div>
-          <button
-            onClick={() => {
-              logout?.()
-              navigate('/login')
-            }}
-            className="hidden sm:block text-sm text-muted hover:text-primary"
-          >
-            Log out
-          </button>
+          <div id="profile-dropdown" style={{ display: 'none', position: 'absolute', top: '100%', right: 0, marginTop: 8, background: '#fff', border: '1px solid #EBEBEB', borderRadius: 12, boxShadow: '0 8px 24px rgba(0,0,0,0.1)', zIndex: 200, width: 200, padding: 8, fontFamily: "'Figtree', sans-serif" }}>
+            <div style={{ padding: '8px 12px', fontSize: 14, fontWeight: 600, color: '#1B4332', borderBottom: '1px solid #F5F5F5', marginBottom: 4 }}>
+              {user?.name || 'User'}
+              <div style={{ fontSize: 11, fontWeight: 400, color: '#666', marginTop: 2 }}>{user?.email || ''}</div>
+            </div>
+            <button 
+              onClick={() => navigate('/dashboard/settings')}
+              style={{ width: '100%', padding: '10px 12px', fontSize: 13, color: '#374151', background: 'transparent', border: 'none', borderRadius: 8, cursor: 'pointer', textAlign: 'left', fontFamily: "'Figtree', sans-serif" }}
+              onMouseOver={e => e.currentTarget.style.background='#F5F5F5'}
+              onMouseOut={e => e.currentTarget.style.background='transparent'}
+            >
+              ⚙️ Settings
+            </button>
+            <button 
+              onClick={() => { logout?.(); navigate('/login') }}
+              style={{ width: '100%', padding: '10px 12px', fontSize: 13, color: '#EF4444', background: 'transparent', border: 'none', borderRadius: 8, cursor: 'pointer', textAlign: 'left', fontFamily: "'Figtree', sans-serif" }}
+              onMouseOver={e => e.currentTarget.style.background='#FEF2F2'}
+              onMouseOut={e => e.currentTarget.style.background='transparent'}
+            >
+              🚪 Log out
+            </button>
+          </div>
         </div>
       </div>
     </header>

@@ -475,7 +475,7 @@ export default function RestaurantCalendar() {
           </div>
 
           {/* RIGHT COLUMN — Timeline grid */}
-          <div style={{ flex: 1, minWidth: Math.max(timeRange.slots.length * 120, 800), position: 'relative' }}>
+          <div style={{ flex: 1, minWidth: Math.max(timeRange.slots.length * 120, 800), position: 'relative', paddingRight: 80 }}>
 
             {/* Time header (sticky) */}
             <div style={{ height: 40, background: T.white, borderBottom: '1px solid #E5E7EB', position: 'sticky', top: 0, zIndex: 20, display: 'flex' }}>

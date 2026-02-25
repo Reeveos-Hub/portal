@@ -1,4 +1,7 @@
 import { useState, useRef, useEffect } from "react";
+import { useBusiness } from "../contexts/BusinessContext";
+import { useAuth } from "../contexts/AuthContext";
+import api from "../utils/api";
 
 const API_BASE = import.meta.env.VITE_API_URL || "https://api.rezvo.co.uk";
 const ANTHROPIC_API_KEY = import.meta.env.VITE_ANTHROPIC_API_KEY;
@@ -91,6 +94,45 @@ const SUGGESTED_QUESTIONS = [
 ];
 
 export default function RezvoSupportBot() {
+  const { business } = useBusiness()
+  const { user } = useAuth()
+  const bid = business?.id ?? business?._id
+  const [restaurantContext, setRestaurantContext] = useState('')
+
+  // Fetch live restaurant data for bot context
+  useEffect(() => {
+    if (!bid) return
+    const today = new Date().toISOString().slice(0, 10)
+    api.get(`/calendar/business/${bid}/restaurant?date=${today}&view=day`)
+      .then(d => {
+        const bookings = d.bookings || []
+        const tables = d.tables || []
+        const covers = bookings.reduce((s, b) => s + (b.partySize || 0), 0)
+        const confirmed = bookings.filter(b => b.status === 'confirmed').length
+        const pending = bookings.filter(b => b.status === 'pending').length
+        const seated = bookings.filter(b => b.status === 'seated').length
+        const lunch = bookings.filter(b => { const [h] = (b.time || '0').split(':').map(Number); return h < 15 })
+        const dinner = bookings.filter(b => { const [h] = (b.time || '0').split(':').map(Number); return h >= 17 })
+        
+        setRestaurantContext(`
+LIVE RESTAURANT DATA (${today}):
+- Business: ${business?.name || 'Restaurant'}
+- Owner/Staff: ${user?.name || 'Manager'}
+- Total bookings today: ${bookings.length}
+- Total covers today: ${covers}
+- Tables: ${tables.length} (capacity: ${tables.reduce((s, t) => s + (t.capacity || 0), 0)})
+- Confirmed: ${confirmed}, Pending: ${pending}, Seated: ${seated}
+- Lunch bookings: ${lunch.length} (${lunch.reduce((s, b) => s + (b.partySize || 0), 0)} covers)
+- Dinner bookings: ${dinner.length} (${dinner.reduce((s, b) => s + (b.partySize || 0), 0)} covers)
+- Upcoming bookings: ${bookings.filter(b => b.status === 'confirmed').map(b => `${b.customerName} (${b.partySize}p) at ${b.time} ${b.tableName}`).join(', ')}
+- Table zones: ${[...new Set(tables.map(t => t.zone))].join(', ')}
+
+Use this data to answer questions about today's bookings, covers, availability, etc. Be specific with numbers.`)
+      })
+      .catch(() => {})
+  }, [bid, business?.name, user?.name])
+
+  const dynamicSystemPrompt = REZVO_KNOWLEDGE + restaurantContext
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
@@ -214,7 +256,7 @@ export default function RezvoSupportBot() {
         body: JSON.stringify({
           model: "claude-haiku-4-5-20251001",
           max_tokens: 1000,
-          system: REZVO_KNOWLEDGE,
+          system: dynamicSystemPrompt,
           messages: apiMessages,
         }),
       });
