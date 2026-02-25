@@ -6,6 +6,7 @@ import RezvoLoader from "../../components/shared/RezvoLoader"
 
 import { useState, useEffect, useRef } from 'react'
 import { useSearchParams } from 'react-router-dom'
+import { Search, CalendarDays, ChevronDown, ChevronRight, RefreshCw, Download, X, Check } from 'lucide-react'
 import { useBusiness } from '../../contexts/BusinessContext'
 import api from '../../utils/api'
 
@@ -19,10 +20,10 @@ const STATUS_CONFIG = {
 }
 
 const PAYMENT_CONFIG = {
-  paid: { label: 'Paid', icon: 'fa-check', bg: 'bg-green-50', text: 'text-green-700', border: 'border-green-200' },
-  unpaid: { label: 'Unpaid', icon: 'fa-circle-exclamation', bg: 'bg-amber-50', text: 'text-amber-700', border: 'border-amber-200' },
-  deposit: { label: 'Deposit Pd', icon: 'fa-circle-half-stroke', bg: 'bg-purple-50', text: 'text-purple-700', border: 'border-purple-200' },
-  refunded: { label: 'Refunded', icon: 'fa-rotate-left', bg: 'bg-gray-100', text: 'text-gray-600', border: 'border-gray-200' },
+  paid: { label: 'Paid', icon: 'check', bg: 'bg-green-50', text: 'text-green-700', border: 'border-green-200' },
+  unpaid: { label: 'Unpaid', icon: 'alert', bg: 'bg-amber-50', text: 'text-amber-700', border: 'border-amber-200' },
+  deposit: { label: 'Deposit Pd', icon: 'half', bg: 'bg-purple-50', text: 'text-purple-700', border: 'border-purple-200' },
+  refunded: { label: 'Refunded', icon: 'undo', bg: 'bg-gray-100', text: 'text-gray-600', border: 'border-gray-200' },
 }
 
 const AVATAR_COLORS = [
@@ -105,16 +106,18 @@ const Bookings = () => {
   const toggleSelectAll = () => { if (selected.length === displayBookings.length) setSelected([]); else setSelected(displayBookings.map(b => b.id)) }
 
   const demoBookings = [
-    { id: 'd1', reference: '#BK-2938', customerName: 'Brenda Massey', service: 'Blow Dry', staff: 'Sarah Jenkins', date: 'Wed, 25 Oct', time: '09:00 - 09:45', status: 'confirmed', payment: 'unpaid', price: '£45.00' },
-    { id: 'd2', reference: '#BK-2940', customerName: 'Craig Mango', service: 'Mens Cut', staff: 'Mike Ross', date: 'Wed, 25 Oct', time: '11:00 - 11:30', status: 'checked_in', payment: 'paid', price: '£32.00' },
-    { id: 'd3', reference: '#BK-2942', customerName: 'James Herwitz', service: 'Balinese Massage', staff: 'Tom Walker', date: 'Wed, 25 Oct', time: '09:30 - 10:45', status: 'pending', payment: 'deposit', price: '£85.00' },
-    { id: 'd4', reference: '#BK-2944', customerName: 'Jessica Pearson', service: 'Full Colour', staff: 'Sarah Jenkins', date: 'Thu, 26 Oct', time: '10:00 - 12:00', status: 'confirmed', payment: 'paid', price: '£120.00' },
-    { id: 'd5', reference: '#BK-2946', customerName: 'Rachel Zane', service: 'Balayage', staff: 'Sarah Jenkins', date: 'Thu, 26 Oct', time: '14:00 - 17:00', status: 'confirmed', payment: 'deposit', price: '£180.00' },
-    { id: 'd6', reference: '#BK-2948', customerName: 'Louis Litt', service: 'Gents Cut', staff: 'Mike Ross', date: 'Fri, 27 Oct', time: '09:00 - 09:30', status: 'cancelled', payment: 'refunded', price: '£25.00' },
+    { id: 'd1', reference: '#RZ-2938', customerName: 'Priya King', service: 'Table for 6', staff: 'Window', date: 'Wed, 25 Feb', time: '12:45', status: 'confirmed', payment: 'deposit', price: '£25.00' },
+    { id: 'd2', reference: '#RZ-2940', customerName: 'Yuki Johnson', service: 'Table for 2', staff: 'Patio', date: 'Wed, 25 Feb', time: '12:45', status: 'checked_in', payment: 'unpaid', price: '—' },
+    { id: 'd3', reference: '#RZ-2942', customerName: 'Grace King', service: 'Table for 2', staff: 'Main', date: 'Wed, 25 Feb', time: '13:45', status: 'pending', payment: 'unpaid', price: '—' },
+    { id: 'd4', reference: '#RZ-2944', customerName: 'Florence Wright', service: 'Table for 4', staff: 'Main', date: 'Wed, 25 Feb', time: '13:45', status: 'confirmed', payment: 'paid', price: '£120.00' },
+    { id: 'd5', reference: '#RZ-2946', customerName: 'Freddie Davies', service: 'Table for 4 · VIP', staff: 'Bar', date: 'Wed, 25 Feb', time: '14:00', status: 'confirmed', payment: 'deposit', price: '£50.00' },
+    { id: 'd6', reference: '#RZ-2948', customerName: 'Olivia Walker', service: 'Table for 8', staff: 'Private', date: 'Thu, 26 Feb', time: '19:00', status: 'confirmed', payment: 'paid', price: '£240.00' },
+    { id: 'd7', reference: '#RZ-2950', customerName: 'James Parker', service: 'Table for 2', staff: 'Window', date: 'Thu, 26 Feb', time: '20:00', status: 'cancelled', payment: 'refunded', price: '£25.00' },
+    { id: 'd8', reference: '#RZ-2952', customerName: 'Freddie White', service: 'Table for 2', staff: 'Main', date: 'Fri, 27 Feb', time: '17:00', status: 'confirmed', payment: 'unpaid', price: '—' },
   ]
 
   const displayBookings = (bookings.length > 0 || !isDemo) ? bookings : demoBookings
-  const staffColors = { 'Sarah Jenkins': 'bg-green-500', 'Mike Ross': 'bg-blue-500', 'Tom Walker': 'bg-gray-400' }
+  const staffColors = { 'Window': 'bg-emerald-500', 'Main': 'bg-blue-500', 'Bar': 'bg-amber-500', 'Patio': 'bg-green-500', 'Private': 'bg-purple-500' }
 
   return (
     <div className="-m-6 lg:-m-8 flex flex-col h-[calc(100vh-4rem)]">
@@ -122,28 +125,35 @@ const Bookings = () => {
       <div className="px-6 py-4 flex flex-col md:flex-row md:items-center md:justify-between gap-4 shrink-0 bg-white border-b border-border">
         <div className="flex flex-col sm:flex-row gap-3 flex-1">
           <div className="relative flex-1 max-w-md">
-            <i className="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
             <input type="text" placeholder="Search by client, booking ref, or email..." value={search} onChange={e => setSearch(e.target.value)}
               className="w-full pl-10 pr-4 py-2 bg-white border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all shadow-sm" />
           </div>
           <div className="flex gap-2 overflow-x-auto pb-1 sm:pb-0">
             <button className="flex items-center gap-2 px-3 py-2 bg-white border border-border rounded-lg text-sm font-medium text-primary hover:border-primary/50 transition-colors whitespace-nowrap shadow-sm">
-              <i className="fa-regular fa-calendar text-gray-400" /><span>This Week</span><i className="fa-solid fa-chevron-down text-xs text-gray-400 ml-1" />
+              <CalendarDays className="w-4 h-4 text-gray-400" /><span>This Week</span><ChevronDown className="w-3 h-3 text-gray-400 ml-1" />
             </button>
             <div className="relative">
-              <select value={status} onChange={e => setStatus(e.target.value)}
-                className="appearance-none px-3 py-2 pr-8 bg-white border border-border rounded-lg text-sm font-medium text-primary hover:border-primary/50 transition-colors whitespace-nowrap shadow-sm cursor-pointer">
-                <option value="all">All Status</option>
-                {Object.entries(STATUS_CONFIG).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}
-              </select>
-              <i className="fa-solid fa-chevron-down text-xs text-gray-400 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+              <button onClick={() => document.getElementById('status-drop').classList.toggle('hidden')}
+                className="flex items-center gap-2 px-3 py-2 bg-white border border-border rounded-lg text-sm font-medium text-primary hover:border-primary/50 transition-colors whitespace-nowrap shadow-sm cursor-pointer">
+                <span>{status === 'all' ? 'All Status' : (STATUS_CONFIG[status]?.label || status)}</span>
+                <ChevronDown className="w-3 h-3 text-gray-400" />
+              </button>
+              <div id="status-drop" className="hidden absolute top-full left-0 mt-1 bg-white border border-border rounded-lg shadow-xl z-50 min-w-[160px] py-1" style={{ fontFamily: "'Figtree', sans-serif" }}>
+                {[{ key: 'all', label: 'All Status' }, ...Object.entries(STATUS_CONFIG).map(([k, v]) => ({ key: k, label: v.label }))].map(opt => (
+                  <button key={opt.key} onClick={() => { setStatus(opt.key); document.getElementById('status-drop').classList.add('hidden') }}
+                    className={`w-full text-left px-3 py-2 text-sm hover:bg-gray-50 transition-colors ${status === opt.key ? 'font-bold text-primary bg-primary/5' : 'text-gray-700'}`}>
+                    {opt.label}
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <button onClick={fetchBookings} className="p-2 text-gray-400 hover:text-primary hover:bg-white rounded-lg transition-colors" title="Refresh"><i className="fa-solid fa-rotate-right" /></button>
+          <button onClick={fetchBookings} className="p-2 text-gray-400 hover:text-primary hover:bg-white rounded-lg transition-colors" title="Refresh"><RefreshCw className="w-4 h-4" /></button>
           <button className="flex items-center gap-2 px-3 py-2 bg-white border border-border rounded-lg text-sm font-bold text-gray-500 hover:text-primary transition-colors shadow-sm">
-            <i className="fa-solid fa-download" /><span className="hidden sm:inline">Export</span>
+            <Download className="w-4 h-4" /><span className="hidden sm:inline">Export</span>
           </button>
         </div>
       </div>
@@ -162,7 +172,7 @@ const Bookings = () => {
           <RezvoLoader message="Loading bookings..." />
         ) : displayBookings.length === 0 ? (
           <div className="bg-white border border-border rounded-xl shadow-sm p-12 text-center">
-            <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4"><i className="fa-regular fa-calendar text-gray-400 text-2xl" /></div>
+            <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4"><CalendarDays className="w-8 h-8 text-gray-400" /></div>
             <h3 className="font-heading font-bold text-lg text-primary mb-2">No bookings found</h3>
             <p className="text-sm text-gray-500">Try adjusting your filters or search terms.</p>
           </div>
@@ -173,7 +183,7 @@ const Bookings = () => {
                 <thead>
                   <tr className="bg-gray-50 border-b border-border text-xs uppercase tracking-wider text-gray-500 font-bold">
                     <th className="p-4 w-12 text-center"><input type="checkbox" checked={selected.length === displayBookings.length && displayBookings.length > 0} onChange={toggleSelectAll} className="w-4 h-4 text-primary rounded cursor-pointer" /></th>
-                    <th className="p-4">Client / Ref</th><th className="p-4">Service & Staff</th><th className="p-4">Date & Time</th>
+                    <th className="p-4">Client / Ref</th><th className="p-4">Table & Zone</th><th className="p-4">Date & Time</th>
                     <th className="p-4">Status</th><th className="p-4">Payment</th><th className="p-4 text-right">Price</th>
                   </tr>
                 </thead>
@@ -191,7 +201,7 @@ const Bookings = () => {
                         <td className="p-4"><div className="font-medium text-primary">{b.service}</div>{b.staff && <div className="text-xs text-gray-400 flex items-center gap-1"><div className={`w-2 h-2 rounded-full ${staffColors[b.staff] || 'bg-gray-400'}`} />{b.staff}</div>}</td>
                         <td className="p-4"><div className="font-medium text-primary">{b.date}</div><div className="text-xs text-gray-400">{b.time}</div></td>
                         <td className="p-4"><span className={`inline-flex items-center px-2 py-1 rounded text-xs font-bold ${sc.bg} ${sc.text} border ${sc.border}`}>{sc.label}</span></td>
-                        <td className="p-4"><span className={`inline-flex items-center gap-1.5 px-2 py-1 rounded text-xs font-bold ${pc.bg} ${pc.text} border ${pc.border}`}>{pc.icon && <i className={`fa-solid ${pc.icon} text-[10px]`} />}{pc.label}</span></td>
+                        <td className="p-4"><span className={`inline-flex items-center gap-1.5 px-2 py-1 rounded text-xs font-bold ${pc.bg} ${pc.text} border ${pc.border}`}>{pc.label}</span></td>
                         <td className="p-4 text-right font-bold text-primary">{b.price || '—'}</td>
                       </tr>
                     )
@@ -222,7 +232,7 @@ const Bookings = () => {
                 {(() => { const sc = STATUS_CONFIG[detail.status] || STATUS_CONFIG.confirmed; return <span className={`px-2 py-1 rounded ${sc.bg} ${sc.text} text-xs font-bold border ${sc.border}`}>{sc.label?.toUpperCase()}</span> })()}
                 <span className="text-xs text-gray-400 font-mono">{detail.reference}</span>
               </div>
-              <button className="w-8 h-8 rounded hover:bg-gray-200 flex items-center justify-center text-gray-400" onClick={closeDetail}><i className="fa-solid fa-xmark" /></button>
+              <button className="w-8 h-8 rounded hover:bg-gray-200 flex items-center justify-center text-gray-400" onClick={closeDetail}><X className="w-4 h-4" /></button>
             </div>
             {detailLoading ? (
               <RezvoLoader message="Loading..." size="sm" />
@@ -237,10 +247,12 @@ const Bookings = () => {
                     </div>
                   </div>
                   <div className="grid grid-cols-4 gap-2">
-                    {[{icon:'fa-comment',label:'Message',color:'text-primary',action:null},{icon:'fa-ban',label:'No-Show',color:'text-red-500',action:'no_show'},{icon:'fa-calendar-xmark',label:'Cancel',color:'text-gray-500',action:'cancelled'},{icon:'fa-clock-rotate-left',label:'History',color:'text-gray-500',action:null}].map(a => (
+                    {[{icon:'MessageSquare',label:'Message',color:'text-primary',action:null},{icon:'UserX',label:'No-Show',color:'text-red-500',action:'no_show'},{icon:'CalendarX',label:'Cancel',color:'text-gray-500',action:'cancelled'},{icon:'History',label:'History',color:'text-gray-500',action:null}].map(a => (
                       <button key={a.label} onClick={() => a.action && updateStatus(a.action)} disabled={updating}
                         className="flex flex-col items-center justify-center p-3 rounded-lg bg-gray-50 border border-border hover:bg-gray-100 hover:border-primary/30 transition-all group">
-                        <i className={`fa-solid ${a.icon} ${a.color} mb-1 group-hover:scale-110 transition-transform`} />
+                        <span className={`${a.color} mb-1 group-hover:scale-110 transition-transform text-sm`}>
+                          {a.icon === 'MessageSquare' ? '💬' : a.icon === 'UserX' ? '🚫' : a.icon === 'CalendarX' ? '✕' : '🕐'}
+                        </span>
                         <span className="text-[10px] font-bold text-gray-500">{a.label}</span>
                       </button>
                     ))}
@@ -255,7 +267,7 @@ const Bookings = () => {
                     <div className="bg-white border border-border rounded-lg overflow-hidden">
                       <div className="p-4 border-b border-border flex justify-between items-start bg-gray-50/50">
                         <div className="flex items-start gap-3">
-                          <div className="w-10 h-10 rounded bg-blue-100 flex items-center justify-center text-blue-600 shrink-0"><i className="fa-solid fa-scissors" /></div>
+                          <div className="w-10 h-10 rounded bg-emerald-100 flex items-center justify-center text-emerald-600 shrink-0"><span className="text-base">🍽️</span></div>
                           <div><p className="text-sm font-bold text-primary">{detail.service?.name || detail.service}</p><p className="text-xs text-gray-500 mt-0.5">{detail.service?.duration || ''} {detail.staff && `with ${detail.staff}`}</p></div>
                         </div>
                       </div>
@@ -265,9 +277,9 @@ const Bookings = () => {
                 </div>
                 <div className="p-4 border-t border-border bg-gray-50 flex gap-3 shrink-0">
                   <button className="flex-1 bg-white border border-border text-primary font-bold py-2.5 rounded-lg hover:bg-gray-100 transition-colors text-sm">Reschedule</button>
-                  {detail.status === 'confirmed' && <button onClick={() => updateStatus('checked_in')} disabled={updating} className="flex-1 bg-primary text-white font-bold py-2.5 rounded-lg hover:bg-primary-hover transition-colors shadow-lg flex items-center justify-center gap-2 text-sm"><span>Check In</span><i className="fa-solid fa-arrow-right" /></button>}
-                  {detail.status === 'checked_in' && <button onClick={() => updateStatus('completed')} disabled={updating} className="flex-1 bg-primary text-white font-bold py-2.5 rounded-lg hover:bg-primary-hover transition-colors shadow-lg flex items-center justify-center gap-2 text-sm"><span>Checkout</span><i className="fa-solid fa-arrow-right" /></button>}
-                  {detail.status === 'pending' && <button onClick={() => updateStatus('confirmed')} disabled={updating} className="flex-1 bg-primary text-white font-bold py-2.5 rounded-lg hover:bg-primary-hover transition-colors shadow-lg flex items-center justify-center gap-2 text-sm"><span>Confirm</span><i className="fa-solid fa-check" /></button>}
+                  {detail.status === 'confirmed' && <button onClick={() => updateStatus('checked_in')} disabled={updating} className="flex-1 bg-primary text-white font-bold py-2.5 rounded-lg hover:bg-primary-hover transition-colors shadow-lg flex items-center justify-center gap-2 text-sm"><span>Check In</span><ChevronRight className="w-4 h-4" /></button>}
+                  {detail.status === 'checked_in' && <button onClick={() => updateStatus('completed')} disabled={updating} className="flex-1 bg-primary text-white font-bold py-2.5 rounded-lg hover:bg-primary-hover transition-colors shadow-lg flex items-center justify-center gap-2 text-sm"><span>Checkout</span><ChevronRight className="w-4 h-4" /></button>}
+                  {detail.status === 'pending' && <button onClick={() => updateStatus('confirmed')} disabled={updating} className="flex-1 bg-primary text-white font-bold py-2.5 rounded-lg hover:bg-primary-hover transition-colors shadow-lg flex items-center justify-center gap-2 text-sm"><span>Confirm</span><Check className="w-4 h-4" /></button>}
                 </div>
               </>
             )}

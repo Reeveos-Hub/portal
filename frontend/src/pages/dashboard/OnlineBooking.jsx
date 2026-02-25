@@ -5,6 +5,7 @@ import RezvoLoader from "../../components/shared/RezvoLoader"
 
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { Camera, Image, Lock, Phone, Mail, MessageCircle, X, Store } from 'lucide-react'
 import { useBusiness } from '../../contexts/BusinessContext'
 import api, { API_BASE_URL } from '../../utils/api'
 import { getDomainConfig } from '../../utils/domain'
@@ -216,7 +217,7 @@ const OnlineBooking = () => {
                   {b.logo ? (
                     <img src={toImageUrl(b.logo)} alt="" className="w-full h-full object-cover" />
                   ) : (
-                    <i className="fa-solid fa-camera text-primary/50 text-2xl" />
+                    <Camera className="w-6 h-6 text-primary/50" />
                   )}
                 </div>
                 <span className="text-sm text-gray-500">Click or drag to upload</span>
@@ -229,7 +230,7 @@ const OnlineBooking = () => {
                 {b.coverPhoto ? (
                   <img src={toImageUrl(b.coverPhoto)} alt="" className="w-full h-full object-cover" />
                 ) : (
-                  <i className="fa-solid fa-image text-primary/50 text-3xl" />
+                  <Image className="w-8 h-8 text-primary/50" />
                 )}
                 <input type="file" accept=".jpg,.jpeg,.png,.webp" className="hidden" onChange={handleCoverUpload} />
               </label>
@@ -242,7 +243,7 @@ const OnlineBooking = () => {
                 onBlur={handleBlur}
                 rows={3}
                 placeholder="Tell customers about your business..."
-                className="w-full px-3 py-2.5 border border-border rounded-lg text-sm font-medium text-primary focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none bg-white"
+                className="w-full px-3 py-2.5 pr-10 border border-border rounded-lg text-sm font-medium text-primary focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none bg-white appearance-none cursor-pointer"
               />
             </div>
             <p className="text-xs text-muted">{(b.description || '').length}/500</p>
@@ -275,7 +276,7 @@ const OnlineBooking = () => {
             <div>
               <label className="block text-sm font-bold text-primary mb-1">Advance booking window</label>
               <select
-                className="w-full px-3 py-2.5 border border-border rounded-lg text-sm font-medium text-primary focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none bg-white"
+                className="w-full px-3 py-2.5 pr-10 border border-border rounded-lg text-sm font-medium text-primary focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none bg-white appearance-none cursor-pointer"
                 value={s.advanceBookingDays ?? 60}
                 onChange={(e) => { updateDraft('settings', 'advanceBookingDays', +e.target.value); handleBlur() }}
               >
@@ -287,7 +288,7 @@ const OnlineBooking = () => {
             <div>
               <label className="block text-sm font-bold text-primary mb-1">Booking intervals</label>
               <select
-                className="w-full px-3 py-2.5 border border-border rounded-lg text-sm font-medium text-primary focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none bg-white"
+                className="w-full px-3 py-2.5 pr-10 border border-border rounded-lg text-sm font-medium text-primary focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none bg-white appearance-none cursor-pointer"
                 value={s.bookingIntervalMinutes ?? 30}
                 onChange={(e) => { updateDraft('settings', 'bookingIntervalMinutes', +e.target.value); handleBlur() }}
               >
@@ -307,7 +308,7 @@ const OnlineBooking = () => {
             <div>
               <label className="block text-sm font-bold text-primary mb-1">Buffer between bookings</label>
               <select
-                className="w-full px-3 py-2.5 border border-border rounded-lg text-sm font-medium text-primary focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none bg-white"
+                className="w-full px-3 py-2.5 pr-10 border border-border rounded-lg text-sm font-medium text-primary focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none bg-white appearance-none cursor-pointer"
                 value={s.bufferMinutes ?? 15}
                 onChange={(e) => { updateDraft('settings', 'bufferMinutes', +e.target.value); handleBlur() }}
               >
@@ -319,7 +320,7 @@ const OnlineBooking = () => {
             <div>
               <label className="block text-sm font-bold text-primary mb-1">Cancellation notice</label>
               <select
-                className="w-full px-3 py-2.5 border border-border rounded-lg text-sm font-medium text-primary focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none bg-white"
+                className="w-full px-3 py-2.5 pr-10 border border-border rounded-lg text-sm font-medium text-primary focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none bg-white appearance-none cursor-pointer"
                 value={s.cancellationNoticeHours ?? 24}
                 onChange={(e) => { updateDraft('settings', 'cancellationNoticeHours', +e.target.value); handleBlur() }}
               >
@@ -341,7 +342,7 @@ const OnlineBooking = () => {
                 onClick={() => setUpgradeModal('growth')}
                 className="text-sm text-primary hover:underline flex items-center gap-1"
               >
-                <i className="fa-solid fa-lock text-xs" /> Upgrade
+                <Lock className="w-3 h-3" /> Upgrade
               </button>
             )}
           </div>
@@ -363,7 +364,7 @@ const OnlineBooking = () => {
                       type="number"
                       step="0.01"
                       min="0"
-                      className="w-full px-3 py-2.5 border border-border rounded-lg text-sm font-medium text-primary focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none bg-white"
+                      className="w-full px-3 py-2.5 pr-10 border border-border rounded-lg text-sm font-medium text-primary focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none bg-white appearance-none cursor-pointer"
                       value={(s.depositAmount || 0) / 100}
                       onChange={(e) => updateDraft('settings', 'depositAmount', Math.round(parseFloat(e.target.value || 0) * 100))}
                       onBlur={handleBlur}
@@ -409,33 +410,33 @@ const OnlineBooking = () => {
                 rel="noreferrer"
                 className="px-4 py-2 rounded-lg bg-[#25D366] text-white text-sm hover:opacity-90"
               >
-                <i className="fa-brands fa-whatsapp mr-2" /> WhatsApp
+                <span className="mr-2">💬</span> WhatsApp
               </a>
               <a
                 href={`mailto:?subject=Book with us&body=${encodeURIComponent(bookingUrl)}`}
                 className="px-4 py-2 rounded-lg bg-primary text-white text-sm hover:opacity-90"
               >
-                <i className="fa-solid fa-envelope mr-2" /> Email
+                <Mail className="w-4 h-4 mr-2" /> Email
               </a>
               <a
                 href={`sms:?body=${encodeURIComponent(bookingUrl)}`}
                 className="px-4 py-2 rounded-lg bg-gray-600 text-white text-sm hover:opacity-90"
               >
-                <i className="fa-solid fa-message mr-2" /> SMS
+                <MessageCircle className="w-4 h-4 mr-2" /> SMS
               </a>
               <button
                 type="button"
                 onClick={() => { handleCopyUrl(); setToast('Link copied!') }}
                 className="px-4 py-2 rounded-lg bg-[#E4405F] text-white text-sm hover:opacity-90"
               >
-                <i className="fa-brands fa-instagram mr-2" /> Instagram
+                <span className="mr-2">📸</span> Instagram
               </button>
               <button
                 type="button"
                 onClick={() => { handleCopyUrl(); setToast('Link copied!') }}
                 className="px-4 py-2 rounded-lg bg-[#1877F2] text-white text-sm hover:opacity-90"
               >
-                <i className="fa-brands fa-facebook mr-2" /> Facebook
+                <span className="mr-2">👤</span> Facebook
               </button>
             </div>
           </div>
@@ -451,7 +452,7 @@ const OnlineBooking = () => {
                 onClick={() => setUpgradeModal('scale')}
                 className="text-sm text-primary hover:underline flex items-center gap-1"
               >
-                <i className="fa-solid fa-lock text-xs" /> Upgrade
+                <Lock className="w-3 h-3" /> Upgrade
               </button>
             )}
           </div>
@@ -513,7 +514,7 @@ const OnlineBooking = () => {
         onClick={() => setShowPreview(true)}
         className="lg:hidden fixed bottom-6 right-6 w-14 h-14 rounded-full bg-primary text-white shadow-lg flex items-center justify-center z-40"
       >
-        <i className="fa-solid fa-mobile-screen text-xl" />
+        <Phone className="w-5 h-5" />
       </button>
 
       {showPreview && (
@@ -521,7 +522,7 @@ const OnlineBooking = () => {
           <div className="flex justify-between items-center p-4 border-b">
             <span className="font-semibold">Preview</span>
             <button onClick={() => setShowPreview(false)} className="p-2">
-              <i className="fa-solid fa-times text-xl" />
+              <X className="w-5 h-5" />
             </button>
           </div>
           <div className="flex-1 overflow-auto p-4">
@@ -619,7 +620,7 @@ const BookingPreview = ({ business, services, accentColour }) => {
           <img src={business.logo} alt="" className="w-14 h-14 rounded-xl border-2 border-white shadow object-cover bg-white shrink-0" />
         ) : (
           <div className="w-14 h-14 rounded-xl border-2 border-white shadow bg-primary flex items-center justify-center shrink-0">
-            <i className="fa-solid fa-store text-white text-xl" />
+            <Store className="w-5 h-5 text-white" />
           </div>
         )}
         <div className="flex-1 min-w-0 pb-1">

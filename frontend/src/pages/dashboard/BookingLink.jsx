@@ -4,6 +4,7 @@
  */
 
 import { useState } from 'react'
+import { Link2, Copy, Check, QrCode, Eye, MousePointer, CalendarCheck, TrendingUp, TrendingDown, Globe, Code, Palette, ExternalLink } from 'lucide-react'
 import { useBusiness } from '../../contexts/BusinessContext'
 
 const BookingLink = () => {
@@ -18,16 +19,16 @@ const BookingLink = () => {
   }
 
   const channels = [
-    { name: 'Reserve with Google', icon: 'fa-google', brand: 'fa-brands', desc: 'Allow clients to book directly from Google Search and Maps. Increase visibility by up to 30%.', connected: false, color: 'bg-red-50 text-red-600' },
-    { name: 'Instagram Book Button', icon: 'fa-instagram', brand: 'fa-brands', desc: 'Add a "Book Now" button to your Instagram profile. Syncs directly with your calendar.', connected: true, color: 'bg-pink-50 text-pink-600' },
-    { name: 'Facebook Page', icon: 'fa-facebook-f', brand: 'fa-brands', desc: 'Turn your Facebook page followers into bookings with an integrated action button.', connected: false, color: 'bg-blue-50 text-blue-700' },
-    { name: 'WhatsApp Business', icon: 'fa-whatsapp', brand: 'fa-brands', desc: 'Enable customers to book via WhatsApp with a quick-reply booking link.', connected: false, color: 'bg-green-50 text-green-600' },
+    { name: 'Reserve with Google', emoji: '🔍', desc: 'Allow clients to book directly from Google Search and Maps. Increase visibility by up to 30%.', connected: false, color: 'bg-red-50 text-red-600' },
+    { name: 'Instagram Book Button', emoji: '📸', desc: 'Add a "Book Now" button to your Instagram profile. Syncs directly with your calendar.', connected: true, color: 'bg-pink-50 text-pink-600' },
+    { name: 'Facebook Page', emoji: '👤', desc: 'Turn your Facebook page followers into bookings with an integrated action button.', connected: false, color: 'bg-blue-50 text-blue-700' },
+    { name: 'WhatsApp Business', emoji: '💬', desc: 'Enable customers to book via WhatsApp with a quick-reply booking link.', connected: false, color: 'bg-green-50 text-green-600' },
   ]
 
   const stats = [
-    { label: 'Page Views', value: '1,248', trend: '12%', trendUp: true, sub: 'Last 30 days', icon: 'fa-eye' },
-    { label: 'Click Through', value: '42.5%', trend: '3.2%', trendUp: true, sub: 'Avg. session 2m 15s', icon: 'fa-mouse-pointer' },
-    { label: 'Bookings', value: '156', trend: '8%', trendUp: true, sub: 'Conversion rate 12.5%', icon: 'fa-calendar-check' },
+    { label: 'Page Views', value: '1,248', trend: '12%', trendUp: true, sub: 'Last 30 days', icon: 'eye' },
+    { label: 'Click Through', value: '42.5%', trend: '3.2%', trendUp: true, sub: 'Avg. session 2m 15s', icon: 'mouse' },
+    { label: 'Bookings', value: '156', trend: '8%', trendUp: true, sub: 'Conversion rate 12.5%', icon: 'cal' },
   ]
 
   const embedCode = `<iframe src="${bookingUrl}" width="100%" height="600" frameborder="0"></iframe>`
@@ -46,15 +47,15 @@ const BookingLink = () => {
           <p className="text-sm text-gray-500 mb-4">Share this link with clients to let them book online. It works on all devices.</p>
           <div className="flex flex-col sm:flex-row gap-3">
             <div className="flex-1 flex items-center bg-gray-50 border border-border rounded-lg px-4 py-2.5 group hover:border-primary/50 transition-colors">
-              <i className="fa-solid fa-link text-gray-400 mr-3" />
+              <Link2 className="w-4 h-4 text-gray-400 mr-3 shrink-0" />
               <a href={bookingUrl} target="_blank" rel="noopener noreferrer" className="text-sm font-medium text-primary truncate flex-1 hover:underline">{bookingUrl}</a>
             </div>
             <div className="flex gap-2">
               <button onClick={handleCopy} className="bg-primary text-white font-bold text-sm px-5 py-2.5 rounded-lg shadow-lg hover:bg-primary-hover transition-colors flex items-center gap-2">
-                <i className={`fa-solid ${copied ? 'fa-check' : 'fa-copy'}`} /> {copied ? 'Copied!' : 'Copy Link'}
+                {copied ? <><Check className="w-4 h-4" /> Copied!</> : <><Copy className="w-4 h-4" /> Copy Link</>}
               </button>
               <button className="bg-white text-primary border border-border font-bold text-sm px-4 py-2.5 rounded-lg hover:bg-gray-50 transition-colors shadow-sm">
-                <i className="fa-solid fa-qrcode" />
+                <QrCode className="w-4 h-4" />
               </button>
             </div>
           </div>
@@ -70,11 +71,11 @@ const BookingLink = () => {
                 <p className="text-xs font-bold text-gray-500 uppercase tracking-wider">{s.label}</p>
                 <h3 className="text-2xl font-heading font-bold text-primary mt-1">{s.value}</h3>
               </div>
-              <div className="p-2 bg-primary/5 rounded-lg text-primary"><i className={`fa-solid ${s.icon}`} /></div>
+              <div className="p-2 bg-primary/5 rounded-lg text-primary">{s.icon === 'eye' ? <Eye className="w-4 h-4" /> : s.icon === 'mouse' ? <MousePointer className="w-4 h-4" /> : <CalendarCheck className="w-4 h-4" />}</div>
             </div>
             <div className="flex items-center gap-2">
               <span className={`text-xs font-bold flex items-center gap-1 ${s.trendUp ? 'text-green-600' : 'text-red-500'}`}>
-                <i className={`fa-solid ${s.trendUp ? 'fa-arrow-trend-up' : 'fa-arrow-trend-down'}`} /> {s.trend}
+                {s.trendUp ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />} {s.trend}
               </span>
               <span className="text-xs text-gray-500">{s.sub}</span>
             </div>
@@ -90,11 +91,11 @@ const BookingLink = () => {
             <nav className="flex -mb-px">
               <button onClick={() => setActiveChannelTab('channels')}
                 className={`flex-1 py-4 px-4 text-sm font-bold text-center border-b-2 transition-colors ${activeChannelTab === 'channels' ? 'border-primary text-primary' : 'border-transparent text-gray-500 hover:text-primary'}`}>
-                <i className="fa-solid fa-globe mr-2" />Booking Channels
+                <Globe className="w-4 h-4 mr-2 inline" />Booking Channels
               </button>
               <button onClick={() => setActiveChannelTab('widget')}
                 className={`flex-1 py-4 px-4 text-sm font-bold text-center border-b-2 transition-colors ${activeChannelTab === 'widget' ? 'border-primary text-primary' : 'border-transparent text-gray-500 hover:text-primary'}`}>
-                <i className="fa-solid fa-code mr-2" />Widget Embed
+                <Code className="w-4 h-4 mr-2 inline" />Widget Embed
               </button>
             </nav>
           </div>
@@ -104,7 +105,7 @@ const BookingLink = () => {
               {channels.map((ch, i) => (
                 <div key={i} className="flex items-start gap-4 p-4 rounded-lg border border-border hover:border-primary/30 hover:shadow-sm transition-all">
                   <div className={`w-10 h-10 rounded-lg ${ch.color} flex items-center justify-center shrink-0`}>
-                    <i className={`${ch.brand} ${ch.icon} text-lg`} />
+                    <span className="text-lg">{ch.emoji}</span>
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
@@ -127,10 +128,10 @@ const BookingLink = () => {
               </div>
               <div className="flex gap-3">
                 <button onClick={() => navigator.clipboard.writeText(embedCode)} className="text-sm font-bold text-primary border border-border px-4 py-2 rounded-lg hover:bg-gray-50 flex items-center gap-2 shadow-sm">
-                  <i className="fa-solid fa-copy" /> Copy Code
+                  <Copy className="w-3.5 h-3.5" /> Copy Code
                 </button>
                 <button className="text-sm font-bold text-gray-500 border border-border px-4 py-2 rounded-lg hover:bg-gray-50 flex items-center gap-2">
-                  <i className="fa-solid fa-palette" /> Customise
+                  <Palette className="w-3.5 h-3.5" /> Customise
                 </button>
               </div>
             </div>
@@ -144,20 +145,20 @@ const BookingLink = () => {
             <div className="w-full h-full bg-white rounded-[1.5rem] overflow-hidden flex flex-col">
               <div className="bg-primary p-4 text-center">
                 <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-2">
-                  <i className="fa-solid fa-calendar-check text-white text-sm" />
+                  <CalendarCheck className="w-4 h-4 text-white" />
                 </div>
                 <h4 className="text-white font-bold text-sm">{business?.name || 'Your Business'}</h4>
-                <p className="text-white/70 text-[10px] mt-0.5">Book your appointment</p>
+                <p className="text-white/70 text-[10px] mt-0.5">Book a table</p>
               </div>
               <div className="flex-1 p-3 space-y-2">
                 <div className="bg-gray-50 rounded-lg p-2 text-center">
-                  <p className="text-[10px] font-bold text-primary">Select Service</p>
+                  <p className="text-[10px] font-bold text-primary">Party Size</p>
                 </div>
                 <div className="bg-gray-50 rounded-lg p-2 text-center">
                   <p className="text-[10px] font-bold text-primary">Pick a Date</p>
                 </div>
                 <div className="bg-gray-50 rounded-lg p-2 text-center">
-                  <p className="text-[10px] font-bold text-primary">Choose Time</p>
+                  <p className="text-[10px] font-bold text-primary">Select Time Slot</p>
                 </div>
                 <div className="mt-auto">
                   <div className="bg-primary rounded-lg py-2 text-center">
@@ -168,7 +169,7 @@ const BookingLink = () => {
             </div>
           </div>
           <button className="mt-4 text-sm font-bold text-primary hover:underline flex items-center gap-2">
-            <i className="fa-solid fa-arrow-up-right-from-square text-xs" /> Open Full Preview
+            <ExternalLink className="w-3.5 h-3.5" /> Open Full Preview
           </button>
         </div>
       </div>
