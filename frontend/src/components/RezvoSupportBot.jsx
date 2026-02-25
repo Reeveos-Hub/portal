@@ -149,6 +149,8 @@ Use this data to answer questions about today's bookings, covers, availability, 
   const [walkinForm, setWalkinForm] = useState({ name: '', party: 2, table: '', notes: '' });
   const [bookingTableDrop, setBookingTableDrop] = useState(false);
   const [walkinTableDrop, setWalkinTableDrop] = useState(false);
+  const [bookingDateDrop, setBookingDateDrop] = useState(false);
+  const [bookingTimeDrop, setBookingTimeDrop] = useState(false);
   const [saving, setSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(null);
 
@@ -321,31 +323,26 @@ Use this data to answer questions about today's bookings, covers, availability, 
         content: m.content,
       }));
 
-      const response = await fetch("https://api.anthropic.com/v1/messages", {
+      // Route through backend API (handles Anthropic key + CORS)
+      const API_URL = import.meta.env.VITE_API_URL || "https://api.rezvo.co.uk";
+      const response = await fetch(`${API_URL}/chatbot/chat`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "x-api-key": ANTHROPIC_API_KEY,
-          "anthropic-version": "2023-06-01",
         },
         body: JSON.stringify({
-          model: "claude-haiku-4-5-20251001",
-          max_tokens: 1000,
-          system: dynamicSystemPrompt,
           messages: apiMessages,
+          session_id: convId,
+          context: restaurantContext || undefined,
         }),
       });
 
       const data = await response.json();
-      const assistantText =
-        data.content
-          ?.filter((b) => b.type === "text")
-          .map((b) => b.text)
-          .join("\n") || "Sorry, I couldn't process that. Please try again or email support@rezvo.app";
+      const assistantText = data.reply || "Sorry, I couldn't process that. Please try again or email support@rezvo.app";
 
-      // Get token counts from API response
-      const inputTokens = data.usage?.input_tokens || 0;
-      const outputTokens = data.usage?.output_tokens || 0;
+      // Token counts not available through backend proxy
+      const inputTokens = 0;
+      const outputTokens = 0;
 
       // Check if bot escalated (mentions support email and suggests emailing)
       const isEscalation =
@@ -591,11 +588,54 @@ Use this data to answer questions about today's bookings, covers, availability, 
               <div style={{ display:'flex', gap:12 }}>
                 <div style={{ flex:1 }}>
                   <label style={{ fontSize:13, fontWeight:600, color:'#999', textTransform:'uppercase', letterSpacing:'0.08em', marginBottom:8, display:'block' }}>Date</label>
-                  <input type="date" value={bookingForm.date} onChange={e => setBookingForm({...bookingForm, date:e.target.value})} style={{ width:'100%', padding:'12px 16px', borderRadius:12, border:'1px solid #EBEBEB', fontSize:14, fontFamily:"'Figtree', sans-serif", background:'#FAFAF8', outline:'none' }} />
+                  <div style={{ position:'relative' }}>
+                    <div onClick={() => { setBookingDateDrop(!bookingDateDrop); setBookingTimeDrop(false); }} style={{ width:'100%', padding:'12px 16px', borderRadius:12, border:'1px solid #EBEBEB', fontSize:14, fontFamily:"'Figtree', sans-serif", background:'#FAFAF8', color: bookingForm.date ? '#1B4332' : '#999', cursor:'pointer', display:'flex', justifyContent:'space-between', alignItems:'center' }}>
+                      <span>{bookingForm.date ? new Date(bookingForm.date + 'T12:00').toLocaleDateString('en-GB', { weekday:'short', day:'numeric', month:'short' }) : 'Select date'}</span>
+                      <span style={{ fontSize:10, color:'#999' }}>▼</span>
+                    </div>
+                    {bookingDateDrop && (
+                      <div style={{ position:'absolute', top:'100%', left:0, right:0, marginTop:4, background:'white', border:'1px solid #EBEBEB', borderRadius:12, boxShadow:'0 8px 24px rgba(0,0,0,0.12)', zIndex:100, maxHeight:200, overflowY:'auto', padding:4 }}>
+                        {Array.from({ length: 14 }).map((_, di) => {
+                          const d = new Date(); d.setDate(d.getDate() + di);
+                          const val = d.toISOString().slice(0, 10);
+                          const label = d.toLocaleDateString('en-GB', { weekday:'short', day:'numeric', month:'short' });
+                          return (
+                            <div key={val} onClick={() => { setBookingForm({...bookingForm, date:val}); setBookingDateDrop(false); }}
+                              style={{ padding:'10px 12px', fontSize:13, fontFamily:"'Figtree', sans-serif", cursor:'pointer', borderRadius:8, background: bookingForm.date===val ? '#F0F7F4' : 'transparent', fontWeight: bookingForm.date===val ? 600 : 400, color: bookingForm.date===val ? '#1B4332' : '#374151' }}
+                              onMouseOver={e => { if (bookingForm.date!==val) e.currentTarget.style.background='#F5F5F5' }}
+                              onMouseOut={e => { if (bookingForm.date!==val) e.currentTarget.style.background='transparent' }}
+                            >{di === 0 ? `Today — ${label}` : di === 1 ? `Tomorrow — ${label}` : label}</div>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
                 </div>
                 <div style={{ flex:1 }}>
                   <label style={{ fontSize:13, fontWeight:600, color:'#999', textTransform:'uppercase', letterSpacing:'0.08em', marginBottom:8, display:'block' }}>Time</label>
-                  <input type="time" value={bookingForm.time} onChange={e => setBookingForm({...bookingForm, time:e.target.value})} style={{ width:'100%', padding:'12px 16px', borderRadius:12, border:'1px solid #EBEBEB', fontSize:14, fontFamily:"'Figtree', sans-serif", background:'#FAFAF8', outline:'none' }} />
+                  <div style={{ position:'relative' }}>
+                    <div onClick={() => { setBookingTimeDrop(!bookingTimeDrop); setBookingDateDrop(false); }} style={{ width:'100%', padding:'12px 16px', borderRadius:12, border:'1px solid #EBEBEB', fontSize:14, fontFamily:"'Figtree', sans-serif", background:'#FAFAF8', color: bookingForm.time ? '#1B4332' : '#999', cursor:'pointer', display:'flex', justifyContent:'space-between', alignItems:'center' }}>
+                      <span>{bookingForm.time || 'Select time'}</span>
+                      <span style={{ fontSize:10, color:'#999' }}>▼</span>
+                    </div>
+                    {bookingTimeDrop && (
+                      <div style={{ position:'absolute', top:'100%', left:0, right:0, marginTop:4, background:'white', border:'1px solid #EBEBEB', borderRadius:12, boxShadow:'0 8px 24px rgba(0,0,0,0.12)', zIndex:100, maxHeight:200, overflowY:'auto', padding:4 }}>
+                        {Array.from({ length: 28 }).map((_, ti) => {
+                          const h = Math.floor(ti / 2) + 11;
+                          const m = ti % 2 === 0 ? '00' : '30';
+                          const val = `${h}:${m}`;
+                          const label = `${h > 12 ? h - 12 : h}:${m} ${h >= 12 ? 'PM' : 'AM'}`;
+                          return (
+                            <div key={val} onClick={() => { setBookingForm({...bookingForm, time:val}); setBookingTimeDrop(false); }}
+                              style={{ padding:'10px 12px', fontSize:13, fontFamily:"'Figtree', sans-serif", cursor:'pointer', borderRadius:8, background: bookingForm.time===val ? '#F0F7F4' : 'transparent', fontWeight: bookingForm.time===val ? 600 : 400, color: bookingForm.time===val ? '#1B4332' : '#374151' }}
+                              onMouseOver={e => { if (bookingForm.time!==val) e.currentTarget.style.background='#F5F5F5' }}
+                              onMouseOut={e => { if (bookingForm.time!==val) e.currentTarget.style.background='transparent' }}
+                            >{label}</div>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
 

@@ -113,22 +113,22 @@ const FloorPlan = ({ embedded = false }) => {
         </div>
         )}
 
-        <div className="p-6" style={{ minHeight: 620, backgroundImage: 'radial-gradient(#D1D5DB 1px, transparent 1px)', backgroundSize: '20px 20px' }}>
-          <div className="relative" style={{ minHeight: 580, minWidth: 780 }}>
+        <div style={{ minHeight: 580, backgroundImage: 'radial-gradient(#D1D5DB 1px, transparent 1px)', backgroundSize: '20px 20px', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 40, maxWidth: 720, width: '100%' }}>
             {tables.map((table, i) => {
-              const pos = DEFAULT_POSITIONS[i] || { x: 80 + (i % 4) * 120, y: 60 + Math.floor(i / 4) * 120 }
               const current = getTableStatus(table.id)
               const statusKey = current ? current.status : 'available'
               const st = STATUS[statusKey] || STATUS.available
               const isSelected = selectedTable === table.id
               const seats = table.seats || 4
-              const size = seats <= 2 ? 70 : seats <= 4 ? 85 : seats <= 6 ? 100 : 110
+              const size = seats <= 2 ? 90 : seats <= 4 ? 100 : seats <= 6 ? 115 : 130
               const isRound = seats <= 4
 
               return (
-                <div key={table.id} onClick={() => setSelectedTable(table.id === selectedTable ? null : table.id)}
+                <div key={table.id} style={{ display: 'flex', justifyContent: 'center' }}>
+                <div onClick={() => setSelectedTable(table.id === selectedTable ? null : table.id)}
                   style={{
-                    position: 'absolute', left: pos.x, top: pos.y, width: size,
+                    position: 'relative', width: size,
                     height: isRound ? size : size * 0.75,
                     borderRadius: isRound ? '50%' : 12,
                     background: st.bg, border: `2.5px solid ${st.border}`,
@@ -136,26 +136,27 @@ const FloorPlan = ({ embedded = false }) => {
                     cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
                     transition: 'all 0.2s', transform: isSelected ? 'scale(1.08)' : 'scale(1)', zIndex: isSelected ? 10 : 1,
                   }}>
-                  <span style={{ fontSize: 11, fontWeight: 800, color: st.text }}>{table.name?.replace('Table ', 'T')}</span>
-                  <span style={{ fontSize: 9, fontWeight: 600, color: st.text, opacity: 0.7 }}>{seats} seats</span>
+                  <span style={{ fontSize: 13, fontWeight: 800, color: st.text }}>{table.name?.replace('Table ', 'T')}</span>
+                  <span style={{ fontSize: 10, fontWeight: 600, color: st.text, opacity: 0.7 }}>{seats} seats</span>
                   {current && !current._next && (
-                    <span style={{ fontSize: 8, fontWeight: 700, color: st.text, marginTop: 2 }}>{current.customerName?.split(' ')[0]}</span>
+                    <span style={{ fontSize: 9, fontWeight: 700, color: st.text, marginTop: 2 }}>{current.customerName?.split(' ')[0]}</span>
                   )}
                   {current?._next && (
-                    <span style={{ fontSize: 8, color: '#6B7280', marginTop: 2 }}>Next: {current.time}</span>
+                    <span style={{ fontSize: 9, color: '#6B7280', marginTop: 2 }}>Next: {current.time}</span>
                   )}
                   {Array.from({ length: Math.min(seats, 8) }).map((_, ci) => {
                     const angle = (ci / Math.min(seats, 8)) * Math.PI * 2 - Math.PI / 2
-                    const r = (isRound ? size : Math.max(size, size * 0.75)) / 2 + 8
+                    const r = (isRound ? size : Math.max(size, size * 0.75)) / 2 + 10
                     return (
                       <div key={ci} style={{
-                        position: 'absolute', width: 8, height: 8, borderRadius: '50%',
+                        position: 'absolute', width: 9, height: 9, borderRadius: '50%',
                         background: statusKey === 'available' ? '#D1D5DB' : st.border,
-                        left: size / 2 + Math.cos(angle) * r - 4,
-                        top: (isRound ? size : size * 0.75) / 2 + Math.sin(angle) * r - 4, opacity: 0.6,
+                        left: size / 2 + Math.cos(angle) * r - 4.5,
+                        top: (isRound ? size : size * 0.75) / 2 + Math.sin(angle) * r - 4.5, opacity: 0.6,
                       }} />
                     )
                   })}
+                </div>
                 </div>
               )
             })}

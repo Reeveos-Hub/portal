@@ -216,6 +216,7 @@ class ChatMessage(BaseModel):
 class ChatRequest(BaseModel):
     messages: List[ChatMessage]
     session_id: Optional[str] = None
+    context: Optional[str] = None  # Optional restaurant/business context
 
 
 class ChatResponse(BaseModel):
@@ -253,7 +254,7 @@ async def chat(request: ChatRequest):
                 json={
                     "model": "claude-sonnet-4-20250514",
                     "max_tokens": 1024,
-                    "system": SYSTEM_PROMPT,
+                    "system": SYSTEM_PROMPT + ("\n\n" + request.context if request.context else ""),
                     "messages": api_messages,
                 }
             )
