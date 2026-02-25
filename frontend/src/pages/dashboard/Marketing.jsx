@@ -469,8 +469,8 @@ const Marketing = () => {
         <div><h2 className="text-lg font-bold text-primary">{editId ? 'Edit' : 'New'} Campaign</h2><p className="text-xs text-gray-400">Design your email and send it</p></div>
       </div>
       <div className="flex items-center gap-2">
-        <button onClick={() => setAiOpen(true)} className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-primary to-sage text-white text-sm font-bold hover:opacity-90 transition-all shadow-sm"><I name="sparkle" size={14} /> AI Generate</button>
-        <button onClick={save} className="px-5 py-2.5 rounded-xl bg-white border border-border text-sm font-bold text-primary hover:bg-primary/5 transition-all shadow-sm">Save Draft</button>
+        <button onClick={() => setAiOpen(true)} className="flex items-center gap-2 px-4 py-2.5 rounded-full bg-gradient-to-r from-[#1B4332] to-[#2D6A4F] text-white text-xs font-bold hover:opacity-90 transition-all shadow-lg shadow-[#1B4332]/20"><I name="sparkle" size={14} /> AI Generate</button>
+        <button onClick={save} className="px-5 py-2.5 rounded-full bg-white border border-gray-200 text-xs font-bold text-gray-700 hover:bg-gray-50 transition-all shadow-sm">Save Draft</button>
       </div>
     </div>
     <div className="bg-white rounded-xl border border-border p-5 shadow-sm space-y-4">
@@ -505,7 +505,7 @@ const Marketing = () => {
           <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Send Test Email</p>
           <div className="flex gap-2">
             <input value={testEmail} onChange={e => setTestEmail(e.target.value)} placeholder="your@email.com" className="flex-1 px-3 py-2 border border-border rounded-lg text-sm outline-none focus:border-primary/30" />
-            <button onClick={() => editId && testSend(editId)} disabled={testing || !testEmail || !editId} className="px-4 py-2 bg-primary text-white rounded-lg text-sm font-bold disabled:opacity-40 hover:bg-primary-hover">{testing ? '...' : 'Send Test'}</button>
+            <button onClick={() => editId && testSend(editId)} disabled={testing || !testEmail || !editId} className="px-4 py-1.5 bg-[#1B4332] text-white rounded-full text-xs font-bold disabled:opacity-40 hover:bg-[#2D6A4F] shadow-lg shadow-[#1B4332]/20">{testing ? '...' : 'Send Test'}</button>
           </div>
           {!editId && <p className="text-[10px] text-gray-400 mt-1.5">Save first to send a test</p>}
           {testRes && <p className={`text-xs mt-2 font-semibold ${testRes.ok ? 'text-green-600' : 'text-red-500'}`}>{testRes.msg}</p>}
@@ -518,7 +518,7 @@ const Marketing = () => {
   if (creatingSeq) return <div className="space-y-6">
     <div className="flex items-center justify-between">
       <div className="flex items-center gap-3"><button onClick={() => setCreatingSeq(false)} className="p-2 hover:bg-gray-100 rounded-lg"><I name="x" size={18} className="text-gray-500" /></button><div><h2 className="text-lg font-bold text-primary">New Sequence</h2><p className="text-xs text-gray-400">Automated emails on autopilot</p></div></div>
-      <button onClick={saveSeq} className="px-5 py-2.5 rounded-xl bg-primary text-white text-sm font-bold hover:bg-primary-hover shadow-sm">Save Sequence</button>
+      <button onClick={saveSeq} className="px-5 py-2.5 rounded-full bg-[#1B4332] text-white text-xs font-bold shadow-lg shadow-[#1B4332]/20 hover:bg-primary-hover shadow-sm">Save Sequence</button>
     </div>
     <div className="bg-white rounded-xl border border-border p-5 shadow-sm space-y-4">
       <div><label className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5 block">Name</label><input value={seq.name} onChange={e => setSeq(s => ({ ...s, name: e.target.value }))} placeholder="e.g. Post-Booking Follow Up" className="w-full px-4 py-2.5 border border-border rounded-xl text-sm outline-none focus:border-primary/30" /></div>
@@ -553,8 +553,8 @@ const Marketing = () => {
     <div className="flex items-center justify-between flex-wrap gap-3">
       <div><h1 className="text-xl font-bold text-primary">Email Marketing</h1><p className="text-sm text-gray-400 mt-0.5">Your fully automated marketing engine</p></div>
       <div className="flex items-center gap-2">
-        <button onClick={() => setAiOpen(true)} className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-primary to-sage text-white text-sm font-bold hover:opacity-90 transition-all shadow-sm"><I name="sparkle" size={14} /> AI Generate</button>
-        <button onClick={() => { setComposing(true); setEditId(null); setComp({ name: '', subject: '', audience: 'all', blocks: mkBlocks(), abEnabled: false, subjectB: '' }) }} className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-primary text-white text-sm font-bold hover:bg-primary-hover shadow-sm"><I name="plus" size={16} /> New Campaign</button>
+        <button onClick={() => setAiOpen(true)} className="flex items-center gap-2 px-4 py-2.5 rounded-full bg-gradient-to-r from-[#1B4332] to-[#2D6A4F] text-white text-xs font-bold hover:opacity-90 transition-all shadow-lg shadow-[#1B4332]/20"><I name="sparkle" size={14} /> AI Generate</button>
+        <button onClick={() => { setComposing(true); setEditId(null); setComp({ name: '', subject: '', audience: 'all', blocks: mkBlocks(), abEnabled: false, subjectB: '' }) }} className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-[#1B4332] text-white text-xs font-bold shadow-lg shadow-[#1B4332]/20 hover:bg-primary-hover shadow-sm"><I name="plus" size={16} /> New Campaign</button>
       </div>
     </div>
 
@@ -613,7 +613,7 @@ const Marketing = () => {
 
     {/* ─── CAMPAIGNS ─── */}
     {tab === 'campaigns' && <div>
-      {camps.length === 0 ? <div className="bg-white rounded-xl border border-border p-12 shadow-sm text-center"><I name="inbox" size={40} className="text-gray-200 mx-auto mb-4" /><h3 className="font-bold text-lg text-primary mb-2">No campaigns</h3><p className="text-sm text-gray-400 mb-4">Create your first campaign or let AI do it for you</p><div className="flex gap-3 justify-center"><button onClick={() => setAiOpen(true)} className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-primary to-sage text-white text-sm font-bold"><I name="sparkle" size={14} className="inline mr-1" />AI Generate</button><button onClick={() => { setComposing(true); setEditId(null) }} className="px-5 py-2.5 rounded-xl bg-primary text-white text-sm font-bold">Manual</button></div></div>
+      {camps.length === 0 ? <div className="bg-white rounded-xl border border-border p-12 shadow-sm text-center"><I name="inbox" size={40} className="text-gray-200 mx-auto mb-4" /><h3 className="font-bold text-lg text-primary mb-2">No campaigns</h3><p className="text-sm text-gray-400 mb-4">Create your first campaign or let AI do it for you</p><div className="flex gap-3 justify-center"><button onClick={() => setAiOpen(true)} className="px-5 py-2.5 rounded-full bg-[#1B4332] text-white text-xs font-bold shadow-lg shadow-[#1B4332]/20"><I name="sparkle" size={14} className="inline mr-1" />AI Generate</button><button onClick={() => { setComposing(true); setEditId(null) }} className="px-5 py-2.5 rounded-full bg-[#1B4332] text-white text-xs font-bold shadow-lg shadow-[#1B4332]/20">Manual</button></div></div>
       : <div className="bg-white rounded-xl border border-border shadow-sm overflow-hidden"><div className="overflow-x-auto"><table className="w-full text-left min-w-[800px]">
         <thead><tr className="bg-gray-50/80 border-b border-border">
           {['Campaign','Audience','Status','Sent','Opened','Clicked',''].map((h,i) => <th key={i} className={`px-5 py-3 text-[10px] uppercase tracking-wider font-bold text-gray-400 ${i === 6 ? 'text-right' : ''}`}>{h}</th>)}
@@ -698,9 +698,9 @@ const Marketing = () => {
     {tab === 'sequences' && <div className="space-y-4">
       <div className="flex items-center justify-between">
         <p className="text-sm text-gray-400">Custom drip sequences</p>
-        <button onClick={() => { setCreatingSeq(true); setSeq({ name: '', trigger: 'post_booking', steps: [{ delay_days: 0, subject: 'Thanks for booking!', body: 'Hi {client_name},\n\nThanks for your booking at {business_name}!' }, { delay_days: 7, subject: 'How was your visit?', body: "Hi {client_name},\n\nWe'd love your feedback!" }] }) }} className="flex items-center gap-2 px-4 py-2 rounded-xl bg-primary text-white text-sm font-bold hover:bg-primary-hover"><I name="plus" size={14} /> New Sequence</button>
+        <button onClick={() => { setCreatingSeq(true); setSeq({ name: '', trigger: 'post_booking', steps: [{ delay_days: 0, subject: 'Thanks for booking!', body: 'Hi {client_name},\n\nThanks for your booking at {business_name}!' }, { delay_days: 7, subject: 'How was your visit?', body: "Hi {client_name},\n\nWe'd love your feedback!" }] }) }} className="flex items-center gap-2 px-4 py-2 rounded-full bg-[#1B4332] text-white text-xs font-bold shadow-lg shadow-[#1B4332]/20 hover:bg-primary-hover"><I name="plus" size={14} /> New Sequence</button>
       </div>
-      {seqs.length === 0 ? <div className="bg-white rounded-xl border border-border p-12 text-center"><I name="refresh" size={40} className="text-gray-200 mx-auto mb-4" /><h3 className="font-bold text-lg text-primary mb-2">No custom sequences</h3><p className="text-sm text-gray-400 mb-4">Use Automations for pre-built sequences, or create custom ones here.</p><button onClick={() => setCreatingSeq(true)} className="px-6 py-2.5 rounded-xl bg-primary text-white text-sm font-bold">Create Sequence</button></div>
+      {seqs.length === 0 ? <div className="bg-white rounded-xl border border-border p-12 text-center"><I name="refresh" size={40} className="text-gray-200 mx-auto mb-4" /><h3 className="font-bold text-lg text-primary mb-2">No custom sequences</h3><p className="text-sm text-gray-400 mb-4">Use Automations for pre-built sequences, or create custom ones here.</p><button onClick={() => setCreatingSeq(true)} className="px-6 py-2.5 rounded-full bg-[#1B4332] text-white text-xs font-bold shadow-lg shadow-[#1B4332]/20">Create Sequence</button></div>
       : <div className="space-y-3">{seqs.map(s => <div key={s.id} className="bg-white rounded-xl border border-border p-5 shadow-sm">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4"><div className={`p-2.5 rounded-xl ${s.is_active ? 'bg-green-50 text-green-600' : 'bg-gray-100 text-gray-400'}`}><I name="refresh" size={18} /></div><div><h4 className="font-bold text-sm text-primary">{s.name}</h4><div className="flex items-center gap-3 mt-1 text-[11px] text-gray-400"><span>{TRIGGERS.find(t => t.id === s.trigger)?.label || s.trigger}</span><span>·</span><span>{s.steps?.length || 0} steps</span></div></div></div>

@@ -4,6 +4,7 @@
  */
 
 import { useState } from 'react'
+import { Send, MessageSquare, Play, ChevronDown, Search, Rocket, CreditCard, CalendarCheck, Users2, TrendingUp, Globe } from 'lucide-react'
 
 const FAQS = [
   { q: 'How do I set up online bookings?', a: 'Navigate to Settings > Online Booking to configure your booking page. You can customise your services, staff availability, and booking rules. Once enabled, share your booking link with clients or embed it on your website.' },
@@ -17,12 +18,12 @@ const FAQS = [
 ]
 
 const GUIDES = [
-  { icon: 'fa-rocket', title: 'Getting Started', desc: 'Set up your business in 5 minutes', color: 'bg-primary/10 text-primary' },
-  { icon: 'fa-credit-card', title: 'Payment Setup', desc: 'Connect Stripe and configure deposits', color: 'bg-purple-100 text-purple-600' },
-  { icon: 'fa-calendar-check', title: 'Booking Rules', desc: 'Configure availability and policies', color: 'bg-blue-100 text-blue-600' },
-  { icon: 'fa-users', title: 'Team Management', desc: 'Add staff and set permissions', color: 'bg-amber-100 text-amber-600' },
-  { icon: 'fa-chart-line', title: 'Analytics Guide', desc: 'Understand your business metrics', color: 'bg-green-100 text-green-600' },
-  { icon: 'fa-globe', title: 'Online Presence', desc: 'Connect Google, Instagram & more', color: 'bg-pink-100 text-pink-600' },
+  { Icon: Rocket, title: 'Getting Started', desc: 'Set up your business in 5 minutes', color: 'bg-emerald-50 text-[#1B4332]' },
+  { Icon: CreditCard, title: 'Payment Setup', desc: 'Connect Stripe and configure deposits', color: 'bg-purple-50 text-purple-600' },
+  { Icon: CalendarCheck, title: 'Booking Rules', desc: 'Configure availability and policies', color: 'bg-blue-50 text-blue-600' },
+  { Icon: Users2, title: 'Team Management', desc: 'Add staff and set permissions', color: 'bg-amber-50 text-amber-600' },
+  { Icon: TrendingUp, title: 'Analytics Guide', desc: 'Understand your business metrics', color: 'bg-green-50 text-green-600' },
+  { Icon: Globe, title: 'Online Presence', desc: 'Connect Google, Instagram & more', color: 'bg-pink-50 text-pink-600' },
 ]
 
 const Help = () => {
@@ -44,7 +45,7 @@ const Help = () => {
           <h2 className="font-heading font-bold text-2xl text-white mb-2">How can we help?</h2>
           <p className="text-white/70 text-sm mb-6">Search our knowledge base or browse the guides below.</p>
           <div className="max-w-md mx-auto relative">
-            <i className="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
             <input
               type="text" placeholder="Search for help..."
               value={searchQuery} onChange={e => setSearchQuery(e.target.value)}
@@ -61,7 +62,7 @@ const Help = () => {
           {GUIDES.map((g, i) => (
             <button key={i} className="bg-white rounded-xl border border-border p-5 shadow-sm hover:shadow-md hover:border-primary/30 transition-all text-left group">
               <div className={`w-10 h-10 rounded-lg ${g.color} flex items-center justify-center mb-3 group-hover:scale-110 transition-transform`}>
-                <i className={`fa-solid ${g.icon}`} />
+                <g.Icon className="w-5 h-5" />
               </div>
               <h4 className="font-bold text-sm text-primary mb-1">{g.title}</h4>
               <p className="text-xs text-gray-500">{g.desc}</p>
@@ -81,7 +82,7 @@ const Help = () => {
                 className="w-full flex items-center justify-between px-6 py-4 text-left hover:bg-gray-50 transition-colors"
               >
                 <span className="text-sm font-bold text-primary pr-4">{faq.q}</span>
-                <i className={`fa-solid ${openFaq === i ? 'fa-chevron-up' : 'fa-chevron-down'} text-xs text-gray-400 shrink-0 transition-transform`} />
+                <ChevronDown className={`w-4 h-4 text-gray-400 shrink-0 transition-transform ${openFaq === i ? 'rotate-180' : ''}`} />
               </button>
               {openFaq === i && (
                 <div className="px-6 pb-4">
@@ -92,7 +93,7 @@ const Help = () => {
           ))}
           {filteredFaqs.length === 0 && (
             <div className="px-6 py-8 text-center">
-              <i className="fa-solid fa-magnifying-glass text-gray-400 text-2xl mb-3" />
+              <Search className="w-8 h-8 text-gray-300 mb-3" />
               <p className="text-sm text-gray-500">No results found for "{searchQuery}"</p>
             </div>
           )}
@@ -120,37 +121,37 @@ const Help = () => {
                 className="w-full px-3 py-2.5 border border-border rounded-lg text-sm font-medium text-primary focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none resize-none"
               />
             </div>
-            <button className="bg-primary text-white font-bold text-sm px-6 py-2.5 rounded-lg shadow-lg hover:bg-primary-hover transition-colors flex items-center gap-2">
-              <i className="fa-solid fa-paper-plane" /> Send Message
+            <button className="bg-[#1B4332] text-white font-bold text-xs px-5 py-2 rounded-full shadow-lg shadow-[#1B4332]/20 hover:bg-[#2D6A4F] transition-all flex items-center gap-2" style={{ fontFamily: "'Figtree', sans-serif" }}>
+              <Send className="w-3.5 h-3.5" /> Send Message
             </button>
           </div>
         </div>
 
         <div className="space-y-4">
-          <div className="bg-white rounded-xl border border-border p-6 shadow-sm">
+          <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-[0_2px_10px_rgba(0,0,0,0.03)]">
             <div className="flex items-center gap-4 mb-3">
-              <div className="w-10 h-10 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center"><i className="fa-solid fa-comments" /></div>
+              <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center"><MessageSquare className="w-5 h-5" /></div>
               <div>
-                <h4 className="font-bold text-sm text-primary">Live Chat</h4>
-                <p className="text-xs text-gray-500">Chat with our support team</p>
+                <h4 className="font-bold text-sm text-gray-900">Live Chat</h4>
+                <p className="text-xs text-gray-400">Chat with our support team</p>
               </div>
             </div>
-            <p className="text-sm text-gray-500 mb-3">Available Mon-Fri, 9am-6pm GMT. Average response time: 2 minutes.</p>
-            <button className="text-sm font-bold text-primary border border-border px-4 py-2 rounded-lg hover:bg-gray-50 flex items-center gap-2 shadow-sm">
-              <i className="fa-solid fa-message" /> Start Chat
+            <p className="text-xs text-gray-500 mb-3">Available Mon-Fri, 9am-6pm GMT. Average response time: 2 minutes.</p>
+            <button className="text-xs font-bold text-gray-700 border border-gray-200 px-4 py-1.5 rounded-full hover:bg-gray-50 flex items-center gap-2 shadow-sm transition-all" style={{ fontFamily: "'Figtree', sans-serif" }}>
+              <MessageSquare className="w-3.5 h-3.5" /> Start Chat
             </button>
           </div>
-          <div className="bg-white rounded-xl border border-border p-6 shadow-sm">
+          <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-[0_2px_10px_rgba(0,0,0,0.03)]">
             <div className="flex items-center gap-4 mb-3">
-              <div className="w-10 h-10 rounded-lg bg-amber-100 text-amber-600 flex items-center justify-center"><i className="fa-solid fa-video" /></div>
+              <div className="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center"><Play className="w-5 h-5" /></div>
               <div>
-                <h4 className="font-bold text-sm text-primary">Video Tutorials</h4>
-                <p className="text-xs text-gray-500">Watch step-by-step guides</p>
+                <h4 className="font-bold text-sm text-gray-900">Video Tutorials</h4>
+                <p className="text-xs text-gray-400">Watch step-by-step guides</p>
               </div>
             </div>
-            <p className="text-sm text-gray-500 mb-3">Over 20 video tutorials covering every feature of Rezvo.</p>
-            <button className="text-sm font-bold text-primary border border-border px-4 py-2 rounded-lg hover:bg-gray-50 flex items-center gap-2 shadow-sm">
-              <i className="fa-solid fa-play" /> Watch Tutorials
+            <p className="text-xs text-gray-500 mb-3">Over 20 video tutorials covering every feature of Rezvo.</p>
+            <button className="text-xs font-bold text-gray-700 border border-gray-200 px-4 py-1.5 rounded-full hover:bg-gray-50 flex items-center gap-2 shadow-sm transition-all" style={{ fontFamily: "'Figtree', sans-serif" }}>
+              <Play className="w-3.5 h-3.5" /> Watch Tutorials
             </button>
           </div>
         </div>

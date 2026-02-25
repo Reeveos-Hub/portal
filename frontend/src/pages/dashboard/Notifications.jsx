@@ -24,7 +24,7 @@ const DEMO_NOTIFICATIONS = {
       body: 'The thermal printer in the main kitchen station is not responding. Orders may be delayed.',
       time: '2 min ago', timeColor: 'text-[#D4A373]',
       actions: [
-        { label: 'Check Settings', style: 'bg-red-500 hover:bg-red-600 text-white' },
+        { label: 'Check Settings', style: 'bg-red-500 hover:bg-red-600 text-white shadow-lg shadow-red-500/20' },
         { label: 'Dismiss', style: 'text-gray-500 hover:text-gray-900' },
       ],
     },
@@ -41,8 +41,8 @@ const DEMO_NOTIFICATIONS = {
       time: '15 min ago', timeColor: 'text-emerald-600',
       tags: [{ label: '🎂 Birthday', bg: 'bg-blue-50 text-blue-700 border-blue-100' }],
       actions: [
-        { label: 'Accept', style: 'bg-primary hover:bg-primary-hover text-white shadow-sm' },
-        { label: 'Decline', style: 'bg-white border border-gray-200 text-gray-600 hover:bg-red-50 hover:text-red-600' },
+        { label: 'Accept', style: 'bg-[#1B4332] hover:bg-[#2D6A4F] text-white shadow-lg shadow-[#1B4332]/20' },
+        { label: 'Decline', style: 'bg-white border border-gray-200 text-gray-500 hover:bg-red-50 hover:text-red-500' },
       ],
     },
     {
@@ -164,7 +164,7 @@ const Notifications = () => {
         {item.actions && (
           <div className="flex items-center gap-2 mt-3">
             {item.actions.map(a => (
-              <button key={a.label} onClick={() => handleAction(item.id, a.label)} className={`px-4 py-1.5 text-xs font-bold rounded-lg transition-colors ${a.style}`}>{a.label}</button>
+              <button key={a.label} onClick={() => handleAction(item.id, a.label)} className={`px-4 py-1.5 text-xs font-bold rounded-full transition-all ${a.style}`}>{a.label}</button>
             ))}
           </div>
         )}
@@ -211,15 +211,15 @@ const Notifications = () => {
         <div className="max-w-5xl mx-auto">
           {/* Filters */}
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
-            <div className="flex p-1 bg-white border border-gray-200 rounded-xl shadow-sm overflow-x-auto max-w-full">
+            <div className="flex items-center gap-1.5 flex-wrap">
               {TABS.map(t => (
                 <button
                   key={t.id}
                   onClick={() => setActiveTab(t.id)}
-                  className={`px-4 py-2 rounded-lg text-sm font-bold transition-all whitespace-nowrap ${
+                  className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all whitespace-nowrap ${
                     activeTab === t.id
-                      ? 'bg-primary text-white shadow-sm'
-                      : 'text-gray-500 hover:text-gray-900 hover:bg-gray-50'
+                      ? 'bg-[#1B4332] text-white shadow-lg shadow-[#1B4332]/20'
+                      : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'
                   }`}
                 >
                   {t.label}

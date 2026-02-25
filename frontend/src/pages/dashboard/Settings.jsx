@@ -401,7 +401,7 @@ const Settings = () => {
       {/* Tab Content */}
       <div className="space-y-6">
         {activeTab === 'business' && (
-          <div className="bg-white border border-border rounded-xl shadow-sm p-6">
+          <div className="bg-white border border-gray-100 rounded-2xl shadow-[0_2px_10px_rgba(0,0,0,0.03)] p-6">
             <h2 className="text-xl font-heading font-semibold mb-4">Business Details</h2>
             <div className="grid gap-4 sm:grid-cols-2">
               <div>
@@ -509,7 +509,7 @@ const Settings = () => {
             </div>
             <div className="mt-6">
               <button onClick={saveBusiness}
-              className="bg-primary text-white font-bold text-sm px-4 py-2 rounded-lg shadow-lg hover:bg-primary-hover transition-colors">
+              className="bg-[#1B4332] text-white font-bold text-xs px-5 py-2 rounded-full shadow-lg shadow-[#1B4332]/20 hover:bg-[#2D6A4F] transition-colors">
               Save
             </button>
             </div>
@@ -517,7 +517,7 @@ const Settings = () => {
         )}
 
         {activeTab === 'hours' && (
-          <div className="bg-white border border-border rounded-xl shadow-sm p-6">
+          <div className="bg-white border border-gray-100 rounded-2xl shadow-[0_2px_10px_rgba(0,0,0,0.03)] p-6">
             <h2 className="text-xl font-heading font-semibold mb-4">Opening Hours</h2>
             <div className="flex justify-end mb-4">
               <button onClick={copyToAllHours}
@@ -632,7 +632,7 @@ const Settings = () => {
             </ul>
             <div className="mt-6">
               <button onClick={saveHours}
-              className="bg-primary text-white font-bold text-sm px-4 py-2 rounded-lg shadow-lg hover:bg-primary-hover transition-colors">
+              className="bg-[#1B4332] text-white font-bold text-xs px-5 py-2 rounded-full shadow-lg shadow-[#1B4332]/20 hover:bg-[#2D6A4F] transition-colors">
               Save Hours
             </button>
             </div>
@@ -640,7 +640,7 @@ const Settings = () => {
         )}
 
         {activeTab === 'notifications' && (
-          <div className="bg-white border border-border rounded-xl shadow-sm p-6">
+          <div className="bg-white border border-gray-100 rounded-2xl shadow-[0_2px_10px_rgba(0,0,0,0.03)] p-6">
             <h2 className="text-xl font-heading font-semibold mb-4">Notification Preferences</h2>
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
@@ -692,7 +692,7 @@ const Settings = () => {
             </div>
             <div className="mt-6">
               <button onClick={saveNotifications}
-              className="bg-primary text-white font-bold text-sm px-4 py-2 rounded-lg shadow-lg hover:bg-primary-hover transition-colors">
+              className="bg-[#1B4332] text-white font-bold text-xs px-5 py-2 rounded-full shadow-lg shadow-[#1B4332]/20 hover:bg-[#2D6A4F] transition-colors">
               Save Notifications
             </button>
             </div>
@@ -700,7 +700,7 @@ const Settings = () => {
         )}
 
         {activeTab === 'integrations' && (
-          <div className="bg-white border border-border rounded-xl shadow-sm p-6">
+          <div className="bg-white border border-gray-100 rounded-2xl shadow-[0_2px_10px_rgba(0,0,0,0.03)] p-6">
             <h2 className="text-xl font-heading font-semibold mb-4">Integrations</h2>
             <div className="space-y-4">
               {INTEGRATIONS.map((int) => {
@@ -747,7 +747,7 @@ const Settings = () => {
         )}
 
         {activeTab === 'subscription' && (
-          <div className="bg-white border border-border rounded-xl shadow-sm p-6">
+          <div className="bg-white border border-gray-100 rounded-2xl shadow-[0_2px_10px_rgba(0,0,0,0.03)] p-6">
             <h2 className="text-xl font-heading font-semibold mb-4">Subscription</h2>
             <div className="p-4 rounded-lg bg-forest/5 border border-forest/20 mb-6">
               <h3 className="font-semibold text-lg">{subscription?.plan || 'Free'}</h3>
@@ -790,7 +790,7 @@ const Settings = () => {
         )}
 
         {activeTab === 'team' && (
-          <div className="bg-white border border-border rounded-xl shadow-sm p-6">
+          <div className="bg-white border border-gray-100 rounded-2xl shadow-[0_2px_10px_rgba(0,0,0,0.03)] p-6">
             <h2 className="text-xl font-heading font-semibold mb-4">Team Permissions</h2>
             <p className="text-gray-500 text-sm mb-4">Quick summary. Use Staff page for full management.</p>
             <div className="overflow-x-auto">
@@ -819,7 +819,7 @@ const Settings = () => {
             <div className="mt-4">
               <button
               onClick={() => navigate('/dashboard/staff')}
-              className="bg-primary text-white font-bold text-sm px-4 py-2 rounded-lg shadow-lg hover:bg-primary-hover transition-colors">
+              className="bg-[#1B4332] text-white font-bold text-xs px-5 py-2 rounded-full shadow-lg shadow-[#1B4332]/20 hover:bg-[#2D6A4F] transition-colors">
               Manage Team
             </button>
             </div>
@@ -828,8 +828,8 @@ const Settings = () => {
       </div>
 
       {/* Danger Zone */}
-      <div className="bg-white border border-border rounded-xl shadow-sm p-6 mt-8 border-red-500/30 bg-red-500/5">
-        <h2 className="text-xl font-heading font-semibold text-red-500 mb-4">Danger Zone</h2>
+      <div className="bg-white border border-gray-100 rounded-2xl shadow-[0_2px_10px_rgba(0,0,0,0.03)] p-6 mt-8 border-red-500/30 bg-red-500/5">
+        <h2 className="text-lg font-extrabold text-red-500 mb-4">Danger Zone</h2>
         <div className="space-y-4">
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div>
@@ -837,7 +837,7 @@ const Settings = () => {
               <p className="text-sm text-gray-500">Download a ZIP of clients, bookings, services</p>
             </div>
             <button onClick={exportData}
-              className="bg-primary text-white font-bold text-sm px-4 py-2 rounded-lg shadow-lg hover:bg-primary-hover transition-colors">
+              className="bg-[#1B4332] text-white font-bold text-xs px-5 py-2 rounded-full shadow-lg shadow-[#1B4332]/20 hover:bg-[#2D6A4F] transition-colors">
               Export
             </button>
           </div>

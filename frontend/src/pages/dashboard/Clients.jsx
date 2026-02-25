@@ -415,15 +415,15 @@ const Clients = () => {
               <h1 className="text-2xl font-extrabold text-primary">Guest CRM</h1>
               <p className="text-sm text-gray-500">{filteredGuests.length} guest{filteredGuests.length !== 1 ? 's' : ''} in your database</p>
             </div>
-            <button onClick={() => setAddGuestModal(true)} className="bg-primary text-white font-bold text-sm px-5 py-2.5 rounded-full shadow-lg hover:bg-[#2D6A4F] transition-colors flex items-center gap-2">
+            <button onClick={() => setAddGuestModal(true)} className="bg-[#1B4332] text-white font-bold text-xs px-5 py-2 rounded-full shadow-lg shadow-[#1B4332]/20 hover:bg-[#2D6A4F] transition-all flex items-center gap-2" style={{ fontFamily: "'Figtree', sans-serif" }}>
               <UserPlus className="w-4 h-4" /> Add Guest
             </button>
           </div>
 
           <div className="flex flex-col sm:flex-row gap-3">
-            <div className="flex bg-white border border-gray-200 rounded-xl p-1 overflow-x-auto shadow-sm">
+            <div className="flex items-center gap-1.5 flex-wrap">
               {FILTER_TABS.map(t => (
-                <button key={t.id} onClick={() => setActiveFilter(t.id)} className={`px-4 py-2 rounded-lg text-sm font-bold transition-all whitespace-nowrap ${activeFilter === t.id ? 'bg-primary text-white shadow-sm' : 'text-gray-500 hover:text-primary hover:bg-gray-50'}`}>{t.label}</button>
+                <button key={t.id} onClick={() => setActiveFilter(t.id)} className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all whitespace-nowrap ${activeFilter === t.id ? 'bg-[#1B4332] text-white shadow-lg shadow-[#1B4332]/20' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'}`} style={{ fontFamily: "'Figtree', sans-serif" }}>{t.label}</button>
               ))}
             </div>
             <div className="relative flex-1 max-w-xs">
@@ -511,7 +511,7 @@ const AddGuestModal = ({ onClose, onAdd }) => {
         </div>
         <div className="flex gap-3 mt-6">
           <button onClick={onClose} className="flex-1 px-4 py-2.5 bg-white border border-gray-200 rounded-lg text-sm font-bold text-gray-600 hover:bg-gray-50">Cancel</button>
-          <button onClick={() => { if (!form.name.trim()) return; onAdd({ id: `new-${Date.now()}`, name: form.name, email: form.email, phone: form.phone, location: '', since: new Date().toISOString(), tags: ['New'], stats: { visits: 0, spend: 0, avgSpend: 0, noShows: 0 }, riskLevel: 'New Guest', riskTag: 'bg-blue-50 text-blue-700', preferences: [], notes: form.notes, lastVisit: '', activity: [], upcoming: [], marketing: { emailOptIn: false, smsOptIn: false } }) }} className="flex-1 px-4 py-2.5 bg-primary text-white rounded-lg text-sm font-bold hover:bg-[#2D6A4F] shadow-lg">Add Guest</button>
+          <button onClick={() => { if (!form.name.trim()) return; onAdd({ id: `new-${Date.now()}`, name: form.name, email: form.email, phone: form.phone, location: '', since: new Date().toISOString(), tags: ['New'], stats: { visits: 0, spend: 0, avgSpend: 0, noShows: 0 }, riskLevel: 'New Guest', riskTag: 'bg-blue-50 text-blue-700', preferences: [], notes: form.notes, lastVisit: '', activity: [], upcoming: [], marketing: { emailOptIn: false, smsOptIn: false } }) }} className="flex-1 px-4 py-2 bg-[#1B4332] text-white rounded-full text-xs font-bold hover:bg-[#2D6A4F] shadow-lg shadow-[#1B4332]/20">Add Guest</button>
         </div>
       </div>
     </div>
