@@ -123,7 +123,7 @@ const BookingFlow = () => {
           onBack={handleBack}
           onCreate={handleCreate}
         />
-        <p className="text-center text-[10px] text-gray-400 pb-3">Powered by <span className="font-semibold text-[#1B4332]">Rezvo</span></p>
+        <p className="text-center text-xs text-gray-400 pb-4 pt-2">Powered by <a href="https://rezvo.app" target="_blank" rel="noopener noreferrer" className="font-semibold text-[#1B4332] hover:underline">Rezvo</a></p>
       </div>
     </div>
   )

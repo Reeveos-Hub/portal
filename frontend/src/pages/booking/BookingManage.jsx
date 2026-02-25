@@ -144,7 +144,7 @@ const BookingManage = () => {
         )}
       </div>
 
-      <p className="text-center text-xs text-gray-400 mt-6">Powered by Rezvo</p>
+      <p className="text-center text-xs text-gray-400 mt-4 pb-2">Powered by <a href="https://rezvo.app" target="_blank" rel="noopener noreferrer" className="font-semibold text-[#1B4332] hover:underline">Rezvo</a></p>
     </div>
     </div>
   )
