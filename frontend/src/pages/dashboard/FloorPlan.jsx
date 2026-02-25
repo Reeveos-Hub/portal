@@ -1,6 +1,6 @@
 /**
  * Floor Plan — Full drag-drop table editor + live status view
- * Zone views: Main Floor, Bar, Kitchen, Terrace, Window, Upstairs, Outside, Basement
+ * Zone views: Main Floor, Bar, Private Dining, Terrace, Window, Upstairs, Outside, Basement
  * Table shapes: round, square, long, booth
  * Lock/unlock toggle, add/remove tables, zone tabs, proper spacing
  */
@@ -9,7 +9,7 @@ import {
   Lock, Unlock, Plus, Trash2, X, Settings, GripVertical,
   LayoutGrid, Copy, Move, Save, Check, RotateCw,
   Circle, Square, RectangleHorizontal, Sofa,
-  Home, UtensilsCrossed, Wine, ChefHat, Sun, PanelTop, ArrowUp, TreePine, ArrowDown,
+  Home, UtensilsCrossed, Wine, Sun, PanelTop, ArrowUp, TreePine, ArrowDown, DoorClosed,
   Users, Clock
 } from 'lucide-react'
 import { useBusiness } from '../../contexts/BusinessContext'
@@ -34,7 +34,7 @@ const ZONES = [
   { id: 'all',       label: 'All Zones',    Icon: Home,              color: '#1B4332' },
   { id: 'main',      label: 'Main Floor',   Icon: UtensilsCrossed,   color: '#1B4332' },
   { id: 'bar',       label: 'Bar',          Icon: Wine,              color: '#D97706' },
-  { id: 'kitchen',   label: 'Kitchen',      Icon: ChefHat,           color: '#DC2626' },
+  { id: 'private',   label: 'Private Dining', Icon: DoorClosed,  color: '#DC2626' },
   { id: 'terrace',   label: 'Terrace',      Icon: Sun,               color: '#059669' },
   { id: 'window',    label: 'Window',       Icon: PanelTop,          color: '#2563EB' },
   { id: 'upstairs',  label: 'Upstairs',     Icon: ArrowUp,           color: '#7C3AED' },
@@ -84,8 +84,8 @@ const DEFAULT_TABLES = [
   // Basement
   { id: 't23', name: 'T-23', seats: 8, zone: 'basement', shape: 'long',   x: 60,  y: 50,  status: 'available' },
   { id: 't24', name: 'T-24', seats: 10, zone: 'basement', shape: 'long',  x: 60,  y: 220, status: 'reserved', nextTime: '8:30 PM', guest: 'Party booking' },
-  // Kitchen (chef's table)
-  { id: 't25', name: 'Chef Table', seats: 6, zone: 'kitchen', shape: 'long', x: 60, y: 50, status: 'reserved', nextTime: '7:30 PM', guest: 'VIP', vip: true },
+  // Private Dining
+  { id: 't25', name: 'PD-01', seats: 6, zone: 'private', shape: 'long', x: 60, y: 50, status: 'reserved', nextTime: '7:30 PM', guest: 'VIP', vip: true },
 ]
 
 /* ═══════════════ SEAT DOTS ═══════════════ */
