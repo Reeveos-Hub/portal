@@ -728,54 +728,57 @@ const FloorPlan = ({ embedded = false }) => {
       <div className="flex-1 flex overflow-hidden">
         <div className="flex-1 overflow-auto" style={{ background: '#FAFAF8' }}>
 
-          {/* ALL ZONES OVERVIEW */}
+          {/* ALL ZONES OVERVIEW — vertical columns side by side */}
           {activeZone === 'all' ? (
-            <div className="p-6" style={{ minWidth: 600 }}>
+            <div className="h-full" style={{ minWidth: 600 }}>
               {activeFloors.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-20 text-gray-400">
                   <LayoutGrid size={48} strokeWidth={1} className="mb-3 opacity-30" />
                   <p className="text-sm font-bold">No elements yet</p>
                   <p className="text-xs mt-1">Unlock to start building your venue layout</p>
                 </div>
-              ) : activeFloors.map((floor, fi) => {
-                const floorElements = elements.filter(e => e.zone === floor.id)
-                const floorTables = floorElements.filter(e => e.type !== 'fixture')
-                // Calculate bounding box for scaling
-                const maxX = Math.max(400, ...floorElements.map(e => (e.x || 0) + (e.type === 'fixture' ? (e.w || 100) : 160)))
-                const maxY = Math.max(200, ...floorElements.map(e => (e.y || 0) + (e.type === 'fixture' ? (e.h || 50) : 160)))
-                const scale = Math.min(0.65, 800 / (maxX + 80))
-                const scaledH = Math.max(140, (maxY + 40) * scale)
+              ) : (
+                <div className="flex h-full">
+                  {activeFloors.map((floor, fi) => {
+                    const floorElements = elements.filter(e => e.zone === floor.id)
+                    const floorTables = floorElements.filter(e => e.type !== 'fixture')
+                    // Scale to fit within column
+                    const maxX = Math.max(300, ...floorElements.map(e => (e.x || 0) + (e.type === 'fixture' ? (e.w || 100) : 160)))
+                    const maxY = Math.max(300, ...floorElements.map(e => (e.y || 0) + (e.type === 'fixture' ? (e.h || 50) : 160)))
+                    const colScale = Math.min(0.55, 400 / (maxX + 40), 600 / (maxY + 40))
 
-                return (
-                  <div key={floor.id}>
-                    {fi > 0 && <div className="border-t border-dashed border-gray-300 my-5" />}
-                    <div className="flex items-center gap-2 mb-2">
-                      <floor.Icon size={16} color={floor.color} />
-                      <span className="text-sm font-extrabold" style={{ color: floor.color }}>{floor.label}</span>
-                      <span className="text-[10px] font-bold text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full">{floorTables.length} tables</span>
-                      <button onClick={() => setActiveZone(floor.id)} className="ml-auto text-[10px] font-bold text-gray-400 hover:text-[#1B4332] flex items-center gap-1 transition-colors">
-                        <Eye size={12} /> View full
-                      </button>
-                    </div>
-                    <div className="relative rounded-xl border border-gray-200 bg-white overflow-hidden" style={{ height: scaledH }}>
-                      <div className="relative w-full h-full" style={{ backgroundImage: 'radial-gradient(circle, #E5E5E0 0.5px, transparent 0.5px)', backgroundSize: '16px 16px' }}>
-                        {/* Render fixtures at scale */}
-                        {floorElements.filter(e => e.type === 'fixture').map(item => (
-                          <FixtureNode key={item.id} item={item} locked={true} isDragging={false} scale={scale}
-                            onMouseDown={() => {}} onTouchStart={() => {}} onDelete={() => {}} onRotate={() => {}} />
-                        ))}
-                        {/* Render tables at scale */}
-                        {floorTables.map(table => (
-                          <TableNode key={table.id} table={table} status={table.status || 'available'} isSelected={false} locked={true} isDragging={false} scale={scale}
-                            onMouseDown={() => {}} onTouchStart={() => {}}
-                            onClick={() => setActiveZone(floor.id)}
-                            onEdit={() => {}} onDelete={() => {}} onRotate={() => {}} />
-                        ))}
+                    return (
+                      <div key={floor.id} className="flex-1 flex flex-col min-w-0" style={{ borderRight: fi < activeFloors.length - 1 ? '1.5px dashed #D1D5DB' : 'none' }}>
+                        {/* Floor header */}
+                        <div className="flex items-center gap-2 px-4 py-3 border-b border-gray-100 shrink-0">
+                          <floor.Icon size={14} color={floor.color} />
+                          <span className="text-xs font-extrabold" style={{ color: floor.color }}>{floor.label}</span>
+                          <span className="text-[9px] font-bold text-gray-400 bg-gray-100 px-1.5 py-0.5 rounded-full">{floorTables.length}</span>
+                          <button onClick={() => setActiveZone(floor.id)} className="ml-auto text-[9px] font-bold text-gray-400 hover:text-[#1B4332] flex items-center gap-1 transition-colors">
+                            <Eye size={10} /> Full view
+                          </button>
+                        </div>
+                        {/* Floor canvas */}
+                        <div className="flex-1 relative overflow-hidden cursor-pointer" onClick={() => setActiveZone(floor.id)}
+                          style={{ backgroundImage: 'radial-gradient(circle, #E5E5E0 0.5px, transparent 0.5px)', backgroundSize: '14px 14px' }}>
+                          {/* Render fixtures at scale */}
+                          {floorElements.filter(e => e.type === 'fixture').map(item => (
+                            <FixtureNode key={item.id} item={item} locked={true} isDragging={false} scale={colScale}
+                              onMouseDown={() => {}} onTouchStart={() => {}} onDelete={() => {}} onRotate={() => {}} />
+                          ))}
+                          {/* Render tables at scale */}
+                          {floorTables.map(table => (
+                            <TableNode key={table.id} table={table} status={table.status || 'available'} isSelected={false} locked={true} isDragging={false} scale={colScale}
+                              onMouseDown={() => {}} onTouchStart={() => {}}
+                              onClick={() => setActiveZone(floor.id)}
+                              onEdit={() => {}} onDelete={() => {}} onRotate={() => {}} />
+                          ))}
+                        </div>
                       </div>
-                    </div>
-                  </div>
-                )
-              })}
+                    )
+                  })}
+                </div>
+              )}
             </div>
           ) : (
             /* SINGLE FLOOR CANVAS */
