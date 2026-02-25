@@ -4,7 +4,8 @@
  */
 
 import { useState, useEffect, useRef } from 'react'
-import { ArrowLeft, ChevronRight, Loader2 } from 'lucide-react'
+import { ArrowLeft, ChevronRight } from 'lucide-react'
+import RezvoLoader from '../../../../components/shared/RezvoLoader'
 import BookingHeader from '../../components/BookingHeader'
 import StepIndicator from '../../components/StepIndicator'
 import StickyFooter from '../../components/StickyFooter'
@@ -88,7 +89,7 @@ const PickDateTime = ({ data, onContinue, onBack }) => {
 
       {loading ? (
         <div className="flex items-center justify-center py-12">
-          <Loader2 className="w-6 h-6 text-[#1B4332] animate-spin" />
+          <RezvoLoader size="sm" message="" />
         </div>
       ) : (
         <>

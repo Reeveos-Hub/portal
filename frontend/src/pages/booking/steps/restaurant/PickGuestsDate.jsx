@@ -67,18 +67,18 @@ const PickGuestsDate = ({ data, onContinue }) => {
   const canContinue = guests > 0 && selectedDate
 
   return (
-    <div className="max-w-xl mx-auto px-4 sm:px-5 pt-4 sm:pt-6 overflow-hidden">
+    <div className="max-w-md mx-auto px-4 sm:px-5 pt-3 sm:pt-4 overflow-hidden">
       <BookingHeader business={business} />
       <StepIndicator step={1} total={3} />
 
       {/* Guest count */}
-      <h2 className="text-sm sm:text-base font-semibold text-[#1B4332] mb-2.5 sm:mb-3">How many guests?</h2>
-      <div className="flex gap-2 flex-wrap mb-6">
+      <h2 className="text-sm font-semibold text-[#1B4332] mb-2">How many guests?</h2>
+      <div className="flex gap-1.5 flex-wrap mb-4">
         {GUEST_OPTIONS.map((n) => (
           <button
             key={n}
             onClick={() => setGuests(n)}
-            className={`w-10 h-10 sm:w-12 sm:h-12 rounded-lg sm:rounded-xl text-xs sm:text-sm font-semibold shrink-0 transition-all ${
+            className={`w-9 h-9 rounded-lg text-xs font-semibold shrink-0 transition-all ${
               guests === n
                 ? 'bg-[#1B4332] text-white shadow-sm'
                 : 'bg-white text-gray-600 border border-gray-200 hover:border-[#1B4332]/30'
@@ -89,7 +89,7 @@ const PickGuestsDate = ({ data, onContinue }) => {
         ))}
         <button
           onClick={() => setGuests(9)}
-          className={`px-3 sm:px-4 h-10 sm:h-12 rounded-lg sm:rounded-xl text-xs sm:text-sm font-medium shrink-0 transition-all ${
+          className={`px-3 h-9 rounded-lg text-xs font-medium shrink-0 transition-all ${
             guests >= 9
               ? 'bg-[#1B4332] text-white shadow-sm'
               : 'bg-white text-gray-600 border border-gray-200 hover:border-[#1B4332]/30'
@@ -100,36 +100,36 @@ const PickGuestsDate = ({ data, onContinue }) => {
       </div>
 
       {/* Calendar */}
-      <h2 className="text-sm sm:text-base font-semibold text-[#1B4332] mb-2.5 sm:mb-3">Pick a date</h2>
-      <div className="bg-white rounded-xl sm:rounded-2xl border border-gray-200 p-3 sm:p-4 mb-4 sm:mb-6">
+      <h2 className="text-sm font-semibold text-[#1B4332] mb-2">Pick a date</h2>
+      <div className="bg-white rounded-xl border border-gray-200 p-3 mb-4">
         {/* Month navigation */}
-        <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center justify-between mb-3">
           <button
             onClick={prevMonth}
-            className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-gray-100 transition-colors"
+            className="w-7 h-7 rounded-full flex items-center justify-center hover:bg-gray-100 transition-colors"
           >
-            <ChevronLeft className="w-4 h-4 text-gray-600" />
+            <ChevronLeft className="w-3.5 h-3.5 text-gray-600" />
           </button>
-          <h3 className="text-sm font-semibold text-[#1B4332]">
+          <h3 className="text-xs font-semibold text-[#1B4332]">
             {MONTH_NAMES[month]} {year}
           </h3>
           <button
             onClick={nextMonth}
-            className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-gray-100 transition-colors"
+            className="w-7 h-7 rounded-full flex items-center justify-center hover:bg-gray-100 transition-colors"
           >
-            <ChevronRight className="w-4 h-4 text-gray-600" />
+            <ChevronRight className="w-3.5 h-3.5 text-gray-600" />
           </button>
         </div>
 
         {/* Day headers */}
-        <div className="grid grid-cols-7 gap-1 mb-2">
+        <div className="grid grid-cols-7 gap-0.5 mb-1">
           {DAY_NAMES.map((d) => (
-            <div key={d} className="text-center text-xs font-medium text-gray-400 py-1">{d}</div>
+            <div key={d} className="text-center text-[10px] font-medium text-gray-400 py-0.5">{d}</div>
           ))}
         </div>
 
         {/* Calendar grid */}
-        <div className="grid grid-cols-7 gap-1">
+        <div className="grid grid-cols-7 gap-0.5">
           {days.map((day, i) => {
             const past = isDatePast(day)
             const sel = isSelected(day)
@@ -139,7 +139,7 @@ const PickGuestsDate = ({ data, onContinue }) => {
                 key={i}
                 onClick={() => handleSelect(day)}
                 disabled={!day || past}
-                className={`aspect-square rounded-xl text-sm font-medium transition-all ${
+                className={`aspect-square rounded-lg text-xs font-medium transition-all ${
                   !day ? '' :
                   sel ? 'bg-[#1B4332] text-white shadow-sm' :
                   past ? 'text-gray-300 cursor-not-allowed' :
@@ -156,28 +156,28 @@ const PickGuestsDate = ({ data, onContinue }) => {
 
       {/* Selection summary */}
       {selectedDate && (
-        <div className="flex items-center gap-3 p-3 bg-[#1B4332]/[0.03] rounded-xl border border-[#1B4332]/10 mb-6">
-          <div className="w-10 h-10 rounded-xl bg-[#1B4332]/10 flex items-center justify-center">
-            <Calendar className="w-5 h-5 text-[#1B4332]" />
+        <div className="flex items-center gap-2.5 p-2.5 bg-[#1B4332]/[0.03] rounded-lg border border-[#1B4332]/10 mb-4">
+          <div className="w-8 h-8 rounded-lg bg-[#1B4332]/10 flex items-center justify-center">
+            <Calendar className="w-4 h-4 text-[#1B4332]" />
           </div>
           <div>
-            <p className="text-sm font-semibold text-[#1B4332]">
+            <p className="text-xs font-semibold text-[#1B4332]">
               {guests} {guests === 1 ? 'guest' : 'guests'}
             </p>
-            <p className="text-xs text-gray-500">
+            <p className="text-[11px] text-gray-500">
               {DAY_NAMES[selectedDate.getDay()]} {selectedDate.getDate()} {MONTH_NAMES[selectedDate.getMonth()]}
             </p>
           </div>
         </div>
       )}
 
-      <div className="pb-6" />
+      <div className="pb-4" />
 
       <StickyFooter>
         <button
           onClick={() => canContinue && onContinue({ guests, date: selectedDate.toISOString().split('T')[0] })}
           disabled={!canContinue}
-          className={`w-full py-3.5 rounded-xl text-sm font-semibold transition-all ${
+          className={`w-full py-3 rounded-xl text-sm font-semibold transition-all ${
             canContinue
               ? 'bg-[#1B4332] text-white hover:bg-[#1B4332]/90 shadow-sm'
               : 'bg-gray-200 text-gray-400 cursor-not-allowed'

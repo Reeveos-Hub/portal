@@ -5,8 +5,8 @@
 
 import { useState, useEffect } from 'react'
 import { useParams } from 'react-router-dom'
-import { Loader2 } from 'lucide-react'
 import { getBookingPage, createBooking } from '../../utils/bookingApi'
+import RezvoLoader from '../../components/shared/RezvoLoader'
 import PickService from './steps/services/PickService'
 import PickDateTime from './steps/services/PickDateTime'
 import YourDetails from './steps/services/YourDetails'
@@ -74,7 +74,7 @@ const BookingFlow = () => {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#FEFBF4]">
-        <Loader2 className="w-8 h-8 text-[#1B4332] animate-spin" />
+        <RezvoLoader message="Loading booking..." />
       </div>
     )
   }

@@ -4,7 +4,8 @@
  */
 
 import { useState } from 'react'
-import { ArrowLeft, Users, Calendar, Clock, MapPin, Loader2, CheckCircle, MessageSquare } from 'lucide-react'
+import { ArrowLeft, Users, Calendar, Clock, MapPin, CheckCircle, MessageSquare } from 'lucide-react'
+import RezvoLoader from '../../../../components/shared/RezvoLoader'
 import BookingHeader from '../../components/BookingHeader'
 import StepIndicator from '../../components/StepIndicator'
 import StickyFooter from '../../components/StickyFooter'
@@ -277,7 +278,7 @@ const YourDetailsRestaurant = ({ data, onBack, onCreate }) => {
         >
           {submitting ? (
             <span className="flex items-center justify-center gap-2">
-              <Loader2 className="w-4 h-4 animate-spin" />
+              <RezvoLoader size="sm" inline message="" />
               Confirming...
             </span>
           ) : (

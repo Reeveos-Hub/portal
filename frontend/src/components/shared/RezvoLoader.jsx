@@ -1,27 +1,34 @@
 /**
- * RezvoLoader — Branded loading component
- * Uses the Rezvo "R" logo with pulse animation
- * Drop-in replacement for generic spinners across the app
+ * RezvoLoader — Branded loading animation
+ * Four forest-green squares that bounce in sequence
+ * Used globally across all loading states
  */
 
 export default function RezvoLoader({ message = 'Loading...', size = 'md', inline = false }) {
   const sizes = {
-    sm: { box: 28, font: 14, r: 12, msgSize: 11 },
-    md: { box: 40, font: 20, r: 16, msgSize: 13 },
-    lg: { box: 56, font: 28, r: 22, msgSize: 15 },
+    sm: { sq: 6, gap: 3, msgSize: 11 },
+    md: { sq: 10, gap: 4, msgSize: 13 },
+    lg: { sq: 14, gap: 5, msgSize: 15 },
   }
   const s = sizes[size] || sizes.md
+
+  const squares = (
+    <div style={{ display: 'flex', gap: s.gap, alignItems: 'end' }}>
+      {[0, 1, 2, 3].map(i => (
+        <div key={i} style={{
+          width: s.sq, height: s.sq,
+          borderRadius: s.sq * 0.2,
+          background: '#1B4332',
+          animation: `rezvo-bounce 1.2s ease-in-out ${i * 0.15}s infinite`,
+        }} />
+      ))}
+    </div>
+  )
 
   if (inline) {
     return (
       <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
-        <div style={{
-          width: s.box, height: s.box, borderRadius: 10,
-          background: '#1B4332', display: 'flex', alignItems: 'center', justifyContent: 'center',
-          animation: 'rezvo-pulse 1.5s ease-in-out infinite',
-        }}>
-          <span style={{ color: '#FAFAF7', fontWeight: 800, fontSize: s.r, fontFamily: "'Figtree', system-ui, sans-serif" }}>R</span>
-        </div>
+        {squares}
         {message && <span style={{ fontSize: s.msgSize, fontWeight: 500, color: '#6B7280', fontFamily: "'Figtree', sans-serif" }}>{message}</span>}
         <style>{rezvoStyles}</style>
       </div>
@@ -31,16 +38,9 @@ export default function RezvoLoader({ message = 'Loading...', size = 'md', inlin
   return (
     <div style={{
       display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-      height: '100%', minHeight: 200, background: '#fff', fontFamily: "'Figtree', sans-serif",
+      height: '100%', minHeight: 200, background: 'transparent', fontFamily: "'Figtree', sans-serif",
     }}>
-      <div style={{
-        width: s.box, height: s.box, borderRadius: s.box * 0.22,
-        background: '#1B4332', display: 'flex', alignItems: 'center', justifyContent: 'center',
-        animation: 'rezvo-pulse 1.5s ease-in-out infinite',
-        boxShadow: '0 4px 16px rgba(27,67,50,0.25)',
-      }}>
-        <span style={{ color: '#FAFAF7', fontWeight: 800, fontSize: s.r, fontFamily: "'Figtree', system-ui, sans-serif" }}>R</span>
-      </div>
+      {squares}
       {message && (
         <span style={{ marginTop: 14, fontSize: s.msgSize, fontWeight: 500, color: '#6B7280' }}>{message}</span>
       )}
@@ -50,8 +50,8 @@ export default function RezvoLoader({ message = 'Loading...', size = 'md', inlin
 }
 
 const rezvoStyles = `
-  @keyframes rezvo-pulse {
-    0%, 100% { transform: scale(1); opacity: 1; }
-    50% { transform: scale(1.08); opacity: 0.85; }
+  @keyframes rezvo-bounce {
+    0%, 80%, 100% { transform: translateY(0); opacity: 0.4; }
+    40% { transform: translateY(-12px); opacity: 1; }
   }
 `
