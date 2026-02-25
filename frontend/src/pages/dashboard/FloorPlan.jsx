@@ -367,6 +367,17 @@ const FloorPlan = ({ embedded = false }) => {
   const [dragOff, setDragOff] = useState({ x: 0, y: 0 })
   const canvasRef = useRef(null)
   const allZonesRef = useRef(null)
+  const [azW, setAzW] = useState(800)
+  const [azH, setAzH] = useState(500)
+  useEffect(() => {
+    if (!allZonesRef.current) return
+    const ro = new ResizeObserver(entries => {
+      const e = entries[0]
+      if (e) { setAzW(e.contentRect.width); setAzH(e.contentRect.height) }
+    })
+    ro.observe(allZonesRef.current)
+    return () => ro.disconnect()
+  }, [activeZone])
   const [showAddPanel, setShowAddPanel] = useState(false)
   const [addType, setAddType] = useState('table') // 'table' | 'fixture'
   const [addShape, setAddShape] = useState('round')
@@ -745,10 +756,11 @@ const FloorPlan = ({ embedded = false }) => {
                     const floorTables = floorElements.filter(e => e.type !== 'fixture')
                     const maxX = Math.max(300, ...floorElements.map(e => (e.x || 0) + (e.type === 'fixture' ? (e.w || 100) : 160)))
                     const maxY = Math.max(300, ...floorElements.map(e => (e.y || 0) + (e.type === 'fixture' ? (e.h || 50) : 160)))
-                    const containerW = allZonesRef.current ? (allZonesRef.current.offsetWidth / activeFloors.length) - 20 : 400
-                    const scaleX = containerW / (maxX + 40)
-                    const scaleY = 500 / (maxY + 40)
-                    const scale = Math.min(scaleX, scaleY, 1.0)
+                    const colW = (azW / activeFloors.length) - 2
+                    const colH = azH - 40
+                    const scaleX = colW / (maxX + 20)
+                    const scaleY = colH / (maxY + 20)
+                    const scale = Math.min(scaleX, scaleY, 1.2)
 
                     return (
                       <div key={floor.id} className="flex flex-col flex-1 min-w-[180px]" style={{ borderRight: fi < activeFloors.length - 1 ? '1px solid #E5E7EB' : 'none' }}>
