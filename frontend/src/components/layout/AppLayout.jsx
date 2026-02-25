@@ -15,7 +15,7 @@ const AppLayout = () => {
     if (!user) {
       navigate('/login')
     } else if (!isRezvoApp() && user.role !== 'owner' && user.role !== 'staff') {
-      navigate('/') // rezvo.co.uk: diners go to directory
+      navigate('/') // rezvo.app: diners go to directory
     }
   }, [user, navigate])
 

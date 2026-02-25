@@ -3,7 +3,7 @@ import { useBusiness } from "../contexts/BusinessContext";
 import { useAuth } from "../contexts/AuthContext";
 import api from "../utils/api";
 
-const API_BASE = import.meta.env.VITE_API_URL || "https://api.rezvo.co.uk";
+const API_BASE = import.meta.env.VITE_API_URL || "https://api.rezvo.app";
 const ANTHROPIC_API_KEY = import.meta.env.VITE_ANTHROPIC_API_KEY;
 
 const REZVO_KNOWLEDGE = `You are Rezvo's AI support assistant. You help restaurant owners, salon owners, barbers, spa owners and their customers with questions about the Rezvo booking platform.
@@ -324,7 +324,7 @@ Use this data to answer questions about today's bookings, covers, availability, 
       }));
 
       // Route through backend API (handles Anthropic key + CORS)
-      const API_URL = import.meta.env.VITE_API_URL || "https://api.rezvo.co.uk";
+      const API_URL = import.meta.env.VITE_API_URL || "https://api.rezvo.app";
       const response = await fetch(`${API_URL}/chatbot/chat`, {
         method: "POST",
         headers: {

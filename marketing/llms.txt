@@ -20,6 +20,6 @@ Rezvo is a "Save the High Street" platform that replaces high-commission platfor
 
 ## Links
 - Business Platform: https://rezvo.app
-- Consumer Directory: https://rezvo.co.uk
+- Consumer Directory: https://rezvo.app
 - Features: https://rezvo.app/features/
 - Industries: https://rezvo.app/industries/

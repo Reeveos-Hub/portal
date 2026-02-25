@@ -66,7 +66,7 @@ class OutreachDomain(BaseModel):
     Collection: outreach_domains
     One doc per purchased outreach domain.
     """
-    domain: str                                     # e.g. "getrezvo.co.uk"
+    domain: str                                     # e.g. "getrezvo.app"
     status: DomainStatus = DomainStatus.warming
     provider: str = "resend"                        # email provider
     resend_domain_id: Optional[str] = None          # Resend domain ID after verification
@@ -107,7 +107,7 @@ class OutreachAccount(BaseModel):
     Collection: outreach_accounts
     Individual email identity under a domain. 5 per domain.
     """
-    email: str                                      # e.g. "alex@getrezvo.co.uk"
+    email: str                                      # e.g. "alex@getrezvo.app"
     domain: str                                     # parent domain
     display_name: str = ""                          # e.g. "Alex from Rezvo"
     resend_api_key: Optional[str] = None            # Per-domain Resend key

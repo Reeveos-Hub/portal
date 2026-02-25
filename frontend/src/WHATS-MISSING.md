@@ -4,7 +4,7 @@
 
 | Area | Status | Notes |
 |------|--------|-------|
-| Consumer Site (rezvo.co.uk) | 🟡 80% | Pages done, SEO done, needs deploy + backend wiring |
+| Consumer Site (rezvo.app) | 🟡 80% | Pages done, SEO done, needs deploy + backend wiring |
 | Business Portal (rezvo.app) | 🟡 75% | UI done, onboarding done, needs data connection + stub pages |
 | Backend API | 🟢 85% | 143 endpoints, all core CRUD done |
 | Deployment | 🔴 Down | Server SSH timeout — needs VPS restart |
@@ -16,7 +16,7 @@
 ### 1. Server / Deployment
 - **VPS (178.128.33.73) is unreachable** — SSH connection timed out. Need to restart via DigitalOcean console
 - Neither frontend is deployed with latest code
-- Need: nginx configs for rezvo.co.uk (consumer) and rezvo.app (portal)
+- Need: nginx configs for rezvo.app (consumer) and rezvo.app (portal)
 - Need: PM2 or systemd service for FastAPI backend
 - Need: SSL certs (Let's Encrypt) for both domains
 

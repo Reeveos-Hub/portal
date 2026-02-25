@@ -28,7 +28,7 @@ Rezvo is a zero-commission booking and ordering platform built for UK restaurant
 
 **Two domains:**
 - rezvo.app — The business platform (owner dashboard, portal, admin, marketing site)
-- rezvo.co.uk — The consumer-facing directory where diners and customers find and book businesses
+- rezvo.app — The consumer-facing directory where diners and customers find and book businesses
 
 **Current status:** Pre-launch. Building and preparing for city-by-city rollout starting with Nottingham. First partner restaurant: Burg Burgers Nottingham.
 
@@ -95,13 +95,13 @@ HOW IT WORKS — BUSINESS OWNERS
 7. Share your booking link or embed the widget on your website
 8. Start accepting bookings immediately
 
-Your business also appears in the Rezvo directory (rezvo.co.uk) automatically.
+Your business also appears in the Rezvo directory (rezvo.app) automatically.
 
 ═══════════════════════════════════════════
 HOW IT WORKS — DINERS/CUSTOMERS
 ═══════════════════════════════════════════
 
-1. Browse rezvo.co.uk directory or visit a business's direct booking link
+1. Browse rezvo.app directory or visit a business's direct booking link
 2. Choose date, time, party size (restaurants) or service + staff (service businesses)
 3. Confirm booking — may require deposit depending on business settings
 4. Receive SMS/email confirmation with booking details
@@ -129,7 +129,7 @@ Rezvo integrates Uber Direct for delivery fulfillment. Unlike Deliveroo/JustEat/
 - Integrated with Sunmi terminals for order management
 
 ═══════════════════════════════════════════
-THE REZVO DIRECTORY (rezvo.co.uk)
+THE REZVO DIRECTORY (rezvo.app)
 ═══════════════════════════════════════════
 
 The directory is pre-populated with UK restaurants using Google Places API data. Even restaurants that haven't signed up appear with basic info. When a diner tries to book at an unregistered restaurant, they can request notifications for when that restaurant joins. Once enough interest accumulates, the system automatically sends warm lead emails to restaurant owners showing proof of demand ("23 people want to book with you on Rezvo"). This creates a self-sustaining conversion funnel.
@@ -186,8 +186,8 @@ CONTACT & SUPPORT
 ═══════════════════════════════════════════
 
 - Email: hello@rezvo.app
-- Support: support@rezvo.co.uk
-- Website: rezvo.app (business) / rezvo.co.uk (directory)
+- Support: support@rezvo.app
+- Website: rezvo.app (business & directory)
 - Response time: typically within a few hours
 - Team is UK-based
 

@@ -93,7 +93,7 @@ THE BUSINESS — REZVO
 - Yelp, TripAdvisor (directory/reviews)
 
 **Current Milestones:**
-- Platform live at rezvo.app and rezvo.co.uk
+- Platform live at rezvo.app
 - AI chatbot live and answering questions
 - First partner restaurants onboarding in Nottingham
 - Full email marketing suite built

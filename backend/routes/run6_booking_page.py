@@ -68,7 +68,7 @@ def _merge_defaults(bp):
 
 
 def _base_url():
-    return os.environ.get("REZVO_PUBLIC_URL", "https://rezvo.co.uk")
+    return os.environ.get("REZVO_PUBLIC_URL", "https://portal.rezvo.app")
 
 
 @router.get("/{business_id}")

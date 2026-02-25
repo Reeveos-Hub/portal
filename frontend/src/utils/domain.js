@@ -1,6 +1,6 @@
 /**
  * Domain config for Rezvo.app portal.
- * Booking URLs point to rezvo.co.uk (consumer directory).
+ * Booking URLs point to portal.rezvo.app/book/.
  */
 
 export const isRezvoApp = () => true
@@ -8,7 +8,7 @@ export const isRezvoCoUk = () => false
 
 export const getDomainConfig = () => ({
   domain: 'rezvo.app',
-  baseUrl: 'https://rezvo.co.uk',
+  baseUrl: 'https://portal.rezvo.app',
   supportEmail: 'support@rezvo.app',
   bookingPathPrefix: '/book/',
 })
