@@ -728,61 +728,77 @@ const FloorPlan = ({ embedded = false }) => {
       <div className="flex-1 flex overflow-hidden">
         <div className="flex-1 overflow-auto" style={{ background: '#FAFAF8' }}>
 
-          {/* ALL ZONES OVERVIEW — stacked vertically */}
+          {/* ALL ZONES OVERVIEW — single vertical oblong, floors separated by dividers */}
           {activeZone === 'all' ? (
-            <div className="p-5 space-y-0 overflow-auto" style={{ minWidth: 600 }}>
+            <div className="p-5 overflow-auto" style={{ minWidth: 600 }}>
               {activeFloors.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-20 text-gray-400">
                   <LayoutGrid size={48} strokeWidth={1} className="mb-3 opacity-30" />
                   <p className="text-sm font-bold">No elements yet</p>
                   <p className="text-xs mt-1">Unlock to start building your venue layout</p>
                 </div>
-              ) : (
-                <div className="space-y-0">
-                  {activeFloors.map((floor, fi) => {
-                    const floorElements = elements.filter(e => e.zone === floor.id)
-                    const floorTables = floorElements.filter(e => e.type !== 'fixture')
-                    // Calculate bounding box for tight auto-scaling
-                    const maxX = Math.max(300, ...floorElements.map(e => (e.x || 0) + (e.type === 'fixture' ? (e.w || 100) : 160)))
-                    const maxY = Math.max(150, ...floorElements.map(e => (e.y || 0) + (e.type === 'fixture' ? (e.h || 50) : 160)))
-                    const containerW = Math.min(800, (canvasRef.current?.parentElement?.clientWidth || 800) - 40)
-                    const scale = Math.min(0.6, containerW / (maxX + 60))
-                    const scaledH = Math.max(120, (maxY + 30) * scale)
+              ) : (() => {
+                // Calculate unified scale across all floors
+                const allMaxX = Math.max(400, ...elements.map(e => (e.x || 0) + (e.type === 'fixture' ? (e.w || 100) : 160)))
+                const scale = Math.min(0.55, 760 / (allMaxX + 60))
+                // Per-floor heights
+                const floorHeights = activeFloors.map(floor => {
+                  const fEls = elements.filter(e => e.zone === floor.id)
+                  const maxY = Math.max(100, ...fEls.map(e => (e.y || 0) + (e.type === 'fixture' ? (e.h || 50) : 160)))
+                  return Math.max(100, (maxY + 20) * scale)
+                })
+                const dividerH = 32 // space for label + line
+                const totalH = floorHeights.reduce((a, b) => a + b, 0) + (activeFloors.length - 1) * dividerH
 
-                    return (
-                      <div key={floor.id}>
-                        {/* Dashed divider between floors */}
-                        {fi > 0 && <div className="border-t-2 border-dashed border-gray-300 my-4" />}
-                        {/* Floor header */}
-                        <div className="flex items-center gap-2 mb-2">
-                          <floor.Icon size={16} color={floor.color} />
-                          <span className="text-sm font-extrabold" style={{ color: floor.color }}>{floor.label}</span>
-                          <span className="text-[10px] font-bold text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full">{floorTables.length} tables</span>
-                          <button onClick={() => setActiveZone(floor.id)} className="ml-auto text-[10px] font-bold text-gray-400 hover:text-[#1B4332] flex items-center gap-1 transition-colors">
-                            <Eye size={12} /> Full view
-                          </button>
-                        </div>
-                        {/* Floor canvas — tight height around content */}
-                        <div className="relative rounded-xl border border-gray-200 bg-white overflow-hidden cursor-pointer" onClick={() => setActiveZone(floor.id)}
-                          style={{ height: scaledH, backgroundImage: 'radial-gradient(circle, #E5E5E0 0.5px, transparent 0.5px)', backgroundSize: '16px 16px' }}>
-                          {/* Render fixtures at scale */}
+                return (
+                  <div className="relative rounded-2xl border border-gray-200 bg-white overflow-hidden"
+                    style={{ height: totalH, backgroundImage: 'radial-gradient(circle, #E5E5E0 0.5px, transparent 0.5px)', backgroundSize: '16px 16px' }}>
+                    {activeFloors.map((floor, fi) => {
+                      const floorElements = elements.filter(e => e.zone === floor.id)
+                      const floorTables = floorElements.filter(e => e.type !== 'fixture')
+                      const yOffset = floorHeights.slice(0, fi).reduce((a, b) => a + b, 0) + fi * dividerH
+
+                      return (
+                        <div key={floor.id}>
+                          {/* Divider + floor label between sections */}
+                          {fi > 0 && (
+                            <div style={{ position: 'absolute', left: 0, right: 0, top: yOffset - dividerH + 4, height: dividerH, display: 'flex', alignItems: 'center', zIndex: 10 }}>
+                              <div style={{ flex: 1, height: 1, background: '#D1D5DB', marginLeft: 16 }} />
+                              <div style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '2px 12px', background: '#fff', borderRadius: 8, fontSize: 10, fontWeight: 800, color: floor.color }}>
+                                <floor.Icon size={12} /> {floor.label}
+                                <span style={{ color: '#9CA3AF', fontWeight: 700 }}>{floorTables.length}</span>
+                              </div>
+                              <div style={{ flex: 1, height: 1, background: '#D1D5DB', marginRight: 16 }} />
+                            </div>
+                          )}
+                          {/* First floor label (top-left) */}
+                          {fi === 0 && (
+                            <div style={{ position: 'absolute', top: 8, left: 12, display: 'flex', alignItems: 'center', gap: 5, zIndex: 10, fontSize: 10, fontWeight: 800, color: floor.color, opacity: 0.6 }}>
+                              <floor.Icon size={12} /> {floor.label} <span style={{ color: '#9CA3AF' }}>{floorTables.length}</span>
+                            </div>
+                          )}
+                          {/* Render fixtures */}
                           {floorElements.filter(e => e.type === 'fixture').map(item => (
-                            <FixtureNode key={item.id} item={item} locked={true} isDragging={false} scale={scale}
+                            <FixtureNode key={item.id} item={{ ...item, y: (item.y || 0) + yOffset / scale }} locked={true} isDragging={false} scale={scale}
                               onMouseDown={() => {}} onTouchStart={() => {}} onDelete={() => {}} onRotate={() => {}} />
                           ))}
-                          {/* Render tables at scale */}
+                          {/* Render tables */}
                           {floorTables.map(table => (
-                            <TableNode key={table.id} table={table} status={table.status || 'available'} isSelected={false} locked={true} isDragging={false} scale={scale}
+                            <TableNode key={table.id} table={{ ...table, y: (table.y || 0) + yOffset / scale }} status={table.status || 'available'} isSelected={false} locked={true} isDragging={false} scale={scale}
                               onMouseDown={() => {}} onTouchStart={() => {}}
                               onClick={() => setActiveZone(floor.id)}
                               onEdit={() => {}} onDelete={() => {}} onRotate={() => {}} />
                           ))}
                         </div>
-                      </div>
-                    )
-                  })}
-                </div>
-              )}
+                      )
+                    })}
+                    {/* Full view hint */}
+                    <div style={{ position: 'absolute', bottom: 8, right: 12, fontSize: 9, fontWeight: 700, color: '#9CA3AF', opacity: 0.6 }}>
+                      Click any zone to view full
+                    </div>
+                  </div>
+                )
+              })()}
             </div>
           ) : (
             /* SINGLE FLOOR CANVAS */
