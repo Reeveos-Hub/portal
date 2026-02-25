@@ -96,7 +96,7 @@ export default function Onboarding() {
       <header className="h-16 bg-white border-b border-border flex items-center px-6 shrink-0">
         <div className="flex items-center gap-2.5">
           <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
-            <span className="text-background font-heading font-bold text-sm">R</span>
+            <span className="text-background font-heading font-bold text-sm">R.</span>
           </div>
           <span className="font-heading font-bold text-primary text-lg">Rezvo</span>
         </div>

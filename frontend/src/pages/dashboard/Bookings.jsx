@@ -1,38 +1,32 @@
 import RezvoLoader from "../../components/shared/RezvoLoader"
 /**
- * Bookings — styled to match 4-Brand Design - Bookings.html
- * Table with filters toolbar, bulk actions, and slide-over detail panel
+ * Bookings — Card-based browse view matching UXPilot Browse design
  */
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect } from 'react'
 import { useSearchParams } from 'react-router-dom'
-import { Search, CalendarDays, ChevronDown, ChevronRight, RefreshCw, Download, X, Check } from 'lucide-react'
+import { Search, ChevronRight, RefreshCw, Download, X, Check, Users, Armchair, Phone, Mail, Cake, Pencil, SlidersHorizontal, Clock } from 'lucide-react'
 import { useBusiness } from '../../contexts/BusinessContext'
 import api from '../../utils/api'
 
 const STATUS_CONFIG = {
-  confirmed: { label: 'Confirmed', bg: 'bg-green-50', text: 'text-green-700', border: 'border-green-200' },
-  pending: { label: 'Pending', bg: 'bg-amber-50', text: 'text-amber-700', border: 'border-amber-200' },
-  checked_in: { label: 'Checked In', bg: 'bg-blue-50', text: 'text-blue-700', border: 'border-blue-200' },
-  completed: { label: 'Completed', bg: 'bg-gray-100', text: 'text-gray-600', border: 'border-gray-200' },
-  cancelled: { label: 'Cancelled', bg: 'bg-red-50', text: 'text-red-700', border: 'border-red-200' },
-  no_show: { label: 'No-show', bg: 'bg-red-50', text: 'text-red-600', border: 'border-red-200' },
-}
-
-const PAYMENT_CONFIG = {
-  paid: { label: 'Paid', icon: 'check', bg: 'bg-green-50', text: 'text-green-700', border: 'border-green-200' },
-  unpaid: { label: 'Unpaid', icon: 'alert', bg: 'bg-amber-50', text: 'text-amber-700', border: 'border-amber-200' },
-  deposit: { label: 'Deposit Pd', icon: 'half', bg: 'bg-purple-50', text: 'text-purple-700', border: 'border-purple-200' },
-  refunded: { label: 'Refunded', icon: 'undo', bg: 'bg-gray-100', text: 'text-gray-600', border: 'border-gray-200' },
+  confirmed: { label: 'Confirmed', bg: 'bg-green-50', text: 'text-green-700', border: 'border-green-100', bar: 'bg-emerald-500' },
+  pending: { label: 'Pending', bg: 'bg-amber-50', text: 'text-amber-700', border: 'border-amber-100', bar: 'bg-amber-400' },
+  checked_in: { label: 'Seated', bg: 'bg-blue-50', text: 'text-blue-700', border: 'border-blue-100', bar: 'bg-blue-500' },
+  completed: { label: 'Finished', bg: 'bg-gray-100', text: 'text-gray-600', border: 'border-gray-200', bar: 'bg-gray-400' },
+  cancelled: { label: 'Cancelled', bg: 'bg-red-50', text: 'text-red-700', border: 'border-red-100', bar: 'bg-red-400' },
+  no_show: { label: 'No-show', bg: 'bg-red-50', text: 'text-red-600', border: 'border-red-100', bar: 'bg-red-500' },
+  late: { label: 'Late', bg: 'bg-yellow-50', text: 'text-yellow-700', border: 'border-yellow-100', bar: 'bg-yellow-400' },
+  waitlist: { label: 'Waitlist', bg: 'bg-gray-100', text: 'text-gray-600', border: 'border-gray-200', bar: 'bg-gray-300' },
 }
 
 const AVATAR_COLORS = [
-  { bg: 'bg-purple-100', text: 'text-purple-600', border: 'border-purple-200' },
-  { bg: 'bg-blue-100', text: 'text-blue-600', border: 'border-blue-200' },
-  { bg: 'bg-green-100', text: 'text-green-600', border: 'border-green-200' },
-  { bg: 'bg-amber-100', text: 'text-amber-600', border: 'border-amber-200' },
-  { bg: 'bg-pink-100', text: 'text-pink-600', border: 'border-pink-200' },
-  { bg: 'bg-gray-100', text: 'text-gray-600', border: 'border-gray-200' },
+  { bg: 'bg-amber-100', text: 'text-amber-700' },
+  { bg: 'bg-purple-100', text: 'text-purple-700' },
+  { bg: 'bg-blue-100', text: 'text-blue-700' },
+  { bg: 'bg-green-100', text: 'text-green-700' },
+  { bg: 'bg-pink-100', text: 'text-pink-600' },
+  { bg: 'bg-gray-800', text: 'text-white' },
 ]
 
 const getInitials = (name) => {
@@ -47,6 +41,20 @@ const getAvatarColor = (name) => {
   return AVATAR_COLORS[Math.abs(hash) % AVATAR_COLORS.length]
 }
 
+const formatTime = (timeStr) => {
+  if (!timeStr) return '—'
+  const parts = timeStr.split(' ')
+  const timePart = parts.length > 1 && parts[parts.length - 1].includes(':') ? parts[parts.length - 1] : parts[0]
+  if (timePart.includes(':')) {
+    const [h, m] = timePart.split(':').map(Number)
+    if (isNaN(h)) return timeStr
+    const ampm = h >= 12 ? 'PM' : 'AM'
+    const hour = h === 0 ? 12 : h > 12 ? h - 12 : h
+    return `${hour}:${String(m).padStart(2, '0')} ${ampm}`
+  }
+  return timeStr
+}
+
 const Bookings = () => {
   const { business, isDemo } = useBusiness()
   const [searchParams, setSearchParams] = useSearchParams()
@@ -57,10 +65,10 @@ const Bookings = () => {
   const [status, setStatus] = useState(searchParams.get('status') || 'all')
   const [search, setSearch] = useState('')
   const [searchDebounce, setSearchDebounce] = useState('')
+  const [activeTab, setActiveTab] = useState('all')
   const [detail, setDetail] = useState(null)
   const [detailLoading, setDetailLoading] = useState(false)
   const [updating, setUpdating] = useState(false)
-  const [selected, setSelected] = useState([])
 
   const bookingId = searchParams.get('booking')
   const bid = business?.id ?? business?._id
@@ -86,12 +94,13 @@ const Bookings = () => {
     finally { setDetailLoading(false) }
   }
 
-  const updateStatus = async (newStatus) => {
-    if (!bid || !detail?.id) return
+  const updateStatus = async (id, newStatus) => {
+    if (!bid || !id) return
     setUpdating(true)
     try {
-      await api.patch(`/bookings/business/${bid}/detail/${detail.id}/status`, { status: newStatus })
-      setDetail(d => d ? { ...d, status: newStatus } : null); fetchBookings()
+      await api.patch(`/bookings/business/${bid}/detail/${id}/status`, { status: newStatus })
+      fetchBookings()
+      if (detail?.id === id) setDetail(d => d ? { ...d, status: newStatus } : null)
     } catch (err) { alert(err.message || 'Failed to update') }
     finally { setUpdating(false) }
   }
@@ -102,184 +111,187 @@ const Bookings = () => {
 
   const openDetail = (id) => setSearchParams({ booking: id })
   const closeDetail = () => setSearchParams({})
-  const toggleSelect = (id) => setSelected(p => p.includes(id) ? p.filter(x => x !== id) : [...p, id])
-  const toggleSelectAll = () => { if (selected.length === displayBookings.length) setSelected([]); else setSelected(displayBookings.map(b => b.id)) }
 
   const demoBookings = [
-    { id: 'd1', reference: '#RZ-2938', customerName: 'Priya King', service: 'Table for 6', staff: 'Window', date: 'Wed, 25 Feb', time: '12:45', status: 'confirmed', payment: 'deposit', price: '£25.00' },
-    { id: 'd2', reference: '#RZ-2940', customerName: 'Yuki Johnson', service: 'Table for 2', staff: 'Patio', date: 'Wed, 25 Feb', time: '12:45', status: 'checked_in', payment: 'unpaid', price: '—' },
-    { id: 'd3', reference: '#RZ-2942', customerName: 'Grace King', service: 'Table for 2', staff: 'Main', date: 'Wed, 25 Feb', time: '13:45', status: 'pending', payment: 'unpaid', price: '—' },
-    { id: 'd4', reference: '#RZ-2944', customerName: 'Florence Wright', service: 'Table for 4', staff: 'Main', date: 'Wed, 25 Feb', time: '13:45', status: 'confirmed', payment: 'paid', price: '£120.00' },
-    { id: 'd5', reference: '#RZ-2946', customerName: 'Freddie Davies', service: 'Table for 4 · VIP', staff: 'Bar', date: 'Wed, 25 Feb', time: '14:00', status: 'confirmed', payment: 'deposit', price: '£50.00' },
-    { id: 'd6', reference: '#RZ-2948', customerName: 'Olivia Walker', service: 'Table for 8', staff: 'Private', date: 'Thu, 26 Feb', time: '19:00', status: 'confirmed', payment: 'paid', price: '£240.00' },
-    { id: 'd7', reference: '#RZ-2950', customerName: 'James Parker', service: 'Table for 2', staff: 'Window', date: 'Thu, 26 Feb', time: '20:00', status: 'cancelled', payment: 'refunded', price: '£25.00' },
-    { id: 'd8', reference: '#RZ-2952', customerName: 'Freddie White', service: 'Table for 2', staff: 'Main', date: 'Fri, 27 Feb', time: '17:00', status: 'confirmed', payment: 'unpaid', price: '—' },
+    { id: 'd1', reference: 'REZ-0001', customerName: 'John Doe', phone: '(555) 123-4567', email: 'john@example.com', service: 'Table for 4', guests: 4, table: 'T-02', zone: 'Main Dining', date: 'Today', time: '18:30', status: 'confirmed', vip: true },
+    { id: 'd2', reference: 'REZ-0002', customerName: 'Alice Smith', phone: '(555) 987-6543', service: 'Table for 2', guests: 2, date: 'Today', time: '18:45', status: 'late', vip: true, lateMinutes: 10 },
+    { id: 'd3', reference: 'REZ-0003', customerName: 'Michael Ross', phone: '(555) 222-3333', email: 'michael@mail.com', service: 'Table for 6', guests: 6, table: 'T-08', zone: 'Main Dining', date: 'Today', time: '19:00', status: 'confirmed', occasion: 'Birthday' },
+    { id: 'd4', reference: 'REZ-0004', customerName: 'Sarah Jenkins', phone: '(555) 444-5555', service: 'Table for 3', guests: 3, date: 'Today', time: '19:15', status: 'waitlist', waitMinutes: 25 },
+    { id: 'd5', reference: 'REZ-0005', customerName: 'David Lee', phone: '(555) 777-8888', email: 'david.lee@mail.com', service: 'Table for 2', guests: 2, table: 'T-14', zone: 'Patio', date: 'Today', time: '19:30', status: 'confirmed' },
+    { id: 'd6', reference: 'REZ-0006', customerName: 'Priya Patel', phone: '(555) 333-2222', email: 'priya@gmail.com', service: 'Table for 4', guests: 4, table: 'T-05', zone: 'Window', date: 'Today', time: '20:00', status: 'confirmed', vip: true },
+    { id: 'd7', reference: 'REZ-0007', customerName: 'Tom Walker', phone: '(555) 111-9999', service: 'Table for 8', guests: 8, table: 'T-12', zone: 'Private', date: 'Tomorrow', time: '19:00', status: 'pending', notes: 'Anniversary dinner' },
+    { id: 'd8', reference: 'REZ-0008', customerName: 'Grace Kim', phone: '(555) 666-7777', email: 'grace@company.com', service: 'Table for 2', guests: 2, table: 'T-03', zone: 'Bar', date: 'Tomorrow', time: '20:30', status: 'confirmed' },
   ]
 
   const displayBookings = (bookings.length > 0 || !isDemo) ? bookings : demoBookings
-  const staffColors = { 'Window': 'bg-emerald-500', 'Main': 'bg-blue-500', 'Bar': 'bg-amber-500', 'Patio': 'bg-green-500', 'Private': 'bg-purple-500' }
+
+  const getPrimaryAction = (b) => {
+    const s = b.status
+    if (s === 'confirmed' || s === 'late') return { label: 'Seat', action: () => updateStatus(b.id, 'checked_in') }
+    if (s === 'pending') return { label: 'Confirm', action: () => updateStatus(b.id, 'confirmed') }
+    if (s === 'waitlist') return { label: 'Notify', action: null, outline: true }
+    if (s === 'checked_in') return { label: 'Checkout', action: () => updateStatus(b.id, 'completed') }
+    return null
+  }
 
   return (
     <div className="-m-6 lg:-m-8 flex flex-col h-[calc(100vh-4rem)]">
-      {/* Filters Toolbar */}
-      <div className="px-6 py-4 flex flex-col md:flex-row md:items-center md:justify-between gap-4 shrink-0 bg-white border-b border-border">
-        <div className="flex flex-col sm:flex-row gap-3 flex-1">
-          <div className="relative flex-1 max-w-md">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
-            <input type="text" placeholder="Search by client, booking ref, or email..." value={search} onChange={e => setSearch(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 bg-white border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all shadow-sm" />
+      {/* Search & Controls */}
+      <div className="px-6 md:px-8 pt-6 pb-4 space-y-4 shrink-0">
+        <div className="relative max-w-2xl flex gap-2">
+          <div className="relative flex-1">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+            <input type="text" placeholder="Search by guest name, phone..." value={search} onChange={e => setSearch(e.target.value)}
+              className="w-full pl-12 pr-4 py-3.5 bg-white border border-gray-200 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-base transition-all" />
           </div>
-          <div className="flex gap-2 overflow-x-auto pb-1 sm:pb-0">
-            <button className="flex items-center gap-2 px-3 py-2 bg-white border border-border rounded-lg text-sm font-medium text-primary hover:border-primary/50 transition-colors whitespace-nowrap shadow-sm">
-              <CalendarDays className="w-4 h-4 text-gray-400" /><span>This Week</span><ChevronDown className="w-3 h-3 text-gray-400 ml-1" />
-            </button>
-            <div className="relative">
-              <button onClick={() => document.getElementById('status-drop').classList.toggle('hidden')}
-                className="flex items-center gap-2 px-3 py-2 bg-white border border-border rounded-lg text-sm font-medium text-primary hover:border-primary/50 transition-colors whitespace-nowrap shadow-sm cursor-pointer">
-                <span>{status === 'all' ? 'All Status' : (STATUS_CONFIG[status]?.label || status)}</span>
-                <ChevronDown className="w-3 h-3 text-gray-400" />
-              </button>
-              <div id="status-drop" className="hidden absolute top-full left-0 mt-1 bg-white border border-border rounded-lg shadow-xl z-50 min-w-[160px] py-1" style={{ fontFamily: "'Figtree', sans-serif" }}>
-                {[{ key: 'all', label: 'All Status' }, ...Object.entries(STATUS_CONFIG).map(([k, v]) => ({ key: k, label: v.label }))].map(opt => (
-                  <button key={opt.key} onClick={() => { setStatus(opt.key); document.getElementById('status-drop').classList.add('hidden') }}
-                    className={`w-full text-left px-3 py-2 text-sm hover:bg-gray-50 transition-colors ${status === opt.key ? 'font-bold text-primary bg-primary/5' : 'text-gray-700'}`}>
-                    {opt.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-          </div>
+          <button className="md:hidden bg-white border border-gray-200 text-gray-600 px-4 rounded-xl shadow-sm hover:bg-gray-50"><SlidersHorizontal className="w-5 h-5" /></button>
         </div>
-        <div className="flex items-center gap-2">
-          <button onClick={fetchBookings} className="p-2 text-gray-400 hover:text-primary hover:bg-white rounded-lg transition-colors" title="Refresh"><RefreshCw className="w-4 h-4" /></button>
-          <button className="flex items-center gap-2 px-3 py-2 bg-white border border-border rounded-lg text-sm font-bold text-gray-500 hover:text-primary transition-colors shadow-sm">
-            <Download className="w-4 h-4" /><span className="hidden sm:inline">Export</span>
-          </button>
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+          <div className="flex bg-gray-200/50 p-1 rounded-xl">
+            {['all', 'waitlist', 'history'].map(tab => (
+              <button key={tab} onClick={() => setActiveTab(tab)}
+                className={`px-4 py-2 rounded-lg font-semibold text-sm transition-all ${activeTab === tab ? 'bg-white text-primary shadow-sm' : 'text-gray-500 hover:text-gray-900'}`}>
+                {tab === 'all' ? 'All Bookings' : tab === 'waitlist' ? 'Waitlist' : 'History'}
+              </button>
+            ))}
+          </div>
+          <div className="flex items-center gap-3 self-end sm:self-auto">
+            <button onClick={fetchBookings} className="p-2 text-gray-400 hover:text-primary rounded-lg hover:bg-white transition-colors" title="Refresh"><RefreshCw className="w-4 h-4" /></button>
+            <button className="flex items-center gap-2 px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm font-semibold text-gray-600 hover:text-primary shadow-sm transition-colors">
+              <Download className="w-4 h-4" /> <span className="hidden sm:inline">Export</span>
+            </button>
+          </div>
         </div>
       </div>
 
-      {selected.length > 0 && (
-        <div className="bg-white border-b border-border px-6 py-2 flex items-center gap-4 text-sm shrink-0">
-          <span className="font-bold text-primary">{selected.length} selected</span>
-          <div className="h-4 w-px bg-border" />
-          <button className="text-gray-500 hover:text-primary font-medium">Cancel Bookings</button>
-          <button className="text-gray-500 hover:text-primary font-medium">Send Message</button>
-        </div>
-      )}
+      {/* Results */}
+      <div className="flex-1 overflow-y-auto px-6 md:px-8 pb-8">
+        <h3 className="text-sm font-bold text-gray-500 mb-4">Showing {displayBookings.length} result{displayBookings.length !== 1 ? 's' : ''}</h3>
 
-      <div className="flex-1 overflow-auto px-6 pb-6 pt-4">
         {loading ? (
           <RezvoLoader message="Loading bookings..." />
         ) : displayBookings.length === 0 ? (
-          <div className="bg-white border border-border rounded-xl shadow-sm p-12 text-center">
-            <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4"><CalendarDays className="w-8 h-8 text-gray-400" /></div>
+          <div className="bg-white border border-gray-200 rounded-xl shadow-sm p-12 text-center">
+            <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4"><Users className="w-8 h-8 text-gray-400" /></div>
             <h3 className="font-heading font-bold text-lg text-primary mb-2">No bookings found</h3>
             <p className="text-sm text-gray-500">Try adjusting your filters or search terms.</p>
           </div>
         ) : (
-          <div className="bg-white border border-border rounded-xl shadow-sm overflow-hidden">
-            <div className="overflow-x-auto">
-              <table className="w-full text-left border-collapse min-w-[800px]">
-                <thead>
-                  <tr className="bg-gray-50 border-b border-border text-xs uppercase tracking-wider text-gray-500 font-bold">
-                    <th className="p-4 w-12 text-center"><input type="checkbox" checked={selected.length === displayBookings.length && displayBookings.length > 0} onChange={toggleSelectAll} className="w-4 h-4 text-primary rounded cursor-pointer" /></th>
-                    <th className="p-4">Client / Ref</th><th className="p-4">Table & Zone</th><th className="p-4">Date & Time</th>
-                    <th className="p-4">Status</th><th className="p-4">Payment</th><th className="p-4 text-right">Price</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-border text-sm">
-                  {displayBookings.map(b => {
-                    const sc = STATUS_CONFIG[b.status] || STATUS_CONFIG.confirmed
-                    const pc = PAYMENT_CONFIG[b.payment] || PAYMENT_CONFIG.unpaid
-                    const av = getAvatarColor(b.customerName)
-                    return (
-                      <tr key={b.id} className="group transition-colors hover:bg-gray-50/80 cursor-pointer" onClick={() => openDetail(b.id)}>
-                        <td className="p-4 text-center" onClick={e => e.stopPropagation()}>
-                          <input type="checkbox" checked={selected.includes(b.id)} onChange={() => toggleSelect(b.id)} className="w-4 h-4 text-primary rounded cursor-pointer" />
-                        </td>
-                        <td className="p-4"><div className="flex items-center gap-3"><div className={`w-8 h-8 rounded-full ${av.bg} ${av.text} flex items-center justify-center font-bold text-xs border ${av.border}`}>{getInitials(b.customerName)}</div><div><div className="font-bold text-primary">{b.customerName}</div><div className="text-[10px] text-gray-400 font-mono">{b.reference}</div></div></div></td>
-                        <td className="p-4"><div className="font-medium text-primary">{b.service}</div>{b.staff && <div className="text-xs text-gray-400 flex items-center gap-1"><div className={`w-2 h-2 rounded-full ${staffColors[b.staff] || 'bg-gray-400'}`} />{b.staff}</div>}</td>
-                        <td className="p-4"><div className="font-medium text-primary">{b.date}</div><div className="text-xs text-gray-400">{b.time}</div></td>
-                        <td className="p-4"><span className={`inline-flex items-center px-2 py-1 rounded text-xs font-bold ${sc.bg} ${sc.text} border ${sc.border}`}>{sc.label}</span></td>
-                        <td className="p-4"><span className={`inline-flex items-center gap-1.5 px-2 py-1 rounded text-xs font-bold ${pc.bg} ${pc.text} border ${pc.border}`}>{pc.label}</span></td>
-                        <td className="p-4 text-right font-bold text-primary">{b.price || '—'}</td>
-                      </tr>
-                    )
-                  })}
-                </tbody>
-              </table>
-            </div>
-            <div className="px-6 py-3 border-t border-border flex justify-between items-center bg-gray-50 text-sm">
-              <span className="text-xs text-gray-500">Showing 1-{displayBookings.length} of {pagination.total || displayBookings.length}</span>
-              <div className="flex gap-2">
-                <button className="px-3 py-1 border border-border bg-white rounded text-xs font-bold text-gray-400 disabled:opacity-50" disabled>Previous</button>
-                <button className="px-3 py-1 border border-border bg-white rounded text-xs font-bold text-primary hover:bg-gray-50">Next</button>
-              </div>
+          <div className="space-y-4">
+            {displayBookings.map(b => {
+              const sc = STATUS_CONFIG[b.status] || STATUS_CONFIG.confirmed
+              const av = getAvatarColor(b.customerName)
+              const primary = getPrimaryAction(b)
+              const guests = b.guests || b.partySize || parseInt(b.service?.match(/\d+/)?.[0]) || 2
+              const table = b.table || b.tableName
+              const phone = b.phone || b.customer?.phone
+              const email = b.email || b.customer?.email
+              const time = formatTime(b.time)
+
+              return (
+                <div key={b.id} onClick={() => openDetail(b.id)}
+                  className="bg-white rounded-xl border border-gray-200 shadow-[0_2px_10px_rgba(0,0,0,0.03)] hover:shadow-[0_10px_30px_-5px_rgba(27,67,50,0.1)] transition-all duration-200 p-5 flex flex-col md:flex-row gap-4 md:gap-5 items-start md:items-center cursor-pointer group relative overflow-hidden">
+                  <div className={`absolute left-0 top-0 bottom-0 w-1 ${sc.bar}`} />
+
+                  <div className="flex flex-row md:flex-col items-center md:items-start gap-3 md:gap-1 min-w-[100px] pl-2">
+                    <span className="text-xl font-bold text-gray-900">{time}</span>
+                    <span className={`px-2.5 py-1 rounded-full text-xs font-bold ${sc.bg} ${sc.text} border ${sc.border}`}>
+                      {b.lateMinutes ? `Late (${b.lateMinutes}m)` : sc.label}
+                    </span>
+                  </div>
+
+                  <div className="flex-1 flex items-center gap-4">
+                    <div className={`w-12 h-12 rounded-full ${av.bg} ${av.text} font-bold text-lg flex items-center justify-center shadow-sm shrink-0`}>{getInitials(b.customerName)}</div>
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <h4 className="text-lg font-bold text-gray-900 group-hover:text-primary transition-colors">{b.customerName}</h4>
+                        {b.vip && <span className="px-1.5 py-0.5 rounded bg-[#D4A373] text-[10px] font-bold text-white uppercase tracking-wide">VIP</span>}
+                      </div>
+                      <p className="text-sm text-gray-500 flex items-center gap-3 mt-0.5 flex-wrap">
+                        {phone && <span className="flex items-center gap-1"><Phone className="w-3 h-3" /> {phone}</span>}
+                        {phone && email && <span className="text-gray-300">|</span>}
+                        {email && <span className="flex items-center gap-1"><Mail className="w-3 h-3" /> {email}</span>}
+                        {b.occasion && <><span className="text-gray-300">|</span><span className="text-[#D4A373] font-medium flex items-center gap-1"><Cake className="w-3 h-3" /> {b.occasion}</span></>}
+                        {b.waitMinutes && <span className="flex items-center gap-1 text-gray-400"><Clock className="w-3 h-3" /> ~{b.waitMinutes}m wait</span>}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex flex-wrap gap-4 md:gap-6 items-center text-sm text-gray-600">
+                    <div className="flex items-center gap-2" title="Party Size">
+                      <div className="w-8 h-8 rounded-lg bg-gray-50 flex items-center justify-center text-gray-700 border border-gray-100"><Users className="w-4 h-4" /></div>
+                      <span className="font-semibold">{guests} Guest{guests !== 1 ? 's' : ''}</span>
+                    </div>
+                    <div className="flex items-center gap-2" title="Table">
+                      <div className={`w-8 h-8 rounded-lg bg-gray-50 flex items-center justify-center border border-gray-100 ${table ? 'text-gray-700' : 'text-gray-400'}`}><Armchair className="w-4 h-4" /></div>
+                      {table ? <span className="font-semibold">{table}</span> : <span className="font-medium text-gray-400 italic">Unassigned</span>}
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-2 ml-auto mt-2 md:mt-0" onClick={e => e.stopPropagation()}>
+                    {primary && (
+                      <button onClick={primary.action} disabled={updating}
+                        className={`px-4 py-2 text-sm font-semibold rounded-lg shadow-sm transition-colors ${primary.outline ? 'bg-white border border-primary text-primary hover:bg-gray-50' : 'bg-primary hover:bg-primary-hover text-white'}`}>
+                        {primary.label}
+                      </button>
+                    )}
+                    <button className="w-9 h-9 flex items-center justify-center rounded-lg border border-gray-200 text-gray-400 hover:text-primary hover:bg-gray-50 transition-all" title="Edit"><Pencil className="w-4 h-4" /></button>
+                    <button onClick={() => updateStatus(b.id, 'cancelled')} className="w-9 h-9 flex items-center justify-center rounded-lg border border-gray-200 text-gray-400 hover:text-red-500 hover:border-red-100 hover:bg-red-50 transition-all" title="Cancel"><X className="w-4 h-4" /></button>
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        )}
+
+        {displayBookings.length > 0 && (
+          <div className="mt-8 flex items-center justify-between border-t border-gray-200 pt-6">
+            <div className="text-sm text-gray-500">Showing <span className="font-bold text-gray-900">1-{displayBookings.length}</span> of <span className="font-bold text-gray-900">{pagination.total || displayBookings.length}</span> results</div>
+            <div className="flex items-center gap-2">
+              <button className="px-3 py-2 border border-gray-200 rounded-lg text-sm text-gray-400 cursor-not-allowed bg-gray-50">Previous</button>
+              <button className="px-3 py-2 bg-primary text-white rounded-lg text-sm font-medium shadow-sm">1</button>
+              <button className="px-3 py-2 border border-gray-200 rounded-lg text-sm text-gray-600 hover:bg-gray-50 transition-colors">Next</button>
             </div>
           </div>
         )}
       </div>
 
-      {/* Detail Overlay */}
       {detail && <div className="fixed inset-0 bg-black/20 z-30 lg:hidden" onClick={closeDetail} />}
-
-      {/* Detail Side Panel */}
-      <div className={`fixed inset-y-0 right-0 w-full sm:w-[450px] bg-white shadow-2xl transform transition-transform duration-300 z-40 border-l border-border flex flex-col ${detail ? 'translate-x-0' : 'translate-x-full'}`}>
+      <div className={`fixed inset-y-0 right-0 w-full sm:w-[450px] bg-white shadow-2xl transform transition-transform duration-300 z-40 border-l border-gray-200 flex flex-col ${detail ? 'translate-x-0' : 'translate-x-full'}`}>
         {detail && (
           <>
-            <div className="h-16 border-b border-border flex items-center justify-between px-6 bg-gray-50 shrink-0">
+            <div className="h-16 border-b border-gray-200 flex items-center justify-between px-6 bg-gray-50 shrink-0">
               <div className="flex items-center gap-2">
-                {(() => { const sc = STATUS_CONFIG[detail.status] || STATUS_CONFIG.confirmed; return <span className={`px-2 py-1 rounded ${sc.bg} ${sc.text} text-xs font-bold border ${sc.border}`}>{sc.label?.toUpperCase()}</span> })()}
+                {(() => { const sc = STATUS_CONFIG[detail.status] || STATUS_CONFIG.confirmed; return <span className={`px-2.5 py-1 rounded-full ${sc.bg} ${sc.text} text-xs font-bold border ${sc.border}`}>{sc.label}</span> })()}
                 <span className="text-xs text-gray-400 font-mono">{detail.reference}</span>
               </div>
               <button className="w-8 h-8 rounded hover:bg-gray-200 flex items-center justify-center text-gray-400" onClick={closeDetail}><X className="w-4 h-4" /></button>
             </div>
-            {detailLoading ? (
-              <RezvoLoader message="Loading..." size="sm" />
-            ) : (
+            {detailLoading ? <RezvoLoader message="Loading..." size="sm" /> : (
               <>
                 <div className="flex-1 overflow-y-auto p-6 space-y-6">
                   <div className="flex items-start gap-4">
-                    {(() => { const n = detail.customer?.name || detail.customerName || ''; const av = getAvatarColor(n); return <div className={`w-14 h-14 rounded-full ${av.bg} flex items-center justify-center ${av.text} font-bold text-xl border ${av.border}`}>{getInitials(n)}</div> })()}
+                    {(() => { const n = detail.customer?.name || detail.customerName || ''; const av = getAvatarColor(n); return <div className={`w-14 h-14 rounded-full ${av.bg} flex items-center justify-center ${av.text} font-bold text-xl shadow-sm`}>{getInitials(n)}</div> })()}
                     <div className="flex-1">
                       <h2 className="text-xl font-heading font-bold text-primary">{detail.customer?.name || detail.customerName}</h2>
-                      <p className="text-sm text-gray-500 mt-1">{[detail.customer?.phone, detail.customer?.email].filter(Boolean).join(' • ')}</p>
+                      <p className="text-sm text-gray-500 mt-1">{[detail.customer?.phone || detail.phone, detail.customer?.email || detail.email].filter(Boolean).join(' • ')}</p>
                     </div>
                   </div>
-                  <div className="grid grid-cols-4 gap-2">
-                    {[{icon:'MessageSquare',label:'Message',color:'text-primary',action:null},{icon:'UserX',label:'No-Show',color:'text-red-500',action:'no_show'},{icon:'CalendarX',label:'Cancel',color:'text-gray-500',action:'cancelled'},{icon:'History',label:'History',color:'text-gray-500',action:null}].map(a => (
-                      <button key={a.label} onClick={() => a.action && updateStatus(a.action)} disabled={updating}
-                        className="flex flex-col items-center justify-center p-3 rounded-lg bg-gray-50 border border-border hover:bg-gray-100 hover:border-primary/30 transition-all group">
-                        <span className={`${a.color} mb-1 group-hover:scale-110 transition-transform text-sm`}>
-                          {a.icon === 'MessageSquare' ? '💬' : a.icon === 'UserX' ? '🚫' : a.icon === 'CalendarX' ? '✕' : '🕐'}
-                        </span>
-                        <span className="text-[10px] font-bold text-gray-500">{a.label}</span>
-                      </button>
+                  <div className="grid grid-cols-2 gap-4">
+                    {[{l:'Date',v:detail.date},{l:'Time',v:formatTime(detail.time)},{l:'Guests',v:detail.guests||detail.partySize||'—'},{l:'Table',v:detail.table||detail.tableName||'Unassigned'}].map(d => (
+                      <div key={d.l} className="bg-gray-50 p-3 rounded-lg border border-gray-200">
+                        <p className="text-[10px] font-bold text-gray-400 uppercase">{d.l}</p>
+                        <p className="text-sm font-bold text-primary mt-1">{d.v}</p>
+                      </div>
                     ))}
                   </div>
-                  <hr className="border-border" />
-                  <div className="space-y-4">
-                    <h3 className="text-sm font-bold text-primary uppercase tracking-wide">Details</h3>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="bg-gray-50 p-3 rounded-lg border border-border"><p className="text-[10px] font-bold text-gray-400 uppercase">Date</p><p className="text-sm font-bold text-primary mt-1">{detail.date}</p></div>
-                      <div className="bg-gray-50 p-3 rounded-lg border border-border"><p className="text-[10px] font-bold text-gray-400 uppercase">Time</p><p className="text-sm font-bold text-primary mt-1">{detail.time}</p></div>
-                    </div>
-                    <div className="bg-white border border-border rounded-lg overflow-hidden">
-                      <div className="p-4 border-b border-border flex justify-between items-start bg-gray-50/50">
-                        <div className="flex items-start gap-3">
-                          <div className="w-10 h-10 rounded bg-emerald-100 flex items-center justify-center text-emerald-600 shrink-0"><span className="text-base">🍽️</span></div>
-                          <div><p className="text-sm font-bold text-primary">{detail.service?.name || detail.service}</p><p className="text-xs text-gray-500 mt-0.5">{detail.service?.duration || ''} {detail.staff && `with ${detail.staff}`}</p></div>
-                        </div>
-                      </div>
-                      {detail.notes && <div className="p-3 bg-gray-50/30"><label className="text-[10px] font-bold text-gray-400 uppercase block mb-1">Notes</label><p className="text-xs text-primary/80">{detail.notes}</p></div>}
-                    </div>
-                  </div>
+                  {detail.notes && <div className="bg-gray-50 p-3 rounded-lg border border-gray-200"><label className="text-[10px] font-bold text-gray-400 uppercase block mb-1">Notes</label><p className="text-sm text-primary/80">{detail.notes}</p></div>}
                 </div>
-                <div className="p-4 border-t border-border bg-gray-50 flex gap-3 shrink-0">
-                  <button className="flex-1 bg-white border border-border text-primary font-bold py-2.5 rounded-lg hover:bg-gray-100 transition-colors text-sm">Reschedule</button>
-                  {detail.status === 'confirmed' && <button onClick={() => updateStatus('checked_in')} disabled={updating} className="flex-1 bg-primary text-white font-bold py-2.5 rounded-lg hover:bg-primary-hover transition-colors shadow-lg flex items-center justify-center gap-2 text-sm"><span>Check In</span><ChevronRight className="w-4 h-4" /></button>}
-                  {detail.status === 'checked_in' && <button onClick={() => updateStatus('completed')} disabled={updating} className="flex-1 bg-primary text-white font-bold py-2.5 rounded-lg hover:bg-primary-hover transition-colors shadow-lg flex items-center justify-center gap-2 text-sm"><span>Checkout</span><ChevronRight className="w-4 h-4" /></button>}
-                  {detail.status === 'pending' && <button onClick={() => updateStatus('confirmed')} disabled={updating} className="flex-1 bg-primary text-white font-bold py-2.5 rounded-lg hover:bg-primary-hover transition-colors shadow-lg flex items-center justify-center gap-2 text-sm"><span>Confirm</span><Check className="w-4 h-4" /></button>}
+                <div className="p-4 border-t border-gray-200 bg-gray-50 flex gap-3 shrink-0">
+                  <button className="flex-1 bg-white border border-gray-200 text-primary font-bold py-2.5 rounded-lg hover:bg-gray-100 transition-colors text-sm">Reschedule</button>
+                  {detail.status === 'confirmed' && <button onClick={() => updateStatus(detail.id, 'checked_in')} disabled={updating} className="flex-1 bg-primary text-white font-bold py-2.5 rounded-lg hover:bg-primary-hover transition-colors shadow-lg flex items-center justify-center gap-2 text-sm"><span>Seat</span><ChevronRight className="w-4 h-4" /></button>}
+                  {detail.status === 'checked_in' && <button onClick={() => updateStatus(detail.id, 'completed')} disabled={updating} className="flex-1 bg-primary text-white font-bold py-2.5 rounded-lg hover:bg-primary-hover transition-colors shadow-lg flex items-center justify-center gap-2 text-sm"><span>Checkout</span><ChevronRight className="w-4 h-4" /></button>}
+                  {detail.status === 'pending' && <button onClick={() => updateStatus(detail.id, 'confirmed')} disabled={updating} className="flex-1 bg-primary text-white font-bold py-2.5 rounded-lg hover:bg-primary-hover transition-colors shadow-lg flex items-center justify-center gap-2 text-sm"><span>Confirm</span><Check className="w-4 h-4" /></button>}
                 </div>
               </>
             )}

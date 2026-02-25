@@ -393,8 +393,8 @@ const Sidebar = ({ open, onNavigate: closeMobile }) => {
         <div style={{ width: RAIL_W, background: T.forest, display: 'flex', flexDirection: 'column', zIndex: 20, flexShrink: 0 }}>
           {/* Logo */}
           <div style={{ height: 64, display: 'flex', alignItems: 'center', justifyContent: 'center', borderBottom: '1px solid rgba(255,255,255,0.08)', flexShrink: 0 }}>
-            <div style={{ width: 34, height: 34, borderRadius: 10, background: T.cream, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <span style={{ color: '#D4A017', fontWeight: 800, fontSize: 16, fontFamily: 'Figtree,sans-serif' }}>R</span>
+            <div style={{ width: 34, height: 34, borderRadius: 10, background: '#D4A373', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 2px 8px rgba(0,0,0,0.15)' }}>
+              <span style={{ color: '#1B4332', fontWeight: 700, fontSize: 15, fontFamily: 'Figtree,sans-serif' }}>R.</span>
             </div>
           </div>
 

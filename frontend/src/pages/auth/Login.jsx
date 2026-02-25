@@ -39,8 +39,8 @@ const Login = () => {
           <div className="absolute inset-0 bg-gradient-to-t from-[#1B4332] via-[#1B4332]/80 to-[#1B4332]/40" />
         </div>
         <a href="/" className="relative z-10 flex items-center gap-3 no-underline">
-          <div className="w-11 h-11 bg-white rounded-xl flex items-center justify-center shadow-sm">
-            <span className="text-[#D4A017] font-extrabold text-2xl" style={{fontFamily:'Figtree,sans-serif'}}>R</span>
+          <div className="w-11 h-11 bg-[#D4A373] rounded-xl flex items-center justify-center shadow-md">
+            <span className="text-[#1B4332] font-bold text-xl" style={{fontFamily:'Figtree,sans-serif'}}>R.</span>
           </div>
           <span className="font-heading font-extrabold text-2xl tracking-tight text-white">Rezvo</span>
         </a>

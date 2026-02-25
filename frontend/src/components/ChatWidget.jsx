@@ -150,7 +150,7 @@ const ChatWidget = () => {
       }}>
         {/* Header */}
         <div style={{ background: FOREST, padding: '18px 20px', display: 'flex', alignItems: 'center', gap: 12, flexShrink: 0 }}>
-          <div style={{ width: 40, height: 40, borderRadius: 12, background: MINT, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: 18, color: FOREST }}>R</div>
+          <div style={{ width: 40, height: 40, borderRadius: 12, background: '#D4A373', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: 16, color: '#1B4332', boxShadow: '0 2px 8px rgba(0,0,0,0.15)' }}>R.</div>
           <div>
             <div style={{ color: '#fff', fontSize: 15, fontWeight: 700 }}>Rezvo Support</div>
             <div style={{ color: MINT, fontSize: 11, fontWeight: 600, marginTop: 2, opacity: 0.9 }}>● Online — replies instantly</div>
