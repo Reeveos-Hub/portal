@@ -293,23 +293,24 @@ const FloorPlan = ({ embedded = false }) => {
   useEffect(() => {
     if (!bid) { setLoading(false); return }
     setLoading(true)
+    const defaultFloors = [{ id: 'main', name: 'Main Floor', elements: [] }]
     api.get(`/tables/business/${bid}/floor-plan`)
       .then(data => {
         const f = data.floors || []
         if (f.length === 0) {
-          // First time: create a default Main Floor
-          setFloors([{ id: 'main', name: 'Main Floor', elements: [] }])
+          setFloors(defaultFloors)
           setActiveFloor('main')
+          savedRef.current = JSON.stringify(defaultFloors)
         } else {
           setFloors(f)
           setActiveFloor(f[0]?.id || 'all')
+          savedRef.current = JSON.stringify(f)
         }
-        savedRef.current = JSON.stringify(f)
       })
       .catch(() => {
-        setFloors([{ id: 'main', name: 'Main Floor', elements: [] }])
+        setFloors(defaultFloors)
         setActiveFloor('main')
-        savedRef.current = '[]'
+        savedRef.current = JSON.stringify(defaultFloors)
       })
       .finally(() => setLoading(false))
   }, [bid])
@@ -325,13 +326,20 @@ const FloorPlan = ({ embedded = false }) => {
     setSaving(true)
     try {
       if (bid) {
-        await api.put(`/tables/business/${bid}/floor-plan`, { floors, width: 1000, height: 800 })
+        const payload = { floors, width: 1000, height: 800 }
+        try {
+          await api.put(`/tables/business/${bid}/floor-plan`, payload)
+        } catch {
+          // Fallback to POST
+          await api.post(`/tables/business/${bid}/floor-plan`, payload)
+        }
       }
       savedRef.current = JSON.stringify(floors)
       setHasChanges(false)
       setLocked(true)
       showToast('Layout saved')
     } catch (err) {
+      console.error('Floor plan save error:', err)
       showToast('Save failed — try again')
     }
     setSaving(false)
