@@ -39,7 +39,7 @@ export const BusinessProvider = ({ children }) => {
   const value = useMemo(() => {
     const business = tierCtx?.business
     const businessType = devTypeOverride ?? (business?.type === 'restaurant' ? 'restaurant' : 'services')
-    const tier = devTierOverride ?? mapTier(business?.tier || business?.rezvo_tier) ?? 'growth'
+    const tier = devTierOverride ?? mapTier(business?.tier || business?.rezvo_tier) ?? 'enterprise'
 
     const setBusinessType = (type) => setDevTypeOverride(type)
     const cycleTier = () => {

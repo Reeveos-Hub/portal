@@ -13,7 +13,7 @@ import {
   Users, Globe, ShoppingBag, BookUser, Star, BarChart3, CreditCard,
   LayoutGrid, Megaphone, Settings, HelpCircle,
   ChevronLeft, ChevronRight, ChevronDown, Lock,
-  Send, Bot, Linkedin
+  Send, Bot, Linkedin, Bell
 } from 'lucide-react'
 
 /* ── Color tokens ── */
@@ -48,6 +48,7 @@ const ICON_MAP = {
   'fa-paper-plane': Send,
   'fa-robot': Bot,
   'fa-linkedin': Linkedin,
+  'fa-bell': Bell,
 }
 
 /* ── Build grouped sections from nav config ── */
@@ -58,7 +59,7 @@ function buildSections(navItems, tier, businessType) {
   // Group: MAIN
   const mainChildren = [
     ...(navItems.main || []).map(i => ({
-      id: i.id, label: i.label, path: i.path, Icon: iconFor(i), locked: locked(i),
+      id: i.id, label: i.label, path: i.path, Icon: iconFor(i), locked: locked(i), badge: i.badge,
     })),
   ]
 
@@ -90,6 +91,7 @@ function buildSections(navItems, tier, businessType) {
       ].filter(Boolean) },
       { id: 'calendar', Icon: Calendar, label: businessType === 'restaurant' ? 'Reservations' : 'Calendar', children: [
         mainChildren.find(c => c.id === 'calendar'),
+        mainChildren.find(c => c.id === 'notifications'),
         mainChildren.find(c => c.id === 'bookings'),
         mainChildren.find(c => c.id === 'booking-link'),
       ].filter(Boolean) },
@@ -171,7 +173,7 @@ function WaterfallChild({ child, index, total, isActive, onClick, baseDelay, pan
       }}
         onMouseOver={e => { if (!child.locked && !isActive) { e.currentTarget.style.background = 'rgba(27,67,50,0.04)'; e.currentTarget.style.color = T.text; }}}
         onMouseOut={e => { if (!child.locked && !isActive) { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = child.locked ? '#C5C2BC' : T.muted; }}}
-      >{child.label}</button>
+      >{child.label}{child.badge && <span style={{ marginLeft: 'auto', background: '#D4A373', color: '#fff', fontSize: 10, fontWeight: 700, padding: '1px 6px', borderRadius: 10, lineHeight: '16px' }}>{child.badge}</span>}</button>
       {child.locked && <Lock size={11} style={{ color: '#D5D2CC', marginRight: 8 }} />}
     </div>
   )

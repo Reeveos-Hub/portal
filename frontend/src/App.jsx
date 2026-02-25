@@ -24,6 +24,7 @@ import BookingLink from './pages/dashboard/BookingLink'
 import OnlineBooking from './pages/dashboard/OnlineBooking'
 import Orders from './pages/dashboard/Orders'
 import Clients from './pages/dashboard/Clients'
+import Notifications from './pages/dashboard/Notifications'
 import Marketing from './pages/dashboard/Marketing'
 import Payments from './pages/dashboard/Payments'
 import Help from './pages/dashboard/Help'
@@ -73,6 +74,7 @@ const App = () => {
               <Route index element={<Dashboard />} />
               <Route path="bookings" element={<Bookings />} />
               <Route path="calendar" element={<Calendar />} />
+              <Route path="notifications" element={<Notifications />} />
               <Route path="booking-link" element={<BookingLink />} />
               <Route path="floor-plan" element={<FloorPlan />} />
               <Route path="staff" element={<Staff />} />

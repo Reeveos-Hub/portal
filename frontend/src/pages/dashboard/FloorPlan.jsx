@@ -93,7 +93,7 @@ const FloorPlan = ({ embedded = false }) => {
   }
 
   return (
-    <div className={`h-full flex gap-0 overflow-hidden ${embedded ? '' : '-m-6 lg:-m-8'}`} style={{ fontFamily: "'Figtree', sans-serif" }}>
+    <div className={`flex gap-0 overflow-hidden ${embedded ? 'h-full' : '-m-6 lg:-m-8 h-[calc(100vh-4rem)]'}`} style={{ fontFamily: "'Figtree', sans-serif" }}>
       {/* Canvas */}
       <div className="flex-1 overflow-auto relative" style={{ background: '#FAFAF8' }}>
         {!embedded && (
