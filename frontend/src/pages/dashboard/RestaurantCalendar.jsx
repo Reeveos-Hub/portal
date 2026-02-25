@@ -105,6 +105,9 @@ export default function RestaurantCalendar() {
   const [editMode, setEditMode] = useState(false)
   const [editedBooking, setEditedBooking] = useState({})
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+  const [showTagInput, setShowTagInput] = useState(false)
+  const [newTagText, setNewTagText] = useState('')
+  const [customTags, setCustomTags] = useState({})
   const [dragBooking, setDragBooking] = useState(null)
   const [moveHistory, setMoveHistory] = useState([]) // tracks drag-drop moves
   const scrollRef = useRef(null)
@@ -189,6 +192,44 @@ export default function RestaurantCalendar() {
     }
     return bs
   }, [data.bookings, activePeriod, timeRange, searchQuery])
+
+  // ── Action button handlers ──
+  const updateBookingStatus = (booking, newStatus) => {
+    setData(prev => ({
+      ...prev,
+      bookings: prev.bookings.map(b =>
+        b.id === booking.id ? { ...b, status: newStatus } : b
+      )
+    }))
+    setSelectedBooking(prev => prev ? { ...prev, status: newStatus } : prev)
+  }
+
+  const handleCheckIn = () => {
+    if (!selectedBooking) return
+    updateBookingStatus(selectedBooking, 'seated')
+  }
+
+  const handleNoShow = () => {
+    if (!selectedBooking) return
+    updateBookingStatus(selectedBooking, 'noshow')
+  }
+
+  const handleRebook = () => {
+    if (!selectedBooking) return
+    // Clone booking to new booking panel state — for now just update status
+    updateBookingStatus(selectedBooking, 'confirmed')
+  }
+
+  const handleAddTag = () => {
+    if (!newTagText.trim() || !selectedBooking) return
+    const bid = selectedBooking.id
+    setCustomTags(prev => ({
+      ...prev,
+      [bid]: [...(prev[bid] || []), newTagText.trim()]
+    }))
+    setNewTagText('')
+    setShowTagInput(false)
+  }
 
   /* ── Bookings by table ── */
   const bookingsByTable = useMemo(() => {
@@ -301,6 +342,8 @@ export default function RestaurantCalendar() {
       document.body.classList.add('rezvo-fab-shifted')
       setEditMode(false)
       setShowDeleteConfirm(false)
+      setShowTagInput(false)
+      setNewTagText('')
       setEditedBooking({
         customerName: selectedBooking.customerName || '',
         time: selectedBooking.time || '',
@@ -480,7 +523,7 @@ export default function RestaurantCalendar() {
             {/* Time header (sticky) */}
             <div style={{ height: 40, background: T.white, borderBottom: '1px solid #E5E7EB', position: 'sticky', top: 0, zIndex: 20, display: 'flex' }}>
               {timeRange.slots.map((s, i) => (
-                <div key={i} style={{ flex: 1, borderRight: '1px solid #F3F4F6', display: 'flex', alignItems: 'center', paddingLeft: 8, fontSize: 13, fontWeight: 600, color: '#374151' }}>
+                <div key={i} style={{ flex: 1, borderRight: '1px solid #D1D5DB', display: 'flex', alignItems: 'center', paddingLeft: 8, fontSize: 13, fontWeight: 600, color: '#374151' }}>
                   {s.label}
                 </div>
               ))}
@@ -504,7 +547,7 @@ export default function RestaurantCalendar() {
               {/* Vertical grid lines */}
               <div style={{ position: 'absolute', inset: 0, display: 'flex', pointerEvents: 'none', zIndex: 0 }}>
                 {timeRange.slots.map((_, i) => (
-                  <div key={i} style={{ flex: 1, borderRight: '1px dashed #F3F4F6' }} />
+                  <div key={i} style={{ flex: 1, borderRight: '1px dashed #D1D5DB' }} />
                 ))}
               </div>
 
@@ -734,15 +777,24 @@ export default function RestaurantCalendar() {
             <section style={{ marginBottom: 24 }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
                 <h3 style={sectionTitle}>Tags</h3>
-                <button style={{ fontSize: 12, fontWeight: 700, color: T.sage, border: 'none', background: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}>
+                <button onClick={() => setShowTagInput(!showTagInput)} style={{ fontSize: 12, fontWeight: 700, color: T.sage, border: 'none', background: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}>
                   <Plus size={12} /> Add
                 </button>
               </div>
+              {showTagInput && (
+                <div style={{ display: 'flex', gap: 6, marginBottom: 8 }}>
+                  <input value={newTagText} onChange={e => setNewTagText(e.target.value)} onKeyDown={e => e.key === 'Enter' && handleAddTag()}
+                    placeholder="Tag name..." autoFocus
+                    style={{ flex: 1, padding: '8px 12px', borderRadius: 999, border: '1px solid #EBEBEB', fontSize: 12, fontFamily: "'Figtree', sans-serif", background: '#FAFAF8', outline: 'none' }} />
+                  <button onClick={handleAddTag} style={{ padding: '8px 16px', borderRadius: 999, border: 'none', background: T.forest, color: '#fff', fontSize: 11, fontWeight: 600, cursor: 'pointer', fontFamily: "'Figtree', sans-serif" }}>Add</button>
+                </div>
+              )}
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
                 {[
                   { label: 'Friday Regular', bg: '#F0F7F4', dot: T.sage },
                   ...(selectedBooking.occasion ? [{ label: selectedBooking.occasion.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase()), bg: '#FFF8F0', dot: T.amber }] : []),
                   { label: 'Wine Lover', bg: '#fff', dot: T.sage, border: true },
+                  ...(customTags[selectedBooking.id] || []).map(t => ({ label: t, bg: '#F0F0FF', dot: '#7C3AED', border: false })),
                 ].map((tag, i) => (
                   <span key={i} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '6px 12px', borderRadius: 999, fontSize: 11, fontWeight: 500, color: T.forest, background: tag.bg, border: tag.border ? `1px solid ${T.border}` : '1px solid transparent', cursor: 'pointer' }}>
                     <span style={{ width: 6, height: 6, borderRadius: '50%', background: tag.dot }} />
@@ -881,17 +933,17 @@ export default function RestaurantCalendar() {
               </div>
             ) : (
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, overflowX: 'auto' }}>
-              <button style={{ flex: 1, minWidth: 110, background: T.forest, color: '#fff', fontWeight: 600, padding: '12px 16px', borderRadius: 999, border: 'none', cursor: 'pointer', fontSize: 13, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, boxShadow: '0 4px 12px rgba(27,67,50,0.3)' }}>
-                ✓ Check In
+              <button onClick={handleCheckIn} style={{ flex: 1, minWidth: 110, background: selectedBooking?.status === 'seated' ? T.sage : T.forest, color: '#fff', fontWeight: 600, padding: '12px 16px', borderRadius: 999, border: 'none', cursor: 'pointer', fontSize: 13, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, boxShadow: '0 4px 12px rgba(27,67,50,0.3)', transition: 'all 0.2s' }}>
+                {selectedBooking?.status === 'seated' ? '✓ Seated' : '✓ Check In'}
               </button>
-              <button style={{ flexShrink: 0, background: '#fff', border: `1px solid ${T.forest}`, color: T.forest, fontWeight: 500, padding: '12px 20px', borderRadius: 999, cursor: 'pointer', fontSize: 13 }}>
+              <button onClick={() => setEditMode(true)} style={{ flexShrink: 0, background: '#fff', border: `1px solid ${T.forest}`, color: T.forest, fontWeight: 500, padding: '12px 20px', borderRadius: 999, cursor: 'pointer', fontSize: 13 }}>
                 Edit
               </button>
-              <button style={{ flexShrink: 0, background: T.sage, color: '#fff', fontWeight: 500, padding: '12px 20px', borderRadius: 999, border: 'none', cursor: 'pointer', fontSize: 13, boxShadow: '0 2px 8px rgba(82,183,136,0.3)' }}>
+              <button onClick={handleRebook} style={{ flexShrink: 0, background: T.sage, color: '#fff', fontWeight: 500, padding: '12px 20px', borderRadius: 999, border: 'none', cursor: 'pointer', fontSize: 13, boxShadow: '0 2px 8px rgba(82,183,136,0.3)' }}>
                 Rebook
               </button>
-              <button style={{ flexShrink: 0, background: '#fff', border: '1px solid rgba(239,68,68,0.5)', color: '#EF4444', fontWeight: 500, padding: '12px 20px', borderRadius: 999, cursor: 'pointer', fontSize: 13, whiteSpace: 'nowrap' }}>
-                No Show
+              <button onClick={handleNoShow} style={{ flexShrink: 0, background: selectedBooking?.status === 'noshow' ? '#EF4444' : '#fff', border: '1px solid rgba(239,68,68,0.5)', color: selectedBooking?.status === 'noshow' ? '#fff' : '#EF4444', fontWeight: 500, padding: '12px 20px', borderRadius: 999, cursor: 'pointer', fontSize: 13, whiteSpace: 'nowrap', transition: 'all 0.2s' }}>
+                {selectedBooking?.status === 'noshow' ? '✗ No Show' : 'No Show'}
               </button>
               <button style={{ width: 44, height: 44, flexShrink: 0, borderRadius: '50%', border: `1px solid ${T.border}`, background: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#666' }}>
                 <MoreHorizontal size={16} />

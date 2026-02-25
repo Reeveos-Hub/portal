@@ -80,7 +80,7 @@ const YourDetailsRestaurant = ({ data, onBack, onCreate }) => {
   // Confirmation screen
   if (confirmed) {
     return (
-      <div className="max-w-xl mx-auto px-4 sm:px-5 pt-4 sm:pt-6 overflow-hidden">
+      <div className="max-w-md mx-auto px-4 sm:px-5 pt-3 sm:pt-4 overflow-hidden">
         <div className="text-center pt-8 sm:pt-12 pb-6 sm:pb-8">
           <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-emerald-50 flex items-center justify-center mx-auto mb-3 sm:mb-4">
             <CheckCircle className="w-7 h-7 sm:w-8 sm:h-8 text-emerald-600" />
@@ -145,7 +145,7 @@ const YourDetailsRestaurant = ({ data, onBack, onCreate }) => {
   }
 
   return (
-    <div className="max-w-xl mx-auto px-4 sm:px-5 pt-4 sm:pt-6 overflow-hidden">
+    <div className="max-w-md mx-auto px-4 sm:px-5 pt-3 sm:pt-4 overflow-hidden">
       <BookingHeader business={business} />
       <StepIndicator step={3} total={3} />
 

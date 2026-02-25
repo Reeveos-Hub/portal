@@ -111,7 +111,7 @@ const PickTimeSlot = ({ data, onContinue, onBack }) => {
   }
 
   return (
-    <div className="max-w-xl mx-auto px-4 sm:px-5 pt-4 sm:pt-6 overflow-hidden">
+    <div className="max-w-md mx-auto px-4 sm:px-5 pt-3 sm:pt-4 overflow-hidden">
       <BookingHeader business={business} />
       <StepIndicator step={2} total={3} />
 
