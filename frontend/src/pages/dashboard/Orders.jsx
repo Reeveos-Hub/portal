@@ -1,9 +1,10 @@
 /**
  * Orders — Delivery/takeaway orders (Restaurant mode)
+ * Fully branded with Rezvo UI — Lucide icons, pill tabs, pill buttons
  */
-
 import { useState } from 'react'
 import { useBusiness } from '../../contexts/BusinessContext'
+import { Package, Truck, ShoppingBag, MapPin, CircleDot, Flame, CheckCircle2, XCircle } from 'lucide-react'
 
 const DEMO_ORDERS = [
   { id: 'ORD-001', customer: 'Alex M.', items: ['Smashed Burger x2', 'Loaded Fries'], total: 32.97, status: 'preparing', type: 'delivery', time: '12:30 PM', address: '14 High St, NG1 2EN' },
@@ -13,26 +14,29 @@ const DEMO_ORDERS = [
 ]
 
 const STATUS_MAP = {
-  new: { label: 'New', bg: 'bg-blue-50 text-blue-700 border-blue-200', icon: 'fa-circle' },
-  preparing: { label: 'Preparing', bg: 'bg-amber-50 text-amber-700 border-amber-200', icon: 'fa-fire-burner' },
-  ready: { label: 'Ready', bg: 'bg-green-50 text-green-700 border-green-200', icon: 'fa-check' },
-  delivered: { label: 'Delivered', bg: 'bg-gray-100 text-gray-500 border-gray-200', icon: 'fa-truck' },
-  cancelled: { label: 'Cancelled', bg: 'bg-red-50 text-red-700 border-red-200', icon: 'fa-xmark' },
+  new: { label: 'New', Icon: CircleDot, pillBg: 'bg-blue-50 text-blue-700' },
+  preparing: { label: 'Preparing', Icon: Flame, pillBg: 'bg-amber-50 text-amber-700' },
+  ready: { label: 'Ready', Icon: CheckCircle2, pillBg: 'bg-emerald-50 text-emerald-700' },
+  delivered: { label: 'Delivered', Icon: Package, pillBg: 'bg-gray-100 text-gray-500' },
+  cancelled: { label: 'Cancelled', Icon: XCircle, pillBg: 'bg-red-50 text-red-600' },
 }
 
 const Orders = () => {
   const { businessType } = useBusiness()
   const [filter, setFilter] = useState('all')
-
   const filtered = filter === 'all' ? DEMO_ORDERS : DEMO_ORDERS.filter(o => o.status === filter)
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6" style={{ fontFamily: "'Figtree', sans-serif" }}>
       {/* Filter Pills */}
-      <div className="flex gap-2 overflow-x-auto pb-1">
+      <div className="flex items-center gap-1.5 flex-wrap">
         {['all', 'new', 'preparing', 'ready', 'delivered'].map(f => (
           <button key={f} onClick={() => setFilter(f)}
-            className={`px-4 py-2 text-sm font-bold rounded-lg whitespace-nowrap transition-colors ${filter === f ? 'bg-primary text-white' : 'bg-white text-gray-500 border border-border hover:border-primary hover:text-primary'}`}>
+            className={`px-4 py-1.5 text-xs font-bold rounded-full whitespace-nowrap transition-all ${
+              filter === f
+                ? 'bg-[#1B4332] text-white shadow-lg shadow-[#1B4332]/20'
+                : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'
+            }`}>
             {f === 'all' ? 'All Orders' : STATUS_MAP[f]?.label}
           </button>
         ))}
@@ -42,34 +46,45 @@ const Orders = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {filtered.map(o => {
           const s = STATUS_MAP[o.status] || STATUS_MAP.new
+          const StatusIcon = s.Icon
           return (
-            <div key={o.id} className="bg-white rounded-xl border border-border p-5 shadow-sm hover:shadow-md transition-shadow">
+            <div key={o.id} className="bg-white rounded-2xl border border-gray-100 p-5 shadow-[0_2px_10px_rgba(0,0,0,0.03)] hover:shadow-[0_10px_30px_-5px_rgba(27,67,50,0.08)] transition-all">
               <div className="flex justify-between items-start mb-3">
                 <div>
                   <div className="flex items-center gap-2">
-                    <span className="font-heading font-bold text-primary">{o.id}</span>
-                    <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-bold border ${s.bg}`}>
-                      <i className={`fa-solid ${s.icon} text-[10px]`} /> {s.label}
+                    <span className="font-extrabold text-gray-900">{o.id}</span>
+                    <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold ${s.pillBg}`}>
+                      <StatusIcon className="w-3 h-3" /> {s.label}
                     </span>
                   </div>
-                  <p className="text-sm text-gray-500 mt-0.5">{o.customer} • {o.time}</p>
+                  <p className="text-xs text-gray-400 font-medium mt-1">{o.customer} · {o.time}</p>
                 </div>
-                <span className={`text-xs font-bold px-2 py-1 rounded ${o.type === 'delivery' ? 'bg-blue-50 text-blue-700 border border-blue-200' : 'bg-purple-50 text-purple-700 border border-purple-200'}`}>
-                  <i className={`fa-solid ${o.type === 'delivery' ? 'fa-motorcycle' : 'fa-bag-shopping'} mr-1`} />
+                <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold ${
+                  o.type === 'delivery' ? 'bg-blue-50 text-blue-700' : 'bg-purple-50 text-purple-700'
+                }`}>
+                  {o.type === 'delivery' ? <Truck className="w-3 h-3" /> : <ShoppingBag className="w-3 h-3" />}
                   {o.type === 'delivery' ? 'Delivery' : 'Collection'}
                 </span>
               </div>
-              <div className="border-t border-border pt-3 mb-3">
-                {o.items.map((item, i) => <p key={i} className="text-sm text-primary">{item}</p>)}
-                {o.address && <p className="text-xs text-gray-500 mt-2"><i className="fa-solid fa-location-dot mr-1" />{o.address}</p>}
+              <div className="border-t border-gray-100 pt-3 mb-3">
+                {o.items.map((item, i) => <p key={i} className="text-sm font-medium text-gray-700">{item}</p>)}
+                {o.address && (
+                  <p className="text-[11px] text-gray-400 mt-2 flex items-center gap-1">
+                    <MapPin className="w-3 h-3" />{o.address}
+                  </p>
+                )}
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-lg font-heading font-bold text-primary">£{o.total.toFixed(2)}</span>
-                <div className="flex gap-2">
-                  {o.status === 'new' && <button className="text-sm font-bold text-white bg-primary px-4 py-2 rounded-lg hover:bg-primary-hover shadow-md">Accept</button>}
-                  {o.status === 'preparing' && <button className="text-sm font-bold text-white bg-green-600 px-4 py-2 rounded-lg hover:bg-green-700 shadow-md">Mark Ready</button>}
-                  {o.status === 'ready' && <button className="text-sm font-bold text-primary border border-border px-4 py-2 rounded-lg hover:bg-gray-50 shadow-sm">Complete</button>}
-                </div>
+                <span className="text-lg font-extrabold text-gray-900">£{o.total.toFixed(2)}</span>
+                {o.status === 'new' && (
+                  <button className="px-4 py-1.5 text-xs font-bold text-white bg-[#1B4332] rounded-full hover:bg-[#2D6A4F] shadow-lg shadow-[#1B4332]/20 transition-all">Accept</button>
+                )}
+                {o.status === 'preparing' && (
+                  <button className="px-4 py-1.5 text-xs font-bold text-white bg-emerald-500 rounded-full hover:bg-emerald-600 shadow-lg shadow-emerald-500/20 transition-all">Mark Ready</button>
+                )}
+                {o.status === 'ready' && (
+                  <button className="px-4 py-1.5 text-xs font-bold text-gray-700 bg-white border border-gray-200 rounded-full hover:bg-gray-50 shadow-sm transition-all">Complete</button>
+                )}
               </div>
             </div>
           )

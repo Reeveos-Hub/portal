@@ -211,11 +211,12 @@ const OnlineBooking = () => {
       {/* Editor */}
       <div className="lg:w-1/2 space-y-6 overflow-y-auto pr-2">
         <div className="flex items-center justify-between">
-          <h1 className="text-3xl font-heading font-bold">Online Booking</h1>
+          <h1 className="text-xl font-extrabold text-gray-900" style={{ fontFamily: "'Figtree', sans-serif" }}>Online Booking</h1>
           <div className="flex items-center gap-2">
-            {toast && <span className="text-sm text-gray-500">{toast}</span>}
+            {toast && <span className="text-xs text-gray-400 font-medium">{toast}</span>}
             <button onClick={handleSave} disabled={saving}
-              className="bg-primary text-white font-bold text-sm px-4 py-2 rounded-lg shadow-lg hover:bg-primary-hover transition-colors disabled:opacity-50">
+              className="bg-[#1B4332] text-white font-bold text-xs px-5 py-2 rounded-full shadow-lg shadow-[#1B4332]/20 hover:bg-[#2D6A4F] transition-all disabled:opacity-50"
+              style={{ fontFamily: "'Figtree', sans-serif" }}>
               {saving ? 'Saving...' : 'Save'}
             </button>
           </div>
@@ -517,23 +518,33 @@ const OnlineBooking = () => {
 
       {/* Preview - desktop */}
       <div className="hidden lg:flex lg:w-1/2 flex-col items-center sticky top-6 self-start">
-        <div className="flex gap-2 mb-4">
+        <div className="flex items-center gap-1.5 mb-3">
           <button
             type="button"
             onClick={() => setPreviewMode('mobile')}
-            className={`px-3 py-1.5 rounded text-sm ${previewMode === 'mobile' ? 'bg-primary text-white' : 'bg-border text-muted'}`}
+            className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all ${
+              previewMode === 'mobile'
+                ? 'bg-[#1B4332] text-white shadow-lg shadow-[#1B4332]/20'
+                : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'
+            }`}
+            style={{ fontFamily: "'Figtree', sans-serif" }}
           >
             Mobile
           </button>
           <button
             type="button"
             onClick={() => setPreviewMode('desktop')}
-            className={`px-3 py-1.5 rounded text-sm ${previewMode === 'desktop' ? 'bg-primary text-white' : 'bg-border text-muted'}`}
+            className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all ${
+              previewMode === 'desktop'
+                ? 'bg-[#1B4332] text-white shadow-lg shadow-[#1B4332]/20'
+                : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'
+            }`}
+            style={{ fontFamily: "'Figtree', sans-serif" }}
           >
             Desktop
           </button>
         </div>
-        <p className="text-xs text-muted mb-2">Preview updates as you edit</p>
+        <p className="text-[11px] text-gray-400 font-medium mb-3">Preview updates as you edit</p>
         <div
           className={`rounded-2xl border-2 border-border overflow-hidden bg-white shadow-lg ${
             previewMode === 'mobile' ? 'w-[375px]' : 'w-full max-w-full'

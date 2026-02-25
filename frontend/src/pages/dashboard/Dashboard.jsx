@@ -541,7 +541,7 @@ const Dashboard = () => {
             <div className="flex items-center gap-3">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400" />
-                <input type="text" placeholder="Filter guests..." value={searchFilter} onChange={e => setSearchFilter(e.target.value)} className="pl-8 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-primary w-48" />
+                <input type="text" placeholder="Filter guests..." value={searchFilter} onChange={e => setSearchFilter(e.target.value)} className="pl-8 pr-4 py-2 bg-white border border-gray-200 rounded-full text-xs font-medium focus:outline-none focus:ring-2 focus:ring-[#1B4332]/15 focus:border-[#1B4332]/30 shadow-sm w-48 transition-all" style={{ fontFamily: "'Figtree', sans-serif" }} />
               </div>
               <button className="bg-gray-50 hover:bg-gray-100 text-gray-600 px-3 py-2 rounded-lg border border-gray-200 text-sm font-medium transition-colors flex items-center gap-1">
                 <Download className="w-3.5 h-3.5" /> Export

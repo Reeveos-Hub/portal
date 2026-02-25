@@ -140,25 +140,32 @@ const Bookings = () => {
       <div className="px-6 md:px-8 pt-6 pb-4 space-y-4 shrink-0">
         <div className="relative max-w-2xl flex gap-2">
           <div className="relative flex-1">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
             <input type="text" placeholder="Search by guest name, phone..." value={search} onChange={e => setSearch(e.target.value)}
-              className="w-full pl-12 pr-4 py-3.5 bg-white border border-gray-200 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-base transition-all" />
+              className="w-full pl-11 pr-4 py-3 bg-white border border-gray-200 rounded-full shadow-sm focus:outline-none focus:ring-2 focus:ring-[#1B4332]/15 focus:border-[#1B4332]/30 text-sm font-medium transition-all"
+              style={{ fontFamily: "'Figtree', sans-serif" }} />
           </div>
-          <button className="md:hidden bg-white border border-gray-200 text-gray-600 px-4 rounded-xl shadow-sm hover:bg-gray-50"><SlidersHorizontal className="w-5 h-5" /></button>
+          <button className="md:hidden bg-white border border-gray-200 text-gray-600 px-4 rounded-full shadow-sm hover:bg-gray-50"><SlidersHorizontal className="w-4 h-4" /></button>
         </div>
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-          <div className="flex bg-gray-200/50 p-1 rounded-xl">
-            {['all', 'waitlist', 'history'].map(tab => (
-              <button key={tab} onClick={() => setActiveTab(tab)}
-                className={`px-4 py-2 rounded-lg font-semibold text-sm transition-all ${activeTab === tab ? 'bg-white text-primary shadow-sm' : 'text-gray-500 hover:text-gray-900'}`}>
-                {tab === 'all' ? 'All Bookings' : tab === 'waitlist' ? 'Waitlist' : 'History'}
+          <div className="flex items-center gap-1.5">
+            {['all', 'waitlist', 'history'].map(t => (
+              <button key={t} onClick={() => setActiveTab(t)}
+                className={`px-4 py-1.5 rounded-full font-bold text-xs transition-all ${
+                  activeTab === t
+                    ? 'bg-[#1B4332] text-white shadow-lg shadow-[#1B4332]/20'
+                    : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'
+                }`}
+                style={{ fontFamily: "'Figtree', sans-serif" }}>
+                {t === 'all' ? 'All Bookings' : t === 'waitlist' ? 'Waitlist' : 'History'}
               </button>
             ))}
           </div>
-          <div className="flex items-center gap-3 self-end sm:self-auto">
-            <button onClick={fetchBookings} className="p-2 text-gray-400 hover:text-primary rounded-lg hover:bg-white transition-colors" title="Refresh"><RefreshCw className="w-4 h-4" /></button>
-            <button className="flex items-center gap-2 px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm font-semibold text-gray-600 hover:text-primary shadow-sm transition-colors">
-              <Download className="w-4 h-4" /> <span className="hidden sm:inline">Export</span>
+          <div className="flex items-center gap-2 self-end sm:self-auto">
+            <button onClick={fetchBookings} className="w-8 h-8 rounded-lg flex items-center justify-center text-gray-400 hover:text-[#1B4332] hover:bg-[#1B4332]/5 transition-colors" title="Refresh"><RefreshCw className="w-4 h-4" /></button>
+            <button className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-bold bg-white border border-gray-200 text-gray-600 hover:text-[#1B4332] hover:border-[#1B4332]/20 shadow-sm transition-all"
+              style={{ fontFamily: "'Figtree', sans-serif" }}>
+              <Download className="w-3.5 h-3.5" /> <span className="hidden sm:inline">Export</span>
             </button>
           </div>
         </div>
@@ -231,12 +238,13 @@ const Bookings = () => {
                   <div className="flex items-center gap-2 ml-auto mt-2 md:mt-0" onClick={e => e.stopPropagation()}>
                     {primary && (
                       <button onClick={primary.action} disabled={updating}
-                        className={`px-4 py-2 text-sm font-semibold rounded-lg shadow-sm transition-colors ${primary.outline ? 'bg-white border border-primary text-primary hover:bg-gray-50' : 'bg-primary hover:bg-primary-hover text-white'}`}>
+                        className={`px-4 py-1.5 text-xs font-bold rounded-full shadow-lg transition-all ${primary.outline ? 'bg-white border border-[#1B4332]/20 text-[#1B4332] hover:bg-[#1B4332]/5 shadow-sm' : 'bg-[#1B4332] hover:bg-[#2D6A4F] text-white shadow-[#1B4332]/20'}`}
+                        style={{ fontFamily: "'Figtree', sans-serif" }}>
                         {primary.label}
                       </button>
                     )}
-                    <button className="w-9 h-9 flex items-center justify-center rounded-lg border border-gray-200 text-gray-400 hover:text-primary hover:bg-gray-50 transition-all" title="Edit"><Pencil className="w-4 h-4" /></button>
-                    <button onClick={() => updateStatus(b.id, 'cancelled')} className="w-9 h-9 flex items-center justify-center rounded-lg border border-gray-200 text-gray-400 hover:text-red-500 hover:border-red-100 hover:bg-red-50 transition-all" title="Cancel"><X className="w-4 h-4" /></button>
+                    <button className="w-8 h-8 flex items-center justify-center rounded-lg text-gray-400 hover:text-[#1B4332] hover:bg-[#1B4332]/5 transition-all" title="Edit"><Pencil className="w-3.5 h-3.5" /></button>
+                    <button onClick={() => updateStatus(b.id, 'cancelled')} className="w-8 h-8 flex items-center justify-center rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 transition-all" title="Cancel"><X className="w-3.5 h-3.5" /></button>
                   </div>
                 </div>
               )
@@ -248,9 +256,9 @@ const Bookings = () => {
           <div className="mt-8 flex items-center justify-between border-t border-gray-200 pt-6">
             <div className="text-sm text-gray-500">Showing <span className="font-bold text-gray-900">1-{displayBookings.length}</span> of <span className="font-bold text-gray-900">{pagination.total || displayBookings.length}</span> results</div>
             <div className="flex items-center gap-2">
-              <button className="px-3 py-2 border border-gray-200 rounded-lg text-sm text-gray-400 cursor-not-allowed bg-gray-50">Previous</button>
-              <button className="px-3 py-2 bg-primary text-white rounded-lg text-sm font-medium shadow-sm">1</button>
-              <button className="px-3 py-2 border border-gray-200 rounded-lg text-sm text-gray-600 hover:bg-gray-50 transition-colors">Next</button>
+              <button className="px-3.5 py-1.5 rounded-full text-xs font-bold text-gray-300 bg-gray-50 cursor-not-allowed" style={{ fontFamily: "'Figtree', sans-serif" }}>Previous</button>
+              <button className="px-3 py-1.5 bg-[#1B4332] text-white rounded-full text-xs font-bold shadow-lg shadow-[#1B4332]/20" style={{ fontFamily: "'Figtree', sans-serif" }}>1</button>
+              <button className="px-3.5 py-1.5 rounded-full text-xs font-bold text-gray-500 hover:bg-gray-100 transition-all" style={{ fontFamily: "'Figtree', sans-serif" }}>Next</button>
             </div>
           </div>
         )}

@@ -96,18 +96,26 @@ const BookingLink = () => {
       {/* Channels & Widget Section */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Booking Channels */}
-        <div className="lg:col-span-2 bg-white rounded-xl border border-border shadow-sm overflow-hidden">
-          <div className="border-b border-border">
-            <nav className="flex -mb-px">
+        <div className="lg:col-span-2 bg-white rounded-2xl border border-gray-100 shadow-[0_2px_10px_rgba(0,0,0,0.03)] overflow-hidden">
+          <div className="p-4 border-b border-gray-100">
+            <div className="flex items-center gap-1.5">
               <button onClick={() => setActiveChannelTab('channels')}
-                className={`flex-1 py-4 px-4 text-sm font-bold text-center border-b-2 transition-colors ${activeChannelTab === 'channels' ? 'border-primary text-primary' : 'border-transparent text-gray-500 hover:text-primary'}`}>
-                <Globe className="w-4 h-4 mr-2 inline" />Booking Channels
+                className={`flex items-center gap-1.5 px-4 py-1.5 rounded-full text-xs font-bold transition-all ${
+                  activeChannelTab === 'channels'
+                    ? 'bg-[#1B4332] text-white shadow-lg shadow-[#1B4332]/20'
+                    : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'
+                }`} style={{ fontFamily: "'Figtree', sans-serif" }}>
+                <Globe className="w-3.5 h-3.5" />Booking Channels
               </button>
               <button onClick={() => setActiveChannelTab('widget')}
-                className={`flex-1 py-4 px-4 text-sm font-bold text-center border-b-2 transition-colors ${activeChannelTab === 'widget' ? 'border-primary text-primary' : 'border-transparent text-gray-500 hover:text-primary'}`}>
-                <Code className="w-4 h-4 mr-2 inline" />Widget Embed
+                className={`flex items-center gap-1.5 px-4 py-1.5 rounded-full text-xs font-bold transition-all ${
+                  activeChannelTab === 'widget'
+                    ? 'bg-[#1B4332] text-white shadow-lg shadow-[#1B4332]/20'
+                    : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'
+                }`} style={{ fontFamily: "'Figtree', sans-serif" }}>
+                <Code className="w-3.5 h-3.5" />Widget Embed
               </button>
-            </nav>
+            </div>
           </div>
 
           {activeChannelTab === 'channels' ? (
@@ -124,7 +132,8 @@ const BookingLink = () => {
                     </div>
                     <p className="text-xs text-gray-500 mt-1">{ch.desc}</p>
                   </div>
-                  <button className={`text-sm font-bold px-4 py-2 rounded-lg shrink-0 transition-colors ${ch.connected ? 'text-gray-500 bg-gray-100 hover:bg-gray-200' : 'text-white bg-primary hover:bg-primary-hover shadow-md'}`}>
+                  <button className={`text-xs font-bold px-4 py-1.5 rounded-full shrink-0 transition-all ${ch.connected ? 'text-gray-500 bg-gray-100 hover:bg-gray-200' : 'text-white bg-[#1B4332] hover:bg-[#2D6A4F] shadow-lg shadow-[#1B4332]/20'}`}
+                    style={{ fontFamily: "'Figtree', sans-serif" }}>
                     {ch.connected ? 'Manage' : 'Connect'}
                   </button>
                 </div>
