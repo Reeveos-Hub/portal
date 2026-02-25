@@ -85,12 +85,10 @@ TONE:
 - Never be pushy about upgrades — mention them only when directly relevant`;
 
 const SUGGESTED_QUESTIONS = [
-  "How is Rezvo different from Fresha?",
-  "How do payments and deposits work?",
-  "What's included in the free plan?",
-  "Can my clients book without an app?",
-  "How does calendar sync work?",
-  "Is there a setup fee?",
+  "Show me tonight's bookings",
+  "How many covers do I have today?",
+  "Which tables are available at 7pm?",
+  "Any special occasions tonight?",
 ];
 
 export default function RezvoSupportBot() {
@@ -772,7 +770,7 @@ Use this data to answer questions about today's bookings, covers, availability, 
                     letterSpacing: "0.02em",
                   }}
                 >
-                  REZVO Support
+                  REZVO Assistant
                 </div>
                 <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 2 }}>
                   <div
@@ -785,7 +783,7 @@ Use this data to answer questions about today's bookings, covers, availability, 
                     }}
                   />
                   <span style={{ color: "#74C69D", fontSize: 12, fontWeight: 500 }}>
-                    Powered by AI · Usually instant
+                    Your restaurant assistant
                   </span>
                 </div>
               </div>
@@ -820,9 +818,9 @@ Use this data to answer questions about today's bookings, covers, availability, 
                   }}
                 >
                   <span style={{ fontSize: 20, display: "block", marginBottom: 6 }}>👋</span>
-                  <strong style={{ color: "#1B4332" }}>Hey! I'm Rezvo's AI assistant.</strong>
+                  <strong style={{ color: "#1B4332" }}>Hey! I'm your Rezvo assistant.</strong>
                   <br />
-                  I can help with questions about features, pricing, payments, getting started, and more. What can I help you with?
+                  I can help with tonight's bookings, table availability, covers, and managing your restaurant. What do you need?
                 </div>
 
                 {/* Suggestions */}
@@ -932,7 +930,7 @@ Use this data to answer questions about today's bookings, covers, availability, 
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={handleKeyDown}
-                placeholder="Ask anything about Rezvo..."
+                placeholder="Ask about tonight's bookings..."
                 disabled={isLoading}
                 style={{
                   flex: 1,

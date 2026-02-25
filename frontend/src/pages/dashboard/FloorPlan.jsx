@@ -21,11 +21,10 @@ const STATUS = {
 }
 
 const DEFAULT_POSITIONS = [
-  { x: 80, y: 60 }, { x: 200, y: 60 }, { x: 320, y: 60 },
-  { x: 80, y: 200 }, { x: 200, y: 200 }, { x: 320, y: 200 },
-  { x: 80, y: 340 }, { x: 200, y: 340 }, { x: 320, y: 340 },
-  { x: 460, y: 60 }, { x: 460, y: 200 }, { x: 460, y: 340 },
-  { x: 140, y: 460 }, { x: 280, y: 460 }, { x: 420, y: 460 },
+  { x: 60, y: 40 },   { x: 250, y: 40 },  { x: 440, y: 40 },  { x: 630, y: 40 },
+  { x: 60, y: 200 },  { x: 250, y: 200 }, { x: 440, y: 200 }, { x: 630, y: 200 },
+  { x: 60, y: 360 },  { x: 250, y: 360 }, { x: 440, y: 360 }, { x: 630, y: 360 },
+  { x: 155, y: 500 }, { x: 345, y: 500 }, { x: 535, y: 500 },
 ]
 
 const FloorPlan = ({ embedded = false }) => {
@@ -114,8 +113,8 @@ const FloorPlan = ({ embedded = false }) => {
         </div>
         )}
 
-        <div className="p-6" style={{ minHeight: 560, backgroundImage: 'radial-gradient(#D1D5DB 1px, transparent 1px)', backgroundSize: '20px 20px' }}>
-          <div className="relative" style={{ minHeight: 520, minWidth: 520 }}>
+        <div className="p-6" style={{ minHeight: 620, backgroundImage: 'radial-gradient(#D1D5DB 1px, transparent 1px)', backgroundSize: '20px 20px' }}>
+          <div className="relative" style={{ minHeight: 580, minWidth: 780 }}>
             {tables.map((table, i) => {
               const pos = DEFAULT_POSITIONS[i] || { x: 80 + (i % 4) * 120, y: 60 + Math.floor(i / 4) * 120 }
               const current = getTableStatus(table.id)
