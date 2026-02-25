@@ -296,7 +296,26 @@ const FloorPlan = ({ embedded = false }) => {
   const bid = business?.id ?? business?._id
   const isFood = businessType === 'food' || businessType === 'restaurant'
 
-  const [tables, setTables] = useState(DEFAULT_TABLES)
+  /* ── localStorage key — use ALL keys to find any saved layout ── */
+  const storageKey = bid ? `rezvo_fp_${bid}` : 'rezvo_fp_demo'
+
+  // Lazy init: read localStorage synchronously on first render
+  const [tables, setTables] = useState(() => {
+    try {
+      // Try business-specific key first
+      if (bid) {
+        const saved = localStorage.getItem(`rezvo_fp_${bid}`)
+        if (saved) { const p = JSON.parse(saved); if (Array.isArray(p) && p.length) return p }
+      }
+      // Try demo key
+      const demo = localStorage.getItem('rezvo_fp_demo')
+      if (demo) { const p = JSON.parse(demo); if (Array.isArray(p) && p.length) return p }
+      // Try old key format
+      const old = localStorage.getItem(`rezvo_floorplan_${bid || 'demo'}`)
+      if (old) { const p = JSON.parse(old); if (Array.isArray(p) && p.length) return p }
+    } catch {}
+    return DEFAULT_TABLES
+  })
   const [bookings, setBookings] = useState([])
   const [selectedTable, setSelectedTable] = useState(null)
   const [locked, setLocked] = useState(true)
@@ -316,7 +335,7 @@ const FloorPlan = ({ embedded = false }) => {
   const [saving, setSaving] = useState(false)
   const initialTablesRef = useRef(null)
 
-  // Track changes
+  // Track changes (skip first render — initial state is already correct)
   useEffect(() => {
     if (initialTablesRef.current === null) {
       initialTablesRef.current = JSON.stringify(tables)
@@ -325,37 +344,21 @@ const FloorPlan = ({ embedded = false }) => {
     setHasChanges(JSON.stringify(tables) !== initialTablesRef.current)
   }, [tables])
 
-  /* ── localStorage key for this business ── */
-  const storageKey = `rezvo_floorplan_${bid || 'demo'}`
-
-  /* ── Load tables from localStorage first, then API ── */
+  // When bid loads after first render, try to load business-specific layout
   useEffect(() => {
-    // 1. Try localStorage
+    if (!bid) return
+    const key = `rezvo_fp_${bid}`
     try {
-      const saved = localStorage.getItem(storageKey)
+      const saved = localStorage.getItem(key)
       if (saved) {
         const parsed = JSON.parse(saved)
-        if (Array.isArray(parsed) && parsed.length > 0) {
+        if (Array.isArray(parsed) && parsed.length) {
           setTables(parsed)
           initialTablesRef.current = JSON.stringify(parsed)
-          return // Found saved layout, use it
         }
       }
     } catch {}
-
-    // 2. Try API if we have a business ID
-    if (bid) {
-      api.get(`/tables/business/${bid}/floor-plan`)
-        .then(d => {
-          if (d?.tables?.length) {
-            setTables(d.tables)
-            initialTablesRef.current = JSON.stringify(d.tables)
-          }
-        })
-        .catch(() => {}) // Fall through to defaults
-    }
-    // 3. DEFAULT_TABLES already set as initial state
-  }, [bid, storageKey])
+  }, [bid])
 
   /* ── Load bookings from API ── */
   useEffect(() => {
@@ -386,7 +389,11 @@ const FloorPlan = ({ embedded = false }) => {
     }))
 
     // Always save to localStorage (instant, reliable)
-    try { localStorage.setItem(storageKey, JSON.stringify(payload)) } catch {}
+    try {
+      localStorage.setItem(storageKey, JSON.stringify(payload))
+      // Also save to demo key as fallback
+      localStorage.setItem('rezvo_fp_demo', JSON.stringify(payload))
+    } catch {}
 
     // Also try API
     try {
