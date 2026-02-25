@@ -20,7 +20,7 @@ const T = {
   border: '#EBEBEB',
   borderLight: '#F0F0F0',
   text: '#111111',
-  muted: '#6B7280',
+  muted: '#374151',
   status: {
     confirmed: '#1B4332',
     seated: '#52B788',
@@ -81,8 +81,8 @@ const OccasionBadge = ({ occasion }) => {
   const o = map[occasion]
   if (!o) return null
   return (
-    <span style={{ fontSize: 8, color: '#999', display: 'inline-flex', alignItems: 'center', gap: 2 }}>
-      <span style={{ fontSize: 8 }}>{o.icon}</span> {o.label}
+    <span style={{ fontSize: 10, color: '#555', display: 'inline-flex', alignItems: 'center', gap: 2 }}>
+      <span style={{ fontSize: 10 }}>{o.icon}</span> {o.label}
     </span>
   )
 }
@@ -272,8 +272,8 @@ export default function RestaurantCalendar() {
     return () => { document.body.style.overflow = '' }
   }, [isFullscreen])
 
-  const ROW_H = 48
-  const ZONE_H = 31
+  const ROW_H = 54
+  const ZONE_H = 34
   const LEFT_W = 180
 
   const capColor = (pct) => {
@@ -294,7 +294,7 @@ export default function RestaurantCalendar() {
     }}>
 
       {/* ══════ SUB-HEADER TOOLBAR ══════ */}
-      <header style={{ display: 'flex', alignItems: 'center', padding: '10px 16px', gap: 8, background: '#fff', borderBottom: `1px solid ${T.border}`, flexShrink: 0, zIndex: 40, flexWrap: 'wrap' }}>
+      <header style={{ display: 'flex', alignItems: 'center', padding: '10px 16px', gap: 8, background: '#fff', borderBottom: `1px solid ${T.border}`, flexShrink: 0, zIndex: 40 }}>
 
         {/* Date Nav Pill */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 2, background: '#F5F5F5', borderRadius: 24, padding: '3px 4px' }}>
@@ -334,46 +334,50 @@ export default function RestaurantCalendar() {
 
         <div style={{ flex: 1 }} />
 
-        {/* Live Status Chips */}
+        {/* Live Status Chips + Search + Tablet Toggle (all top-right) */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
           <StatChip color={T.forest} value={stats.covers} label="Covers" />
           <StatChip color="#059669" value={stats.available} label="Available" />
           <StatChip color={T.sage} value={stats.seated} label="Seated" />
           <StatChip color={T.amber} value={stats.pending} label="Pending" />
           <StatChip color={T.status.late} value={stats.late} label="Late" />
+
+          <div style={{ width: 1, height: 24, background: '#EBEBEB' }} />
+
+          {/* Search */}
+          {showSearch ? (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 4, background: '#F5F5F5', borderRadius: 20, padding: '3px 12px', minWidth: 180 }}>
+              <Search size={13} color="#666" />
+              <input value={searchQuery} onChange={e => setSearchQuery(e.target.value)} autoFocus
+                placeholder="Search guests, tables..."
+                style={{ border: 'none', background: 'transparent', outline: 'none', fontSize: 13, fontWeight: 500, color: '#111', width: '100%', fontFamily: "'Figtree', sans-serif" }} />
+              <button onClick={() => { setShowSearch(false); setSearchQuery('') }} style={{ border: 'none', background: 'none', cursor: 'pointer', padding: 2 }}><X size={12} color="#666" /></button>
+            </div>
+          ) : (
+            <button onClick={() => setShowSearch(true)} style={iconBtn} title="Search"><Search size={15} /></button>
+          )}
+
+          {/* Tablet Fullscreen Toggle */}
+          <button onClick={() => setIsFullscreen(!isFullscreen)} style={iconBtn} title={isFullscreen ? 'Exit tablet mode' : 'Tablet mode'}>
+            {isFullscreen ? <Minimize2 size={15} /> : (
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="4" y="2" width="16" height="20" rx="2" /><line x1="4" y1="6" x2="20" y2="6" />
+              </svg>
+            )}
+          </button>
         </div>
-
-        <div style={divider} />
-
-        {/* Search */}
-        {showSearch ? (
-          <div style={{ display: 'flex', alignItems: 'center', gap: 4, background: '#F5F5F5', borderRadius: 20, padding: '3px 12px', minWidth: 200 }}>
-            <Search size={13} color="#888" />
-            <input value={searchQuery} onChange={e => setSearchQuery(e.target.value)} autoFocus
-              placeholder="Search guests, tables..."
-              style={{ border: 'none', background: 'transparent', outline: 'none', fontSize: 12, fontWeight: 500, color: '#111', width: '100%', fontFamily: "'Figtree', sans-serif" }} />
-            <button onClick={() => { setShowSearch(false); setSearchQuery('') }} style={{ border: 'none', background: 'none', cursor: 'pointer', padding: 2 }}><X size={12} color="#999" /></button>
-          </div>
-        ) : (
-          <button onClick={() => setShowSearch(true)} style={iconBtn}><Search size={14} /></button>
-        )}
-
-        {/* Tablet Fullscreen Toggle */}
-        <button onClick={() => setIsFullscreen(!isFullscreen)} style={iconBtn} title={isFullscreen ? 'Exit fullscreen' : 'Tablet mode'}>
-          {isFullscreen ? <Minimize2 size={14} /> : <Maximize2 size={14} />}
-        </button>
       </header>
 
       {/* ══════ CAPACITY STRIP ══════ */}
       {view === 'timeline' && (
         <div style={{ height: 36, background: '#F5F5F5', borderBottom: '1px solid #E5E7EB', display: 'flex', alignItems: 'center', flexShrink: 0, overflow: 'hidden' }}>
           <div style={{ width: LEFT_W, flexShrink: 0, background: '#F5F5F5', borderRight: '1px solid #E5E7EB', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <span style={{ fontSize: 10, fontWeight: 700, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Capacity</span>
+            <span style={{ fontSize: 12, fontWeight: 700, color: '#374151', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Capacity</span>
           </div>
           <div style={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
             {slotCaps.map((s, i) => (
               <div key={i} style={{ flex: 1, borderRight: '1px solid rgba(229,231,235,0.5)', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', padding: '0 3px' }}>
-                <span style={{ fontSize: 9, color: s.pct >= 90 ? T.status.late : s.pct >= 70 ? '#1F2937' : '#6B7280', fontWeight: s.pct >= 70 ? 700 : 400, lineHeight: 1 }}>{s.covers}/{s.capacity}</span>
+                <span style={{ fontSize: 11, color: s.pct >= 90 ? T.status.late : s.pct >= 70 ? '#1F2937' : '#374151', fontWeight: s.pct >= 70 ? 700 : 400, lineHeight: 1 }}>{s.covers}/{s.capacity}</span>
                 <div style={{ width: '100%', height: 3, background: '#E5E7EB', borderRadius: 2, marginTop: 2, overflow: 'hidden' }}>
                   <div style={{ height: '100%', width: `${s.pct}%`, background: capColor(s.pct), borderRadius: 2 }} />
                 </div>
@@ -392,7 +396,7 @@ export default function RestaurantCalendar() {
           <div style={{ width: LEFT_W, flexShrink: 0, background: T.white, borderRight: '1px solid #E5E7EB', position: 'sticky', left: 0, zIndex: 30, boxShadow: '2px 0 4px rgba(0,0,0,0.03)' }}>
             {/* TABLES header */}
             <div style={{ height: 40, background: T.white, borderBottom: '1px solid #E5E7EB', position: 'sticky', top: 0, zIndex: 40, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <span style={{ fontSize: 12, fontWeight: 700, color: '#9CA3AF' }}>TABLES</span>
+              <span style={{ fontSize: 13, fontWeight: 700, color: '#374151' }}>TABLES</span>
             </div>
 
             {rows.map((row, idx) => {
@@ -402,9 +406,9 @@ export default function RestaurantCalendar() {
                     style={{ height: ZONE_H, background: '#FAFAFA', padding: '0 12px', borderBottom: '1px solid #F3F4F6', display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                       <div style={{ width: 3, height: 12, borderRadius: 2, background: ZONE_COLORS[row.zone] || T.forest }} />
-                      <span style={{ fontSize: 11, fontWeight: 700, color: '#374151', textTransform: 'uppercase' }}>{row.zone}</span>
+                      <span style={{ fontSize: 12, fontWeight: 700, color: '#374151', textTransform: 'uppercase' }}>{row.zone}</span>
                     </div>
-                    {collapsedZones[row.zone] ? <ChevronRight size={12} color="#9CA3AF" /> : <ChevronDown size={12} color="#9CA3AF" />}
+                    {collapsedZones[row.zone] ? <ChevronRight size={12} color="#555" /> : <ChevronDown size={12} color="#555" />}
                   </div>
                 )
               }
@@ -413,8 +417,8 @@ export default function RestaurantCalendar() {
               return (
                 <div key={`t-${t.id}`} style={{ height: ROW_H, borderBottom: '1px solid #F9FAFB', display: 'flex', flexDirection: 'column', justifyContent: 'center', padding: '0 16px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                    <span style={{ fontSize: 14, fontWeight: 700, color: '#1F2937' }}>{shortName}</span>
-                    <span style={{ fontSize: 12, color: '#9CA3AF' }}>{t.capacity}-top</span>
+                    <span style={{ fontSize: 16, fontWeight: 700, color: '#1F2937' }}>{shortName}</span>
+                    <span style={{ fontSize: 14, color: '#555', fontWeight: 500 }}>{t.capacity}-top</span>
                   </div>
                 </div>
               )
@@ -427,7 +431,7 @@ export default function RestaurantCalendar() {
             {/* Time header (sticky) */}
             <div style={{ height: 40, background: T.white, borderBottom: '1px solid #E5E7EB', position: 'sticky', top: 0, zIndex: 20, display: 'flex' }}>
               {timeRange.slots.map((s, i) => (
-                <div key={i} style={{ flex: 1, borderRight: '1px solid #F3F4F6', display: 'flex', alignItems: 'center', paddingLeft: 8, fontSize: 12, color: '#9CA3AF' }}>
+                <div key={i} style={{ flex: 1, borderRight: '1px solid #F3F4F6', display: 'flex', alignItems: 'center', paddingLeft: 8, fontSize: 13, fontWeight: 600, color: '#374151' }}>
                   {s.label}
                 </div>
               ))}
@@ -495,16 +499,16 @@ export default function RestaurantCalendar() {
                           {/* Content */}
                           <div style={{ marginLeft: 8, display: 'flex', flexDirection: 'column', justifyContent: 'center', width: '100%', minWidth: 0 }}>
                             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 4 }}>
-                              <span style={{ fontSize: 11, fontWeight: 700, color: '#111', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                              <span style={{ fontSize: 13, fontWeight: 700, color: '#111', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                                 {b.partySize} · {b.customerName?.split(' ').pop() || 'Guest'}
                                 {isVip && <span style={{ marginLeft: 3 }}><Crown size={8} style={{ display: 'inline', color: '#3B82F6', verticalAlign: 'middle' }} /></span>}
                               </span>
                               {b.status === 'late' && <AlertTriangle size={10} color={T.status.late} />}
                             </div>
                             <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginTop: 1 }}>
-                              {isVip && <span style={{ fontSize: 9, background: '#EFF6FF', color: '#2563EB', padding: '0 4px', borderRadius: 3 }}>VIP</span>}
+                              {isVip && <span style={{ fontSize: 10, background: '#EFF6FF', color: '#2563EB', padding: '1px 5px', borderRadius: 3 }}>VIP</span>}
                               {b.occasion && <OccasionBadge occasion={b.occasion} />}
-                              {b.notes && !b.occasion && <span style={{ fontSize: 8, color: '#666' }}>📝</span>}
+                              {b.notes && !b.occasion && <span style={{ fontSize: 10, color: '#555' }}>📝</span>}
                             </div>
                           </div>
                         </div>
@@ -525,7 +529,7 @@ export default function RestaurantCalendar() {
       {view === 'list' && <ReservationListView bookings={filteredBookings} onSelectBooking={setSelectedBooking} />}
 
       {/* ══════ BOTTOM STATUS BAR ══════ */}
-      <div style={{ height: 32, background: T.white, borderTop: '1px solid #E5E7EB', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 24px', fontSize: 12, color: '#6B7280', flexShrink: 0, zIndex: 50 }}>
+      <div style={{ height: 32, background: T.white, borderTop: '1px solid #E5E7EB', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 24px', fontSize: 13, color: '#374151', flexShrink: 0, zIndex: 50 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 24 }}>
           <span><strong style={{ color: '#374151' }}>Lunch:</strong> {(data.bookings || []).filter(b => timeToMin(b.time) < 900).length} bookings · {(data.bookings || []).filter(b => timeToMin(b.time) < 900).reduce((s, b) => s + (b.partySize || 0), 0)} covers</span>
           <span style={{ width: 1, height: 12, background: '#D1D5DB', display: 'inline-block' }} />
@@ -551,7 +555,7 @@ export default function RestaurantCalendar() {
             {/* Top actions */}
             <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: 8, marginBottom: 16 }}>
               <button style={panelIconBtn} title="Edit"><Edit3 size={14} /></button>
-              <button style={{ ...panelIconBtn, color: '#999' }} title="Close" onClick={() => setSelectedBooking(null)}><X size={16} /></button>
+              <button style={{ ...panelIconBtn, color: '#666' }} title="Close" onClick={() => setSelectedBooking(null)}><X size={16} /></button>
             </div>
 
             {/* Avatar + Name */}
@@ -581,7 +585,7 @@ export default function RestaurantCalendar() {
                 <div key={i} style={{ background: '#F5F5F5', borderRadius: 16, padding: '12px 8px', display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}>
                   <span style={{ fontSize: 14, marginBottom: 4 }}>{s.icon}</span>
                   <span style={{ fontSize: 14, fontWeight: 700, color: T.forest, lineHeight: 1 }}>{s.value}</span>
-                  <span style={{ fontSize: 10, color: '#666', marginTop: 4 }}>{s.label}</span>
+                  <span style={{ fontSize: 11, color: '#555', marginTop: 4 }}>{s.label}</span>
                 </div>
               ))}
             </div>
@@ -593,7 +597,7 @@ export default function RestaurantCalendar() {
             {/* Occasion */}
             {selectedBooking.occasion && (
               <div style={{ marginBottom: 20 }}>
-                <h3 style={{ fontSize: 13, fontWeight: 600, color: '#999', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 10 }}>Occasion</h3>
+                <h3 style={{ fontSize: 13, fontWeight: 600, color: '#666', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 10 }}>Occasion</h3>
                 <div style={{ padding: '10px 14px', background: '#FFF8F0', borderRadius: 12, fontSize: 13, color: '#92400E', display: 'flex', alignItems: 'center', gap: 8, border: '1px solid #FDE68A30' }}>
                   <Cake size={15} /> {selectedBooking.occasion.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}
                 </div>
@@ -604,8 +608,8 @@ export default function RestaurantCalendar() {
             {selectedBooking.notes && (
               <div style={{ marginBottom: 20 }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
-                  <h3 style={{ fontSize: 13, fontWeight: 600, color: '#999', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Notes</h3>
-                  <button style={{ border: 'none', background: 'none', cursor: 'pointer', color: '#999' }}><Edit3 size={12} /></button>
+                  <h3 style={{ fontSize: 13, fontWeight: 600, color: '#666', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Notes</h3>
+                  <button style={{ border: 'none', background: 'none', cursor: 'pointer', color: '#666' }}><Edit3 size={12} /></button>
                 </div>
                 <div style={{ background: '#FAFAF8', border: '1px solid #EBEBEB', borderRadius: 12, padding: 16 }}>
                   <p style={{ fontSize: 13, color: '#1B4332', lineHeight: 1.5, fontStyle: 'italic', margin: 0 }}>"{selectedBooking.notes}"</p>
@@ -615,7 +619,7 @@ export default function RestaurantCalendar() {
 
             {/* Booking Details */}
             <div style={{ marginBottom: 20 }}>
-              <h3 style={{ fontSize: 13, fontWeight: 600, color: '#999', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 10 }}>Details</h3>
+              <h3 style={{ fontSize: 13, fontWeight: 600, color: '#666', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 10 }}>Details</h3>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13 }}>
                   <span style={{ color: '#666' }}>Date</span>
@@ -683,15 +687,15 @@ const pillBtn = { width: 34, height: 34, borderRadius: '50%', border: 'none', ba
 const divider = { width: 1, height: 24, background: '#EBEBEB' }
 const toggleWrap = { display: 'flex', background: '#F5F5F5', borderRadius: 20, padding: 3 }
 const toggleActive = { padding: '7px 16px', borderRadius: 18, border: 'none', cursor: 'pointer', fontSize: 12, fontWeight: 700, background: '#1B4332', color: '#fff', boxShadow: '0 2px 8px rgba(27,67,50,0.2)', transition: 'all 0.15s', fontFamily: "'Figtree', sans-serif" }
-const toggleInactive = { padding: '7px 16px', borderRadius: 18, border: 'none', cursor: 'pointer', fontSize: 12, fontWeight: 500, background: 'transparent', color: '#999', transition: 'all 0.15s', fontFamily: "'Figtree', sans-serif" }
-const iconBtn = { width: 38, height: 38, borderRadius: '50%', border: 'none', background: '#F5F5F5', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#888' }
+const toggleInactive = { padding: '7px 16px', borderRadius: 18, border: 'none', cursor: 'pointer', fontSize: 12, fontWeight: 500, background: 'transparent', color: '#555', transition: 'all 0.15s', fontFamily: "'Figtree', sans-serif" }
+const iconBtn = { width: 38, height: 38, borderRadius: '50%', border: 'none', background: '#F5F5F5', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#555' }
 const panelIconBtn = { width: 32, height: 32, borderRadius: '50%', border: 'none', background: 'transparent', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#666' }
 
 function StatChip({ color, value, label }) {
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
       <span style={{ width: 7, height: 7, borderRadius: '50%', background: color }} />
-      <span style={{ fontSize: 12, color: '#888', fontWeight: 500 }}>
+      <span style={{ fontSize: 13, color: '#374151', fontWeight: 500 }}>
         <strong style={{ color: '#1B4332', fontWeight: 800 }}>{value}</strong> {label}
       </span>
     </div>
@@ -701,7 +705,7 @@ function StatChip({ color, value, label }) {
 function DetailCard({ label, value }) {
   return (
     <div style={{ background: '#F9FAFB', padding: '8px 12px', borderRadius: 8 }}>
-      <div style={{ fontSize: 10, color: '#9CA3AF', fontWeight: 700, textTransform: 'uppercase' }}>{label}</div>
+      <div style={{ fontSize: 12, color: '#555', fontWeight: 700, textTransform: 'uppercase' }}>{label}</div>
       <div style={{ fontSize: 14, fontWeight: 600, color: '#1F2937', marginTop: 2 }}>{value}</div>
     </div>
   )
@@ -759,13 +763,13 @@ function TableStatusView({ data, filteredBookings, onSelectBooking }) {
                   onMouseOut={e => { e.currentTarget.style.boxShadow = 'none' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
                     <span style={{ fontSize: 15, fontWeight: 700, color: '#111' }}>{t.name.replace('Table ', 'T')}</span>
-                    <span style={{ fontSize: 10, fontWeight: 600, color: sColors[status], textTransform: 'uppercase' }}>{status}</span>
+                    <span style={{ fontSize: 10, fontWeight: 700, color: sColors[status], textTransform: 'uppercase' }}>{status}</span>
                   </div>
-                  <span style={{ fontSize: 11, color: '#9CA3AF' }}>{t.capacity} seats · {zone}</span>
+                  <span style={{ fontSize: 13, color: '#555' }}>{t.capacity} seats · {zone}</span>
                   {booking && (
                     <div style={{ marginTop: 8, paddingTop: 8, borderTop: '1px solid #F3F4F6' }}>
                       <div style={{ fontSize: 13, fontWeight: 600, color: '#111' }}>{booking.partySize} · {booking.customerName?.split(' ').pop()}</div>
-                      <div style={{ fontSize: 11, color: '#6B7280', marginTop: 2 }}>{fmt12(booking.time)}{booking.occasion ? ` · ${booking.occasion}` : ''}</div>
+                      <div style={{ fontSize: 13, color: '#374151', marginTop: 2 }}>{fmt12(booking.time)}{booking.occasion ? ` · ${booking.occasion}` : ''}</div>
                     </div>
                   )}
                 </div>
@@ -784,7 +788,7 @@ function ReservationListView({ bookings, onSelectBooking }) {
 
   return (
     <div style={{ flex: 1, overflow: 'auto', background: '#fff' }}>
-      <div style={{ display: 'grid', gridTemplateColumns: '60px 1.5fr 80px 100px 80px 100px 1fr', padding: '10px 20px', background: '#FAFAFA', borderBottom: '1px solid #E5E7EB', fontSize: 11, fontWeight: 700, color: '#9CA3AF', textTransform: 'uppercase', position: 'sticky', top: 0, zIndex: 5 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '60px 1.5fr 80px 100px 80px 100px 1fr', padding: '10px 20px', background: '#FAFAFA', borderBottom: '1px solid #E5E7EB', fontSize: 12, fontWeight: 700, color: '#374151', textTransform: 'uppercase', position: 'sticky', top: 0, zIndex: 5 }}>
         <span>Time</span><span>Guest</span><span>Party</span><span>Table</span><span>Status</span><span>Occasion</span><span>Notes</span>
       </div>
       {sorted.map((b, idx) => (
