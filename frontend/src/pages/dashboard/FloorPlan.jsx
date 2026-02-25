@@ -754,13 +754,23 @@ const FloorPlan = ({ embedded = false }) => {
                   {activeFloors.map((floor, fi) => {
                     const floorElements = elements.filter(e => e.zone === floor.id)
                     const floorTables = floorElements.filter(e => e.type !== 'fixture')
-                    const maxX = Math.max(300, ...floorElements.map(e => (e.x || 0) + (e.type === 'fixture' ? (e.w || 100) : 160)))
-                    const maxY = Math.max(300, ...floorElements.map(e => (e.y || 0) + (e.type === 'fixture' ? (e.h || 50) : 160)))
+
+                    // Proper bounding box: compute actual right/bottom edge of every element
+                    const getElBounds = (el) => {
+                      if (el.type === 'fixture') return { r: (el.x || 0) + (el.w || 100), b: (el.y || 0) + (el.h || 50) }
+                      const seats = el.seats || 4
+                      const raw = seats <= 2 ? 85 : seats <= 4 ? 100 : seats <= 6 ? 120 : seats <= 8 ? 140 : 155
+                      let elW = raw, elH = raw
+                      if (el.shape === 'long') { elW = raw * 1.7; elH = raw * 0.65 }
+                      else if (el.shape === 'booth') { elW = raw * 1.4; elH = raw * 0.8 }
+                      return { r: (el.x || 0) + elW + 25, b: (el.y || 0) + elH + 25 } // +25 for seat dots
+                    }
+                    const pad = 30
+                    const contentW = floorElements.length > 0 ? Math.max(...floorElements.map(e => getElBounds(e).r)) + pad : 400
+                    const contentH = floorElements.length > 0 ? Math.max(...floorElements.map(e => getElBounds(e).b)) + pad : 400
                     const colW = (azW / activeFloors.length) - 2
-                    const colH = azH - 40
-                    const scaleX = colW / (maxX + 20)
-                    const scaleY = colH / (maxY + 20)
-                    const scale = Math.min(scaleX, scaleY, 1.2)
+                    const colH = azH - 44 // minus label bar height
+                    const scale = Math.min(colW / contentW, colH / contentH, 1.0)
 
                     return (
                       <div key={floor.id} className="flex flex-col flex-1 min-w-[180px]" style={{ borderRight: fi < activeFloors.length - 1 ? '1px solid #E5E7EB' : 'none' }}>
