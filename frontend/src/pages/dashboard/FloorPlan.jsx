@@ -755,7 +755,11 @@ const FloorPlan = ({ embedded = false }) => {
                     const floorElements = elements.filter(e => e.zone === floor.id)
                     const floorTables = floorElements.filter(e => e.type !== 'fixture')
 
-                    // Tight bounding box: min origin to max edge
+                    /* ── Auto-scale algorithm ──
+                       1. Compute tight bounding box (min→max) of all elements
+                       2. Scale so bounding box fills 90% of available column
+                       3. Center the scaled content in the column
+                       Elements resize via their scale prop (text, dots, borders all scale) */
                     const getElSize = (el) => {
                       if (el.type === 'fixture') return { w: (el.w || 100), h: (el.h || 50) }
                       const seats = el.seats || 4
@@ -763,21 +767,28 @@ const FloorPlan = ({ embedded = false }) => {
                       let w = raw, h = raw
                       if (el.shape === 'long') { w = raw * 1.7; h = raw * 0.65 }
                       else if (el.shape === 'booth') { w = raw * 1.4; h = raw * 0.8 }
-                      return { w: w + 25, h: h + 25 }
+                      return { w: w + 30, h: h + 30 } // seat dots + hover tooltips
                     }
-                    const pad = 15
-                    const minX = floorElements.length > 0 ? Math.min(...floorElements.map(e => (e.x || 0))) - pad : 0
-                    const minY = floorElements.length > 0 ? Math.min(...floorElements.map(e => (e.y || 0))) - pad : 0
-                    const maxR = floorElements.length > 0 ? Math.max(...floorElements.map(e => (e.x || 0) + getElSize(e).w)) + pad : 400
-                    const maxB = floorElements.length > 0 ? Math.max(...floorElements.map(e => (e.y || 0) + getElSize(e).h)) + pad : 400
-                    const contentW = maxR - minX
-                    const contentH = maxB - minY
+                    const margin = 10
+                    const hasEls = floorElements.length > 0
+                    const minX = hasEls ? Math.min(...floorElements.map(e => (e.x || 0))) : 0
+                    const minY = hasEls ? Math.min(...floorElements.map(e => (e.y || 0))) : 0
+                    const maxR = hasEls ? Math.max(...floorElements.map(e => (e.x || 0) + getElSize(e).w)) : 400
+                    const maxB = hasEls ? Math.max(...floorElements.map(e => (e.y || 0) + getElSize(e).h)) : 400
+                    const contentW = (maxR - minX) || 1
+                    const contentH = (maxB - minY) || 1
                     const colW = (azW / activeFloors.length) - 2
                     const colH = azH - 44
-                    const scale = Math.min(colW / contentW, colH / contentH, 1.0)
-                    // Offset to shift content so it starts from edge
-                    const offX = -minX
-                    const offY = -minY
+                    const usableW = colW - margin * 2
+                    const usableH = colH - margin * 2
+                    // Scale to fill 90% of column — no cap, elements resize naturally
+                    const scale = Math.min(usableW / contentW, usableH / contentH)
+                    // Rendered size after scaling
+                    const renderedW = contentW * scale
+                    const renderedH = contentH * scale
+                    // Center offset: shift origin + center in column
+                    const offX = -minX + (usableW - renderedW) / (2 * scale) + margin / scale
+                    const offY = -minY + (usableH - renderedH) / (2 * scale) + margin / scale
 
                     return (
                       <div key={floor.id} className="flex flex-col flex-1 min-w-[180px]" style={{ borderRight: fi < activeFloors.length - 1 ? '1px solid #E5E7EB' : 'none' }}>
