@@ -482,14 +482,14 @@ const OnlineBooking = () => {
         </div>
 
         {/* Integrations - Scale */}
-        <div className="bg-white border border-border rounded-xl shadow-sm p-6">
+        <div className="bg-white border border-gray-100 rounded-2xl shadow-[0_2px_10px_rgba(0,0,0,0.03)] p-6">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="font-heading font-semibold text-lg">Integrations</h2>
+            <h2 className="font-extrabold text-lg text-gray-900" style={{ fontFamily: "'Figtree', sans-serif" }}>Integrations</h2>
             {!hasIntegrations && (
               <button
                 type="button"
                 onClick={() => setUpgradeModal('scale')}
-                className="text-sm text-primary hover:underline flex items-center gap-1"
+                className="text-xs font-bold text-[#1B4332] hover:text-[#2D6A4F] flex items-center gap-1 transition-colors"
               >
                 <Lock className="w-3 h-3" /> Upgrade
               </button>
@@ -497,19 +497,28 @@ const OnlineBooking = () => {
           </div>
           {hasIntegrations ? (
             <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <span className="text-sm">Google Reserve</span>
-                <span className="text-xs text-muted">Not connected</span>
+              <div className="flex items-center justify-between py-2 border-b border-gray-50">
+                <div className="flex items-center gap-3">
+                  <img src="/icons/google.svg" alt="Google" className="w-5 h-5" />
+                  <span className="text-sm font-medium text-gray-700">Google Reserve</span>
+                </div>
+                <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Not connected</span>
               </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm">Instagram</span>
-                <span className="text-xs text-muted">Not connected</span>
+              <div className="flex items-center justify-between py-2 border-b border-gray-50">
+                <div className="flex items-center gap-3">
+                  <img src="/icons/instagram.svg" alt="Instagram" className="w-5 h-5" />
+                  <span className="text-sm font-medium text-gray-700">Instagram</span>
+                </div>
+                <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Not connected</span>
               </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm">Facebook</span>
-                <span className="text-xs text-muted">Not connected</span>
+              <div className="flex items-center justify-between py-2 border-b border-gray-50">
+                <div className="flex items-center gap-3">
+                  <img src="/icons/facebook.svg" alt="Facebook" className="w-5 h-5" />
+                  <span className="text-sm font-medium text-gray-700">Facebook</span>
+                </div>
+                <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Not connected</span>
               </div>
-              <button onClick={() => setEmbedModal(true)} className="px-4 py-2 bg-white border border-border rounded-lg text-sm font-bold text-primary hover:bg-gray-50 shadow-sm">
+              <button onClick={() => setEmbedModal(true)} className="mt-2 px-4 py-1.5 bg-white border border-gray-200 rounded-full text-xs font-bold text-gray-700 hover:bg-gray-50 shadow-sm transition-all" style={{ fontFamily: "'Figtree', sans-serif" }}>
                 Get Embed Code
               </button>
             </div>
