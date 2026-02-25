@@ -4,6 +4,22 @@ from middleware.auth import get_current_owner
 from pydantic import BaseModel
 from typing import List, Optional, Dict, Any
 from datetime import datetime
+from bson import ObjectId
+
+
+async def find_business(db, business_id: str, owner_id: str):
+    """Find business by ID (handles both string and ObjectId), verify ownership."""
+    biz = await db.businesses.find_one({"_id": business_id})
+    if not biz:
+        try:
+            biz = await db.businesses.find_one({"_id": ObjectId(business_id)})
+        except Exception:
+            pass
+    if not biz:
+        raise HTTPException(status_code=404, detail="Business not found")
+    if biz.get("owner_id") != owner_id and str(biz.get("owner_id")) != owner_id:
+        raise HTTPException(status_code=403, detail="Not authorized")
+    return biz
 
 router = APIRouter(prefix="/tables", tags=["tables"])
 
@@ -51,11 +67,7 @@ async def get_floor_plan(
     current_user: dict = Depends(get_current_owner)
 ):
     db = get_database()
-    business = await db.businesses.find_one({"_id": business_id})
-    if not business:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Business not found")
-    if business["owner_id"] != str(current_user["_id"]):
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized")
+    business = await find_business(db, business_id, str(current_user["_id"]))
 
     fp = business.get("floor_plan") or {}
 
@@ -87,11 +99,7 @@ async def update_floor_plan(
     current_user: dict = Depends(get_current_owner)
 ):
     db = get_database()
-    business = await db.businesses.find_one({"_id": business_id})
-    if not business:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Business not found")
-    if business["owner_id"] != str(current_user["_id"]):
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized")
+    business = await find_business(db, business_id, str(current_user["_id"]))
 
     data = floor_plan_data.model_dump(exclude_none=True)
 
@@ -128,11 +136,7 @@ async def delete_table(
     current_user: dict = Depends(get_current_owner)
 ):
     db = get_database()
-    business = await db.businesses.find_one({"_id": business_id})
-    if not business:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Business not found")
-    if business["owner_id"] != str(current_user["_id"]):
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized")
+    business = await find_business(db, business_id, str(current_user["_id"]))
 
     fp = business.get("floor_plan") or {}
     if "elements" in fp:
@@ -164,11 +168,7 @@ async def auto_arrange_floor_plan(
     with proper ADA spacing and aesthetic alignment.
     """
     db = get_database()
-    business = await db.businesses.find_one({"_id": business_id})
-    if not business:
-        raise HTTPException(status_code=404, detail="Business not found")
-    if business["owner_id"] != str(current_user["_id"]):
-        raise HTTPException(status_code=403, detail="Not authorized")
+    business = await find_business(db, business_id, str(current_user["_id"]))
 
     try:
         arranged = auto_arrange(
@@ -204,11 +204,7 @@ async def validate_floor_plan(
     ADA compliance issues, and return actionable feedback.
     """
     db = get_database()
-    business = await db.businesses.find_one({"_id": business_id})
-    if not business:
-        raise HTTPException(status_code=404, detail="Business not found")
-    if business["owner_id"] != str(current_user["_id"]):
-        raise HTTPException(status_code=403, detail="Not authorized")
+    business = await find_business(db, business_id, str(current_user["_id"]))
 
     result = validate_layout(
         request.elements,
@@ -238,11 +234,7 @@ async def generate_floor_plan(
     }
     """
     db = get_database()
-    business = await db.businesses.find_one({"_id": business_id})
-    if not business:
-        raise HTTPException(status_code=404, detail="Business not found")
-    if business["owner_id"] != str(current_user["_id"]):
-        raise HTTPException(status_code=403, detail="Not authorized")
+    business = await find_business(db, business_id, str(current_user["_id"]))
 
     elements = generate_from_description(
         request.description,

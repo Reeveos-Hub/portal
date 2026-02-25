@@ -703,13 +703,6 @@ const FloorPlan = ({ embedded = false }) => {
                   {arranging ? 'Arranging...' : 'Auto-arrange'}
                 </button>
               )}
-              {/* Validate */}
-              {!locked && elements.filter(e => e.type !== 'fixture').length >= 2 && (
-                <button onClick={validateLayout}
-                  className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-bold transition-all bg-gray-100 text-gray-600 hover:bg-amber-50 hover:text-amber-700">
-                  <AlertTriangle className="w-4 h-4" /> Check
-                </button>
-              )}
               {/* Lock = Done / Unlock = Edit */}
               <button onClick={() => {
                   if (!locked) {
