@@ -99,8 +99,13 @@ async def get_booking_page(business_slug: str):
             return path
         if path.startswith("http"):
             return path
-        base = os.environ.get("REZVO_API_URL", "http://localhost:8000")
-        return f"{base.rstrip('/')}{path}" if path.startswith("/") else path
+        # On production, REZVO_API_URL should be set to the public API URL
+        # Fallback: use /api prefix which works with nginx proxy
+        base = os.environ.get("REZVO_API_URL", "")
+        if base:
+            return f"{base.rstrip('/')}{path}" if path.startswith("/") else path
+        # No base URL set — return relative path with /api prefix for nginx
+        return f"/api{path}" if path.startswith("/") else path
 
     bp = business.get("bookingPage") or {}
     branding = bp.get("branding") or {}

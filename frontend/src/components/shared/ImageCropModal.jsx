@@ -99,6 +99,7 @@ const ImageCropModal = ({
             minZoom={0.3}
             maxZoom={5}
             objectFit="contain"
+            restrictPosition={false}
             onCropChange={setCrop}
             onZoomChange={setZoom}
             onCropComplete={onCropComplete}

@@ -5,17 +5,28 @@
 
 import { MapPin, Store } from 'lucide-react'
 
+const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8000'
+
+/** Resolve image paths — API returns /static/uploads/... which needs API base prefix */
+const resolveImg = (url) => {
+  if (!url) return null
+  if (url.startsWith('http')) return url
+  if (url.startsWith('/static/')) return `${API_BASE}${url}`
+  return url
+}
+
 const BookingHeader = ({ business }) => {
   if (!business) return null
   const accent = business.accentColour || '#1B4332'
+  const logoSrc = resolveImg(business.logo)
 
   return (
     <div className="mb-3">
       {/* Logo + name row */}
       <div className="flex items-center gap-2.5">
-        {business.logo ? (
+        {logoSrc ? (
           <img
-            src={business.logo}
+            src={logoSrc}
             alt={business.name}
             className="w-10 h-10 rounded-lg border border-gray-200 object-cover bg-white shrink-0"
           />
