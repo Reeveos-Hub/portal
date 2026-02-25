@@ -202,7 +202,7 @@ export default function RestaurantCalendar() {
           </div>
         ) : view === 'timeline' ? (
           <TimelineView
-            ref={timelineRef}
+            timelineRef={timelineRef}
             tables={data.tables || []}
             bookings={filteredBookings}
             tableBookings={tableBookings}
@@ -318,11 +318,11 @@ export default function RestaurantCalendar() {
    TIMELINE VIEW — Tables as columns, time as rows
    ══════════════════════════════════════════════════ */
 
-const TimelineView = ({ tables, bookings, tableBookings, isToday, timeIndicatorTop, onSelectBooking, selectedBooking, ref }) => {
+const TimelineView = ({ timelineRef, tables, bookings, tableBookings, isToday, timeIndicatorTop, onSelectBooking, selectedBooking }) => {
   const colWidth = Math.max(120, tables.length <= 6 ? 160 : tables.length <= 10 ? 130 : 110)
 
   return (
-    <div ref={ref} className="h-full overflow-auto">
+    <div ref={timelineRef} className="h-full overflow-auto">
       <div className="relative" style={{ minWidth: tables.length * colWidth + 70 }}>
         {/* Table headers */}
         <div className="sticky top-0 z-20 bg-white border-b border-gray-200 flex">
