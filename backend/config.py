@@ -28,6 +28,8 @@ class Settings(BaseSettings):
     twilio_auth_token: Optional[str] = None
     twilio_phone_number: Optional[str] = None
     
+    sendly_api_key: Optional[str] = None
+    
     aws_access_key_id: Optional[str] = None
     aws_secret_access_key: Optional[str] = None
     aws_s3_bucket: Optional[str] = None

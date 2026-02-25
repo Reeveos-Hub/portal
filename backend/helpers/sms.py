@@ -1,43 +1,36 @@
 """
 Rezvo SMS Service
 =================
-SMS notifications via Twilio.
-Twilio free trial: ~$15 credit, ~£0.04/SMS to UK numbers.
-Twilio Pay-as-you-go: no monthly fee, just per-message.
+SMS notifications via Sendly.live API.
+Credit-based: buy credits, pay per SMS.
+No monthly fee.
+
+API inferred from Sendly PHP SDK:
+  - Auth: Bearer sk_live_v1_xxx
+  - Endpoint: POST https://api.sendly.live/v1/messages
+  - Payload: { "to": "+447...", "text": "..." }
 """
 
 import logging
+import httpx
 from typing import Optional, Dict
 from config import settings
 
 logger = logging.getLogger(__name__)
 
-_twilio_client = None
-
-
-def _get_client():
-    global _twilio_client
-    if _twilio_client is None:
-        if not settings.twilio_account_sid or not settings.twilio_auth_token:
-            return None
-        from twilio.rest import Client
-        _twilio_client = Client(settings.twilio_account_sid, settings.twilio_auth_token)
-    return _twilio_client
+SENDLY_BASE_URL = "https://api.sendly.live/v1"
 
 
 async def send_sms(to: str, body: str) -> Dict:
     """
-    Send an SMS via Twilio.
+    Send an SMS via Sendly.live API.
     `to` should be E.164 format, e.g. +447700900000
-    Returns: {"success": True/False, "sid": "...", "error": "..."}
+    Returns: {"success": True/False, "id": "...", "error": "..."}
     """
-    if not settings.twilio_phone_number:
-        logger.warning("Twilio not configured — SMS not sent")
+    api_key = settings.sendly_api_key
+    if not api_key:
+        logger.warning("Sendly API key not configured — SMS not sent")
         return {"success": False, "error": "SMS service not configured"}
-
-    client = _get_client()
-    if not client:
-        return {"success": False, "error": "Twilio credentials missing"}
 
     # Normalise UK numbers
     to = normalise_uk_phone(to)
@@ -45,13 +38,26 @@ async def send_sms(to: str, body: str) -> Dict:
         return {"success": False, "error": "Invalid phone number"}
 
     try:
-        message = client.messages.create(
-            body=body,
-            from_=settings.twilio_phone_number,
-            to=to,
-        )
-        logger.info(f"SMS sent to {to}: {message.sid}")
-        return {"success": True, "sid": message.sid, "to": to}
+        async with httpx.AsyncClient(timeout=15) as client:
+            resp = await client.post(
+                f"{SENDLY_BASE_URL}/messages",
+                json={"to": to, "text": body},
+                headers={
+                    "Authorization": f"Bearer {api_key}",
+                    "Content-Type": "application/json",
+                },
+            )
+
+            if resp.status_code in (200, 201, 202):
+                data = resp.json()
+                msg_id = data.get("id") or data.get("messageId") or data.get("sid", "unknown")
+                logger.info(f"SMS sent to {to}: {msg_id}")
+                return {"success": True, "id": msg_id, "to": to}
+            else:
+                error_text = resp.text[:200]
+                logger.error(f"Sendly SMS failed ({resp.status_code}): {error_text}")
+                return {"success": False, "error": f"Sendly API error {resp.status_code}: {error_text}", "to": to}
+
     except Exception as e:
         logger.error(f"SMS failed to {to}: {str(e)}")
         return {"success": False, "error": str(e), "to": to}
@@ -61,8 +67,8 @@ def normalise_uk_phone(phone: str) -> Optional[str]:
     """Convert UK phone to E.164 format."""
     if not phone:
         return None
-    # Strip spaces, dashes, dots
-    phone = phone.replace(" ", "").replace("-", "").replace(".", "").strip()
+    # Strip spaces, dashes, dots, parens
+    phone = phone.replace(" ", "").replace("-", "").replace(".", "").replace("(", "").replace(")", "").strip()
     # Already E.164
     if phone.startswith("+") and len(phone) >= 12:
         return phone
@@ -92,9 +98,9 @@ def booking_confirmation_sms(
     party = f" for {party_size}" if party_size else ""
     return (
         f"Hi {client_name}! Your booking at {business_name} is confirmed.\n"
-        f"📅 {booking_date} at {booking_time}{party}\n"
+        f"{booking_date} at {booking_time}{party}\n"
         f"Ref: {reference}\n"
-        f"— Powered by Rezvo"
+        f"- Powered by Rezvo"
     )
 
 
@@ -108,10 +114,10 @@ def new_booking_alert_sms(
     """Owner/staff new booking alert SMS."""
     party = f" ({party_size} guests)" if party_size else ""
     return (
-        f"🔔 New booking: {client_name}{party}\n"
+        f"New booking: {client_name}{party}\n"
         f"{booking_date} at {booking_time}\n"
         f"Via: {channel}\n"
-        f"— Rezvo"
+        f"- Rezvo"
     )
 
 
@@ -125,7 +131,7 @@ def booking_cancelled_sms(
     return (
         f"Hi {client_name}, your booking at {business_name} on "
         f"{booking_date} at {booking_time} has been cancelled.\n"
-        f"— Rezvo"
+        f"- Rezvo"
     )
 
 
@@ -139,5 +145,5 @@ def booking_reminder_sms(
     return (
         f"Reminder: {client_name}, your booking at {business_name} is "
         f"tomorrow at {booking_time}.\n"
-        f"See you there! — Rezvo"
+        f"See you there! - Rezvo"
     )
