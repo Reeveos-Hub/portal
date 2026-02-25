@@ -16,6 +16,35 @@ class FloorPlanUpdate(BaseModel):
     height: Optional[float] = 800
 
 
+class AutoArrangeRequest(BaseModel):
+    elements: List[Dict[str, Any]]
+    width: float = 1000
+    height: float = 800
+    zone: Optional[str] = None
+    style: str = "balanced"  # balanced, dense, spacious, grid
+
+
+class ValidateRequest(BaseModel):
+    elements: List[Dict[str, Any]]
+    width: float = 1000
+    height: float = 800
+    min_gap: float = 60
+
+
+class GenerateRequest(BaseModel):
+    description: Dict[str, Any]  # Structured layout description
+    width: float = 1000
+    height: float = 800
+    zone: str = "main"
+
+
+class TextGenerateRequest(BaseModel):
+    prompt: str  # Natural language: "12 tables, bar on the left..."
+    width: float = 1000
+    height: float = 800
+    zone: str = "main"
+
+
 @router.get("/business/{business_id}/floor-plan")
 async def get_floor_plan(
     business_id: str,
@@ -116,3 +145,113 @@ async def delete_table(
         {"$set": {"floor_plan": fp, "updated_at": datetime.utcnow()}}
     )
     return {"detail": "Element deleted"}
+
+
+# ═══════════════ AI FLOOR PLAN SOLVER ENDPOINTS ═══════════════
+
+from services.floor_plan_solver import auto_arrange, validate_layout, generate_from_description
+
+
+@router.post("/business/{business_id}/auto-arrange")
+async def auto_arrange_floor_plan(
+    business_id: str,
+    request: AutoArrangeRequest,
+    current_user: dict = Depends(get_current_owner)
+):
+    """
+    AI auto-arrange: repositions tables for optimal spacing.
+    Fixtures stay fixed, tables move to non-overlapping positions
+    with proper ADA spacing and aesthetic alignment.
+    """
+    db = get_database()
+    business = await db.businesses.find_one({"_id": business_id})
+    if not business:
+        raise HTTPException(status_code=404, detail="Business not found")
+    if business["owner_id"] != str(current_user["_id"]):
+        raise HTTPException(status_code=403, detail="Not authorized")
+
+    arranged = auto_arrange(
+        request.elements,
+        canvas_w=request.width,
+        canvas_h=request.height,
+        zone=request.zone,
+        style=request.style
+    )
+
+    # Validate the result
+    validation = validate_layout(arranged, request.width, request.height)
+
+    return {
+        "elements": arranged,
+        "validation": validation,
+        "width": request.width,
+        "height": request.height
+    }
+
+
+@router.post("/business/{business_id}/validate-layout")
+async def validate_floor_plan(
+    business_id: str,
+    request: ValidateRequest,
+    current_user: dict = Depends(get_current_owner)
+):
+    """
+    Validate current layout: check for overlaps, spacing violations,
+    ADA compliance issues, and return actionable feedback.
+    """
+    db = get_database()
+    business = await db.businesses.find_one({"_id": business_id})
+    if not business:
+        raise HTTPException(status_code=404, detail="Business not found")
+    if business["owner_id"] != str(current_user["_id"]):
+        raise HTTPException(status_code=403, detail="Not authorized")
+
+    result = validate_layout(
+        request.elements,
+        canvas_w=request.width,
+        canvas_h=request.height,
+        min_gap=request.min_gap
+    )
+    return result
+
+
+@router.post("/business/{business_id}/generate-layout")
+async def generate_floor_plan(
+    business_id: str,
+    request: GenerateRequest,
+    current_user: dict = Depends(get_current_owner)
+):
+    """
+    Generate a complete floor plan from a structured description.
+
+    Input:
+    {
+        "description": {
+            "tables": [{"shape": "round", "seats": 4, "count": 6}],
+            "fixtures": [{"type": "bar", "position": "left"}],
+            "style": "balanced"
+        }
+    }
+    """
+    db = get_database()
+    business = await db.businesses.find_one({"_id": business_id})
+    if not business:
+        raise HTTPException(status_code=404, detail="Business not found")
+    if business["owner_id"] != str(current_user["_id"]):
+        raise HTTPException(status_code=403, detail="Not authorized")
+
+    elements = generate_from_description(
+        request.description,
+        canvas_w=request.width,
+        canvas_h=request.height,
+        zone=request.zone
+    )
+
+    validation = validate_layout(elements, request.width, request.height)
+
+    return {
+        "elements": elements,
+        "validation": validation,
+        "width": request.width,
+        "height": request.height
+    }
