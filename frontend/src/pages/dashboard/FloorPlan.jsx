@@ -1,90 +1,214 @@
-import RezvoLoader from "../../components/shared/RezvoLoader"
 /**
- * Floor Plan — Drag-drop table editor + live status view
- * Table shapes: round, square, long, hexagon
- * Zones: Main, Bar, Patio, Window, Terrace, Upstairs, Kiosk, Toilets, Outside
- * Lock/unlock toggle, zone labels, booking sidebar
+ * Floor Plan — Full drag-drop table editor + live status view
+ * Zone views: Main Floor, Bar, Kitchen, Terrace, Upstairs, Outside, Basement, Window
+ * Table shapes: round, square, long, booth
+ * Lock/unlock toggle, add/remove tables, zone tabs
  */
-import { useState, useEffect, useRef, useCallback } from 'react'
-import { Lock, Unlock, Plus, Trash2, RotateCcw, ChevronDown, X, Settings, Maximize2, Minimize2, Move } from 'lucide-react'
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react'
+import {
+  Lock, Unlock, Plus, Trash2, X, Settings, GripVertical,
+  LayoutGrid, Copy, Move,
+  Circle, Square, RectangleHorizontal, Sofa
+} from 'lucide-react'
 import { useBusiness } from '../../contexts/BusinessContext'
 import api from '../../utils/api'
+import RezvoLoader from '../../components/shared/RezvoLoader'
+
+/* ═══════════════ CONSTANTS ═══════════════ */
 
 const STATUS = {
-  available: { bg: '#ECFDF5', border: '#059669', text: '#065F46', label: 'Available' },
-  confirmed: { bg: '#EFF6FF', border: '#1B4332', text: '#1B4332', label: 'Confirmed' },
-  seated: { bg: '#D1FAE5', border: '#52B788', text: '#065F46', label: 'Seated' },
-  mains: { bg: '#FFF7ED', border: '#D4A373', text: '#92400E', label: 'Mains' },
-  dessert: { bg: '#F5F3FF', border: '#8B5CF6', text: '#5B21B6', label: 'Dessert' },
-  paying: { bg: '#F3F4F6', border: '#6B7280', text: '#374151', label: 'Paying' },
-  dirty: { bg: '#FEF2F2', border: '#EF4444', text: '#991B1B', label: 'Dirty' },
-  pending: { bg: '#FFFBEB', border: '#F59E0B', text: '#92400E', label: 'Pending' },
+  available:  { bg: '#F7F7F5', border: '#D1D5DB', text: '#6B7280', label: 'Available', dot: '#9CA3AF' },
+  reserved:   { bg: '#FFF8F0', border: '#D4A373', text: '#92400E', label: 'Reserved', dot: '#D4A373' },
+  confirmed:  { bg: '#EFF6FF', border: '#1B4332', text: '#1B4332', label: 'Confirmed', dot: '#1B4332' },
+  seated:     { bg: '#ECFDF5', border: '#059669', text: '#065F46', label: 'Seated', dot: '#059669' },
+  mains:      { bg: '#FFF7ED', border: '#EA580C', text: '#9A3412', label: 'Mains', dot: '#EA580C' },
+  dessert:    { bg: '#FAF5FF', border: '#8B5CF6', text: '#5B21B6', label: 'Dessert', dot: '#8B5CF6' },
+  paying:     { bg: '#F3F4F6', border: '#6B7280', text: '#374151', label: 'Paying', dot: '#6B7280' },
+  dirty:      { bg: '#FEF2F2', border: '#EF4444', text: '#991B1B', label: 'Dirty', dot: '#EF4444' },
+  pending:    { bg: '#FFFBEB', border: '#F59E0B', text: '#92400E', label: 'Pending', dot: '#F59E0B' },
 }
 
 const ZONES = [
-  { id: 'main', label: 'Main Floor', color: '#1B4332' },
-  { id: 'window', label: 'Window', color: '#2563EB' },
-  { id: 'bar', label: 'Bar', color: '#D97706' },
-  { id: 'patio', label: 'Patio', color: '#059669' },
-  { id: 'terrace', label: 'Terrace', color: '#7C3AED' },
-  { id: 'upstairs', label: 'Upstairs', color: '#DC2626' },
-  { id: 'outside', label: 'Outside', color: '#0891B2' },
-  { id: 'kiosk', label: 'Kiosk', color: '#EA580C' },
-  { id: 'toilets', label: 'Toilets', color: '#6B7280', nonTable: true },
+  { id: 'all',       label: 'All Zones',    icon: '🏠', color: '#1B4332' },
+  { id: 'main',      label: 'Main Floor',   icon: '🍽️', color: '#1B4332' },
+  { id: 'bar',       label: 'Bar',          icon: '🍸', color: '#D97706' },
+  { id: 'kitchen',   label: 'Kitchen',      icon: '👨‍🍳', color: '#DC2626' },
+  { id: 'terrace',   label: 'Terrace',      icon: '☀️', color: '#059669' },
+  { id: 'window',    label: 'Window',       icon: '🪟', color: '#2563EB' },
+  { id: 'upstairs',  label: 'Upstairs',     icon: '⬆️', color: '#7C3AED' },
+  { id: 'outside',   label: 'Outside',      icon: '🌳', color: '#0891B2' },
+  { id: 'basement',  label: 'Basement',     icon: '⬇️', color: '#78716C' },
 ]
 
 const TABLE_SHAPES = [
-  { id: 'round', label: 'Round', icon: '○' },
-  { id: 'square', label: 'Square', icon: '□' },
-  { id: 'long', label: 'Long', icon: '▬' },
-  { id: 'hexagon', label: 'Hexagon', icon: '⬡' },
+  { id: 'round',   label: 'Round',   Icon: Circle },
+  { id: 'square',  label: 'Square',  Icon: Square },
+  { id: 'long',    label: 'Long',    Icon: RectangleHorizontal },
+  { id: 'booth',   label: 'Booth',   Icon: Sofa },
 ]
 
 const SEAT_OPTIONS = [2, 4, 6, 8, 10, 12]
 
 const DEFAULT_TABLES = [
-  { id: 't1', name: 'T1', seats: 2, zone: 'window', shape: 'round', x: 80, y: 60 },
-  { id: 't2', name: 'T2', seats: 2, zone: 'window', shape: 'round', x: 240, y: 60 },
-  { id: 't3', name: 'T3', seats: 4, zone: 'main', shape: 'round', x: 420, y: 60 },
-  { id: 't4', name: 'T4', seats: 4, zone: 'main', shape: 'round', x: 600, y: 60 },
-  { id: 't5', name: 'T5', seats: 6, zone: 'main', shape: 'long', x: 80, y: 220 },
-  { id: 't6', name: 'T6', seats: 8, zone: 'main', shape: 'long', x: 320, y: 220 },
-  { id: 't7', name: 'T7', seats: 4, zone: 'main', shape: 'square', x: 560, y: 220 },
-  { id: 't8', name: 'T8', seats: 2, zone: 'bar', shape: 'round', x: 80, y: 380 },
-  { id: 't9', name: 'T9', seats: 2, zone: 'bar', shape: 'round', x: 240, y: 380 },
-  { id: 't10', name: 'T10', seats: 4, zone: 'patio', shape: 'square', x: 420, y: 380 },
-  { id: 't11', name: 'T11', seats: 6, zone: 'patio', shape: 'long', x: 600, y: 380 },
-  { id: 't12', name: 'T12', seats: 4, zone: 'patio', shape: 'round', x: 420, y: 520 },
+  { id: 't1',  name: 'T-01', seats: 4, zone: 'window', shape: 'round', x: 80,  y: 60,  status: 'seated',    guest: 'Smith', timer: '45m', vip: false },
+  { id: 't2',  name: 'T-02', seats: 4, zone: 'window', shape: 'square', x: 250, y: 60,  status: 'reserved',  guest: 'Smith (4)', nextTime: '6:30 PM' },
+  { id: 't3',  name: 'T-03', seats: 2, zone: 'main',   shape: 'square', x: 80,  y: 240, status: 'available' },
+  { id: 't4',  name: 'T-04', seats: 6, zone: 'main',   shape: 'round',  x: 280, y: 250, status: 'seated',   guest: '', timer: '12m', vip: true },
+  { id: 't5',  name: 'T-05', seats: 4, zone: 'main',   shape: 'round',  x: 500, y: 60,  status: 'dirty' },
+  { id: 't6',  name: 'T-06', seats: 8, zone: 'main',   shape: 'long',   x: 480, y: 230, status: 'available' },
+  { id: 't7',  name: 'T-07', seats: 4, zone: 'bar',    shape: 'round',  x: 80,  y: 60,  status: 'seated',   guest: 'Johnson', timer: '20m' },
+  { id: 't8',  name: 'T-08', seats: 2, zone: 'bar',    shape: 'round',  x: 240, y: 60,  status: 'available' },
+  { id: 't9',  name: 'T-09', seats: 4, zone: 'bar',    shape: 'booth',  x: 80,  y: 220, status: 'reserved', nextTime: '7:00 PM' },
+  { id: 't10', name: 'T-10', seats: 6, zone: 'terrace', shape: 'round', x: 100, y: 80,  status: 'available' },
+  { id: 't11', name: 'T-11', seats: 4, zone: 'terrace', shape: 'square', x: 300, y: 80, status: 'seated', guest: 'Park', timer: '35m' },
+  { id: 't12', name: 'T-12', seats: 8, zone: 'terrace', shape: 'long',  x: 150, y: 240, status: 'mains', guest: 'Williams' },
+  { id: 't13', name: 'T-13', seats: 4, zone: 'upstairs', shape: 'round', x: 120, y: 100, status: 'available' },
+  { id: 't14', name: 'T-14', seats: 6, zone: 'upstairs', shape: 'long',  x: 320, y: 100, status: 'reserved', nextTime: '8:00 PM' },
+  { id: 't15', name: 'T-15', seats: 4, zone: 'outside',  shape: 'round', x: 100, y: 100, status: 'available' },
+  { id: 't16', name: 'T-16', seats: 2, zone: 'outside',  shape: 'round', x: 280, y: 100, status: 'available' },
 ]
+
+/* ═══════════════ TABLE COMPONENT ═══════════════ */
+
+const SeatDots = ({ seats, w, h, color, active }) => {
+  const count = Math.min(seats, 12)
+  return Array.from({ length: count }).map((_, i) => {
+    const angle = (i / count) * Math.PI * 2 - Math.PI / 2
+    const rx = w / 2 + 14, ry = h / 2 + 14
+    return (
+      <div key={i} style={{
+        position: 'absolute', width: 8, height: 8, borderRadius: '50%',
+        background: active ? color : '#D1D5DB',
+        left: w / 2 + Math.cos(angle) * rx - 4,
+        top: h / 2 + Math.sin(angle) * ry - 4,
+        opacity: active ? 0.6 : 0.3, transition: 'all 0.3s',
+      }} />
+    )
+  })
+}
+
+const TableNode = ({ table, status, isSelected, locked, isDragging, onMouseDown, onTouchStart, onClick, onEdit, onDelete }) => {
+  const st = STATUS[status] || STATUS.available
+  const seats = table.seats || 4
+  const baseSize = seats <= 2 ? 85 : seats <= 4 ? 100 : seats <= 6 ? 120 : seats <= 8 ? 140 : 155
+
+  const getDims = () => {
+    switch (table.shape) {
+      case 'square': return { w: baseSize, h: baseSize, radius: 14 }
+      case 'long':   return { w: baseSize * 1.7, h: baseSize * 0.65, radius: 14 }
+      case 'booth':  return { w: baseSize * 1.4, h: baseSize * 0.8, radius: 20 }
+      default:       return { w: baseSize, h: baseSize, radius: '50%' }
+    }
+  }
+  const { w, h, radius } = getDims()
+  const isDirty = status === 'dirty'
+
+  return (
+    <div
+      style={{
+        position: 'absolute', left: table.x, top: table.y, width: w, height: h, borderRadius: radius,
+        background: st.bg,
+        border: isDirty ? `2.5px dashed ${st.border}` : `2.5px solid ${st.border}`,
+        boxShadow: isSelected ? `0 0 0 3px ${st.border}30, 0 8px 30px rgba(0,0,0,.12)` : isDragging ? '0 12px 40px rgba(0,0,0,.2)' : '0 2px 12px rgba(0,0,0,.04)',
+        cursor: locked ? 'pointer' : isDragging ? 'grabbing' : 'grab',
+        transition: isDragging ? 'box-shadow 0.15s' : 'all 0.25s cubic-bezier(0.16,1,0.3,1)',
+        transform: isSelected ? 'scale(1.05)' : isDragging ? 'scale(1.08)' : 'scale(1)',
+        zIndex: isDragging ? 100 : isSelected ? 20 : 1,
+        userSelect: 'none',
+        display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+        fontFamily: "'Figtree', sans-serif",
+      }}
+      onClick={onClick}
+      onMouseDown={onMouseDown}
+      onTouchStart={onTouchStart}
+    >
+      {table.vip && (
+        <div style={{ position: 'absolute', top: -8, right: -8, background: '#F59E0B', color: '#fff', fontSize: 8, fontWeight: 800, padding: '2px 6px', borderRadius: 6, letterSpacing: '0.5px', boxShadow: '0 2px 6px rgba(245,158,11,0.4)' }}>VIP</div>
+      )}
+      {!locked && <div style={{ position: 'absolute', top: 4, right: 4, opacity: 0.3 }}><GripVertical size={12} /></div>}
+      <span style={{ fontSize: 14, fontWeight: 800, color: st.text, letterSpacing: '-0.02em' }}>{table.name}</span>
+
+      {status === 'seated' && table.timer && (
+        <>
+          <div style={{ display: 'flex', gap: 3, marginTop: 3 }}>
+            {Array.from({ length: Math.min(seats, 6) }).map((_, i) => (
+              <div key={i} style={{ width: 5, height: 5, borderRadius: '50%', background: st.text }} />
+            ))}
+          </div>
+          <span style={{ fontSize: 10, fontWeight: 700, color: st.text, marginTop: 2, opacity: 0.8 }}>{table.timer}</span>
+        </>
+      )}
+      {status === 'reserved' && table.nextTime && (
+        <>
+          <span style={{ fontSize: 11, fontWeight: 600, color: st.border, marginTop: 2 }}>{table.nextTime}</span>
+          {table.guest && <span style={{ fontSize: 9, color: st.text, opacity: 0.7 }}>{table.guest}</span>}
+        </>
+      )}
+      {status === 'available' && <span style={{ fontSize: 10, fontWeight: 600, color: '#9CA3AF', marginTop: 2 }}>Available</span>}
+      {status === 'dirty' && <span style={{ fontSize: 10, fontWeight: 800, color: st.text, marginTop: 2, textTransform: 'uppercase', letterSpacing: '0.5px' }}>DIRTY</span>}
+      {status === 'mains' && <span style={{ fontSize: 10, fontWeight: 700, color: st.text, marginTop: 2 }}>{table.guest || 'Mains'}</span>}
+
+      <SeatDots seats={seats} w={w} h={h} color={st.dot} active={status !== 'available' && status !== 'dirty'} />
+
+      {!locked && isSelected && (
+        <div style={{ position: 'absolute', bottom: -36, left: '50%', transform: 'translateX(-50%)', display: 'flex', gap: 6, zIndex: 30 }}>
+          <button onClick={(e) => { e.stopPropagation(); onEdit?.() }} style={{ width: 28, height: 28, borderRadius: 8, background: '#fff', border: '1px solid #E5E7EB', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', boxShadow: '0 2px 8px rgba(0,0,0,.08)' }}>
+            <Settings size={13} color="#6B7280" />
+          </button>
+          <button onClick={(e) => { e.stopPropagation(); onDelete?.() }} style={{ width: 28, height: 28, borderRadius: 8, background: '#FEE2E2', border: '1px solid #FECACA', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', boxShadow: '0 2px 8px rgba(239,68,68,.12)' }}>
+            <Trash2 size={13} color="#EF4444" />
+          </button>
+        </div>
+      )}
+    </div>
+  )
+}
+
+/* ═══════════════ STAT PILL ═══════════════ */
+const StatPill = ({ label, value, color }) => (
+  <div className="flex items-center gap-1.5">
+    <div className="w-2 h-2 rounded-full" style={{ background: color }} />
+    <span className="text-[11px] font-bold" style={{ color }}>{value}</span>
+    <span className="text-[10px] font-medium text-gray-400">{label}</span>
+  </div>
+)
+
+/* ═══════════════ MAIN COMPONENT ═══════════════ */
 
 const FloorPlan = ({ embedded = false }) => {
   const { business, businessType } = useBusiness()
   const bid = business?.id ?? business?._id
   const isFood = businessType === 'food' || businessType === 'restaurant'
+
   const [tables, setTables] = useState([])
   const [bookings, setBookings] = useState([])
   const [selectedTable, setSelectedTable] = useState(null)
   const [locked, setLocked] = useState(true)
   const [loading, setLoading] = useState(true)
+  const [activeZone, setActiveZone] = useState('all')
+  const [toast, setToast] = useState(null)
   const [dragging, setDragging] = useState(null)
   const [dragOff, setDragOff] = useState({ x: 0, y: 0 })
+  const canvasRef = useRef(null)
   const [showAddPanel, setShowAddPanel] = useState(false)
   const [addShape, setAddShape] = useState('round')
   const [addSeats, setAddSeats] = useState(4)
   const [addZone, setAddZone] = useState('main')
+  const [addName, setAddName] = useState('')
   const [editTable, setEditTable] = useState(null)
-  const canvasRef = useRef(null)
   const today = new Date().toISOString().slice(0, 10)
 
+  /* ── Load Data ── */
   useEffect(() => {
     if (!bid) { setTables(DEFAULT_TABLES); setLoading(false); return }
     api.get(`/calendar/business/${bid}/restaurant?date=${today}&view=day`)
       .then(d => {
         const apiTables = (d.tables || []).map((t, i) => ({
-          ...t, id: t.id || `t${i+1}`, name: t.name || `T${i+1}`,
+          ...t, id: t.id || `t${i+1}`, name: t.name || `T-${String(i+1).padStart(2,'0')}`,
           shape: t.shape || 'round', zone: t.zone || t.section?.toLowerCase() || 'main',
           x: t.x ?? DEFAULT_TABLES[i]?.x ?? 80 + (i % 4) * 180,
           y: t.y ?? DEFAULT_TABLES[i]?.y ?? 60 + Math.floor(i / 4) * 160,
+          status: t.status || 'available',
         }))
         setTables(apiTables.length > 0 ? apiTables : DEFAULT_TABLES)
         setBookings(d.bookings || [])
@@ -93,32 +217,21 @@ const FloorPlan = ({ embedded = false }) => {
       .finally(() => setLoading(false))
   }, [bid, today])
 
-  const now = new Date()
-  const nowMin = now.getHours() * 60 + now.getMinutes()
+  const visibleTables = useMemo(() => activeZone === 'all' ? tables : tables.filter(t => t.zone === activeZone), [tables, activeZone])
 
-  const getTableStatus = (tableId) => {
-    const active = bookings.find(b => {
-      if (b.tableId !== tableId) return false
-      const [h, m] = (b.time || '0:0').split(':').map(Number)
-      const start = h * 60 + (m || 0), end = start + (b.duration || 90)
-      return start <= nowMin && end > nowMin
-    })
-    if (active) return { ...active, status: active.status || 'seated' }
-    const next = bookings
-      .filter(b => { if (b.tableId !== tableId) return false; const [h, m] = (b.time || '0:0').split(':').map(Number); return h * 60 + (m || 0) > nowMin })
-      .sort((a, b) => (a.time || '').localeCompare(b.time || ''))[0]
-    if (next) return { ...next, _next: true, status: 'confirmed' }
-    return null
-  }
+  const zoneCounts = useMemo(() => {
+    const c = { all: tables.length }
+    ZONES.forEach(z => { if (z.id !== 'all') c[z.id] = tables.filter(t => t.zone === z.id).length })
+    return c
+  }, [tables])
 
-  const tableBookings = (tid) => bookings.filter(b => b.tableId === tid)
+  const showToast = (msg) => { setToast(msg); setTimeout(() => setToast(null), 2500) }
 
-  /* ── Drag Handlers ── */
+  /* ── Mouse Drag ── */
   const handleMouseDown = useCallback((e, tId) => {
     if (locked) return
     e.preventDefault(); e.stopPropagation()
-    const t = tables.find(t => t.id === tId)
-    if (!t) return
+    const t = tables.find(t => t.id === tId); if (!t) return
     const rect = canvasRef.current?.getBoundingClientRect()
     setDragging(tId)
     setDragOff({ x: e.clientX - (rect?.left || 0) - t.x, y: e.clientY - (rect?.top || 0) - t.y })
@@ -126,9 +239,9 @@ const FloorPlan = ({ embedded = false }) => {
 
   const handleMouseMove = useCallback((e) => {
     if (!dragging) return
-    const rect = canvasRef.current?.getBoundingClientRect()
-    const nx = Math.max(0, Math.min(800, e.clientX - (rect?.left || 0) - dragOff.x))
-    const ny = Math.max(0, Math.min(650, e.clientY - (rect?.top || 0) - dragOff.y))
+    const rect = canvasRef.current?.getBoundingClientRect(); if (!rect) return
+    const nx = Math.max(0, Math.min(rect.width - 60, e.clientX - rect.left - dragOff.x))
+    const ny = Math.max(0, Math.min(rect.height - 60, e.clientY - rect.top - dragOff.y))
     setTables(prev => prev.map(t => t.id === dragging ? { ...t, x: nx, y: ny } : t))
   }, [dragging, dragOff])
 
@@ -142,7 +255,7 @@ const FloorPlan = ({ embedded = false }) => {
     }
   }, [dragging, handleMouseMove, handleMouseUp])
 
-  /* Touch drag */
+  /* ── Touch Drag ── */
   const handleTouchStart = useCallback((e, tId) => {
     if (locked) return
     const t = tables.find(t => t.id === tId); if (!t) return
@@ -153,9 +266,9 @@ const FloorPlan = ({ embedded = false }) => {
 
   const handleTouchMove = useCallback((e) => {
     if (!dragging) return; e.preventDefault()
-    const touch = e.touches[0]; const rect = canvasRef.current?.getBoundingClientRect()
-    const nx = Math.max(0, Math.min(800, touch.clientX - (rect?.left || 0) - dragOff.x))
-    const ny = Math.max(0, Math.min(650, touch.clientY - (rect?.top || 0) - dragOff.y))
+    const touch = e.touches[0]; const rect = canvasRef.current?.getBoundingClientRect(); if (!rect) return
+    const nx = Math.max(0, Math.min(rect.width - 60, touch.clientX - rect.left - dragOff.x))
+    const ny = Math.max(0, Math.min(rect.height - 60, touch.clientY - rect.top - dragOff.y))
     setTables(prev => prev.map(t => t.id === dragging ? { ...t, x: nx, y: ny } : t))
   }, [dragging, dragOff])
 
@@ -167,308 +280,308 @@ const FloorPlan = ({ embedded = false }) => {
     }
   }, [dragging, handleTouchMove, handleMouseUp])
 
-  /* ── Add/Delete Tables ── */
-  const addTable = () => {
+  /* ── Table CRUD ── */
+  const addTableFn = () => {
+    const zone = addZone || activeZone || 'main'
     const num = tables.length + 1
-    const newT = { id: `t${Date.now()}`, name: `T${num}`, seats: addSeats, zone: addZone, shape: addShape, x: 100 + Math.random() * 400, y: 100 + Math.random() * 300 }
-    setTables(prev => [...prev, newT])
-    setShowAddPanel(false)
+    const name = addName.trim() || `T-${String(num).padStart(2, '0')}`
+    setTables(prev => [...prev, { id: `t${Date.now()}`, name, seats: addSeats, zone, shape: addShape, x: 100 + Math.random() * 350, y: 80 + Math.random() * 250, status: 'available' }])
+    setShowAddPanel(false); setAddName('')
+    showToast(`${name} added to ${ZONES.find(z => z.id === zone)?.label || zone}`)
   }
 
   const deleteTable = (tId) => {
+    const t = tables.find(t => t.id === tId)
     setTables(prev => prev.filter(t => t.id !== tId))
     if (selectedTable === tId) setSelectedTable(null)
     if (editTable?.id === tId) setEditTable(null)
+    showToast(`${t?.name || 'Table'} removed`)
+  }
+
+  const duplicateTable = (tId) => {
+    const orig = tables.find(t => t.id === tId); if (!orig) return
+    setTables(prev => [...prev, { ...orig, id: `t${Date.now()}`, name: `${orig.name}-copy`, x: orig.x + 30, y: orig.y + 30 }])
+    showToast(`Duplicated ${orig.name}`)
   }
 
   const updateTable = (tId, updates) => {
     setTables(prev => prev.map(t => t.id === tId ? { ...t, ...updates } : t))
-    if (editTable?.id === tId) setEditTable(prev => ({ ...prev, ...updates }))
+    if (editTable?.id === tId) setEditTable(prev => prev ? { ...prev, ...updates } : prev)
   }
 
-  /* ── Render Table Shape ── */
-  const getShapeStyle = (table, st, isSelected) => {
-    const seats = table.seats || 4
-    const baseSize = seats <= 2 ? 80 : seats <= 4 ? 95 : seats <= 6 ? 110 : seats <= 8 ? 125 : 140
-    const base = {
-      position: 'absolute', left: table.x, top: table.y,
-      display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-      background: st.bg, border: `2.5px solid ${st.border}`,
-      boxShadow: isSelected ? `0 0 0 3px ${st.border}40, 0 8px 25px rgba(0,0,0,.15)` : '0 2px 10px rgba(0,0,0,.06)',
-      cursor: locked ? 'pointer' : 'grab', transition: dragging === table.id ? 'none' : 'box-shadow 0.2s, transform 0.2s',
-      transform: isSelected ? 'scale(1.06)' : 'scale(1)', zIndex: isSelected || dragging === table.id ? 20 : 1,
-      userSelect: 'none',
+  /* ── Stats ── */
+  const stats = useMemo(() => {
+    const vis = visibleTables
+    return {
+      total: vis.length,
+      available: vis.filter(t => t.status === 'available').length,
+      seated: vis.filter(t => ['seated', 'mains', 'dessert'].includes(t.status)).length,
+      reserved: vis.filter(t => ['reserved', 'confirmed', 'pending'].includes(t.status)).length,
+      dirty: vis.filter(t => t.status === 'dirty').length,
     }
-    switch (table.shape) {
-      case 'square': return { ...base, width: baseSize, height: baseSize, borderRadius: 12 }
-      case 'long': return { ...base, width: baseSize * 1.6, height: baseSize * 0.7, borderRadius: 12 }
-      case 'hexagon': return { ...base, width: baseSize, height: baseSize, borderRadius: baseSize * 0.15, clipPath: 'polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%)' }
-      default: return { ...base, width: baseSize, height: baseSize, borderRadius: '50%' }
-    }
-  }
+  }, [visibleTables])
 
-  /* ── Seat dots ── */
-  const renderSeats = (table, st) => {
-    const seats = Math.min(table.seats || 4, 12)
-    const baseSize = table.seats <= 2 ? 80 : table.seats <= 4 ? 95 : table.seats <= 6 ? 110 : table.seats <= 8 ? 125 : 140
-    const w = table.shape === 'long' ? baseSize * 1.6 : baseSize
-    const h = table.shape === 'long' ? baseSize * 0.7 : baseSize
-    return Array.from({ length: seats }).map((_, ci) => {
-      const angle = (ci / seats) * Math.PI * 2 - Math.PI / 2
-      const rx = w / 2 + 12, ry = h / 2 + 12
-      return (
-        <div key={ci} style={{
-          position: 'absolute', width: 8, height: 8, borderRadius: '50%',
-          background: st.label === 'Available' ? '#D1D5DB' : st.border,
-          left: w / 2 + Math.cos(angle) * rx - 4,
-          top: h / 2 + Math.sin(angle) * ry - 4,
-          opacity: 0.6,
-        }} />
-      )
-    })
-  }
+  const occupancy = stats.total > 0 ? Math.round((stats.seated / stats.total) * 100) : 0
 
   if (loading) return <RezvoLoader message="Loading floor plan..." />
-  if (!isFood) return <div className="bg-white rounded-xl border border-border p-12 text-center"><h2 className="font-heading font-bold text-xl text-primary mb-2">Floor Plan</h2><p className="text-gray-500">Floor plans are available for restaurant businesses.</p></div>
-
-  const activeZones = [...new Set(tables.map(t => t.zone))].map(z => ZONES.find(zz => zz.id === z)).filter(Boolean)
+  if (!isFood) return <div className="bg-white rounded-2xl border border-gray-100 p-12 text-center shadow-sm"><h2 className="font-bold text-xl text-gray-900 mb-2">Floor Plan</h2><p className="text-gray-500">Floor plans are available for restaurant businesses.</p></div>
 
   return (
-    <div className={`flex gap-0 overflow-hidden ${embedded ? 'h-full' : '-m-6 lg:-m-8 h-[calc(100vh-4rem)]'}`} style={{ fontFamily: "'Figtree', sans-serif" }}>
-      {/* Canvas */}
-      <div className="flex-1 flex flex-col overflow-hidden">
-        {!embedded && (
-          <div className="bg-white border-b border-gray-200 px-4 py-3 flex items-center justify-between gap-3 shrink-0">
-            <div>
-              <h1 className="text-lg font-bold text-gray-900">Floor Plan</h1>
-              <p className="text-xs text-gray-500">{tables.length} tables · {bookings.length} bookings today</p>
-            </div>
+    <div className={`flex flex-col overflow-hidden ${embedded ? 'h-full' : '-m-6 lg:-m-8 h-[calc(100vh-4rem)]'}`} style={{ fontFamily: "'Figtree', sans-serif" }}>
 
-            <div className="flex items-center gap-2 flex-wrap">
-              {/* Zone labels */}
-              {activeZones.map(z => (
-                <span key={z.id} className="flex items-center gap-1.5 text-[10px] font-bold px-2 py-1 rounded-full" style={{ background: z.color + '15', color: z.color, border: `1px solid ${z.color}30` }}>
-                  <span className="w-2 h-2 rounded-full" style={{ background: z.color }} />{z.label}
-                </span>
-              ))}
-              <span className="w-px h-5 bg-gray-200" />
-              {/* Status legend */}
-              {['available', 'seated', 'mains', 'paying'].map(k => (
-                <div key={k} className="flex items-center gap-1">
-                  <div className="w-2 h-2 rounded-full" style={{ background: STATUS[k].border }} />
-                  <span className="text-[10px] font-medium text-gray-500">{STATUS[k].label}</span>
+      {/* ═══ TOP HEADER ═══ */}
+      {!embedded && (
+        <div className="bg-white border-b border-gray-200 px-6 py-4 shrink-0">
+          <div className="flex items-center justify-between gap-4 flex-wrap">
+            <div className="flex items-center gap-6">
+              <div>
+                <h1 className="text-xl font-extrabold text-gray-900 tracking-tight">Floor Plan</h1>
+                <p className="text-xs text-gray-500 mt-0.5">{new Date().toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' })}</p>
+              </div>
+              <div className="hidden md:flex items-center gap-4">
+                <StatPill label="Tables" value={stats.total} color="#1B4332" />
+                <StatPill label="Seated" value={stats.seated} color="#059669" />
+                <StatPill label="Available" value={stats.available} color="#9CA3AF" />
+                <StatPill label="Reserved" value={stats.reserved} color="#D4A373" />
+                {stats.dirty > 0 && <StatPill label="Dirty" value={stats.dirty} color="#EF4444" />}
+                <div className="h-5 w-px bg-gray-200" />
+                <div className="flex items-center gap-1.5">
+                  <div className="w-8 h-8 rounded-lg flex items-center justify-center font-extrabold text-sm" style={{ background: occupancy > 70 ? '#ECFDF5' : '#F7F7F5', color: occupancy > 70 ? '#059669' : '#6B7280' }}>{occupancy}%</div>
+                  <span className="text-[10px] font-medium text-gray-400">occupancy</span>
                 </div>
-              ))}
+              </div>
             </div>
 
             <div className="flex items-center gap-2">
-              {/* Lock/Unlock */}
-              <button
-                onClick={() => setLocked(!locked)}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${locked ? 'bg-gray-100 text-gray-600 hover:bg-gray-200' : 'bg-primary text-white shadow-md'}`}
-              >
-                {locked ? <Lock className="w-3.5 h-3.5" /> : <Unlock className="w-3.5 h-3.5" />}
+              <button onClick={() => { setLocked(!locked); if (!locked) showToast('Layout locked') }}
+                className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all"
+                style={{ background: locked ? '#F3F4F6' : '#1B4332', color: locked ? '#374151' : '#fff', boxShadow: locked ? 'none' : '0 4px 14px rgba(27,67,50,0.3)' }}>
+                {locked ? <Lock className="w-4 h-4" /> : <Unlock className="w-4 h-4" />}
                 {locked ? 'Locked' : 'Editing'}
               </button>
-              {/* Add Table */}
               {!locked && (
-                <button onClick={() => setShowAddPanel(!showAddPanel)} className="flex items-center gap-1 px-3 py-1.5 bg-primary text-white rounded-lg text-xs font-bold shadow-md hover:bg-[#2D6A4F]">
-                  <Plus className="w-3.5 h-3.5" /> Add Table
+                <button onClick={() => setShowAddPanel(!showAddPanel)}
+                  className="flex items-center gap-1.5 px-4 py-2 bg-emerald-500 text-white rounded-xl text-sm font-bold shadow-lg shadow-emerald-500/25 hover:bg-emerald-600 transition-all">
+                  <Plus className="w-4 h-4" /> Add Table
                 </button>
               )}
             </div>
           </div>
-        )}
 
-        {/* Add Table Panel */}
-        {showAddPanel && !locked && (
-          <div className="bg-white border-b border-gray-200 px-4 py-3 flex items-center gap-4 flex-wrap shrink-0">
-            <div className="flex items-center gap-2">
-              <span className="text-xs font-bold text-gray-600">Shape:</span>
-              {TABLE_SHAPES.map(s => (
-                <button key={s.id} onClick={() => setAddShape(s.id)}
-                  className={`w-9 h-9 rounded-lg flex items-center justify-center text-base transition-all ${addShape === s.id ? 'bg-primary text-white shadow-md' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
-                  title={s.label}>{s.icon}</button>
-              ))}
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="text-xs font-bold text-gray-600">Seats:</span>
-              {SEAT_OPTIONS.map(n => (
-                <button key={n} onClick={() => setAddSeats(n)}
-                  className={`w-8 h-8 rounded-lg text-xs font-bold transition-all ${addSeats === n ? 'bg-primary text-white shadow-md' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}>{n}</button>
-              ))}
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="text-xs font-bold text-gray-600">Zone:</span>
-              <select value={addZone} onChange={e => setAddZone(e.target.value)} className="text-xs font-bold border border-gray-200 rounded-lg px-2 py-1.5 bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-primary/20">
-                {ZONES.filter(z => !z.nonTable).map(z => <option key={z.id} value={z.id}>{z.label}</option>)}
-              </select>
-            </div>
-            <button onClick={addTable} className="px-4 py-1.5 bg-emerald-500 text-white rounded-lg text-xs font-bold shadow hover:bg-emerald-600">Place Table</button>
-            <button onClick={() => setShowAddPanel(false)} className="text-gray-400 hover:text-gray-600"><X className="w-4 h-4" /></button>
-          </div>
-        )}
-
-        {/* Canvas Area */}
-        <div className="flex-1 overflow-auto" style={{ background: '#FAFAF8' }}>
-          <div ref={canvasRef} style={{
-            position: 'relative', minWidth: 820, minHeight: 650,
-            backgroundImage: 'radial-gradient(#D1D5DB 1px, transparent 1px)', backgroundSize: '20px 20px',
-          }}
-            onMouseMove={handleMouseMove} onMouseUp={handleMouseUp}
-          >
-            {/* Zone background labels */}
-            {activeZones.map((z, i) => {
-              const zoneTables = tables.filter(t => t.zone === z.id)
-              if (zoneTables.length === 0) return null
-              const minX = Math.min(...zoneTables.map(t => t.x)) - 30
-              const minY = Math.min(...zoneTables.map(t => t.y)) - 30
+          {/* ═══ ZONE TABS ═══ */}
+          <div className="flex items-center gap-1.5 mt-4 overflow-x-auto pb-1 -mb-1" style={{ scrollbarWidth: 'none' }}>
+            {ZONES.filter(z => z.id === 'all' || zoneCounts[z.id] > 0 || !locked).map(zone => {
+              const isActive = activeZone === zone.id
+              const count = zoneCounts[zone.id] || 0
               return (
-                <div key={z.id} style={{ position: 'absolute', left: minX, top: minY, fontSize: 10, fontWeight: 800, color: z.color, opacity: 0.3, textTransform: 'uppercase', letterSpacing: 2, pointerEvents: 'none' }}>
-                  {z.label}
-                </div>
-              )
-            })}
-
-            {/* Tables */}
-            {tables.map(table => {
-              const current = getTableStatus(table.id)
-              const statusKey = current ? current.status : 'available'
-              const st = STATUS[statusKey] || STATUS.available
-              const isSelected = selectedTable === table.id
-              const zone = ZONES.find(z => z.id === table.zone)
-              const shapeStyle = getShapeStyle(table, st, isSelected)
-
-              return (
-                <div key={table.id} style={shapeStyle}
-                  onClick={() => locked && setSelectedTable(table.id === selectedTable ? null : table.id)}
-                  onMouseDown={(e) => handleMouseDown(e, table.id)}
-                  onTouchStart={(e) => handleTouchStart(e, table.id)}
-                >
-                  {/* Zone dot */}
-                  {zone && !locked && (
-                    <div style={{ position: 'absolute', top: -4, left: -4, width: 10, height: 10, borderRadius: '50%', background: zone.color, border: '2px solid white' }} />
-                  )}
-                  {/* Drag handle when unlocked */}
-                  {!locked && (
-                    <div style={{ position: 'absolute', top: 2, right: 2, opacity: 0.4 }}>
-                      <Move size={10} />
-                    </div>
-                  )}
-                  <span style={{ fontSize: 13, fontWeight: 800, color: st.text }}>{table.name}</span>
-                  <span style={{ fontSize: 10, fontWeight: 600, color: st.text, opacity: 0.7 }}>{table.seats} seats</span>
-                  {current && !current._next && (
-                    <span style={{ fontSize: 9, fontWeight: 700, color: st.text, marginTop: 1 }}>{current.customerName?.split(' ')[0]}</span>
-                  )}
-                  {current?._next && (
-                    <span style={{ fontSize: 9, color: '#6B7280', marginTop: 1 }}>Next: {current.time}</span>
-                  )}
-                  {/* Edit/Delete when unlocked and selected */}
-                  {!locked && isSelected && (
-                    <div style={{ position: 'absolute', bottom: -28, left: '50%', transform: 'translateX(-50%)', display: 'flex', gap: 4 }}>
-                      <button onClick={(e) => { e.stopPropagation(); setEditTable(table) }} style={{ width: 22, height: 22, borderRadius: 6, background: '#fff', border: '1px solid #ddd', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', fontSize: 10 }} title="Edit"><Settings size={11} /></button>
-                      <button onClick={(e) => { e.stopPropagation(); deleteTable(table.id) }} style={{ width: 22, height: 22, borderRadius: 6, background: '#FEE2E2', border: '1px solid #FECACA', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: '#EF4444', fontSize: 10 }} title="Delete"><Trash2 size={11} /></button>
-                    </div>
-                  )}
-                  {/* Seat dots */}
-                  {renderSeats(table, st)}
-                </div>
+                <button key={zone.id} onClick={() => { setActiveZone(zone.id); if (zone.id !== 'all') setAddZone(zone.id) }}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold whitespace-nowrap transition-all shrink-0"
+                  style={{ background: isActive ? zone.color + '12' : 'transparent', color: isActive ? zone.color : '#9CA3AF', border: isActive ? `1.5px solid ${zone.color}30` : '1.5px solid transparent' }}>
+                  <span className="text-sm">{zone.icon}</span>
+                  {zone.label}
+                  {count > 0 && <span className="ml-0.5 px-1.5 py-0.5 rounded-md text-[10px] font-bold" style={{ background: isActive ? zone.color + '18' : '#F3F4F6', color: isActive ? zone.color : '#9CA3AF' }}>{count}</span>}
+                </button>
               )
             })}
           </div>
-        </div>
-      </div>
 
-      {/* Sidebar — bookings */}
-      {!embedded && (
-        <div className="w-72 bg-white border-l border-gray-200 flex flex-col overflow-hidden shrink-0 hidden lg:flex">
-          <div className="p-4 border-b border-gray-100">
-            <h2 className="font-bold text-sm text-gray-900">
-              {selectedTable ? tables.find(t => t.id === selectedTable)?.name || 'Table' : 'All Bookings'}
-            </h2>
-            <p className="text-xs text-gray-500 mt-0.5">
-              {selectedTable ? `${tableBookings(selectedTable).length} bookings` : `${bookings.length} total`}
-            </p>
-          </div>
-          <div className="flex-1 overflow-y-auto p-3 space-y-2">
-            {(selectedTable ? tableBookings(selectedTable) : bookings)
-              .sort((a, b) => (a.time || '').localeCompare(b.time || ''))
-              .map((b, i) => {
-                const st = STATUS[b.status] || STATUS.confirmed
-                return (
-                  <div key={b.id || i} className="p-3 rounded-xl border border-gray-100 hover:border-gray-200 transition-colors" style={{ borderLeft: `3px solid ${st.border}` }}>
-                    <div className="flex items-center justify-between mb-1">
-                      <span className="font-semibold text-sm text-gray-900">{b.customerName}</span>
-                      <span className="text-xs font-bold" style={{ color: st.text }}>{b.time}</span>
-                    </div>
-                    <div className="flex items-center gap-2 text-xs text-gray-500">
-                      <span>{b.partySize || 2} guests</span>
-                      <span>·</span>
-                      <span>{b.tableName}</span>
-                      <span className="ml-auto px-2 py-0.5 rounded-full text-[10px] font-bold" style={{ background: st.bg, color: st.text }}>{st.label}</span>
-                    </div>
-                  </div>
-                )
-              })}
-            {(selectedTable ? tableBookings(selectedTable) : bookings).length === 0 && (
-              <div className="text-center py-8 text-gray-400 text-sm">No bookings{selectedTable ? ' for this table' : ''}</div>
-            )}
+          {/* Status Legend */}
+          <div className="flex items-center gap-3 mt-3">
+            {['available', 'seated', 'reserved', 'mains', 'paying', 'dirty'].map(k => (
+              <div key={k} className="flex items-center gap-1.5">
+                <div className="w-2.5 h-2.5 rounded-full" style={{ background: STATUS[k].dot }} />
+                <span className="text-[10px] font-semibold text-gray-400">{STATUS[k].label}</span>
+              </div>
+            ))}
           </div>
         </div>
       )}
 
-      {/* Edit Table Modal */}
+      {/* ═══ ADD TABLE PANEL ═══ */}
+      {showAddPanel && !locked && (
+        <div className="bg-white border-b border-gray-200 px-6 py-4 shrink-0">
+          <div className="flex items-center gap-5 flex-wrap">
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-bold text-gray-500">Name:</span>
+              <input type="text" value={addName} onChange={e => setAddName(e.target.value)} placeholder={`T-${String(tables.length + 1).padStart(2, '0')}`}
+                className="w-20 px-2.5 py-1.5 border border-gray-200 rounded-lg text-xs font-bold text-gray-700 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary" />
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-bold text-gray-500">Shape:</span>
+              {TABLE_SHAPES.map(s => { const SIcon = s.Icon; return (
+                <button key={s.id} onClick={() => setAddShape(s.id)} className={`w-9 h-9 rounded-lg flex items-center justify-center transition-all ${addShape === s.id ? 'bg-primary text-white shadow-md' : 'bg-gray-100 text-gray-500 hover:bg-gray-200'}`} title={s.label}><SIcon size={16} /></button>
+              )})}
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-bold text-gray-500">Seats:</span>
+              {SEAT_OPTIONS.map(n => (
+                <button key={n} onClick={() => setAddSeats(n)} className={`w-8 h-8 rounded-lg text-xs font-bold transition-all ${addSeats === n ? 'bg-primary text-white shadow-md' : 'bg-gray-100 text-gray-500 hover:bg-gray-200'}`}>{n}</button>
+              ))}
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-bold text-gray-500">Zone:</span>
+              <div className="flex gap-1.5 flex-wrap">
+                {ZONES.filter(z => z.id !== 'all').map(z => (
+                  <button key={z.id} onClick={() => setAddZone(z.id)}
+                    className={`px-2.5 py-1 rounded-lg text-[10px] font-bold transition-all border ${addZone === z.id ? 'text-white' : 'text-gray-500 bg-gray-50 border-gray-200 hover:bg-gray-100'}`}
+                    style={addZone === z.id ? { background: z.color, borderColor: z.color } : {}}>{z.icon} {z.label}</button>
+                ))}
+              </div>
+            </div>
+            <div className="flex items-center gap-2 ml-auto">
+              <button onClick={addTableFn} className="px-4 py-2 bg-emerald-500 text-white rounded-xl text-xs font-bold shadow-lg hover:bg-emerald-600 transition-all">Place Table</button>
+              <button onClick={() => setShowAddPanel(false)} className="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-all"><X className="w-4 h-4" /></button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ═══ MAIN: CANVAS + SIDEBAR ═══ */}
+      <div className="flex-1 flex overflow-hidden">
+        <div className="flex-1 overflow-auto" style={{ background: '#FAFAF8' }}>
+          <div ref={canvasRef} className="relative w-full"
+            style={{ minHeight: 'calc(100vh - 14rem)', backgroundImage: locked ? 'radial-gradient(circle, #E8E4DD 0.8px, transparent 0.8px)' : 'radial-gradient(circle, #93C5FD 0.8px, transparent 0.8px)', backgroundSize: '24px 24px', transition: 'background-image 0.3s' }}
+            onMouseMove={handleMouseMove} onMouseUp={handleMouseUp}>
+
+            {/* Zone label watermark */}
+            {activeZone !== 'all' && (
+              <div style={{ position: 'absolute', left: 20, top: 16, display: 'flex', alignItems: 'center', gap: 8, opacity: 0.12, pointerEvents: 'none' }}>
+                <span style={{ fontSize: 32 }}>{ZONES.find(z => z.id === activeZone)?.icon}</span>
+                <span style={{ fontSize: 28, fontWeight: 900, color: ZONES.find(z => z.id === activeZone)?.color || '#1B4332', letterSpacing: '0.08em', textTransform: 'uppercase' }}>{ZONES.find(z => z.id === activeZone)?.label}</span>
+              </div>
+            )}
+
+            {/* Edit mode banner */}
+            {!locked && (
+              <div style={{ position: 'absolute', top: 12, left: '50%', transform: 'translateX(-50%)', zIndex: 50, background: '#1B4332', color: '#fff', fontSize: 11, fontWeight: 700, padding: '6px 16px', borderRadius: 10, display: 'flex', alignItems: 'center', gap: 6, boxShadow: '0 4px 20px rgba(27,67,50,0.3)' }}>
+                <Move size={13} /> Drag tables to rearrange · Click to select
+              </div>
+            )}
+
+            {/* Empty state */}
+            {visibleTables.length === 0 && (
+              <div className="absolute inset-0 flex flex-col items-center justify-center text-gray-400">
+                <LayoutGrid size={48} strokeWidth={1} className="mb-3 opacity-30" />
+                <p className="text-sm font-bold">No tables in {ZONES.find(z => z.id === activeZone)?.label || 'this zone'}</p>
+                {!locked && <button onClick={() => setShowAddPanel(true)} className="mt-3 px-4 py-2 bg-primary text-white rounded-xl text-xs font-bold shadow-lg hover:bg-[#2D6A4F] transition-all"><Plus className="w-3.5 h-3.5 inline mr-1" /> Add First Table</button>}
+              </div>
+            )}
+
+            {/* Tables */}
+            {visibleTables.map(table => (
+              <TableNode key={table.id} table={table} status={table.status || 'available'} isSelected={selectedTable === table.id} locked={locked} isDragging={dragging === table.id}
+                onMouseDown={(e) => handleMouseDown(e, table.id)} onTouchStart={(e) => handleTouchStart(e, table.id)}
+                onClick={() => locked && setSelectedTable(table.id === selectedTable ? null : table.id)}
+                onEdit={() => setEditTable(table)} onDelete={() => deleteTable(table.id)} />
+            ))}
+          </div>
+        </div>
+
+        {/* ═══ SIDEBAR ═══ */}
+        {!embedded && (
+          <div className="w-72 bg-white border-l border-gray-100 flex flex-col overflow-hidden shrink-0 hidden lg:flex">
+            <div className="p-4 border-b border-gray-50">
+              <h2 className="font-extrabold text-sm text-gray-900">{selectedTable ? tables.find(t => t.id === selectedTable)?.name || 'Table' : "Today's Bookings"}</h2>
+              <p className="text-[11px] text-gray-400 mt-0.5 font-medium">{bookings.length} total</p>
+            </div>
+            <div className="flex-1 overflow-y-auto p-3 space-y-2">
+              {bookings.length > 0 ? bookings.sort((a, b) => (a.time || '').localeCompare(b.time || '')).map((b, i) => {
+                const st = STATUS[b.status] || STATUS.confirmed
+                return (
+                  <div key={b.id || i} className="p-3 rounded-xl border border-gray-50 hover:border-gray-200 transition-all hover:shadow-sm" style={{ borderLeft: `3px solid ${st.border}` }}>
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="font-bold text-sm text-gray-900">{b.customerName}</span>
+                      <span className="text-xs font-extrabold" style={{ color: st.text }}>{b.time}</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-[11px] text-gray-500 font-medium">
+                      <span>{b.partySize || 2} guests</span><span>·</span><span>{b.tableName}</span>
+                      <span className="ml-auto px-2 py-0.5 rounded-full text-[9px] font-extrabold" style={{ background: st.bg, color: st.text }}>{st.label}</span>
+                    </div>
+                  </div>
+                )
+              }) : (
+                <div className="text-center py-12">
+                  <div className="w-12 h-12 rounded-2xl bg-gray-50 flex items-center justify-center mx-auto mb-3">
+                    <svg className="text-gray-300" width={20} height={20} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5}><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                  </div>
+                  <p className="text-sm font-bold text-gray-400">No bookings yet</p>
+                  <p className="text-[11px] text-gray-300 mt-1">Bookings will appear here</p>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* ═══ EDIT TABLE MODAL ═══ */}
       {editTable && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm" onClick={() => setEditTable(null)}>
-          <div className="bg-white rounded-2xl max-w-sm w-full p-6 shadow-xl" onClick={e => e.stopPropagation()} style={{ fontFamily: "'Figtree', sans-serif" }}>
-            <div className="flex items-center justify-between mb-5">
-              <h3 className="font-extrabold text-lg text-primary">Edit {editTable.name}</h3>
+          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl" onClick={e => e.stopPropagation()} style={{ fontFamily: "'Figtree', sans-serif" }}>
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="font-extrabold text-lg text-gray-900">Edit {editTable.name}</h3>
               <button onClick={() => setEditTable(null)} className="w-8 h-8 rounded-lg hover:bg-gray-100 flex items-center justify-center text-gray-400"><X className="w-5 h-5" /></button>
             </div>
-            <div className="space-y-4">
+            <div className="space-y-5">
               <div>
-                <label className="block text-sm font-bold text-primary mb-1.5">Table Name</label>
-                <input type="text" value={editTable.name} onChange={e => { const v = e.target.value; setEditTable(p => ({ ...p, name: v })); updateTable(editTable.id, { name: v }) }} className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary" />
+                <label className="block text-xs font-bold text-gray-500 mb-1.5 uppercase tracking-wider">Table Name</label>
+                <input type="text" value={editTable.name} onChange={e => { const v = e.target.value; setEditTable(p => ({ ...p, name: v })); updateTable(editTable.id, { name: v }) }}
+                  className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm font-bold focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary" />
               </div>
               <div>
-                <label className="block text-sm font-bold text-primary mb-1.5">Shape</label>
+                <label className="block text-xs font-bold text-gray-500 mb-1.5 uppercase tracking-wider">Shape</label>
                 <div className="flex gap-2">
-                  {TABLE_SHAPES.map(s => (
+                  {TABLE_SHAPES.map(s => { const SIcon = s.Icon; return (
                     <button key={s.id} onClick={() => { setEditTable(p => ({ ...p, shape: s.id })); updateTable(editTable.id, { shape: s.id }) }}
-                      className={`flex-1 py-2 rounded-lg text-center text-sm font-bold transition-all ${editTable.shape === s.id ? 'bg-primary text-white shadow-md' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}>
-                      {s.icon} {s.label}
+                      className={`flex-1 py-2.5 rounded-xl text-center text-sm font-bold transition-all flex items-center justify-center gap-1.5 ${editTable.shape === s.id ? 'bg-primary text-white shadow-lg' : 'bg-gray-100 text-gray-500 hover:bg-gray-200'}`}>
+                      <SIcon size={15} /> {s.label}
                     </button>
-                  ))}
+                  )})}
                 </div>
               </div>
               <div>
-                <label className="block text-sm font-bold text-primary mb-1.5">Seats</label>
+                <label className="block text-xs font-bold text-gray-500 mb-1.5 uppercase tracking-wider">Seats</label>
                 <div className="flex gap-2">
                   {SEAT_OPTIONS.map(n => (
                     <button key={n} onClick={() => { setEditTable(p => ({ ...p, seats: n })); updateTable(editTable.id, { seats: n }) }}
-                      className={`flex-1 py-2 rounded-lg text-sm font-bold transition-all ${editTable.seats === n ? 'bg-primary text-white shadow-md' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}>{n}</button>
+                      className={`flex-1 py-2.5 rounded-xl text-sm font-bold transition-all ${editTable.seats === n ? 'bg-primary text-white shadow-lg' : 'bg-gray-100 text-gray-500 hover:bg-gray-200'}`}>{n}</button>
                   ))}
                 </div>
               </div>
               <div>
-                <label className="block text-sm font-bold text-primary mb-1.5">Zone</label>
+                <label className="block text-xs font-bold text-gray-500 mb-1.5 uppercase tracking-wider">Zone</label>
                 <div className="flex gap-2 flex-wrap">
-                  {ZONES.filter(z => !z.nonTable).map(z => (
+                  {ZONES.filter(z => z.id !== 'all').map(z => (
                     <button key={z.id} onClick={() => { setEditTable(p => ({ ...p, zone: z.id })); updateTable(editTable.id, { zone: z.id }) }}
-                      className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all border ${editTable.zone === z.id ? 'text-white shadow-md' : 'text-gray-600 bg-gray-50 border-gray-200 hover:bg-gray-100'}`}
-                      style={editTable.zone === z.id ? { background: z.color, borderColor: z.color } : {}}>
-                      {z.label}
-                    </button>
+                      className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all border ${editTable.zone === z.id ? 'text-white shadow-md' : 'text-gray-500 bg-gray-50 border-gray-200 hover:bg-gray-100'}`}
+                      style={editTable.zone === z.id ? { background: z.color, borderColor: z.color } : {}}>{z.icon} {z.label}</button>
+                  ))}
+                </div>
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-gray-500 mb-1.5 uppercase tracking-wider">Status</label>
+                <div className="flex gap-2 flex-wrap">
+                  {Object.entries(STATUS).map(([key, val]) => (
+                    <button key={key} onClick={() => { setEditTable(p => ({ ...p, status: key })); updateTable(editTable.id, { status: key }) }}
+                      className={`px-3 py-1.5 rounded-xl text-[10px] font-bold transition-all border ${editTable.status === key ? 'shadow-md' : 'bg-gray-50 border-gray-200 hover:bg-gray-100'}`}
+                      style={editTable.status === key ? { background: val.bg, color: val.text, borderColor: val.border } : { color: '#9CA3AF' }}>{val.label}</button>
                   ))}
                 </div>
               </div>
             </div>
-            <div className="flex gap-3 mt-6">
-              <button onClick={() => { deleteTable(editTable.id); setEditTable(null) }} className="px-4 py-2.5 bg-red-50 text-red-600 rounded-lg text-sm font-bold hover:bg-red-100 flex items-center gap-1"><Trash2 className="w-3.5 h-3.5" /> Delete</button>
+            <div className="flex gap-3 mt-6 pt-4 border-t border-gray-100">
+              <button onClick={() => { duplicateTable(editTable.id); setEditTable(null) }} className="px-4 py-2.5 bg-blue-50 text-blue-600 rounded-xl text-sm font-bold hover:bg-blue-100 flex items-center gap-1.5"><Copy className="w-3.5 h-3.5" /> Duplicate</button>
+              <button onClick={() => { deleteTable(editTable.id); setEditTable(null) }} className="px-4 py-2.5 bg-red-50 text-red-600 rounded-xl text-sm font-bold hover:bg-red-100 flex items-center gap-1.5"><Trash2 className="w-3.5 h-3.5" /> Delete</button>
               <div className="flex-1" />
-              <button onClick={() => setEditTable(null)} className="px-4 py-2.5 bg-primary text-white rounded-lg text-sm font-bold hover:bg-[#2D6A4F] shadow-lg">Done</button>
+              <button onClick={() => setEditTable(null)} className="px-5 py-2.5 bg-primary text-white rounded-xl text-sm font-bold hover:bg-[#2D6A4F] shadow-lg shadow-primary/20">Done</button>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* Toast */}
+      {toast && (
+        <div style={{ position: 'fixed', top: 20, right: 20, zIndex: 999, background: '#1B4332', color: '#fff', padding: '10px 20px', borderRadius: 12, fontSize: 13, fontWeight: 700, boxShadow: '0 8px 30px rgba(27,67,50,0.3)', animation: 'sidebarPopIn 250ms cubic-bezier(0.16,1,0.3,1) forwards', fontFamily: "'Figtree', sans-serif" }}>
+          ✓ {toast}
         </div>
       )}
     </div>
