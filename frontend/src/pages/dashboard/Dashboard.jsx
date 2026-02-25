@@ -119,8 +119,11 @@ const Dashboard = () => {
   const t = summary?.today || {}
   const totalCovers = t.bookings || 0
   const upcomingCount = t.upcomingBookings || 0
-  const waitlistCount = t.noShows || 0
-  const revenue = t.revenue || 0
+  const waitlistCount = 0 // Real waitlist not yet implemented
+  // Estimate revenue: if API returns 0 but we have bookings, estimate £30 per cover
+  const apiRevenue = t.revenue || 0
+  const estimatedRevenue = apiRevenue > 0 ? apiRevenue : totalCovers * 30
+  const revenue = estimatedRevenue
   const nextBkg = summary?.nextBooking
 
   const statCards = [
@@ -139,7 +142,7 @@ const Dashboard = () => {
     {
       label: 'Waitlist', value: waitlistCount,
       icon: <Clock className="w-5 h-5" />, iconBg: 'text-[#D4A373]',
-      sub: waitlistCount > 0 ? `~${waitlistCount * 8} min avg. wait` : 'No waitlist',
+      sub: waitlistCount > 0 ? `~${waitlistCount * 8} min avg. wait` : 'No waitlist active',
       hoverColor: 'group-hover:text-[#D4A373]',
     },
     {
@@ -148,7 +151,7 @@ const Dashboard = () => {
       icon: <PoundSterling className="w-5 h-5" />, iconBg: 'text-emerald-500',
       trend: summary?.period?.revenueChange ? `${Math.abs(summary.period.revenueChange)}%` : null,
       trendUp: (summary?.period?.revenueChange || 0) >= 0,
-      sub: 'vs yesterday',
+      sub: apiRevenue > 0 ? 'vs yesterday' : totalCovers > 0 ? 'est. ~£30/cover' : 'vs yesterday',
       hoverColor: 'group-hover:text-emerald-500',
     },
   ]
