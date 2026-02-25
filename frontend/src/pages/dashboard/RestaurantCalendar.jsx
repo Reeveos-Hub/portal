@@ -105,6 +105,8 @@ export default function RestaurantCalendar() {
   const [editMode, setEditMode] = useState(false)
   const [editedBooking, setEditedBooking] = useState({})
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+  const [dragBooking, setDragBooking] = useState(null)
+  const [moveHistory, setMoveHistory] = useState([]) // tracks drag-drop moves
   const scrollRef = useRef(null)
 
   const dateObj = new Date(selectedDate + 'T00:00:00')
@@ -387,23 +389,25 @@ export default function RestaurantCalendar() {
 
           <div style={{ width: 1, height: 24, background: '#EBEBEB' }} />
 
-          {/* Search Pill — always visible */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6, background: '#F5F5F5', borderRadius: 999, padding: '6px 14px', minWidth: showSearch ? 200 : 38, transition: 'all 0.3s ease', cursor: 'pointer' }}
+          {/* Search Pill — always visible with placeholder text */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, background: '#F5F5F5', borderRadius: 999, padding: '7px 16px', border: '1px solid #EBEBEB', minWidth: 160, cursor: 'text' }}
             onClick={() => !showSearch && setShowSearch(true)}>
-            <Search size={14} color="#555" />
+            <Search size={14} color="#555" style={{ flexShrink: 0 }} />
             {showSearch ? (
               <>
                 <input value={searchQuery} onChange={e => setSearchQuery(e.target.value)} autoFocus
                   placeholder="Search guests, tables..."
-                  style={{ border: 'none', background: 'transparent', outline: 'none', fontSize: 13, fontWeight: 500, color: '#111', width: 150, fontFamily: "'Figtree', sans-serif" }} />
-                <button onClick={(e) => { e.stopPropagation(); setShowSearch(false); setSearchQuery('') }} style={{ border: 'none', background: 'none', cursor: 'pointer', padding: 0 }}><X size={13} color="#666" /></button>
+                  style={{ border: 'none', background: 'transparent', outline: 'none', fontSize: 13, fontWeight: 500, color: '#111', width: 130, fontFamily: "'Figtree', sans-serif" }} />
+                {searchQuery && <button onClick={(e) => { e.stopPropagation(); setSearchQuery('') }} style={{ border: 'none', background: 'none', cursor: 'pointer', padding: 0, flexShrink: 0 }}><X size={13} color="#666" /></button>}
               </>
-            ) : null}
+            ) : (
+              <span style={{ fontSize: 13, color: '#999', fontWeight: 400 }}>Search...</span>
+            )}
           </div>
 
-          {/* Tablet Fullscreen Toggle — animated icon */}
+          {/* Tablet Fullscreen Toggle — scale animation */}
           <button onClick={() => setIsFullscreen(!isFullscreen)} 
-            style={{ ...iconBtn, transition: 'all 0.3s ease', transform: isFullscreen ? 'rotate(180deg)' : 'rotate(0deg)' }} 
+            style={{ ...iconBtn, transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)', transform: isFullscreen ? 'scale(1.1)' : 'scale(1)', background: isFullscreen ? T.forest : '#F5F5F5', color: isFullscreen ? '#fff' : '#555' }} 
             title={isFullscreen ? 'Exit tablet mode' : 'Tablet mode'}>
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" style={{ transition: 'all 0.3s ease' }}>
               <rect x="5" y="2" width="14" height="20" rx="2" />
@@ -514,7 +518,20 @@ export default function RestaurantCalendar() {
                 const tableBookings = bookingsByTable[t.id] || []
 
                 return (
-                  <div key={`tr-${t.id}`} style={{ height: ROW_H, borderBottom: '1px solid #F9FAFB', position: 'relative' }}>
+                  <div key={`tr-${t.id}`} style={{ height: ROW_H, borderBottom: '1px solid #F9FAFB', position: 'relative', background: dragBooking && dragBooking.tableId !== t.id ? 'transparent' : 'transparent' }}
+                    onDragOver={e => { e.preventDefault(); e.currentTarget.style.background = '#F0F7F4' }}
+                    onDragLeave={e => { e.currentTarget.style.background = 'transparent' }}
+                    onDrop={e => {
+                      e.preventDefault()
+                      e.currentTarget.style.background = 'transparent'
+                      if (dragBooking && dragBooking.tableId !== t.id) {
+                        const oldTable = dragBooking.tableName
+                        setMoveHistory(prev => [...prev, { bookingId: dragBooking.id, guest: dragBooking.customerName, from: oldTable, to: t.name, time: new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }), date: new Date().toLocaleDateString('en-GB') }])
+                        // Update booking in local state
+                        setData(prev => ({ ...prev, bookings: prev.bookings.map(b => b.id === dragBooking.id ? { ...b, tableId: t.id, tableName: t.name } : b) }))
+                      }
+                      setDragBooking(null)
+                    }}>
                     {tableBookings.map(b => {
                       const pos = bookingStyle(b)
                       const color = statusColor(b.status, b.isVip)
@@ -522,6 +539,9 @@ export default function RestaurantCalendar() {
                       const isSelected = selectedBooking?.id === b.id
                       return (
                         <div key={b.id}
+                          draggable
+                          onDragStart={() => setDragBooking(b)}
+                          onDragEnd={() => setDragBooking(null)}
                           onClick={() => setSelectedBooking(isSelected ? null : b)}
                           style={{
                             position: 'absolute', top: 4, bottom: 4,
@@ -531,9 +551,10 @@ export default function RestaurantCalendar() {
                             borderRadius: 6,
                             boxShadow: isSelected ? `0 0 0 2px ${color}50` : '0 1px 3px rgba(0,0,0,0.04)',
                             display: 'flex', alignItems: 'center', padding: '0 8px',
-                            cursor: 'pointer', zIndex: 5,
+                            cursor: 'grab', zIndex: 5,
                             transition: 'all 0.15s',
                             overflow: 'hidden',
+                            opacity: dragBooking?.id === b.id ? 0.5 : 1,
                           }}
                           onMouseOver={e => { e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.boxShadow = '0 4px 8px rgba(0,0,0,0.12)'; e.currentTarget.style.zIndex = '10' }}
                           onMouseOut={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = isSelected ? `0 0 0 2px ${color}50` : '0 1px 3px rgba(0,0,0,0.04)'; e.currentTarget.style.zIndex = '5' }}
@@ -798,31 +819,53 @@ export default function RestaurantCalendar() {
               <div style={{ position: 'relative', paddingLeft: 20 }}>
                 {/* Timeline line */}
                 <div style={{ position: 'absolute', left: 7, top: 0, bottom: 0, width: 2, background: T.border }} />
-                {[
-                  { date: dateLabel, amount: '—', table: selectedBooking.tableName, party: selectedBooking.partySize, current: true },
-                  { date: 'Previous visit', amount: '£89.50', table: 'Table 1', party: 2 },
-                ].map((h, i) => (
-                  <div key={i} style={{ position: 'relative', marginBottom: 16, paddingLeft: 16 }}>
-                    <div style={{ position: 'absolute', left: -13, top: 4, width: 12, height: 12, borderRadius: '50%', background: h.current ? T.sage : T.sage, border: '2px solid #fff', boxShadow: '0 1px 3px rgba(0,0,0,0.1)', zIndex: 1 }} />
-                    {h.current ? (
-                      <div style={{ background: '#fff', border: `1px solid ${T.border}`, borderRadius: 12, padding: 12, boxShadow: '0 2px 4px rgba(0,0,0,0.05)' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
-                          <span style={{ fontSize: 13, fontWeight: 600, color: T.forest }}>{h.date}</span>
-                          <span style={{ fontSize: 11, fontWeight: 700, color: T.forest }}>{h.amount}</span>
-                        </div>
-                        <span style={{ fontSize: 12, color: '#555' }}>{h.table} · Party of {h.party}</span>
+
+                {/* Move history for this booking */}
+                {moveHistory.filter(m => m.bookingId === selectedBooking.id).reverse().map((m, i) => (
+                  <div key={`move-${i}`} style={{ position: 'relative', marginBottom: 12, paddingLeft: 16 }}>
+                    <div style={{ position: 'absolute', left: -13, top: 4, width: 12, height: 12, borderRadius: '50%', background: T.amber, border: '2px solid #fff', boxShadow: '0 1px 3px rgba(0,0,0,0.1)', zIndex: 1 }} />
+                    <div style={{ background: '#FFF8F0', border: '1px solid #D4A37330', borderRadius: 10, padding: '8px 12px' }}>
+                      <div style={{ fontSize: 12, fontWeight: 600, color: '#92400E', marginBottom: 2 }}>
+                        🔀 Moved table
                       </div>
-                    ) : (
-                      <div>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 2 }}>
-                          <span style={{ fontSize: 13, fontWeight: 500, color: '#555' }}>{h.date}</span>
-                          <span style={{ fontSize: 11, fontWeight: 500, color: '#555' }}>{h.amount}</span>
-                        </div>
-                        <span style={{ fontSize: 12, color: '#888' }}>{h.table} · Party of {h.party}</span>
+                      <div style={{ fontSize: 12, color: '#555' }}>
+                        {m.from} → <strong>{m.to}</strong> at {m.time}
                       </div>
-                    )}
+                    </div>
                   </div>
                 ))}
+
+                {/* Current booking */}
+                <div style={{ position: 'relative', marginBottom: 16, paddingLeft: 16 }}>
+                  <div style={{ position: 'absolute', left: -13, top: 4, width: 12, height: 12, borderRadius: '50%', background: T.sage, border: '2px solid #fff', boxShadow: '0 1px 3px rgba(0,0,0,0.1)', zIndex: 1 }} />
+                  <div style={{ background: '#fff', border: `1px solid ${T.border}`, borderRadius: 12, padding: 12, boxShadow: '0 2px 4px rgba(0,0,0,0.05)' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
+                      <span style={{ fontSize: 13, fontWeight: 600, color: T.forest }}>Today</span>
+                      <span style={{ fontSize: 11, fontWeight: 600, color: T.forest }}>{fmt12(selectedBooking.time)}</span>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: '#555' }}>
+                      <span>{selectedBooking.tableName}</span>
+                      <span style={{ width: 3, height: 3, borderRadius: '50%', background: '#ccc' }} />
+                      <span>Party of {selectedBooking.partySize}</span>
+                    </div>
+                    <div style={{ display: 'flex', gap: 6, marginTop: 6 }}>
+                      <span style={{ width: 22, height: 22, borderRadius: '50%', background: '#F5F5F5', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10 }}>🍽️</span>
+                      {selectedBooking.notes && <span style={{ width: 22, height: 22, borderRadius: '50%', background: '#F5F5F5', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10 }}>📋</span>}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Previous visit placeholder */}
+                <div style={{ position: 'relative', marginBottom: 12, paddingLeft: 16 }}>
+                  <div style={{ position: 'absolute', left: -13, top: 4, width: 12, height: 12, borderRadius: '50%', background: T.sage, border: '2px solid #fff', boxShadow: '0 1px 3px rgba(0,0,0,0.1)', zIndex: 1 }} />
+                  <div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 2 }}>
+                      <span style={{ fontSize: 13, fontWeight: 500, color: '#555' }}>Previous visit</span>
+                      <span style={{ fontSize: 11, fontWeight: 500, color: '#555' }}>£89.50</span>
+                    </div>
+                    <span style={{ fontSize: 12, color: '#888' }}>Table 1 · Party of 2</span>
+                  </div>
+                </div>
               </div>
             </section>
           </div>

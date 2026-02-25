@@ -107,6 +107,8 @@ export default function RezvoSupportBot() {
   const [activePanel, setActivePanel] = useState(null); // null | 'booking' | 'walkin'
   const [bookingForm, setBookingForm] = useState({ name: '', phone: '', email: '', party: 2, date: '', time: '', table: '', notes: '' });
   const [walkinForm, setWalkinForm] = useState({ name: '', party: 2, table: '', notes: '' });
+  const [bookingTableDrop, setBookingTableDrop] = useState(false);
+  const [walkinTableDrop, setWalkinTableDrop] = useState(false);
 
   useEffect(() => {
     if (messages.length > 0 && messages[messages.length - 1].role === "assistant") {
@@ -483,13 +485,18 @@ export default function RezvoSupportBot() {
               <div>
                 <label style={{ fontSize:13, fontWeight:600, color:'#999', textTransform:'uppercase', letterSpacing:'0.08em', marginBottom:8, display:'block' }}>Table (optional)</label>
                 <div style={{ position:'relative' }}>
-                  <select value={bookingForm.table} onChange={e => setBookingForm({...bookingForm, table:e.target.value})} style={{ width:'100%', padding:'12px 16px 12px 16px', borderRadius:12, border:'1px solid #EBEBEB', fontSize:14, fontFamily:"'Figtree', sans-serif", background:'#FAFAF8', outline:'none', WebkitAppearance:'none', MozAppearance:'none', appearance:'none', color:'#1B4332', cursor:'pointer', paddingRight:40 }}>
-                    <option value="">Auto-assign</option>
-                    {Array.from({length:15}, (_,i) => <option key={i+1} value={i+1}>Table {i+1}</option>)}
-                  </select>
-                  <div style={{ position:'absolute', right:14, top:'50%', transform:'translateY(-50%)', pointerEvents:'none', color:'#999' }}>
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+                  <div onClick={() => setBookingTableDrop(!bookingTableDrop)} style={{ width:'100%', padding:'12px 16px', borderRadius:12, border:'1px solid #EBEBEB', fontSize:14, fontFamily:"'Figtree', sans-serif", background:'#FAFAF8', color: bookingForm.table ? '#1B4332' : '#999', cursor:'pointer', display:'flex', justifyContent:'space-between', alignItems:'center' }}>
+                    <span>{bookingForm.table ? `Table ${bookingForm.table}` : 'Auto-assign'}</span>
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#999" strokeWidth="2.5"><polyline points="6 9 12 15 18 9"/></svg>
                   </div>
+                  {bookingTableDrop && (
+                    <div style={{ position:'absolute', top:'100%', left:0, right:0, marginTop:4, background:'#fff', border:'1px solid #EBEBEB', borderRadius:12, boxShadow:'0 8px 24px rgba(0,0,0,0.1)', zIndex:100, maxHeight:200, overflowY:'auto', padding:4 }}>
+                      <div onClick={() => { setBookingForm({...bookingForm, table:''}); setBookingTableDrop(false) }} style={{ padding:'10px 16px', borderRadius:8, fontSize:13, color:'#999', cursor:'pointer', fontFamily:"'Figtree', sans-serif" }} onMouseOver={e => e.currentTarget.style.background='#F5F5F5'} onMouseOut={e => e.currentTarget.style.background='transparent'}>Auto-assign</div>
+                      {Array.from({length:15}, (_,i) => (
+                        <div key={i+1} onClick={() => { setBookingForm({...bookingForm, table:String(i+1)}); setBookingTableDrop(false) }} style={{ padding:'10px 16px', borderRadius:8, fontSize:13, color:'#1B4332', fontWeight: bookingForm.table===String(i+1)?700:400, cursor:'pointer', fontFamily:"'Figtree', sans-serif", background: bookingForm.table===String(i+1)?'#F0F7F4':'transparent' }} onMouseOver={e => { if(bookingForm.table!==String(i+1)) e.currentTarget.style.background='#F5F5F5' }} onMouseOut={e => { if(bookingForm.table!==String(i+1)) e.currentTarget.style.background='transparent' }}>Table {i+1}</div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -556,13 +563,18 @@ export default function RezvoSupportBot() {
               <div>
                 <label style={{ fontSize:13, fontWeight:600, color:'#999', textTransform:'uppercase', letterSpacing:'0.08em', marginBottom:8, display:'block' }}>Table (optional)</label>
                 <div style={{ position:'relative' }}>
-                  <select value={walkinForm.table} onChange={e => setWalkinForm({...walkinForm, table:e.target.value})} style={{ width:'100%', padding:'12px 16px 12px 16px', borderRadius:12, border:'1px solid #EBEBEB', fontSize:14, fontFamily:"'Figtree', sans-serif", background:'#FAFAF8', outline:'none', WebkitAppearance:'none', MozAppearance:'none', appearance:'none', color:'#1B4332', cursor:'pointer', paddingRight:40 }}>
-                    <option value="">Auto-assign</option>
-                    {Array.from({length:15}, (_,i) => <option key={i+1} value={i+1}>Table {i+1}</option>)}
-                  </select>
-                  <div style={{ position:'absolute', right:14, top:'50%', transform:'translateY(-50%)', pointerEvents:'none', color:'#999' }}>
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+                  <div onClick={() => setWalkinTableDrop(!walkinTableDrop)} style={{ width:'100%', padding:'12px 16px', borderRadius:12, border:'1px solid #EBEBEB', fontSize:14, fontFamily:"'Figtree', sans-serif", background:'#FAFAF8', color: walkinForm.table ? '#1B4332' : '#999', cursor:'pointer', display:'flex', justifyContent:'space-between', alignItems:'center' }}>
+                    <span>{walkinForm.table ? `Table ${walkinForm.table}` : 'Auto-assign'}</span>
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#999" strokeWidth="2.5"><polyline points="6 9 12 15 18 9"/></svg>
                   </div>
+                  {walkinTableDrop && (
+                    <div style={{ position:'absolute', top:'100%', left:0, right:0, marginTop:4, background:'#fff', border:'1px solid #EBEBEB', borderRadius:12, boxShadow:'0 8px 24px rgba(0,0,0,0.1)', zIndex:100, maxHeight:200, overflowY:'auto', padding:4 }}>
+                      <div onClick={() => { setWalkinForm({...walkinForm, table:''}); setWalkinTableDrop(false) }} style={{ padding:'10px 16px', borderRadius:8, fontSize:13, color:'#999', cursor:'pointer', fontFamily:"'Figtree', sans-serif" }} onMouseOver={e => e.currentTarget.style.background='#F5F5F5'} onMouseOut={e => e.currentTarget.style.background='transparent'}>Auto-assign</div>
+                      {Array.from({length:15}, (_,i) => (
+                        <div key={i+1} onClick={() => { setWalkinForm({...walkinForm, table:String(i+1)}); setWalkinTableDrop(false) }} style={{ padding:'10px 16px', borderRadius:8, fontSize:13, color:'#1B4332', fontWeight: walkinForm.table===String(i+1)?700:400, cursor:'pointer', fontFamily:"'Figtree', sans-serif", background: walkinForm.table===String(i+1)?'#F0F7F4':'transparent' }} onMouseOver={e => { if(walkinForm.table!==String(i+1)) e.currentTarget.style.background='#F5F5F5' }} onMouseOut={e => { if(walkinForm.table!==String(i+1)) e.currentTarget.style.background='transparent' }}>Table {i+1}</div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
 
