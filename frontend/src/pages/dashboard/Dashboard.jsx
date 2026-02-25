@@ -122,71 +122,83 @@ const FloorStatusWidget = ({ navigate }) => {
           Full View <ArrowRight className="w-3.5 h-3.5" />
         </button>
       </div>
-      <div className="relative h-[260px] p-6 overflow-hidden" style={{ background: '#FAFAF8' }}>
+      <div className="relative h-[260px] p-4 overflow-hidden" style={{ background: '#FAFAF8' }}>
         <div className="absolute inset-0 opacity-20" style={{ backgroundImage: 'radial-gradient(#D1D5DB 0.8px, transparent 0.8px)', backgroundSize: '20px 20px' }} />
-        {display.length > 0 ? (
-          <div className="relative z-10 h-full" style={{ position: 'relative' }}>
-            {display.map((tbl, idx) => {
-              const st = STATUS_STYLES[tbl.status] || STATUS_STYLES.available
-              const seats = tbl.seats || 4
-              const size = seats <= 2 ? 75 : seats <= 4 ? 85 : seats <= 6 ? 100 : 115
-              const isRound = tbl.shape === 'round' || !tbl.shape
-              const isLong = tbl.shape === 'long' || tbl.shape === 'booth'
-              const w = isLong ? size * 1.5 : size
-              const h = isLong ? size * 0.65 : size
-              const isDirty = tbl.status === 'dirty'
+        {display.length > 0 ? (() => {
+          // Calculate bounding box of all tables
+          const xs = display.map(t => t.x || 0)
+          const ys = display.map(t => t.y || 0)
+          const minX = Math.min(...xs), maxX = Math.max(...xs)
+          const minY = Math.min(...ys), maxY = Math.max(...ys)
+          const rangeX = Math.max(maxX - minX, 200)
+          const rangeY = Math.max(maxY - minY, 150)
 
-              // Scale positions proportionally into the 260px widget
-              const scale = 0.38
-              const px = (tbl.x || 80 + idx * 140) * scale + 10
-              const py = (tbl.y || 40 + Math.floor(idx / 3) * 120) * scale + 10
+          // Widget inner dimensions (accounting for padding + table size)
+          const widgetW = 620, widgetH = 200
+          const tblScale = 0.55 // Scale tables down
+          const scaleX = widgetW / (rangeX + 180)
+          const scaleY = widgetH / (rangeY + 150)
+          const scale = Math.min(scaleX, scaleY, 0.9)
 
-              return (
-                <div key={tbl.id || idx} style={{
-                  position: 'absolute', left: px, top: py,
-                  width: w, height: h,
-                  borderRadius: isRound ? '50%' : 12,
-                  background: st.bg,
-                  border: isDirty ? `2px dashed ${st.border}` : `2px solid ${st.border}`,
-                  display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-                  cursor: 'pointer', transition: 'all 0.2s',
-                  boxShadow: '0 2px 8px rgba(0,0,0,.04)',
-                  transform: `rotate(${tbl.rotation || 0}deg)`,
-                  fontFamily: "'Figtree', sans-serif",
-                }}
-                  onClick={() => navigate('/dashboard/floor-plan')}
-                >
-                  {tbl.vip && (
-                    <div style={{ position: 'absolute', top: -6, right: -6, background: '#F59E0B', color: '#fff', fontSize: 7, fontWeight: 800, padding: '1px 4px', borderRadius: 4 }}>VIP</div>
-                  )}
-                  <span style={{ fontSize: 12, fontWeight: 800, color: st.text }}>{tbl.name}</span>
-                  {tbl.status === 'seated' && tbl.timer && (
-                    <>
-                      <div style={{ display: 'flex', gap: 2, marginTop: 2 }}>
-                        {Array.from({ length: Math.min(seats, 4) }).map((_, i) => (
-                          <div key={i} style={{ width: 4, height: 4, borderRadius: '50%', background: st.text }} />
-                        ))}
-                      </div>
-                      <span style={{ fontSize: 9, fontWeight: 700, color: st.text, opacity: 0.8 }}>{tbl.timer}</span>
-                    </>
-                  )}
-                  {tbl.status === 'reserved' && tbl.nextTime && (
-                    <span style={{ fontSize: 9, fontWeight: 600, color: st.border }}>{tbl.nextTime}</span>
-                  )}
-                  {tbl.status === 'available' && (
-                    <span style={{ fontSize: 8, fontWeight: 600, color: '#9CA3AF' }}>Available</span>
-                  )}
-                  {tbl.status === 'dirty' && (
-                    <span style={{ fontSize: 8, fontWeight: 800, color: st.text, textTransform: 'uppercase' }}>DIRTY</span>
-                  )}
-                  {tbl.status === 'mains' && (
-                    <span style={{ fontSize: 8, fontWeight: 700, color: st.text }}>{tbl.guest || 'Mains'}</span>
-                  )}
-                </div>
-              )
-            })}
-          </div>
-        ) : (
+          return (
+            <div className="relative z-10 h-full w-full">
+              {display.map((tbl, idx) => {
+                const st = STATUS_STYLES[tbl.status] || STATUS_STYLES.available
+                const seats = tbl.seats || 4
+                const rawSize = seats <= 2 ? 60 : seats <= 4 ? 68 : seats <= 6 ? 78 : 88
+                const size = rawSize * tblScale
+                const isRound = tbl.shape === 'round' || !tbl.shape
+                const isLong = tbl.shape === 'long' || tbl.shape === 'booth'
+                const w = isLong ? size * 1.5 : size
+                const h = isLong ? size * 0.65 : size
+                const isDirty = tbl.status === 'dirty'
+
+                // Normalize positions into widget space
+                const nx = ((tbl.x || 0) - minX) * scale + 16
+                const ny = ((tbl.y || 0) - minY) * scale + 12
+
+                return (
+                  <div key={tbl.id || idx} style={{
+                    position: 'absolute', left: nx, top: ny,
+                    width: w, height: h,
+                    borderRadius: isRound ? '50%' : 8,
+                    background: st.bg,
+                    border: isDirty ? `1.5px dashed ${st.border}` : `1.5px solid ${st.border}`,
+                    display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+                    cursor: 'pointer', transition: 'all 0.2s',
+                    boxShadow: '0 1px 4px rgba(0,0,0,.04)',
+                    transform: `rotate(${tbl.rotation || 0}deg)`,
+                    fontFamily: "'Figtree', sans-serif",
+                    fontSize: 0,
+                  }}
+                    onClick={() => navigate('/dashboard/floor-plan')}
+                  >
+                    {tbl.vip && (
+                      <div style={{ position: 'absolute', top: -5, right: -5, background: '#F59E0B', color: '#fff', fontSize: 6, fontWeight: 800, padding: '1px 3px', borderRadius: 3 }}>VIP</div>
+                    )}
+                    <span style={{ fontSize: 10, fontWeight: 800, color: st.text, lineHeight: 1 }}>{tbl.name}</span>
+                    {tbl.status === 'seated' && tbl.timer && (
+                      <>
+                        <div style={{ display: 'flex', gap: 1.5, marginTop: 2 }}>
+                          {Array.from({ length: Math.min(seats, 3) }).map((_, i) => (
+                            <div key={i} style={{ width: 3, height: 3, borderRadius: '50%', background: st.text }} />
+                          ))}
+                        </div>
+                        <span style={{ fontSize: 7, fontWeight: 700, color: st.text, opacity: 0.8 }}>{tbl.timer}</span>
+                      </>
+                    )}
+                    {tbl.status === 'reserved' && tbl.nextTime && (
+                      <span style={{ fontSize: 7, fontWeight: 600, color: st.border, marginTop: 1 }}>{tbl.nextTime}</span>
+                    )}
+                    {tbl.status === 'dirty' && (
+                      <span style={{ fontSize: 7, fontWeight: 800, color: st.text, textTransform: 'uppercase', marginTop: 1 }}>DIRTY</span>
+                    )}
+                  </div>
+                )
+              })}
+            </div>
+          )
+        })() : (
           <div className="flex items-center justify-center h-full text-gray-400 text-sm font-medium">
             <div className="text-center">
               <p className="font-bold">No floor plan configured</p>
