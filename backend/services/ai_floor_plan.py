@@ -125,14 +125,34 @@ def _build_user_prompt(elements: List[Dict], canvas_w: float, canvas_h: float, z
     fixtures_desc = "\n".join(_describe_element(f) for f in fixtures) if fixtures else "  (none)"
     tables_desc = "\n".join(_describe_element(t) for t in tables) if tables else "  (none)"
 
-    return f"""Room: {canvas_w:.0f}px wide × {canvas_h:.0f}px tall
+    # Zone-specific context
+    zone_hint = ""
+    if zone:
+        zone_lower = zone.lower()
+        if "terrace" in zone_lower or "outside" in zone_lower or "outdoor" in zone_lower or "patio" in zone_lower or "garden" in zone_lower:
+            zone_hint = f"\n\nThis is the {zone.upper()} — an outdoor dining area. Spread tables generously with relaxed spacing. Use the FULL canvas area, not just one corner."
+        elif "upstairs" in zone_lower:
+            zone_hint = f"\n\nThis is the {zone.upper()} zone. A separate floor."
+        elif "basement" in zone_lower or "downstairs" in zone_lower:
+            zone_hint = f"\n\nThis is the {zone.upper()} zone. A lower floor, may be cosier."
+        else:
+            zone_hint = f"\n\nThis is the {zone.upper()} zone."
 
+    # If few tables relative to canvas, tell LLM to spread them out
+    density_hint = ""
+    if len(tables) <= 3:
+        density_hint = "\n\nIMPORTANT: Only a few tables — distribute them across the space with generous gaps. Centre the cluster in the room. Do NOT bunch them in one corner."
+    elif len(tables) <= 6:
+        density_hint = "\n\nModerate number of tables — balance spacing across the full canvas area. Centre the arrangement."
+
+    return f"""Room: {canvas_w:.0f}px wide × {canvas_h:.0f}px tall
+{zone_hint}
 Fixtures (FIXED — do NOT move these):
 {fixtures_desc}
 
 Tables to position (MOVE these — decide their x, y):
 {tables_desc}
-
+{density_hint}
 Return a JSON array with each table's id, x, y. Place them intelligently."""
 
 

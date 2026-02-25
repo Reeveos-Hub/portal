@@ -207,7 +207,7 @@ def resolve_overlaps(
     canvas_w: float = 1000,
     canvas_h: float = 800,
     min_gap: float = MIN_TABLE_GAP,
-    max_iterations: int = 200
+    max_iterations: int = 400
 ) -> List[Dict]:
     """
     Resolve all overlaps and spacing violations using force-directed repulsion.
@@ -219,6 +219,8 @@ def resolve_overlaps(
 
     for iteration in range(max_iterations):
         moved = False
+        # Decrease damping over iterations for convergence
+        damping = max(0.2, 1.0 - iteration / max_iterations)
 
         for table in tables:
             tx, ty = table.get("x", 0), table.get("y", 0)
@@ -240,8 +242,9 @@ def resolve_overlaps(
                     dx = (tx + tw / 2) - (ox + ow / 2)
                     dy = (ty + th / 2) - (oy + oh / 2)
                     length = math.sqrt(dx * dx + dy * dy) or 1
-                    # Push proportional to violation
-                    push = (min_gap - dist + 5) * 0.3
+                    # Push harder — proportional to violation depth
+                    violation = min_gap - dist
+                    push = (violation + 10) * 0.5 * damping
                     force_x += (dx / length) * push
                     force_y += (dy / length) * push
                     moved = True
@@ -257,7 +260,8 @@ def resolve_overlaps(
                     dx = (tx + tw / 2) - (fx + fw / 2)
                     dy = (ty + th / 2) - (fy + fh / 2)
                     length = math.sqrt(dx * dx + dy * dy) or 1
-                    push = (FIXTURE_CLEARANCE - dist + 5) * 0.4
+                    violation = FIXTURE_CLEARANCE - dist
+                    push = (violation + 10) * 0.5 * damping
                     force_x += (dx / length) * push
                     force_y += (dy / length) * push
                     moved = True
