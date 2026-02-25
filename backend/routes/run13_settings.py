@@ -83,7 +83,17 @@ def _build_settings_response(business: dict) -> dict:
                     legacy = oh.get(leg_key)
                     break
         if isinstance(legacy, dict):
-            hours[d] = {"open": bool(legacy.get("open", True)), "start": str(legacy.get("start", "09:00"))[:5], "end": str(legacy.get("end", "17:00"))[:5]}
+            # Handle both formats:
+            # New format: { open: true, start: "16:00", end: "23:00" }
+            # Legacy seed format: { open: "12:00", close: "23:00" }
+            is_open = legacy.get("open", True)
+            if isinstance(is_open, str):
+                # Legacy: "open" field is actually the start time string
+                hours[d] = {"open": True, "start": str(is_open)[:5], "end": str(legacy.get("close", "23:00"))[:5]}
+            elif legacy.get("closed"):
+                hours[d] = {"open": False, "start": "00:00", "end": "00:00"}
+            else:
+                hours[d] = {"open": bool(is_open), "start": str(legacy.get("start", "09:00"))[:5], "end": str(legacy.get("end", "17:00"))[:5]}
         else:
             hours[d] = {**DEFAULT_HOURS.get(d, {"open": False})}
         hours[d].setdefault("open", True)

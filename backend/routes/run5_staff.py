@@ -3,11 +3,13 @@ Run 5: Staff Management API — working hours, time off, permissions, invites
 Staff stored in business.staff (extended schema)
 """
 
-from fastapi import APIRouter, HTTPException, Depends, Body, Query
+from fastapi import APIRouter, HTTPException, Depends, Body, Query, UploadFile, File
 from database import get_database
 from middleware.auth import get_current_owner
 from datetime import datetime, date
 from bson import ObjectId
+from pathlib import Path
+import uuid
 
 router = APIRouter(prefix="/staff-v2", tags=["staff-v2"])
 
@@ -331,3 +333,51 @@ async def reinvite_staff(business_id: str, staff_id: str, user: dict = Depends(g
         {"$set": {"staff": staff_list, "updated_at": datetime.utcnow()}},
     )
     return {"detail": "Invite resent", "staff": staff_list[idx]}
+
+
+UPLOADS_DIR = Path(__file__).resolve().parent.parent / "static" / "uploads"
+UPLOADS_DIR.mkdir(parents=True, exist_ok=True)
+
+
+@router.post("/business/{business_id}/{staff_id}/avatar")
+async def upload_staff_avatar(
+    business_id: str,
+    staff_id: str,
+    file: UploadFile = File(...),
+    user: dict = Depends(get_current_owner),
+):
+    """Upload staff avatar photo."""
+    db = get_database()
+    business = await _get_business(db, business_id, user)
+
+    # Validate file
+    allowed = {"image/jpeg", "image/png", "image/webp", "image/gif"}
+    if file.content_type not in allowed:
+        raise HTTPException(400, f"File type {file.content_type} not allowed")
+
+    data = await file.read()
+    if len(data) > 3 * 1024 * 1024:
+        raise HTTPException(400, "File too large (max 3MB)")
+
+    # Save file
+    ext = file.filename.rsplit(".", 1)[-1] if "." in file.filename else "jpg"
+    name = f"{uuid.uuid4().hex[:12]}.{ext}"
+    path = UPLOADS_DIR / name
+    path.write_bytes(data)
+
+    url = f"/api/static/uploads/{name}"
+
+    # Update staff avatar in business doc
+    staff_list = business.get("staff", [])
+    idx = next((i for i, s in enumerate(staff_list) if s.get("id") == staff_id), None)
+    if idx is None:
+        raise HTTPException(404, "Staff not found")
+
+    staff_list[idx]["avatar"] = url
+    staff_list[idx]["updatedAt"] = datetime.utcnow()
+    await db.businesses.update_one(
+        {"_id": business["_id"]},
+        {"$set": {"staff": staff_list, "updated_at": datetime.utcnow()}},
+    )
+
+    return {"url": url, "staff": staff_list[idx]}

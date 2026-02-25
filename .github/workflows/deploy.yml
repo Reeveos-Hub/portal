@@ -77,4 +77,10 @@ jobs:
               python3 setup_admin.py || echo "Admin setup note: check logs"
             fi
 
+            # ── Run data migrations ──
+            if [ -f /opt/rezvo-app/backend/fix_micho_hours.py ]; then
+              cd /opt/rezvo-app/backend
+              python3 fix_micho_hours.py || echo "Migration note: check logs"
+            fi
+
             echo "✅ DEPLOY COMPLETE"

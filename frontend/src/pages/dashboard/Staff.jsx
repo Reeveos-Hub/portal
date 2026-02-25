@@ -436,12 +436,36 @@ const StaffEditPanel = ({ mode, staff, services, businessId, onSave, onClose, sa
   const [form, setForm] = useState(staff)
   const [timeOffForm, setTimeOffForm] = useState({ startDate: '', endDate: '', reason: '' })
   const [showTimeOffForm, setShowTimeOffForm] = useState(false)
+  const [avatarUploading, setAvatarUploading] = useState(false)
+  const avatarInputRef = useRef(null)
 
   useEffect(() => {
     setForm(staff)
   }, [staff])
 
   const update = (key, value) => setForm((f) => ({ ...f, [key]: value }))
+
+  const handleAvatarUpload = async (e) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    if (!businessId || !form.id) {
+      // For new staff, just preview locally
+      const reader = new FileReader()
+      reader.onload = () => update('avatar', reader.result)
+      reader.readAsDataURL(file)
+      return
+    }
+    setAvatarUploading(true)
+    try {
+      const res = await api.upload(`/staff-v2/business/${businessId}/${form.id}/avatar`, file)
+      update('avatar', res.url)
+    } catch (err) {
+      alert(err.message || 'Failed to upload photo')
+    } finally {
+      setAvatarUploading(false)
+      if (avatarInputRef.current) avatarInputRef.current.value = ''
+    }
+  }
   const updateHours = (day, field, value) => {
     setForm((f) => {
       const wh = { ...(f.workingHours || {}), [day]: { ...(f.workingHours?.[day] || {}), [field]: value } }
@@ -548,16 +572,26 @@ const StaffEditPanel = ({ mode, staff, services, businessId, onSave, onClose, sa
           {/* Avatar */}
           <div className="flex flex-col items-center">
             <div className="w-24 h-24 rounded-full bg-[#1B4332]/10 flex items-center justify-center overflow-hidden relative">
-              {form.avatar ? (
+              {avatarUploading ? (
+                <span className="w-8 h-8 border-3 border-[#1B4332]/30 border-t-[#1B4332] rounded-full animate-spin" />
+              ) : form.avatar ? (
                 <img src={form.avatar} alt="" className="w-full h-full object-cover" />
               ) : (
                 <span className="text-3xl font-semibold text-[#1B4332]">
                   {(form.name || '?').slice(0, 2).toUpperCase()}
                 </span>
               )}
+              <input
+                ref={avatarInputRef}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={handleAvatarUpload}
+              />
               <button
-                className="absolute bottom-0 right-0 w-8 h-8 bg-[#1B4332] text-white rounded-full flex items-center justify-center"
-                title="Upload (placeholder)"
+                onClick={() => avatarInputRef.current?.click()}
+                className="absolute bottom-0 right-0 w-8 h-8 bg-[#1B4332] text-white rounded-full flex items-center justify-center hover:bg-[#2D6A4F] transition-colors shadow-lg"
+                title="Upload photo"
               >
                 <Camera className="w-3.5 h-3.5" />
               </button>

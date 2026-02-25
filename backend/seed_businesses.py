@@ -123,13 +123,22 @@ MICHO = {
         "lng": -1.4863
     },
     "opening_hours": {
-        "monday": {"open": "12:00", "close": "23:00"},
-        "tuesday": {"open": "12:00", "close": "23:00"},
-        "wednesday": {"open": "12:00", "close": "23:00"},
-        "thursday": {"open": "12:00", "close": "23:00"},
-        "friday": {"open": "12:00", "close": "00:00"},
-        "saturday": {"open": "12:00", "close": "00:00"},
-        "sunday": {"open": "12:00", "close": "22:00"},
+        "monday": {"open": "16:00", "close": "23:00"},
+        "tuesday": {"closed": True},
+        "wednesday": {"open": "16:00", "close": "23:00"},
+        "thursday": {"open": "16:00", "close": "23:00"},
+        "friday": {"open": "12:00", "close": "23:00"},
+        "saturday": {"open": "12:00", "close": "23:00"},
+        "sunday": {"open": "12:00", "close": "21:00"},
+    },
+    "openingHours": {
+        "mon": {"open": True, "start": "16:00", "end": "23:00"},
+        "tue": {"open": False, "start": "00:00", "end": "00:00"},
+        "wed": {"open": True, "start": "16:00", "end": "23:00"},
+        "thu": {"open": True, "start": "16:00", "end": "23:00"},
+        "fri": {"open": True, "start": "12:00", "end": "23:00"},
+        "sat": {"open": True, "start": "12:00", "end": "23:00"},
+        "sun": {"open": True, "start": "12:00", "end": "21:00"},
     },
     "booking_settings": {
         "slot_duration": 30,
@@ -139,6 +148,10 @@ MICHO = {
         "deposit_required": True,
         "deposit_amount_per_head": 10.00,
         "turn_times": {"2": 75, "4": 90, "6": 105, "8": 120},
+        "service_periods": [
+            {"name": "Lunch", "start": "12:00", "end": "15:00"},
+            {"name": "Dinner", "start": "17:00", "end": "23:00"},
+        ],
     },
     "features_enabled": [
         "calendar", "bookings", "staff", "services", "floor_plan",

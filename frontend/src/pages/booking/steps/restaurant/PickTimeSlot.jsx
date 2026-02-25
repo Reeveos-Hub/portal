@@ -1,6 +1,7 @@
 /**
  * Restaurant Step 2 — Pick a time slot
- * Compact layout matching Step 1
+ * Reads real opening hours from settings.hours
+ * Groups into LUNCH / EVENING based on actual open times
  */
 
 import { useState, useEffect } from 'react'
@@ -12,32 +13,64 @@ import StickyFooter from '../../components/StickyFooter'
 
 const MONTH_NAMES = ['January','February','March','April','May','June','July','August','September','October','November','December']
 const DAY_NAMES = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday']
+const DAY_KEYS = ['sunday','monday','tuesday','wednesday','thursday','friday','saturday']
 
 const generateSlots = (settings, date) => {
   const dayOfWeek = new Date(date).getDay()
-  const dayNames = ['sunday','monday','tuesday','wednesday','thursday','friday','saturday']
-  const hours = settings?.hours?.[dayNames[dayOfWeek]]
+  const dayName = DAY_KEYS[dayOfWeek]
+  const hours = settings?.hours?.[dayName]
+
+  // Closed day
   if (hours?.closed) return []
+
+  // If no hours data, use service periods or defaults
   if (!hours || !hours.open) {
-    const d = []
-    for (let h = 12; h <= 14; h++) { d.push(`${h}:00`); d.push(`${h}:30`) }
-    for (let h = 17; h <= 21; h++) { d.push(`${h}:00`); d.push(`${h}:30`) }
-    return d
+    const slots = []
+    const periods = settings?.servicePeriods || [
+      { start: '12:00', end: '14:30' },
+      { start: '18:00', end: '22:00' },
+    ]
+    for (const p of periods) {
+      const [sH, sM] = (p.start || '12:00').split(':').map(Number)
+      const [eH, eM] = (p.end || '22:00').split(':').map(Number)
+      const startMin = sH * 60 + (sM || 0)
+      const endMin = eH * 60 + (eM || 0) - 60
+      for (let m = startMin; m <= endMin; m += 30) {
+        const h = Math.floor(m / 60)
+        const min = m % 60
+        slots.push(`${String(h).padStart(2, '0')}:${String(min).padStart(2, '0')}`)
+      }
+    }
+    return slots
   }
-  const oH = parseInt(hours.open?.split(':')[0]||'11'), oM = parseInt(hours.open?.split(':')[1]||'0')
-  const cH = parseInt(hours.close?.split(':')[0]||'22'), cM = parseInt(hours.close?.split(':')[1]||'0')
-  const s = []
-  for (let h = oH; h <= cH; h++) for (let m = 0; m < 60; m += 30) {
-    if (h===oH && m<oM) continue; if (h===cH && m>cM-30) continue
-    s.push(`${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`)
+
+  // Generate from real hours
+  const [oH, oM] = hours.open.split(':').map(Number)
+  let [cH, cM] = hours.close.split(':').map(Number)
+  if (cH === 0 && cM === 0) { cH = 23; cM = 30 }
+
+  // Last booking slot: 90 min before close for restaurants
+  const closeMin = cH * 60 + (cM || 0)
+  const lastSlotMin = closeMin - 90
+
+  const slots = []
+  for (let m = oH * 60 + (oM || 0); m <= lastSlotMin; m += 30) {
+    const h = Math.floor(m / 60)
+    const min = m % 60
+    slots.push(`${String(h).padStart(2, '0')}:${String(min).padStart(2, '0')}`)
   }
-  return s.length ? s : Array.from({length:22},(_,i)=>`${String(Math.floor(i/2)+11).padStart(2,'0')}:${i%2?'30':'00'}`)
+  return slots
 }
 
 const groupSlots = (slots) => {
-  const g = { Lunch:[], Afternoon:[], Evening:[] }
-  slots.forEach(s => { const h=parseInt(s); (h<15?g.Lunch:h<17?g.Afternoon:g.Evening).push(s) })
-  return g
+  const groups = {}
+  slots.forEach(s => {
+    const h = parseInt(s)
+    const label = h < 15 ? 'Lunch' : h < 17 ? 'Afternoon' : 'Evening'
+    if (!groups[label]) groups[label] = []
+    groups[label].push(s)
+  })
+  return groups
 }
 
 const PickTimeSlot = ({ data, onContinue, onBack }) => {
@@ -47,17 +80,25 @@ const PickTimeSlot = ({ data, onContinue, onBack }) => {
   const [slots, setSlots] = useState([])
 
   const dateObj = new Date(date + 'T00:00:00')
+  const dayName = DAY_KEYS[dateObj.getDay()]
   const dateLabel = `${DAY_NAMES[dateObj.getDay()].slice(0,3)} ${dateObj.getDate()} ${MONTH_NAMES[dateObj.getMonth()].slice(0,3)}`
+  const hours = settings?.hours?.[dayName]
+  const isClosed = hours?.closed
 
   useEffect(() => {
     setLoading(true)
-    const t = setTimeout(() => { setSlots(generateSlots(settings, date)); setLoading(false) }, 400)
+    setSelectedTime(null)
+    const t = setTimeout(() => { setSlots(generateSlots(settings, date)); setLoading(false) }, 300)
     return () => clearTimeout(t)
   }, [date, settings])
 
   const grouped = groupSlots(slots)
   const canContinue = !!selectedTime
-  const fmt = (t) => { const [h,m]=t.split(':'); const hr=parseInt(h); return hr<12?`${hr}:${m}am`:hr===12?`12:${m}pm`:`${hr-12}:${m}pm` }
+  const fmt = (t) => {
+    const [h, m] = t.split(':')
+    const hr = parseInt(h)
+    return hr < 12 ? `${hr}:${m}am` : hr === 12 ? `12:${m}pm` : `${hr - 12}:${m}pm`
+  }
 
   return (
     <div className="px-4 pt-3 overflow-hidden">
@@ -85,13 +126,18 @@ const PickTimeSlot = ({ data, onContinue, onBack }) => {
         <div className="flex items-center justify-center py-12">
           <RezvoLoader size="sm" message="" />
         </div>
-      ) : slots.length === 0 ? (
+      ) : isClosed || slots.length === 0 ? (
         <div className="text-center py-8">
-          <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center mx-auto mb-2">
-            <Clock className="w-4 h-4 text-gray-400" />
+          <div className="w-10 h-10 rounded-full bg-red-50 flex items-center justify-center mx-auto mb-2">
+            <Clock className="w-4 h-4 text-red-400" />
           </div>
-          <p className="text-xs text-gray-500">No availability on this date</p>
-          <button onClick={onBack} className="text-xs text-[#1B4332] font-medium mt-1 underline">Pick a different date</button>
+          <p className="text-sm font-semibold text-gray-700 mb-1">
+            {isClosed ? `Closed on ${DAY_NAMES[dateObj.getDay()]}s` : 'No availability'}
+          </p>
+          <p className="text-xs text-gray-400 mb-3">
+            {isClosed ? 'Please choose a different day' : 'No slots available on this date'}
+          </p>
+          <button onClick={onBack} className="text-xs text-[#1B4332] font-medium underline">Pick a different date</button>
         </div>
       ) : (
         <div className="space-y-4 pb-4">
@@ -104,7 +150,7 @@ const PickTimeSlot = ({ data, onContinue, onBack }) => {
                   {times.map(time => (
                     <button key={time} onClick={() => setSelectedTime(time)}
                       className={`py-2 rounded-lg text-xs font-medium transition-all ${
-                        selectedTime===time ? 'bg-[#1B4332] text-white shadow-sm' : 'bg-white text-gray-700 border border-gray-200 hover:border-[#1B4332]/30'
+                        selectedTime === time ? 'bg-[#1B4332] text-white shadow-sm' : 'bg-white text-gray-700 border border-gray-200 hover:border-[#1B4332]/30'
                       }`}
                     >{fmt(time)}</button>
                   ))}

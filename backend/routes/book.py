@@ -125,10 +125,45 @@ async def get_booking_page(business_slug: str):
     if biz_type == "restaurant":
         settings["maxPartySize"] = bs.get("max_party_size", 12)
         settings["largePartyThreshold"] = 7
-        settings["servicePeriods"] = [
-            {"name": "Lunch", "start": "12:00", "end": "14:30"},
-            {"name": "Dinner", "start": "18:00", "end": "22:00"},
-        ]
+        # Service periods from booking_settings or defaults
+        sp = bs.get("service_periods")
+        if sp:
+            settings["servicePeriods"] = sp
+        else:
+            settings["servicePeriods"] = [
+                {"name": "Lunch", "start": "12:00", "end": "14:30"},
+                {"name": "Dinner", "start": "18:00", "end": "22:00"},
+            ]
+
+    # Pass opening hours so booking page can generate correct time slots
+    oh = business.get("openingHours") or business.get("opening_hours") or {}
+    day_map = {"monday": "mon", "tuesday": "tue", "wednesday": "wed", "thursday": "thu", "friday": "fri", "saturday": "sat", "sunday": "sun"}
+    hours = {}
+    for full_name, short in day_map.items():
+        h = oh.get(short) or oh.get(full_name)
+        if isinstance(h, dict):
+            is_open = h.get("open", True)
+            if isinstance(is_open, str):
+                # Legacy format: open="12:00", close="23:00"
+                hours[full_name] = {"open": is_open, "close": h.get("close", "23:00")}
+            elif h.get("closed") or not is_open:
+                hours[full_name] = {"closed": True}
+            else:
+                hours[full_name] = {"open": h.get("start", "09:00"), "close": h.get("end", "17:00")}
+    settings["hours"] = hours
+
+    # Calculate if currently open based on real hours
+    from datetime import datetime as dt
+    now = dt.utcnow()
+    day_keys_full = ['monday','tuesday','wednesday','thursday','friday','saturday','sunday']
+    today_key = day_keys_full[now.weekday()]
+    today_hours = hours.get(today_key, {})
+    is_open = False
+    if today_hours and not today_hours.get("closed"):
+        open_time = today_hours.get("open", "00:00")
+        close_time = today_hours.get("close", "23:59")
+        now_str = now.strftime("%H:%M")
+        is_open = open_time <= now_str <= close_time
 
     return {
         "business": {
@@ -145,7 +180,7 @@ async def get_booking_page(business_slug: str):
             "address": _get_address_str(business),
             "phone": business.get("phone", ""),
             "website": business.get("website", ""),
-            "isOpen": True,
+            "isOpen": is_open,
             "currency": "GBP",
         },
         "services": services,

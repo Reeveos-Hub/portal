@@ -13,8 +13,10 @@ const GUEST_OPTIONS = [1, 2, 3, 4, 5, 6, 7, 8]
 const DAY_NAMES = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
 const MONTH_NAMES = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
 
+const DAY_KEYS_FULL = ['sunday','monday','tuesday','wednesday','thursday','friday','saturday']
+
 const PickGuestsDate = ({ data, onContinue }) => {
-  const { business } = data
+  const { business, settings } = data
   const [guests, setGuests] = useState(2)
   const [selectedDate, setSelectedDate] = useState(null)
   const [viewMonth, setViewMonth] = useState(new Date())
@@ -36,6 +38,13 @@ const PickGuestsDate = ({ data, onContinue }) => {
     if (!day) return true
     const date = new Date(year, month, day)
     return date < today
+  }
+
+  const isClosedDay = (day) => {
+    if (!day || !settings?.hours) return false
+    const date = new Date(year, month, day)
+    const dayKey = DAY_KEYS_FULL[date.getDay()]
+    return !!settings.hours[dayKey]?.closed
   }
 
   const isSelected = (day) => {
@@ -132,16 +141,18 @@ const PickGuestsDate = ({ data, onContinue }) => {
         <div className="grid grid-cols-7 gap-0.5">
           {days.map((day, i) => {
             const past = isDatePast(day)
+            const closed = isClosedDay(day)
             const sel = isSelected(day)
             const tod = isToday(day)
             return (
               <button
                 key={i}
                 onClick={() => handleSelect(day)}
-                disabled={!day || past}
-                className={`aspect-square rounded-lg text-xs font-medium transition-all ${
+                disabled={!day || past || closed}
+                className={`aspect-square rounded-lg text-xs font-medium transition-all relative ${
                   !day ? '' :
                   sel ? 'bg-[#1B4332] text-white shadow-sm' :
+                  closed ? 'text-gray-300 cursor-not-allowed line-through' :
                   past ? 'text-gray-300 cursor-not-allowed' :
                   tod ? 'bg-[#D4A373]/10 text-[#D4A373] font-semibold hover:bg-[#D4A373]/20' :
                   'text-gray-700 hover:bg-gray-100'
