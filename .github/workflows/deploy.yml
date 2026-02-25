@@ -74,8 +74,21 @@ jobs:
             systemctl daemon-reload
             systemctl restart rezvo-backend
 
+            # ── SSL cert for portal.rezvo.app (if DNS is ready) ──
+            if ! [ -d /etc/letsencrypt/live/portal.rezvo.app ]; then
+              echo "Attempting SSL cert for portal.rezvo.app..."
+              certbot certonly --nginx -d portal.rezvo.app --non-interactive --agree-tos -m admin@rezvo.app || echo "⚠️ portal.rezvo.app cert not yet available (DNS may not be ready)"
+            fi
+
             # ── Nginx — all paths serve from /opt/rezvo-app directly ──
-            cp /opt/rezvo-app/nginx.conf /etc/nginx/sites-available/rezvo-app
+            # If portal cert doesn't exist yet, use temp config without portal block
+            if [ -d /etc/letsencrypt/live/portal.rezvo.app ]; then
+              cp /opt/rezvo-app/nginx.conf /etc/nginx/sites-available/rezvo-app
+            else
+              echo "⚠️ Using nginx config without portal block (cert pending)"
+              # Strip portal block so nginx doesn't fail on missing cert
+              sed '/portal\.rezvo\.app/,/^}/d' /opt/rezvo-app/nginx.conf > /etc/nginx/sites-available/rezvo-app
+            fi
             ln -sf /etc/nginx/sites-available/rezvo-app /etc/nginx/sites-enabled/rezvo-app
             nginx -t && systemctl reload nginx
 
