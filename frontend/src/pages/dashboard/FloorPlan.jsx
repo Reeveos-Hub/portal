@@ -366,6 +366,7 @@ const FloorPlan = ({ embedded = false }) => {
   const [dragging, setDragging] = useState(null)
   const [dragOff, setDragOff] = useState({ x: 0, y: 0 })
   const canvasRef = useRef(null)
+  const allZonesRef = useRef(null)
   const [showAddPanel, setShowAddPanel] = useState(false)
   const [addType, setAddType] = useState('table') // 'table' | 'fixture'
   const [addShape, setAddShape] = useState('round')
@@ -738,26 +739,29 @@ const FloorPlan = ({ embedded = false }) => {
                   <p className="text-xs mt-1">Unlock to start building your venue layout</p>
                 </div>
               ) : (
-                <div className="flex gap-4 h-full" style={{ minHeight: 500 }}>
-                  {activeFloors.map((floor) => {
+                <div ref={allZonesRef} className="flex h-full rounded-2xl border border-gray-200 bg-white overflow-hidden" style={{ minHeight: 500 }}>
+                  {activeFloors.map((floor, fi) => {
                     const floorElements = elements.filter(e => e.zone === floor.id)
                     const floorTables = floorElements.filter(e => e.type !== 'fixture')
-                    const maxX = Math.max(200, ...floorElements.map(e => (e.x || 0) + (e.type === 'fixture' ? (e.w || 100) : 160)))
-                    const colW = Math.max(220, Math.floor((800 - (activeFloors.length - 1) * 16) / activeFloors.length))
-                    const scale = Math.min(0.5, (colW - 20) / (maxX + 40))
+                    const maxX = Math.max(300, ...floorElements.map(e => (e.x || 0) + (e.type === 'fixture' ? (e.w || 100) : 160)))
+                    const maxY = Math.max(300, ...floorElements.map(e => (e.y || 0) + (e.type === 'fixture' ? (e.h || 50) : 160)))
+                    const containerW = allZonesRef.current ? (allZonesRef.current.offsetWidth / activeFloors.length) - 20 : 400
+                    const scaleX = containerW / (maxX + 40)
+                    const scaleY = 500 / (maxY + 40)
+                    const scale = Math.min(scaleX, scaleY, 1.0)
 
                     return (
-                      <div key={floor.id} className="flex flex-col flex-1 min-w-[180px]">
+                      <div key={floor.id} className="flex flex-col flex-1 min-w-[180px]" style={{ borderRight: fi < activeFloors.length - 1 ? '1px solid #E5E7EB' : 'none' }}>
                         {/* Floor label above */}
-                        <div className="flex items-center justify-center gap-2 mb-2">
+                        <div className="flex items-center justify-center gap-2 py-2" style={{ borderBottom: '1px solid #E5E7EB' }}>
                           <floor.Icon size={14} color={floor.color} />
                           <span className="text-xs font-extrabold" style={{ color: floor.color }}>{floor.label}</span>
                           <span className="text-[9px] font-bold text-gray-400 bg-gray-100 px-1.5 py-0.5 rounded-full">{floorTables.length}</span>
                         </div>
-                        {/* Tall portrait rectangle */}
-                        <div className="flex-1 relative rounded-2xl border border-gray-200 bg-white overflow-hidden cursor-pointer hover:border-gray-300 transition-colors"
+                        {/* Floor canvas */}
+                        <div className="flex-1 relative overflow-hidden cursor-pointer"
                           onClick={() => setActiveZone(floor.id)}
-                          style={{ backgroundImage: 'radial-gradient(circle, #E5E5E0 0.5px, transparent 0.5px)', backgroundSize: '14px 14px', minHeight: 400 }}>
+                          style={{ backgroundImage: 'radial-gradient(circle, #E5E5E0 0.8px, transparent 0.8px)', backgroundSize: '24px 24px' }}>
                           {floorElements.filter(e => e.type === 'fixture').map(item => (
                             <FixtureNode key={item.id} item={item} locked={true} isDragging={false} scale={scale}
                               onMouseDown={() => {}} onTouchStart={() => {}} onDelete={() => {}} onRotate={() => {}} />
