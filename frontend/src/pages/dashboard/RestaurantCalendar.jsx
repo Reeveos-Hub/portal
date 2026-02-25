@@ -382,17 +382,17 @@ export default function RestaurantCalendar() {
     }}>
 
       {/* ══════ SUB-HEADER TOOLBAR ══════ */}
-      <header style={{ display: 'flex', alignItems: 'center', padding: '10px 16px', gap: 8, background: '#fff', borderBottom: `1px solid ${T.border}`, flexShrink: 0, zIndex: 40 }}>
+      <header style={{ display: 'flex', alignItems: 'center', padding: '10px 16px', gap: 8, background: '#fff', borderBottom: `1px solid ${T.border}`, flexShrink: 0, zIndex: 40, flexWrap: 'wrap' }}>
 
         {/* Date Nav Pill */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 2, background: '#F5F5F5', borderRadius: 24, padding: '3px 4px' }}>
           <button onClick={prevDay} style={pillBtn}><ChevronLeft size={13} /></button>
-          <span style={{ fontSize: 14, fontWeight: 700, color: T.forest, padding: '0 8px', whiteSpace: 'nowrap' }}>{dateLabel}</span>
+          <span style={{ fontSize: 13, fontWeight: 700, color: T.forest, padding: '0 6px', whiteSpace: 'nowrap' }}>{dateLabel}</span>
           <button onClick={nextDay} style={pillBtn}><ChevronRight size={13} /></button>
         </div>
 
         {/* Today */}
-        <button onClick={goToday} style={{ padding: '8px 18px', borderRadius: 20, border: 'none', background: T.forest, color: '#fff', fontSize: 12, fontWeight: 700, cursor: 'pointer', boxShadow: '0 2px 8px rgba(27,67,50,0.2)' }}>Today</button>
+        <button onClick={goToday} style={{ padding: '6px 14px', borderRadius: 20, border: 'none', background: T.forest, color: '#fff', fontSize: 11, fontWeight: 700, cursor: 'pointer', boxShadow: '0 2px 8px rgba(27,67,50,0.2)', whiteSpace: 'nowrap' }}>Today</button>
 
         <div style={divider} />
 
@@ -420,10 +420,10 @@ export default function RestaurantCalendar() {
           ))}
         </div>
 
-        <div style={{ flex: 1 }} />
+        <div style={{ flex: '1 0 0', minWidth: 0 }} />
 
         {/* Live Status Chips + Search + Tablet Toggle (all top-right) */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'nowrap', overflow: 'hidden' }}>
           <StatChip color={T.forest} value={stats.covers} label="Covers" />
           <StatChip color="#059669" value={stats.available} label="Available" />
           <StatChip color={T.sage} value={stats.seated} label="Seated" />
@@ -433,18 +433,18 @@ export default function RestaurantCalendar() {
           <div style={{ width: 1, height: 24, background: '#EBEBEB' }} />
 
           {/* Search Pill — always visible with placeholder text */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6, background: '#F5F5F5', borderRadius: 999, padding: '7px 16px', border: '1px solid #EBEBEB', minWidth: 160, cursor: 'text' }}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, background: '#F5F5F5', borderRadius: 999, padding: '6px 12px', border: '1px solid #EBEBEB', minWidth: 120, cursor: 'text' }}
             onClick={() => !showSearch && setShowSearch(true)}>
-            <Search size={14} color="#555" style={{ flexShrink: 0 }} />
+            <Search size={13} color="#555" style={{ flexShrink: 0 }} />
             {showSearch ? (
               <>
                 <input value={searchQuery} onChange={e => setSearchQuery(e.target.value)} autoFocus
-                  placeholder="Search guests, tables..."
-                  style={{ border: 'none', background: 'transparent', outline: 'none', fontSize: 13, fontWeight: 500, color: '#111', width: 130, fontFamily: "'Figtree', sans-serif" }} />
-                {searchQuery && <button onClick={(e) => { e.stopPropagation(); setSearchQuery('') }} style={{ border: 'none', background: 'none', cursor: 'pointer', padding: 0, flexShrink: 0 }}><X size={13} color="#666" /></button>}
+                  placeholder="Search..."
+                  style={{ border: 'none', background: 'transparent', outline: 'none', fontSize: 12, fontWeight: 500, color: '#111', width: 90, fontFamily: "'Figtree', sans-serif" }} />
+                {searchQuery && <button onClick={(e) => { e.stopPropagation(); setSearchQuery('') }} style={{ border: 'none', background: 'none', cursor: 'pointer', padding: 0, flexShrink: 0 }}><X size={12} color="#666" /></button>}
               </>
             ) : (
-              <span style={{ fontSize: 13, color: '#999', fontWeight: 400 }}>Search...</span>
+              <span style={{ fontSize: 12, color: '#999', fontWeight: 400 }}>Search...</span>
             )}
           </div>
 
@@ -974,12 +974,12 @@ export default function RestaurantCalendar() {
 }
 
 /* ── Shared style objects ── */
-const pillBtn = { width: 34, height: 34, borderRadius: '50%', border: 'none', background: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#1B4332', boxShadow: '0 1px 3px rgba(0,0,0,0.06)' }
-const divider = { width: 1, height: 24, background: '#EBEBEB' }
-const toggleWrap = { display: 'flex', background: '#F5F5F5', borderRadius: 20, padding: 3 }
-const toggleActive = { padding: '7px 16px', borderRadius: 18, border: 'none', cursor: 'pointer', fontSize: 12, fontWeight: 700, background: '#1B4332', color: '#fff', boxShadow: '0 2px 8px rgba(27,67,50,0.2)', transition: 'all 0.15s', fontFamily: "'Figtree', sans-serif" }
-const toggleInactive = { padding: '7px 16px', borderRadius: 18, border: 'none', cursor: 'pointer', fontSize: 12, fontWeight: 500, background: 'transparent', color: '#555', transition: 'all 0.15s', fontFamily: "'Figtree', sans-serif" }
-const iconBtn = { width: 38, height: 38, borderRadius: '50%', border: 'none', background: '#F5F5F5', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#555' }
+const pillBtn = { width: 30, height: 30, borderRadius: '50%', border: 'none', background: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#1B4332', boxShadow: '0 1px 3px rgba(0,0,0,0.06)' }
+const divider = { width: 1, height: 20, background: '#EBEBEB' }
+const toggleWrap = { display: 'flex', background: '#F5F5F5', borderRadius: 20, padding: 2 }
+const toggleActive = { padding: '5px 12px', borderRadius: 18, border: 'none', cursor: 'pointer', fontSize: 11, fontWeight: 700, background: '#1B4332', color: '#fff', boxShadow: '0 2px 8px rgba(27,67,50,0.2)', transition: 'all 0.15s', fontFamily: "'Figtree', sans-serif", whiteSpace: 'nowrap' }
+const toggleInactive = { padding: '5px 12px', borderRadius: 18, border: 'none', cursor: 'pointer', fontSize: 11, fontWeight: 500, background: 'transparent', color: '#555', transition: 'all 0.15s', fontFamily: "'Figtree', sans-serif", whiteSpace: 'nowrap' }
+const iconBtn = { width: 34, height: 34, borderRadius: '50%', border: 'none', background: '#F5F5F5', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#555' }
 const panelIconBtn = { width: 32, height: 32, borderRadius: '50%', border: 'none', background: 'transparent', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#666' }
 const sectionTitle = { fontSize: 13, fontWeight: 600, color: '#999', textTransform: 'uppercase', letterSpacing: '0.1em', margin: 0, marginBottom: 12 }
 const editInput = { fontSize: 14, fontWeight: 500, color: '#1B4332', border: 'none', borderBottom: '2px solid #52B788', outline: 'none', background: 'transparent', fontFamily: "'Figtree', sans-serif", padding: '2px 0' }
@@ -987,9 +987,9 @@ const prefPill = { display: 'inline-flex', alignItems: 'center', gap: 4, fontSiz
 
 function StatChip({ color, value, label }) {
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
-      <span style={{ width: 7, height: 7, borderRadius: '50%', background: color }} />
-      <span style={{ fontSize: 13, color: '#374151', fontWeight: 500 }}>
+    <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+      <span style={{ width: 6, height: 6, borderRadius: '50%', background: color, flexShrink: 0 }} />
+      <span style={{ fontSize: 12, color: '#374151', fontWeight: 500, whiteSpace: 'nowrap' }}>
         <strong style={{ color: '#1B4332', fontWeight: 800 }}>{value}</strong> {label}
       </span>
     </div>
