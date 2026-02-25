@@ -417,7 +417,8 @@ const FloorPlan = ({ embedded = false }) => {
       showToast(`✨ ${tables} tables arranged — ${data.validation?.stats?.errors || 0} issues`)
     } catch (err) {
       console.error('Auto-arrange failed:', err)
-      showToast('Auto-arrange failed')
+      const msg = err?.response?.data?.detail || err?.message || 'Unknown error'
+      showToast(`Auto-arrange failed: ${msg}`)
     }
     setArranging(false)
   }
@@ -694,9 +695,9 @@ const FloorPlan = ({ embedded = false }) => {
                 <button onClick={autoArrange} disabled={arranging}
                   className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-bold transition-all"
                   style={{
-                    background: arranging ? '#D1D5DB' : 'linear-gradient(135deg, #6366F1, #8B5CF6)',
+                    background: arranging ? '#D1D5DB' : '#1B4332',
                     color: '#fff',
-                    boxShadow: arranging ? 'none' : '0 4px 14px rgba(99,102,241,0.3)',
+                    boxShadow: arranging ? 'none' : '0 4px 14px rgba(27,67,50,0.3)',
                   }}>
                   {arranging ? <Clock className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
                   {arranging ? 'Arranging...' : 'Auto-arrange'}

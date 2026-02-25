@@ -170,23 +170,27 @@ async def auto_arrange_floor_plan(
     if business["owner_id"] != str(current_user["_id"]):
         raise HTTPException(status_code=403, detail="Not authorized")
 
-    arranged = auto_arrange(
-        request.elements,
-        canvas_w=request.width,
-        canvas_h=request.height,
-        zone=request.zone,
-        style=request.style
-    )
+    try:
+        arranged = auto_arrange(
+            request.elements,
+            canvas_w=request.width,
+            canvas_h=request.height,
+            zone=request.zone,
+            style=request.style
+        )
 
-    # Validate the result
-    validation = validate_layout(arranged, request.width, request.height)
+        validation = validate_layout(arranged, request.width, request.height)
 
-    return {
-        "elements": arranged,
-        "validation": validation,
-        "width": request.width,
-        "height": request.height
-    }
+        return {
+            "elements": arranged,
+            "validation": validation,
+            "width": request.width,
+            "height": request.height
+        }
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=f"Auto-arrange failed: {str(e)}")
 
 
 @router.post("/business/{business_id}/validate-layout")

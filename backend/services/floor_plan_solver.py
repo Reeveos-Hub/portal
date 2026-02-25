@@ -37,7 +37,12 @@ GRID_SNAP = 20            # Snap-to-grid increment for aesthetic alignment
 
 def get_table_size(el: Dict) -> Tuple[float, float]:
     """Returns (width, height) of a table element — must match frontend TableNode."""
-    seats = el.get("seats", 4)
+    seats = el.get("seats") or 4
+    try:
+        seats = int(seats)
+    except (ValueError, TypeError):
+        seats = 4
+
     if seats <= 2:
         raw = 85
     elif seats <= 4:
@@ -61,15 +66,27 @@ def get_table_size(el: Dict) -> Tuple[float, float]:
 def get_element_size(el: Dict) -> Tuple[float, float]:
     """Returns (width, height) for any element type."""
     if el.get("type") == "fixture":
-        # Frontend uses fixtureKind, handle both
-        return (el.get("w", 100), el.get("h", 50))
+        # Frontend uses fixtureKind, dimensions stored as w/h
+        # Default sizes by fixture type if w/h not set
+        FIXTURE_SIZES = {
+            "window": (100, 16), "bar": (160, 36), "stairs": (60, 50),
+            "toilets": (70, 60), "kitchen": (130, 100), "wall": (200, 20),
+        }
+        fk = el.get("fixtureKind") or el.get("fixtureType", "wall")
+        defaults = FIXTURE_SIZES.get(fk, (100, 50))
+        w = el.get("w") or defaults[0]
+        h = el.get("h") or defaults[1]
+        try:
+            return (float(w), float(h))
+        except (ValueError, TypeError):
+            return defaults
     return get_table_size(el)
 
 
 def get_element_bbox(el: Dict) -> Polygon:
     """Returns a Shapely polygon for the element's bounding box."""
-    x = el.get("x", 0)
-    y = el.get("y", 0)
+    x = float(el.get("x") or 0)
+    y = float(el.get("y") or 0)
     w, h = get_element_size(el)
     return box(x, y, x + w, y + h)
 
