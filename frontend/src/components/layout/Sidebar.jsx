@@ -51,7 +51,7 @@ const ICON_MAP = {
 }
 
 /* ── Build grouped sections from nav config ── */
-function buildSections(navItems, tier) {
+function buildSections(navItems, tier, businessType) {
   const iconFor = (item) => ICON_MAP[item.icon] || LayoutDashboard
   const locked = (item) => !isFeatureUnlocked(tier, item.minTier)
 
@@ -291,7 +291,7 @@ const Sidebar = ({ open, onNavigate: closeMobile }) => {
   const { user } = useAuth()
   const { business, businessType, tier } = useBusiness()
   const navItems = getNavItemsFn(businessType)
-  const sections = buildSections(navItems, tier)
+  const sections = buildSections(navItems, tier, businessType)
   const allItems = sections.flatMap(s => s.items)
 
   const [panelOpen, setPanelOpen] = useState(true)
