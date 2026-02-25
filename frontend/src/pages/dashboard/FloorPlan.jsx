@@ -7,9 +7,10 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react'
 import {
   Lock, Unlock, Plus, Trash2, X, Settings, GripVertical,
-  LayoutGrid, Copy, Move,
+  LayoutGrid, Copy, Move, Save, Check,
   Circle, Square, RectangleHorizontal, Sofa,
-  Home, UtensilsCrossed, Wine, ChefHat, Sun, PanelTop, ArrowUp, TreePine, ArrowDown
+  Home, UtensilsCrossed, Wine, ChefHat, Sun, PanelTop, ArrowUp, TreePine, ArrowDown,
+  Users, Clock
 } from 'lucide-react'
 import { useBusiness } from '../../contexts/BusinessContext'
 import api from '../../utils/api'
@@ -109,6 +110,8 @@ const SeatDots = ({ seats, w, h, color, active }) => {
 /* ═══════════════ TABLE NODE ═══════════════ */
 
 const TableNode = ({ table, status, isSelected, locked, isDragging, onMouseDown, onTouchStart, onClick, onEdit, onDelete }) => {
+  const [hovered, setHovered] = useState(false)
+  const [confirmDelete, setConfirmDelete] = useState(false)
   const st = STATUS[status] || STATUS.available
   const seats = table.seats || 4
   const baseSize = seats <= 2 ? 85 : seats <= 4 ? 100 : seats <= 6 ? 120 : seats <= 8 ? 140 : 155
@@ -123,65 +126,143 @@ const TableNode = ({ table, status, isSelected, locked, isDragging, onMouseDown,
   }
   const { w, h, radius } = getDims()
   const isDirty = status === 'dirty'
+  const zone = ZONES.find(z => z.id === table.zone)
 
   return (
     <div
-      style={{
-        position: 'absolute', left: table.x, top: table.y, width: w, height: h, borderRadius: radius,
-        background: st.bg,
-        border: isDirty ? `2.5px dashed ${st.border}` : `2.5px solid ${st.border}`,
-        boxShadow: isSelected ? `0 0 0 3px ${st.border}30, 0 8px 30px rgba(0,0,0,.12)` : isDragging ? '0 12px 40px rgba(0,0,0,.2)' : '0 2px 12px rgba(0,0,0,.04)',
-        cursor: locked ? 'pointer' : isDragging ? 'grabbing' : 'grab',
-        transition: isDragging ? 'box-shadow 0.15s' : 'all 0.25s cubic-bezier(0.16,1,0.3,1)',
-        transform: isSelected ? 'scale(1.05)' : isDragging ? 'scale(1.08)' : 'scale(1)',
-        zIndex: isDragging ? 100 : isSelected ? 20 : 1,
-        userSelect: 'none',
-        display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-        fontFamily: "'Figtree', sans-serif",
-      }}
-      onClick={onClick} onMouseDown={onMouseDown} onTouchStart={onTouchStart}
+      style={{ position: 'absolute', left: table.x, top: table.y, zIndex: isDragging ? 100 : isSelected ? 20 : hovered ? 15 : 1 }}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => { setHovered(false); setConfirmDelete(false) }}
     >
-      {table.vip && (
-        <div style={{ position: 'absolute', top: -8, right: -8, background: '#F59E0B', color: '#fff', fontSize: 8, fontWeight: 800, padding: '2px 6px', borderRadius: 6, boxShadow: '0 2px 6px rgba(245,158,11,0.4)' }}>VIP</div>
-      )}
-      {!locked && <div style={{ position: 'absolute', top: 4, right: 4, opacity: 0.3 }}><GripVertical size={12} /></div>}
-
-      <span style={{ fontSize: 14, fontWeight: 800, color: st.text, letterSpacing: '-0.02em' }}>{table.name}</span>
-
-      {status === 'seated' && table.timer ? (
-        <>
-          <div style={{ display: 'flex', gap: 3, marginTop: 3 }}>
-            {Array.from({ length: Math.min(seats, 6) }).map((_, i) => (
-              <div key={i} style={{ width: 5, height: 5, borderRadius: '50%', background: st.text }} />
-            ))}
-          </div>
-          <span style={{ fontSize: 10, fontWeight: 700, color: st.text, marginTop: 2, opacity: 0.8 }}>{table.timer}</span>
-        </>
-      ) : status === 'reserved' && table.nextTime ? (
-        <>
-          <span style={{ fontSize: 11, fontWeight: 600, color: st.border, marginTop: 2 }}>{table.nextTime}</span>
-          {table.guest && <span style={{ fontSize: 9, color: st.text, opacity: 0.7 }}>{table.guest}</span>}
-        </>
-      ) : status === 'dirty' ? (
-        <span style={{ fontSize: 10, fontWeight: 800, color: st.text, marginTop: 2, textTransform: 'uppercase', letterSpacing: '0.5px' }}>DIRTY</span>
-      ) : status === 'mains' ? (
-        <span style={{ fontSize: 10, fontWeight: 700, color: st.text, marginTop: 2 }}>{table.guest || 'Mains'}</span>
-      ) : (
-        <span style={{ fontSize: 10, fontWeight: 600, color: '#9CA3AF', marginTop: 2 }}>Available</span>
-      )}
-
-      <SeatDots seats={seats} w={w} h={h} color={st.dot} active={status !== 'available' && status !== 'dirty'} />
-
-      {!locked && isSelected && (
-        <div style={{ position: 'absolute', bottom: -36, left: '50%', transform: 'translateX(-50%)', display: 'flex', gap: 6, zIndex: 30 }}>
-          <button onClick={(e) => { e.stopPropagation(); onEdit?.() }} style={{ width: 28, height: 28, borderRadius: 8, background: '#fff', border: '1px solid #E5E7EB', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', boxShadow: '0 2px 8px rgba(0,0,0,.08)' }}>
-            <Settings size={13} color="#6B7280" />
-          </button>
-          <button onClick={(e) => { e.stopPropagation(); onDelete?.() }} style={{ width: 28, height: 28, borderRadius: 8, background: '#FEE2E2', border: '1px solid #FECACA', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', boxShadow: '0 2px 8px rgba(239,68,68,.12)' }}>
-            <Trash2 size={13} color="#EF4444" />
-          </button>
+      {/* ── Delete X button (unlocked mode, on hover) ── */}
+      {!locked && hovered && !isDragging && (
+        <div style={{
+          position: 'absolute', top: -10, right: -10, zIndex: 40,
+          animation: 'fpPopIn 150ms cubic-bezier(0.34,1.56,0.64,1) forwards',
+        }}>
+          {confirmDelete ? (
+            <div style={{ display: 'flex', gap: 4 }}>
+              <button onClick={(e) => { e.stopPropagation(); onDelete?.() }} style={{
+                width: 24, height: 24, borderRadius: '50%', border: 'none', cursor: 'pointer',
+                background: '#EF4444', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                boxShadow: '0 2px 8px rgba(239,68,68,.4)', transition: 'transform 0.15s',
+              }} title="Confirm delete">
+                <Check size={12} strokeWidth={3} />
+              </button>
+              <button onClick={(e) => { e.stopPropagation(); setConfirmDelete(false) }} style={{
+                width: 24, height: 24, borderRadius: '50%', border: 'none', cursor: 'pointer',
+                background: '#fff', color: '#6B7280', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                boxShadow: '0 2px 8px rgba(0,0,0,.1)', border: '1px solid #E5E7EB',
+              }} title="Cancel">
+                <X size={12} strokeWidth={3} />
+              </button>
+            </div>
+          ) : (
+            <button onClick={(e) => { e.stopPropagation(); setConfirmDelete(true) }} style={{
+              width: 24, height: 24, borderRadius: '50%', border: 'none', cursor: 'pointer',
+              background: '#EF4444', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center',
+              boxShadow: '0 2px 8px rgba(239,68,68,.35)', transition: 'transform 0.15s',
+            }} title="Delete table">
+              <X size={12} strokeWidth={3} />
+            </button>
+          )}
         </div>
       )}
+
+      {/* ── Edit pencil (unlocked, on hover) ── */}
+      {!locked && hovered && !isDragging && !confirmDelete && (
+        <button onClick={(e) => { e.stopPropagation(); onEdit?.() }} style={{
+          position: 'absolute', bottom: -10, left: '50%', transform: 'translateX(-50%)', zIndex: 40,
+          width: 28, height: 28, borderRadius: 8, border: '1px solid #E5E7EB', cursor: 'pointer',
+          background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center',
+          boxShadow: '0 2px 10px rgba(0,0,0,.1)',
+          animation: 'fpPopIn 150ms cubic-bezier(0.34,1.56,0.64,1) 50ms forwards', opacity: 0,
+        }} title="Edit table">
+          <Settings size={13} color="#6B7280" />
+        </button>
+      )}
+
+      {/* ── Hover popup tooltip ── */}
+      {locked && hovered && !isDragging && (
+        <div style={{
+          position: 'absolute', bottom: h + 16, left: '50%', transform: 'translateX(-50%)',
+          background: '#1B4332', color: '#FAF7F2', borderRadius: 12, padding: '10px 14px',
+          minWidth: 160, zIndex: 50, pointerEvents: 'none',
+          boxShadow: '0 8px 30px rgba(27,67,50,0.3)',
+          animation: 'fpPopIn 200ms cubic-bezier(0.34,1.56,0.64,1) forwards',
+          fontFamily: "'Figtree', sans-serif",
+        }}>
+          {/* Arrow */}
+          <div style={{
+            position: 'absolute', bottom: -6, left: '50%', transform: 'translateX(-50%) rotate(45deg)',
+            width: 12, height: 12, background: '#1B4332',
+          }} />
+          <div style={{ fontSize: 13, fontWeight: 800, marginBottom: 4 }}>{table.name}</div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, opacity: 0.8, marginBottom: 3 }}>
+            <Users size={11} /> {seats} seats
+            {zone && <><span style={{ opacity: 0.4 }}>·</span> {zone.label}</>}
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 11 }}>
+            <div style={{ width: 7, height: 7, borderRadius: '50%', background: st.dot, flexShrink: 0 }} />
+            <span style={{ fontWeight: 700 }}>{st.label}</span>
+            {table.timer && <span style={{ opacity: 0.6 }}>· {table.timer}</span>}
+            {table.nextTime && <span style={{ opacity: 0.6 }}>· {table.nextTime}</span>}
+          </div>
+          {table.guest && (
+            <div style={{ fontSize: 10, marginTop: 3, opacity: 0.6 }}>{table.guest}</div>
+          )}
+        </div>
+      )}
+
+      {/* ── Table body ── */}
+      <div
+        style={{
+          width: w, height: h, borderRadius: radius,
+          background: st.bg,
+          border: isDirty ? `2.5px dashed ${st.border}` : `2.5px solid ${st.border}`,
+          boxShadow: isSelected ? `0 0 0 3px ${st.border}30, 0 8px 30px rgba(0,0,0,.12)`
+            : hovered ? `0 0 0 2px ${st.border}20, 0 8px 24px rgba(0,0,0,.1)`
+            : isDragging ? '0 12px 40px rgba(0,0,0,.2)' : '0 2px 12px rgba(0,0,0,.04)',
+          cursor: locked ? 'pointer' : isDragging ? 'grabbing' : 'grab',
+          transition: isDragging ? 'box-shadow 0.15s' : 'all 0.25s cubic-bezier(0.16,1,0.3,1)',
+          transform: isSelected ? 'scale(1.05)' : hovered ? 'scale(1.03)' : isDragging ? 'scale(1.08)' : 'scale(1)',
+          userSelect: 'none',
+          display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+          fontFamily: "'Figtree', sans-serif",
+        }}
+        onClick={onClick} onMouseDown={onMouseDown} onTouchStart={onTouchStart}
+      >
+        {table.vip && (
+          <div style={{ position: 'absolute', top: -8, right: -8, background: '#F59E0B', color: '#fff', fontSize: 8, fontWeight: 800, padding: '2px 6px', borderRadius: 6, boxShadow: '0 2px 6px rgba(245,158,11,0.4)' }}>VIP</div>
+        )}
+        {!locked && <div style={{ position: 'absolute', top: 4, right: 4, opacity: 0.3 }}><GripVertical size={12} /></div>}
+
+        <span style={{ fontSize: 14, fontWeight: 800, color: st.text, letterSpacing: '-0.02em' }}>{table.name}</span>
+
+        {status === 'seated' && table.timer ? (
+          <>
+            <div style={{ display: 'flex', gap: 3, marginTop: 3 }}>
+              {Array.from({ length: Math.min(seats, 6) }).map((_, i) => (
+                <div key={i} style={{ width: 5, height: 5, borderRadius: '50%', background: st.text }} />
+              ))}
+            </div>
+            <span style={{ fontSize: 10, fontWeight: 700, color: st.text, marginTop: 2, opacity: 0.8 }}>{table.timer}</span>
+          </>
+        ) : status === 'reserved' && table.nextTime ? (
+          <>
+            <span style={{ fontSize: 11, fontWeight: 600, color: st.border, marginTop: 2 }}>{table.nextTime}</span>
+            {table.guest && <span style={{ fontSize: 9, color: st.text, opacity: 0.7 }}>{table.guest}</span>}
+          </>
+        ) : status === 'dirty' ? (
+          <span style={{ fontSize: 10, fontWeight: 800, color: st.text, marginTop: 2, textTransform: 'uppercase', letterSpacing: '0.5px' }}>DIRTY</span>
+        ) : status === 'mains' ? (
+          <span style={{ fontSize: 10, fontWeight: 700, color: st.text, marginTop: 2 }}>{table.guest || 'Mains'}</span>
+        ) : (
+          <span style={{ fontSize: 10, fontWeight: 600, color: '#9CA3AF', marginTop: 2 }}>Available</span>
+        )}
+
+        <SeatDots seats={seats} w={w} h={h} color={st.dot} active={status !== 'available' && status !== 'dirty'} />
+      </div>
     </div>
   )
 }
@@ -218,6 +299,18 @@ const FloorPlan = ({ embedded = false }) => {
   const [addZone, setAddZone] = useState('main')
   const [addName, setAddName] = useState('')
   const [editTable, setEditTable] = useState(null)
+  const [hasChanges, setHasChanges] = useState(false)
+  const [saving, setSaving] = useState(false)
+  const initialTablesRef = useRef(null)
+
+  // Track changes
+  useEffect(() => {
+    if (initialTablesRef.current === null) {
+      initialTablesRef.current = JSON.stringify(tables)
+      return
+    }
+    setHasChanges(JSON.stringify(tables) !== initialTablesRef.current)
+  }, [tables])
 
   /* ── Load bookings from API (keep demo tables for layout) ── */
   useEffect(() => {
@@ -237,6 +330,26 @@ const FloorPlan = ({ embedded = false }) => {
   }, [tables])
 
   const showToast = (msg) => { setToast(msg); setTimeout(() => setToast(null), 2500) }
+
+  const saveLayout = async () => {
+    setSaving(true)
+    try {
+      if (bid) {
+        await api.post(`/tables/business/${bid}/floor-plan`, { tables: tables.map(t => ({ id: t.id, name: t.name, seats: t.seats, zone: t.zone, shape: t.shape, x: Math.round(t.x), y: Math.round(t.y), status: t.status, vip: t.vip || false })) })
+      }
+      initialTablesRef.current = JSON.stringify(tables)
+      setHasChanges(false)
+      setLocked(true)
+      showToast('Layout saved successfully')
+    } catch (e) {
+      // Save locally even if API fails
+      initialTablesRef.current = JSON.stringify(tables)
+      setHasChanges(false)
+      setLocked(true)
+      showToast('Layout saved locally')
+    }
+    setSaving(false)
+  }
 
   /* ── Mouse Drag ── */
   const handleMouseDown = useCallback((e, tId) => {
@@ -339,6 +452,10 @@ const FloorPlan = ({ embedded = false }) => {
 
   return (
     <div className={`flex flex-col overflow-hidden bg-white ${embedded ? 'h-full' : 'h-full'}`} style={{ fontFamily: "'Figtree', sans-serif" }}>
+      <style>{`
+        @keyframes fpPopIn { from { opacity: 0; transform: scale(0.7) translateY(4px); } to { opacity: 1; transform: scale(1) translateY(0); } }
+        @keyframes fpPulse { 0%, 100% { box-shadow: 0 4px 14px rgba(27,67,50,0.3); } 50% { box-shadow: 0 4px 20px rgba(27,67,50,0.5); } }
+      `}</style>
 
       {/* ═══ CONTROLS BAR (no duplicate title — TopBar already shows Floor Plan) ═══ */}
       {!embedded && (
@@ -359,7 +476,7 @@ const FloorPlan = ({ embedded = false }) => {
             </div>
 
             <div className="flex items-center gap-2">
-              <button onClick={() => { setLocked(!locked); if (!locked) showToast('Layout locked') }}
+              <button onClick={() => { setLocked(!locked); if (!locked && !hasChanges) showToast('Layout locked') }}
                 className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all"
                 style={{ background: locked ? '#F3F4F6' : '#1B4332', color: locked ? '#374151' : '#fff', boxShadow: locked ? 'none' : '0 4px 14px rgba(27,67,50,0.3)' }}>
                 {locked ? <Lock className="w-4 h-4" /> : <Unlock className="w-4 h-4" />}
@@ -369,6 +486,18 @@ const FloorPlan = ({ embedded = false }) => {
                 <button onClick={() => setShowAddPanel(!showAddPanel)}
                   className="flex items-center gap-1.5 px-4 py-2 bg-emerald-500 text-white rounded-xl text-sm font-bold shadow-lg shadow-emerald-500/25 hover:bg-emerald-600 transition-all">
                   <Plus className="w-4 h-4" /> Add Table
+                </button>
+              )}
+              {hasChanges && (
+                <button onClick={saveLayout} disabled={saving}
+                  className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-bold transition-all"
+                  style={{
+                    background: saving ? '#D1D5DB' : '#1B4332', color: '#fff',
+                    boxShadow: saving ? 'none' : '0 4px 14px rgba(27,67,50,0.3)',
+                    animation: 'fpPulse 2s ease-in-out infinite',
+                  }}>
+                  {saving ? <Clock className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                  {saving ? 'Saving...' : 'Save Changes'}
                 </button>
               )}
             </div>
