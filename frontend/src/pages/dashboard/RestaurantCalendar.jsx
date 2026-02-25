@@ -9,6 +9,7 @@ import { ChevronLeft, ChevronRight, Clock, Users, LayoutGrid, List, CalendarDays
 import { useBusiness } from '../../contexts/BusinessContext'
 import api from '../../utils/api'
 import RezvoLoader from '../../components/shared/RezvoLoader'
+import FloorPlanEmbed from './FloorPlan'
 
 /* ── Design Tokens (from UXPilot polished HTML) ── */
 const T = {
@@ -102,6 +103,8 @@ export default function RestaurantCalendar() {
   const [searchQuery, setSearchQuery] = useState('')
   const [showSearch, setShowSearch] = useState(false)
   const [editMode, setEditMode] = useState(false)
+  const [editedBooking, setEditedBooking] = useState({})
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const scrollRef = useRef(null)
 
   const dateObj = new Date(selectedDate + 'T00:00:00')
@@ -216,11 +219,28 @@ export default function RestaurantCalendar() {
   const nowPercent = useMemo(() => {
     if (!isToday) return null
     const now = new Date()
-    const nowMin = now.getHours() * 60 + now.getMinutes()
-    if (nowMin < timeRange.start || nowMin > timeRange.end) return null
+    let nowMin = now.getHours() * 60 + now.getMinutes()
+    // If outside service hours, show demo line at a visible position
+    if (nowMin < timeRange.start || nowMin > timeRange.end) {
+      // Place demo line 40% into the visible range
+      nowMin = timeRange.start + Math.round((timeRange.end - timeRange.start) * 0.4)
+    }
     return ((nowMin - timeRange.start) / (timeRange.end - timeRange.start)) * 100
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isToday, timeRange, clockTick])
+
+  const nowTimeLabel = useMemo(() => {
+    const now = new Date()
+    const nowMin = now.getHours() * 60 + now.getMinutes()
+    if (nowMin >= timeRange.start && nowMin <= timeRange.end) {
+      return now.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })
+    }
+    // Demo label
+    const demoMin = timeRange.start + Math.round((timeRange.end - timeRange.start) * 0.4)
+    const h = Math.floor(demoMin / 60)
+    const m = demoMin % 60
+    return `${h}:${String(m).padStart(2, '0')}`
+  }, [timeRange, clockTick])
 
   /* ── Capacity per slot ── */
   const slotCaps = useMemo(() => {
@@ -278,6 +298,17 @@ export default function RestaurantCalendar() {
     if (selectedBooking) {
       document.body.classList.add('rezvo-fab-shifted')
       setEditMode(false)
+      setShowDeleteConfirm(false)
+      setEditedBooking({
+        customerName: selectedBooking.customerName || '',
+        time: selectedBooking.time || '',
+        tableName: selectedBooking.tableName || '',
+        partySize: selectedBooking.partySize || 0,
+        duration: selectedBooking.duration || 75,
+        notes: selectedBooking.notes || '',
+        phone: selectedBooking.phone || '+44 7886 483772',
+        email: selectedBooking.email || 'guest@email.com',
+      })
     } else {
       document.body.classList.remove('rezvo-fab-shifted')
     }
@@ -335,7 +366,7 @@ export default function RestaurantCalendar() {
         {/* View toggle */}
         <div style={toggleWrap}>
           {[{ key: 'timeline', icon: <Clock size={11} />, label: 'Timeline' },
-            { key: 'tables', icon: <LayoutGrid size={11} />, label: 'Tables' },
+            { key: 'tables', icon: <LayoutGrid size={11} />, label: 'Floor Plan' },
             { key: 'list', icon: <List size={11} />, label: 'List' }].map(v => (
             <button key={v.key} onClick={() => setView(v.key)}
               style={view === v.key ? { ...toggleActive, display: 'flex', alignItems: 'center', gap: 5 } : { ...toggleInactive, display: 'flex', alignItems: 'center', gap: 5 }}>
@@ -458,7 +489,7 @@ export default function RestaurantCalendar() {
                 <div style={{ width: 10, height: 10, background: '#EF4444', transform: 'rotate(45deg)', position: 'absolute', top: 35, left: -4, borderRadius: 1 }} />
                 {/* Time label */}
                 <div style={{ position: 'absolute', top: 22, left: 8, background: '#EF4444', color: '#fff', fontSize: 9, fontWeight: 700, padding: '1px 5px', borderRadius: 3, whiteSpace: 'nowrap' }}>
-                  {new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}
+                  {nowTimeLabel}
                 </div>
               </div>
             )}
@@ -536,8 +567,12 @@ export default function RestaurantCalendar() {
         </div>
       )}
 
-      {/* ══════ TABLE STATUS VIEW ══════ */}
-      {view === 'tables' && <TableStatusView data={data} filteredBookings={filteredBookings} onSelectBooking={setSelectedBooking} />}
+      {/* ══════ TABLE PLANNER VIEW (Floor Plan) ══════ */}
+      {view === 'tables' && (
+        <div style={{ flex: 1, overflow: 'auto' }}>
+          <FloorPlanEmbed />
+        </div>
+      )}
 
       {/* ══════ LIST VIEW ══════ */}
       {view === 'list' && <ReservationListView bookings={filteredBookings} onSelectBooking={setSelectedBooking} />}
@@ -574,11 +609,28 @@ export default function RestaurantCalendar() {
           {/* ─ Top bar: edit, delete, close ─ */}
           <div style={{ padding: '16px 24px 0', flexShrink: 0, display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
             <button onClick={() => setEditMode(!editMode)} style={{ ...panelIconBtn, background: editMode ? '#F0F7F4' : 'transparent', color: editMode ? T.forest : '#666' }} title="Edit"><Edit3 size={14} /></button>
-            <button style={{ ...panelIconBtn, color: '#EF4444' }} title="Delete">
+            <button onClick={() => setShowDeleteConfirm(true)} style={{ ...panelIconBtn, color: '#EF4444' }} title="Delete">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
             </button>
             <button onClick={() => setSelectedBooking(null)} style={{ ...panelIconBtn, color: '#666' }} title="Close"><X size={16} /></button>
           </div>
+
+          {/* Delete Confirmation Popup */}
+          {showDeleteConfirm && (
+            <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(255,255,255,0.95)', zIndex: 100, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: 40, borderRadius: 0 }}>
+              <div style={{ width: 56, height: 56, borderRadius: '50%', background: '#FEE2E2', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 16 }}>
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#EF4444" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+              </div>
+              <h3 style={{ fontSize: 18, fontWeight: 700, color: '#111', margin: '0 0 8px' }}>Delete Booking?</h3>
+              <p style={{ fontSize: 14, color: '#666', textAlign: 'center', margin: '0 0 24px', lineHeight: 1.5 }}>
+                Are you sure you want to delete <strong>{selectedBooking.customerName}</strong>'s booking at <strong>{fmt12(selectedBooking.time)}</strong>? This cannot be undone.
+              </p>
+              <div style={{ display: 'flex', gap: 12 }}>
+                <button onClick={() => setShowDeleteConfirm(false)} style={{ padding: '12px 28px', borderRadius: 999, border: `1px solid ${T.border}`, background: '#fff', color: '#555', fontWeight: 600, fontSize: 14, cursor: 'pointer', fontFamily: "'Figtree', sans-serif" }}>Cancel</button>
+                <button onClick={() => { setShowDeleteConfirm(false); setSelectedBooking(null) }} style={{ padding: '12px 28px', borderRadius: 999, border: 'none', background: '#EF4444', color: '#fff', fontWeight: 600, fontSize: 14, cursor: 'pointer', fontFamily: "'Figtree', sans-serif", boxShadow: '0 4px 12px rgba(239,68,68,0.3)' }}>Delete Booking</button>
+              </div>
+            </div>
+          )}
 
           {/* ─ Avatar + Name + Badges ─ */}
           <div style={{ padding: '12px 24px 16px' }}>
@@ -588,7 +640,7 @@ export default function RestaurantCalendar() {
               </div>
               <div style={{ flex: 1, minWidth: 0 }}>
                 {editMode ? (
-                  <input defaultValue={selectedBooking.customerName} style={{ fontSize: 22, fontWeight: 700, color: T.forest, border: 'none', borderBottom: `2px solid ${T.sage}`, outline: 'none', width: '100%', background: 'transparent', fontFamily: "'Figtree', sans-serif", padding: '0 0 4px' }} />
+                  <input value={editedBooking.customerName} onChange={e => setEditedBooking({...editedBooking, customerName: e.target.value})} style={{ fontSize: 22, fontWeight: 700, color: T.forest, border: 'none', borderBottom: `2px solid ${T.sage}`, outline: 'none', width: '100%', background: 'transparent', fontFamily: "'Figtree', sans-serif", padding: '0 0 4px' }} />
                 ) : (
                   <h2 style={{ fontSize: 22, fontWeight: 700, color: T.forest, margin: 0, lineHeight: 1.2 }}>{selectedBooking.customerName}</h2>
                 )}
@@ -629,9 +681,9 @@ export default function RestaurantCalendar() {
                   <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                     <div style={{ width: 32, height: 32, borderRadius: '50%', background: '#F5F5F5', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14 }}>🇬🇧</div>
                     {editMode ? (
-                      <input defaultValue={selectedBooking.phone || '+44 7886 483772'} style={editInput} />
+                      <input value={editedBooking.phone} onChange={e => setEditedBooking({...editedBooking, phone: e.target.value})} style={editInput} />
                     ) : (
-                      <span style={{ fontSize: 14, fontWeight: 500, color: T.forest }}>{selectedBooking.phone || '+44 7886 483772'}</span>
+                      <span style={{ fontSize: 14, fontWeight: 500, color: T.forest }}>{editedBooking.phone}</span>
                     )}
                   </div>
                   <button style={{ width: 32, height: 32, borderRadius: '50%', border: `1px solid ${T.border}`, background: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: T.sage }}>
@@ -642,9 +694,9 @@ export default function RestaurantCalendar() {
                   <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                     <div style={{ width: 32, height: 32, borderRadius: '50%', background: '#F5F5F5', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#666' }}><Mail size={13} /></div>
                     {editMode ? (
-                      <input defaultValue={selectedBooking.email || 'guest@email.com'} style={editInput} />
+                      <input value={editedBooking.email} onChange={e => setEditedBooking({...editedBooking, email: e.target.value})} style={editInput} />
                     ) : (
-                      <span style={{ fontSize: 14, fontWeight: 500, color: T.forest }}>{selectedBooking.email || 'guest@email.com'}</span>
+                      <span style={{ fontSize: 14, fontWeight: 500, color: T.forest }}>{editedBooking.email}</span>
                     )}
                   </div>
                   <button style={{ width: 32, height: 32, borderRadius: '50%', border: `1px solid ${T.border}`, background: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: T.sage }}>
@@ -687,7 +739,7 @@ export default function RestaurantCalendar() {
               </div>
               <div style={{ background: '#FAFAF8', border: `1px solid ${T.border}`, borderRadius: 12, padding: 16, position: 'relative', marginBottom: 12 }}>
                 {editMode ? (
-                  <textarea defaultValue={selectedBooking.notes || ''} rows={3} style={{ width: '100%', border: 'none', background: 'transparent', outline: 'none', fontSize: 13, color: T.forest, lineHeight: 1.5, fontFamily: "'Figtree', sans-serif", resize: 'vertical' }} />
+                  <textarea value={editedBooking.notes} onChange={e => setEditedBooking({...editedBooking, notes: e.target.value})} rows={3} style={{ width: '100%', border: 'none', background: 'transparent', outline: 'none', fontSize: 13, color: T.forest, lineHeight: 1.5, fontFamily: "'Figtree', sans-serif", resize: 'vertical' }} />
                 ) : (
                   <p style={{ fontSize: 13, color: `${T.forest}CC`, fontStyle: 'italic', lineHeight: 1.6, margin: 0 }}>
                     "{selectedBooking.notes || 'No notes yet'}"
@@ -716,19 +768,19 @@ export default function RestaurantCalendar() {
               <h3 style={sectionTitle}>Booking Details</h3>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                 {[
-                  { label: 'Date', value: dateLabel },
-                  { label: 'Time', value: fmt12(selectedBooking.time), editable: true },
-                  { label: 'Table', value: selectedBooking.tableName, editable: true },
-                  { label: 'Party Size', value: `${selectedBooking.partySize} guests`, editable: true },
-                  { label: 'Duration', value: `${selectedBooking.duration || 75} minutes`, editable: true },
+                  { label: 'Date', value: dateLabel, key: null },
+                  { label: 'Time', value: fmt12(selectedBooking.time), key: 'time' },
+                  { label: 'Table', value: selectedBooking.tableName, key: 'tableName' },
+                  { label: 'Party Size', value: `${selectedBooking.partySize} guests`, key: 'partySize' },
+                  { label: 'Duration', value: `${selectedBooking.duration || 75} minutes`, key: 'duration' },
                   { label: 'Status', value: selectedBooking.status?.toUpperCase(), isStatus: true },
                 ].map((row, i) => (
                   <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 13, padding: '4px 0', borderBottom: i < 5 ? '1px solid #F5F5F5' : 'none' }}>
                     <span style={{ color: '#555' }}>{row.label}</span>
                     {row.isStatus ? (
                       <span style={{ fontWeight: 700, color: statusColor(selectedBooking.status, selectedBooking.isVip), fontSize: 11 }}>{row.value}</span>
-                    ) : editMode && row.editable ? (
-                      <input defaultValue={row.value} style={{ ...editInput, textAlign: 'right', width: 120 }} />
+                    ) : editMode && row.key ? (
+                      <input value={editedBooking[row.key] || row.value} onChange={e => setEditedBooking({...editedBooking, [row.key]: e.target.value})} style={{ ...editInput, textAlign: 'right', width: 120 }} />
                     ) : (
                       <span style={{ fontWeight: 600, color: '#111' }}>{row.value}</span>
                     )}
@@ -777,7 +829,15 @@ export default function RestaurantCalendar() {
 
           {/* ─ Action Bar ─ */}
           <div style={{ padding: 16, background: T.white, borderTop: `1px solid ${T.border}`, flexShrink: 0, zIndex: 20 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, overflowX: 'auto' }}>
+            {editMode ? (
+              <div style={{ display: 'flex', gap: 8 }}>
+                <button onClick={() => setEditMode(false)} style={{ flex: 1, padding: '12px 16px', borderRadius: 999, border: `1px solid ${T.border}`, background: '#fff', color: '#555', fontWeight: 600, fontSize: 13, cursor: 'pointer', fontFamily: "'Figtree', sans-serif" }}>Cancel</button>
+                <button onClick={() => { setEditMode(false); /* TODO: save to API */ }} style={{ flex: 2, padding: '12px 16px', borderRadius: 999, border: 'none', background: T.forest, color: '#fff', fontWeight: 600, fontSize: 13, cursor: 'pointer', fontFamily: "'Figtree', sans-serif", boxShadow: '0 4px 12px rgba(27,67,50,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+                  ✓ Save Changes
+                </button>
+              </div>
+            ) : (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, overflowX: 'auto' }}>
               <button style={{ flex: 1, minWidth: 110, background: T.forest, color: '#fff', fontWeight: 600, padding: '12px 16px', borderRadius: 999, border: 'none', cursor: 'pointer', fontSize: 13, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, boxShadow: '0 4px 12px rgba(27,67,50,0.3)' }}>
                 ✓ Check In
               </button>
@@ -794,6 +854,7 @@ export default function RestaurantCalendar() {
                 <MoreHorizontal size={16} />
               </button>
             </div>
+            )}
           </div>
         </div>
       </>}
