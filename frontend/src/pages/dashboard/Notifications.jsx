@@ -3,6 +3,7 @@
  * Grouped by day, unread highlighting, action buttons, left colour bars
  */
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { Bell, CheckCheck, Search, Calendar, ChevronDown, AlertTriangle, Clock, Receipt, Star, Server, MessageSquare, ArrowRight, Eye, Reply } from 'lucide-react'
 
 const TABS = [
@@ -101,8 +102,27 @@ const AVATAR_COLORS = ['bg-amber-100 text-amber-700', 'bg-purple-100 text-purple
 const Notifications = () => {
   const [activeTab, setActiveTab] = useState('all')
   const [search, setSearch] = useState('')
+  const [toast, setToast] = useState(null)
+  const [dismissed, setDismissed] = useState([])
+  const [accepted, setAccepted] = useState([])
+  const navigate = useNavigate()
 
-  const renderItem = (item) => (
+  const showToast = (msg) => { setToast(msg); setTimeout(() => setToast(null), 2500) }
+
+  const handleAction = (notifId, action) => {
+    switch (action) {
+      case 'Check Settings': navigate('/dashboard/settings'); break
+      case 'Dismiss': setDismissed(d => [...d, notifId]); showToast('Notification dismissed'); break
+      case 'Accept': setAccepted(a => [...a, notifId]); showToast('Reservation accepted ✓'); break
+      case 'Decline': setDismissed(d => [...d, notifId]); showToast('Reservation declined'); break
+      default: showToast(`${action} clicked`); break
+    }
+  }
+
+  const renderItem = (item) => {
+    if (dismissed.includes(item.id)) return null
+    const isAccepted = accepted.includes(item.id)
+    return (
     <div
       key={item.id}
       className={`p-5 flex gap-4 cursor-pointer group relative overflow-hidden transition-all duration-200 hover:translate-x-1 ${
@@ -144,13 +164,13 @@ const Notifications = () => {
         {item.actions && (
           <div className="flex items-center gap-2 mt-3">
             {item.actions.map(a => (
-              <button key={a.label} className={`px-4 py-1.5 text-xs font-bold rounded-lg transition-colors ${a.style}`}>{a.label}</button>
+              <button key={a.label} onClick={() => handleAction(item.id, a.label)} className={`px-4 py-1.5 text-xs font-bold rounded-lg transition-colors ${a.style}`}>{a.label}</button>
             ))}
           </div>
         )}
 
         {item.link && (
-          <button className="text-xs font-bold text-primary hover:underline mt-2 flex items-center gap-1">
+          <button onClick={() => navigate(item.link.href)} className="text-xs font-bold text-primary hover:underline mt-2 flex items-center gap-1">
             {item.link.label} <ArrowRight className="w-3 h-3" />
           </button>
         )}
@@ -173,9 +193,19 @@ const Notifications = () => {
       )}
     </div>
   )
+  }
+
+  // Filter dismissed notifications
+  const filterDismissed = (items) => items.filter(n => !dismissed.includes(n.id))
 
   return (
     <div className="-m-6 lg:-m-8 flex flex-col h-[calc(100vh-4rem)]">
+      {/* Toast */}
+      {toast && (
+        <div className="fixed top-4 right-4 z-50 bg-[#1B4332] text-white px-4 py-2.5 rounded-lg shadow-lg text-sm font-bold animate-[slideIn_0.3s_ease-out]">
+          {toast}
+        </div>
+      )}
       {/* Content */}
       <div className="flex-1 overflow-y-auto p-6 md:p-8">
         <div className="max-w-5xl mx-auto">
@@ -213,7 +243,7 @@ const Notifications = () => {
               <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider">Today</h3>
             </div>
             <div className="divide-y divide-gray-100">
-              {DEMO_NOTIFICATIONS.today.map(renderItem)}
+              {filterDismissed(DEMO_NOTIFICATIONS.today).map(renderItem)}
             </div>
 
             {/* Yesterday */}
@@ -221,7 +251,7 @@ const Notifications = () => {
               <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider">Yesterday</h3>
             </div>
             <div className="divide-y divide-gray-100">
-              {DEMO_NOTIFICATIONS.yesterday.map(renderItem)}
+              {filterDismissed(DEMO_NOTIFICATIONS.yesterday).map(renderItem)}
             </div>
           </div>
 
