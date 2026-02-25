@@ -207,11 +207,12 @@ def resolve_overlaps(
     canvas_w: float = 1000,
     canvas_h: float = 800,
     min_gap: float = MIN_TABLE_GAP,
-    max_iterations: int = 400
+    max_iterations: int = 600
 ) -> List[Dict]:
     """
     Resolve all overlaps and spacing violations using force-directed repulsion.
     Fixtures stay fixed. Only tables move.
+    Two passes: aggressive separation first, then gentle refinement.
     """
     result = copy.deepcopy(elements)
     tables = [e for e in result if e.get("type") != "fixture"]
@@ -219,8 +220,8 @@ def resolve_overlaps(
 
     for iteration in range(max_iterations):
         moved = False
-        # Decrease damping over iterations for convergence
-        damping = max(0.2, 1.0 - iteration / max_iterations)
+        # Slower damping — stay aggressive longer
+        damping = max(0.3, 1.0 - (iteration / max_iterations) * 0.7)
 
         for table in tables:
             tx, ty = table.get("x", 0), table.get("y", 0)
@@ -242,9 +243,9 @@ def resolve_overlaps(
                     dx = (tx + tw / 2) - (ox + ow / 2)
                     dy = (ty + th / 2) - (oy + oh / 2)
                     length = math.sqrt(dx * dx + dy * dy) or 1
-                    # Push harder — proportional to violation depth
+                    # Push harder — proportional to violation squared
                     violation = min_gap - dist
-                    push = (violation + 10) * 0.5 * damping
+                    push = (violation * 0.8 + 15) * damping
                     force_x += (dx / length) * push
                     force_y += (dy / length) * push
                     moved = True
@@ -261,7 +262,7 @@ def resolve_overlaps(
                     dy = (ty + th / 2) - (fy + fh / 2)
                     length = math.sqrt(dx * dx + dy * dy) or 1
                     violation = FIXTURE_CLEARANCE - dist
-                    push = (violation + 10) * 0.5 * damping
+                    push = (violation * 0.8 + 15) * damping
                     force_x += (dx / length) * push
                     force_y += (dy / length) * push
                     moved = True
@@ -277,6 +278,27 @@ def resolve_overlaps(
 
         if not moved:
             break
+
+    # Final verification pass — any remaining overlaps get brute-force separated
+    for i, table in enumerate(tables):
+        t_bbox = get_element_bbox(table)
+        tw, th = get_element_size(table)
+        for j, other in enumerate(tables):
+            if j <= i:
+                continue
+            o_bbox = get_element_bbox(other)
+            dist = t_bbox.distance(o_bbox)
+            if dist < min_gap * 0.5:  # Still significantly overlapping
+                ow, oh = get_element_size(other)
+                # Push the second table away
+                dx = (other["x"] + ow/2) - (table["x"] + tw/2)
+                dy = (other["y"] + oh/2) - (table["y"] + th/2)
+                length = math.sqrt(dx*dx + dy*dy) or 1
+                nudge = min_gap + 5
+                other["x"] += (dx / length) * nudge
+                other["y"] += (dy / length) * nudge
+                other["x"] = max(WALL_CLEARANCE, min(canvas_w - ow - WALL_CLEARANCE, other["x"]))
+                other["y"] = max(WALL_CLEARANCE, min(canvas_h - oh - WALL_CLEARANCE, other["y"]))
 
     return result
 
