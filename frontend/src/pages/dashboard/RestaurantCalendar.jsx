@@ -5,7 +5,7 @@
  */
 
 import { useState, useEffect, useRef, useMemo } from 'react'
-import { ChevronLeft, ChevronRight, Clock, Users, LayoutGrid, List, CalendarDays, MapPin, Search, Plus, Star, AlertTriangle, Crown, Wine, Cake, CreditCard, IceCream, ChevronDown, ChevronUp } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Clock, Users, LayoutGrid, List, CalendarDays, MapPin, Search, Plus, Star, AlertTriangle, Crown, Wine, Cake, CreditCard, IceCream, ChevronDown, ChevronUp, Maximize2, Minimize2, X, Phone, Mail, Edit3, RotateCcw, UserX, MoreHorizontal } from 'lucide-react'
 import { useBusiness } from '../../contexts/BusinessContext'
 import api from '../../utils/api'
 import RezvoLoader from '../../components/shared/RezvoLoader'
@@ -98,6 +98,9 @@ export default function RestaurantCalendar() {
   const [selectedBooking, setSelectedBooking] = useState(null)
   const [activePeriod, setActivePeriod] = useState('all')
   const [collapsedZones, setCollapsedZones] = useState({})
+  const [isFullscreen, setIsFullscreen] = useState(false)
+  const [searchQuery, setSearchQuery] = useState('')
+  const [showSearch, setShowSearch] = useState(false)
   const scrollRef = useRef(null)
 
   const dateObj = new Date(selectedDate + 'T00:00:00')
@@ -158,14 +161,28 @@ export default function RestaurantCalendar() {
     return { zones, order }
   }, [data.tables])
 
-  /* ── Filtered bookings ── */
+  /* ── Filtered bookings (period + search) ── */
   const filteredBookings = useMemo(() => {
-    if (activePeriod === 'all') return data.bookings || []
-    return (data.bookings || []).filter(b => {
-      const bMin = timeToMin(b.time)
-      return bMin >= timeRange.start && bMin < timeRange.end
-    })
-  }, [data.bookings, activePeriod, timeRange])
+    let bs = data.bookings || []
+    if (activePeriod !== 'all') {
+      bs = bs.filter(b => {
+        const bMin = timeToMin(b.time)
+        return bMin >= timeRange.start && bMin < timeRange.end
+      })
+    }
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase().trim()
+      bs = bs.filter(b => {
+        const fields = [
+          b.customerName, b.tableName, b.status, b.occasion,
+          b.notes, fmt12(b.time), String(b.partySize)
+        ].filter(Boolean).join(' ').toLowerCase()
+        // Fuzzy: every word in query must appear somewhere
+        return q.split(/\s+/).every(word => fields.includes(word))
+      })
+    }
+    return bs
+  }, [data.bookings, activePeriod, timeRange, searchQuery])
 
   /* ── Bookings by table ── */
   const bookingsByTable = useMemo(() => {
@@ -245,6 +262,16 @@ export default function RestaurantCalendar() {
     return list
   }, [tablesByZone, collapsedZones])
 
+  /* ── Fullscreen toggle ── */
+  useEffect(() => {
+    if (isFullscreen) {
+      document.body.style.overflow = 'hidden'
+    } else {
+      document.body.style.overflow = ''
+    }
+    return () => { document.body.style.overflow = '' }
+  }, [isFullscreen])
+
   const ROW_H = 48
   const ZONE_H = 31
   const LEFT_W = 180
@@ -262,7 +289,9 @@ export default function RestaurantCalendar() {
   }
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', background: T.white, fontFamily: "'Figtree', sans-serif", overflow: 'hidden' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', background: T.white, fontFamily: "'Figtree', sans-serif", overflow: 'hidden',
+      ...(isFullscreen ? { position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 9999 } : {})
+    }}>
 
       {/* ══════ SUB-HEADER TOOLBAR ══════ */}
       <header style={{ display: 'flex', alignItems: 'center', padding: '10px 16px', gap: 8, background: '#fff', borderBottom: `1px solid ${T.border}`, flexShrink: 0, zIndex: 40, flexWrap: 'wrap' }}>
@@ -316,7 +345,23 @@ export default function RestaurantCalendar() {
 
         <div style={divider} />
 
-        <button style={iconBtn}><Search size={14} /></button>
+        {/* Search */}
+        {showSearch ? (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 4, background: '#F5F5F5', borderRadius: 20, padding: '3px 12px', minWidth: 200 }}>
+            <Search size={13} color="#888" />
+            <input value={searchQuery} onChange={e => setSearchQuery(e.target.value)} autoFocus
+              placeholder="Search guests, tables..."
+              style={{ border: 'none', background: 'transparent', outline: 'none', fontSize: 12, fontWeight: 500, color: '#111', width: '100%', fontFamily: "'Figtree', sans-serif" }} />
+            <button onClick={() => { setShowSearch(false); setSearchQuery('') }} style={{ border: 'none', background: 'none', cursor: 'pointer', padding: 2 }}><X size={12} color="#999" /></button>
+          </div>
+        ) : (
+          <button onClick={() => setShowSearch(true)} style={iconBtn}><Search size={14} /></button>
+        )}
+
+        {/* Tablet Fullscreen Toggle */}
+        <button onClick={() => setIsFullscreen(!isFullscreen)} style={iconBtn} title={isFullscreen ? 'Exit fullscreen' : 'Tablet mode'}>
+          {isFullscreen ? <Minimize2 size={14} /> : <Maximize2 size={14} />}
+        </button>
       </header>
 
       {/* ══════ CAPACITY STRIP ══════ */}
@@ -432,23 +477,23 @@ export default function RestaurantCalendar() {
                           style={{
                             position: 'absolute', top: 4, bottom: 4,
                             left: pos.left, width: pos.width,
-                            background: T.white,
-                            border: isVip ? '1px solid rgba(59,130,246,0.25)' : '1px solid #E5E7EB',
+                            background: color + '15',
+                            border: `1px solid ${color}30`,
                             borderRadius: 6,
-                            boxShadow: isSelected ? '0 0 0 2px rgba(27,67,50,0.3)' : '0 1px 3px rgba(0,0,0,0.04)',
+                            boxShadow: isSelected ? `0 0 0 2px ${color}50` : '0 1px 3px rgba(0,0,0,0.04)',
                             display: 'flex', alignItems: 'center', padding: '0 8px',
                             cursor: 'pointer', zIndex: 5,
                             transition: 'all 0.15s',
                             overflow: 'hidden',
                           }}
-                          onMouseOver={e => { e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.boxShadow = '0 4px 8px rgba(0,0,0,0.1)'; e.currentTarget.style.zIndex = '10' }}
-                          onMouseOut={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = isSelected ? '0 0 0 2px rgba(27,67,50,0.3)' : '0 1px 3px rgba(0,0,0,0.04)'; e.currentTarget.style.zIndex = '5' }}
+                          onMouseOver={e => { e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.boxShadow = '0 4px 8px rgba(0,0,0,0.12)'; e.currentTarget.style.zIndex = '10' }}
+                          onMouseOut={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = isSelected ? `0 0 0 2px ${color}50` : '0 1px 3px rgba(0,0,0,0.04)'; e.currentTarget.style.zIndex = '5' }}
                         >
-                          {/* Left color bar */}
-                          <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: 3, background: color, borderRadius: '6px 0 0 6px' }} />
+                          {/* Left color bar highlight */}
+                          <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: 4, background: color, borderRadius: '6px 0 0 6px' }} />
 
                           {/* Content */}
-                          <div style={{ marginLeft: 6, display: 'flex', flexDirection: 'column', justifyContent: 'center', width: '100%', minWidth: 0 }}>
+                          <div style={{ marginLeft: 8, display: 'flex', flexDirection: 'column', justifyContent: 'center', width: '100%', minWidth: 0 }}>
                             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 4 }}>
                               <span style={{ fontSize: 11, fontWeight: 700, color: '#111', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                                 {b.partySize} · {b.customerName?.split(' ').pop() || 'Guest'}
@@ -459,7 +504,7 @@ export default function RestaurantCalendar() {
                             <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginTop: 1 }}>
                               {isVip && <span style={{ fontSize: 9, background: '#EFF6FF', color: '#2563EB', padding: '0 4px', borderRadius: 3 }}>VIP</span>}
                               {b.occasion && <OccasionBadge occasion={b.occasion} />}
-                              {b.notes && !b.occasion && <span style={{ fontSize: 8, color: '#9CA3AF' }}>📝</span>}
+                              {b.notes && !b.occasion && <span style={{ fontSize: 8, color: '#666' }}>📝</span>}
                             </div>
                           </div>
                         </div>
@@ -493,50 +538,135 @@ export default function RestaurantCalendar() {
         </div>
       </div>
 
-      {/* ══════ BOOKING DETAIL PANEL ══════ */}
-      {selectedBooking && (
-        <div style={{ position: 'fixed', top: 0, right: 0, bottom: 0, width: 320, background: T.white, boxShadow: '-4px 0 20px rgba(0,0,0,0.1)', zIndex: 60, borderLeft: `1px solid ${T.border}`, display: 'flex', flexDirection: 'column', fontFamily: "'Figtree', sans-serif" }}>
-          <div style={{ padding: '20px 20px 16px', borderBottom: `1px solid ${T.border}` }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start' }}>
-              <div>
-                <h3 style={{ fontSize: 18, fontWeight: 700, color: '#111', margin: 0 }}>{selectedBooking.customerName}</h3>
-                <p style={{ fontSize: 12, color: '#6B7280', marginTop: 2 }}>{fmt12(selectedBooking.time)} · {selectedBooking.tableName}</p>
-              </div>
-              <button onClick={() => setSelectedBooking(null)} style={{ width: 28, height: 28, borderRadius: 8, border: 'none', background: '#F5F5F5', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16, color: '#999' }}>✕</button>
+      {/* ══════ CRM GUEST DETAIL PANEL ══════ */}
+      {selectedBooking && <>
+        {/* Glass overlay */}
+        <div onClick={() => setSelectedBooking(null)} style={{ position: 'fixed', inset: 0, background: 'rgba(255,255,255,0.4)', backdropFilter: 'blur(4px)', zIndex: 55 }} />
+
+        {/* Panel */}
+        <div style={{ position: 'fixed', top: 0, right: 0, bottom: 0, width: 420, maxWidth: '100vw', background: T.white, boxShadow: '0 8px 40px rgba(0,0,0,0.12)', zIndex: 60, display: 'flex', flexDirection: 'column', fontFamily: "'Figtree', sans-serif" }}>
+
+          {/* Header */}
+          <div style={{ padding: '16px 24px 12px', flexShrink: 0, background: T.white, zIndex: 10 }}>
+            {/* Top actions */}
+            <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: 8, marginBottom: 16 }}>
+              <button style={panelIconBtn} title="Edit"><Edit3 size={14} /></button>
+              <button style={{ ...panelIconBtn, color: '#999' }} title="Close" onClick={() => setSelectedBooking(null)}><X size={16} /></button>
             </div>
-            <div style={{ display: 'flex', gap: 6, marginTop: 10 }}>
-              <span style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', padding: '3px 8px', borderRadius: 999, background: statusColor(selectedBooking.status, selectedBooking.isVip) + '15', color: statusColor(selectedBooking.status, selectedBooking.isVip) }}>{selectedBooking.status}</span>
-              {selectedBooking.isVip && <span style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', padding: '3px 8px', borderRadius: 999, background: '#EFF6FF', color: '#2563EB' }}>VIP</span>}
+
+            {/* Avatar + Name */}
+            <div style={{ display: 'flex', alignItems: 'start', gap: 16, marginBottom: 20 }}>
+              <div style={{ width: 56, height: 56, borderRadius: '50%', background: 'linear-gradient(135deg, #1B4332, #2D6A4F)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: 20, fontWeight: 700, flexShrink: 0, border: '2px solid #fff', boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}>
+                {(selectedBooking.customerName || 'G').split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()}
+              </div>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <h2 style={{ fontSize: 22, fontWeight: 700, color: T.forest, margin: 0, lineHeight: 1.2 }}>{selectedBooking.customerName}</h2>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 8 }}>
+                  <span style={{ padding: '3px 12px', borderRadius: 999, fontSize: 11, fontWeight: 600, background: T.forest, color: '#fff' }}>
+                    {selectedBooking.status?.charAt(0).toUpperCase() + selectedBooking.status?.slice(1)}
+                  </span>
+                  {selectedBooking.isVip && <span style={{ padding: '3px 12px', borderRadius: 999, fontSize: 11, fontWeight: 600, background: '#D4A373' + '25', color: '#D4A373' }}>VIP</span>}
+                </div>
+              </div>
+            </div>
+
+            {/* 4-stat grid */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 8 }}>
+              {[
+                { icon: '🕐', value: fmt12(selectedBooking.time), label: 'time' },
+                { icon: '👥', value: selectedBooking.partySize, label: 'guests' },
+                { icon: '🪑', value: selectedBooking.tableName?.replace('Table ', 'T'), label: 'table' },
+                { icon: '⏱️', value: `${selectedBooking.duration || 75}m`, label: 'duration' },
+              ].map((s, i) => (
+                <div key={i} style={{ background: '#F5F5F5', borderRadius: 16, padding: '12px 8px', display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}>
+                  <span style={{ fontSize: 14, marginBottom: 4 }}>{s.icon}</span>
+                  <span style={{ fontSize: 14, fontWeight: 700, color: T.forest, lineHeight: 1 }}>{s.value}</span>
+                  <span style={{ fontSize: 10, color: '#666', marginTop: 4 }}>{s.label}</span>
+                </div>
+              ))}
             </div>
           </div>
 
-          <div style={{ flex: 1, overflow: 'auto', padding: 20 }}>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 16 }}>
-              <DetailCard label="Party" value={`${selectedBooking.partySize} Guests`} />
-              <DetailCard label="Table" value={selectedBooking.tableName} />
-              <DetailCard label="Time" value={fmt12(selectedBooking.time)} />
-              <DetailCard label="Duration" value={`${selectedBooking.duration || 75}m`} />
-            </div>
+          {/* Scrollable content */}
+          <div style={{ flex: 1, overflow: 'auto', padding: '8px 24px 16px' }}>
 
+            {/* Occasion */}
             {selectedBooking.occasion && (
-              <div style={{ padding: '10px 12px', background: '#FFFBEB', borderRadius: 8, marginBottom: 12, fontSize: 12, color: '#92400E', display: 'flex', alignItems: 'center', gap: 8 }}>
-                <Cake size={14} /> {selectedBooking.occasion.replace('_', ' ')}
+              <div style={{ marginBottom: 20 }}>
+                <h3 style={{ fontSize: 13, fontWeight: 600, color: '#999', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 10 }}>Occasion</h3>
+                <div style={{ padding: '10px 14px', background: '#FFF8F0', borderRadius: 12, fontSize: 13, color: '#92400E', display: 'flex', alignItems: 'center', gap: 8, border: '1px solid #FDE68A30' }}>
+                  <Cake size={15} /> {selectedBooking.occasion.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                </div>
               </div>
             )}
 
+            {/* Notes */}
             {selectedBooking.notes && (
-              <div style={{ padding: '10px 12px', background: '#F9FAFB', borderRadius: 8, marginBottom: 12, fontSize: 12, color: '#4B5563' }}>
-                <span style={{ fontWeight: 600 }}>Notes:</span> {selectedBooking.notes}
+              <div style={{ marginBottom: 20 }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
+                  <h3 style={{ fontSize: 13, fontWeight: 600, color: '#999', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Notes</h3>
+                  <button style={{ border: 'none', background: 'none', cursor: 'pointer', color: '#999' }}><Edit3 size={12} /></button>
+                </div>
+                <div style={{ background: '#FAFAF8', border: '1px solid #EBEBEB', borderRadius: 12, padding: 16 }}>
+                  <p style={{ fontSize: 13, color: '#1B4332', lineHeight: 1.5, fontStyle: 'italic', margin: 0 }}>"{selectedBooking.notes}"</p>
+                </div>
               </div>
             )}
+
+            {/* Booking Details */}
+            <div style={{ marginBottom: 20 }}>
+              <h3 style={{ fontSize: 13, fontWeight: 600, color: '#999', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 10 }}>Details</h3>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13 }}>
+                  <span style={{ color: '#666' }}>Date</span>
+                  <span style={{ fontWeight: 600, color: '#111' }}>{dateLabel}</span>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13 }}>
+                  <span style={{ color: '#666' }}>Time</span>
+                  <span style={{ fontWeight: 600, color: '#111' }}>{fmt12(selectedBooking.time)}</span>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13 }}>
+                  <span style={{ color: '#666' }}>Table</span>
+                  <span style={{ fontWeight: 600, color: '#111' }}>{selectedBooking.tableName}</span>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13 }}>
+                  <span style={{ color: '#666' }}>Party Size</span>
+                  <span style={{ fontWeight: 600, color: '#111' }}>{selectedBooking.partySize} guests</span>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13 }}>
+                  <span style={{ color: '#666' }}>Duration</span>
+                  <span style={{ fontWeight: 600, color: '#111' }}>{selectedBooking.duration || 75} minutes</span>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13 }}>
+                  <span style={{ color: '#666' }}>Status</span>
+                  <span style={{ fontWeight: 700, color: statusColor(selectedBooking.status, selectedBooking.isVip), textTransform: 'uppercase', fontSize: 11 }}>{selectedBooking.status}</span>
+                </div>
+              </div>
+            </div>
           </div>
 
-          <div style={{ padding: '16px 20px', borderTop: `1px solid ${T.border}`, display: 'flex', gap: 8 }}>
-            <button style={{ flex: 1, padding: '10px 0', fontSize: 12, fontWeight: 700, color: '#374151', background: '#F3F4F6', border: 'none', borderRadius: 8, cursor: 'pointer' }}>Edit</button>
-            <button style={{ flex: 1, padding: '10px 0', fontSize: 12, fontWeight: 700, color: '#fff', background: T.forest, border: 'none', borderRadius: 8, cursor: 'pointer' }}>Check In</button>
+          {/* CRM Action Bar */}
+          <div style={{ padding: 16, background: T.white, borderTop: `1px solid ${T.border}`, flexShrink: 0, zIndex: 20 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, overflowX: 'auto' }}>
+              <button style={{ flex: 1, minWidth: 110, background: T.forest, color: '#fff', fontWeight: 600, padding: '12px 16px', borderRadius: 999, border: 'none', cursor: 'pointer', fontSize: 13, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, boxShadow: '0 4px 12px rgba(27,67,50,0.3)' }}>
+                ✓ Check In
+              </button>
+              <button style={{ flexShrink: 0, background: '#fff', border: `1px solid ${T.forest}`, color: T.forest, fontWeight: 500, padding: '12px 20px', borderRadius: 999, cursor: 'pointer', fontSize: 13 }}>
+                Edit
+              </button>
+              <button style={{ flexShrink: 0, background: T.sage, color: '#fff', fontWeight: 500, padding: '12px 20px', borderRadius: 999, border: 'none', cursor: 'pointer', fontSize: 13, boxShadow: '0 2px 8px rgba(82,183,136,0.3)' }}>
+                Rebook
+              </button>
+              <button style={{ flexShrink: 0, background: '#fff', border: '1px solid rgba(239,68,68,0.5)', color: '#EF4444', fontWeight: 500, padding: '12px 20px', borderRadius: 999, cursor: 'pointer', fontSize: 13, whiteSpace: 'nowrap' }}>
+                No Show
+              </button>
+              <button style={{ width: 44, height: 44, flexShrink: 0, borderRadius: '50%', border: `1px solid ${T.border}`, background: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#666' }}>
+                <MoreHorizontal size={16} />
+              </button>
+            </div>
           </div>
         </div>
-      )}
+      </>}
 
       <style>{`
         .timeline-scroll::-webkit-scrollbar { height: 8px; width: 8px; }
@@ -555,6 +685,7 @@ const toggleWrap = { display: 'flex', background: '#F5F5F5', borderRadius: 20, p
 const toggleActive = { padding: '7px 16px', borderRadius: 18, border: 'none', cursor: 'pointer', fontSize: 12, fontWeight: 700, background: '#1B4332', color: '#fff', boxShadow: '0 2px 8px rgba(27,67,50,0.2)', transition: 'all 0.15s', fontFamily: "'Figtree', sans-serif" }
 const toggleInactive = { padding: '7px 16px', borderRadius: 18, border: 'none', cursor: 'pointer', fontSize: 12, fontWeight: 500, background: 'transparent', color: '#999', transition: 'all 0.15s', fontFamily: "'Figtree', sans-serif" }
 const iconBtn = { width: 38, height: 38, borderRadius: '50%', border: 'none', background: '#F5F5F5', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#888' }
+const panelIconBtn = { width: 32, height: 32, borderRadius: '50%', border: 'none', background: 'transparent', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#666' }
 
 function StatChip({ color, value, label }) {
   return (
@@ -656,21 +787,21 @@ function ReservationListView({ bookings, onSelectBooking }) {
       <div style={{ display: 'grid', gridTemplateColumns: '60px 1.5fr 80px 100px 80px 100px 1fr', padding: '10px 20px', background: '#FAFAFA', borderBottom: '1px solid #E5E7EB', fontSize: 11, fontWeight: 700, color: '#9CA3AF', textTransform: 'uppercase', position: 'sticky', top: 0, zIndex: 5 }}>
         <span>Time</span><span>Guest</span><span>Party</span><span>Table</span><span>Status</span><span>Occasion</span><span>Notes</span>
       </div>
-      {sorted.map(b => (
+      {sorted.map((b, idx) => (
         <div key={b.id} onClick={() => onSelectBooking(b)}
-          style={{ display: 'grid', gridTemplateColumns: '60px 1.5fr 80px 100px 80px 100px 1fr', padding: '12px 20px', borderBottom: '1px solid #F9FAFB', cursor: 'pointer', alignItems: 'center', transition: 'background 0.1s' }}
-          onMouseOver={e => e.currentTarget.style.background = '#FAFAFA'}
-          onMouseOut={e => e.currentTarget.style.background = 'transparent'}>
+          style={{ display: 'grid', gridTemplateColumns: '60px 1.5fr 80px 100px 80px 100px 1fr', padding: '12px 20px', background: idx % 2 === 0 ? '#fff' : '#FAFAFA', borderBottom: '1px solid #F3F4F6', cursor: 'pointer', alignItems: 'center', transition: 'background 0.1s' }}
+          onMouseOver={e => e.currentTarget.style.background = '#F0F7F4'}
+          onMouseOut={e => e.currentTarget.style.background = idx % 2 === 0 ? '#fff' : '#FAFAFA'}>
           <span style={{ fontSize: 13, fontWeight: 600, color: '#111' }}>{fmt12(b.time)}</span>
           <div>
             <span style={{ fontSize: 13, fontWeight: 600, color: '#111' }}>{b.customerName}</span>
             {b.isVip && <Crown size={10} style={{ marginLeft: 4, color: '#3B82F6', display: 'inline', verticalAlign: 'middle' }} />}
           </div>
-          <span style={{ fontSize: 13, color: '#374151' }}>{b.partySize}</span>
-          <span style={{ fontSize: 13, color: '#374151' }}>{b.tableName}</span>
+          <span style={{ fontSize: 13, color: '#111' }}>{b.partySize}</span>
+          <span style={{ fontSize: 13, color: '#111' }}>{b.tableName}</span>
           <span style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', color: statusColor(b.status, b.isVip), background: statusColor(b.status, b.isVip) + '15', padding: '2px 8px', borderRadius: 999, display: 'inline-block' }}>{b.status}</span>
-          <span style={{ fontSize: 12, color: '#6B7280' }}>{b.occasion ? b.occasion.replace('_', ' ') : '—'}</span>
-          <span style={{ fontSize: 12, color: '#9CA3AF', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{b.notes || '—'}</span>
+          <span style={{ fontSize: 12, color: '#111' }}>{b.occasion ? b.occasion.replace('_', ' ') : '—'}</span>
+          <span style={{ fontSize: 12, color: '#374151', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{b.notes || '—'}</span>
         </div>
       ))}
     </div>
