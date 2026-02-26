@@ -50,48 +50,43 @@ def get_few_shot_example(preset: str, width_m: float, height_m: float) -> str:
 # ═══════════════════════════════════════════
 
 def _bistro_layout(w: int, h: int) -> List[Dict]:
-    """Fresh bistro layout. ~24 covers."""
-    cx = w // 2  # centre x
+    """Fresh bistro layout. ~20 covers. 2-column (wall-hugging) with centre aisle."""
+    # 6m wide = 2 columns only. Tables hug left & right walls, clear aisle down middle.
     return [
-        # ── Fixtures ──
-        {"id": "f1", "type": "fixture", "fixtureKind": "window",  "name": "Window",  "zone": "main", "x": 30,     "y": 20,  "rotation": 0},
+        # -- Fixtures --
+        {"id": "f1", "type": "fixture", "fixtureKind": "window",  "name": "Window",  "zone": "main", "x": 30,      "y": 20,  "rotation": 0},
         {"id": "f2", "type": "fixture", "fixtureKind": "window",  "name": "Window",  "zone": "main", "x": w - 130, "y": 20,  "rotation": 0},
-        {"id": "f3", "type": "fixture", "fixtureKind": "kitchen", "name": "Kitchen", "zone": "main", "x": cx - 65, "y": h - 120, "rotation": 0},
+        {"id": "f3", "type": "fixture", "fixtureKind": "kitchen", "name": "Kitchen", "zone": "main", "x": w // 2 - 65, "y": h - 130, "rotation": 0},
         {"id": "f4", "type": "fixture", "fixtureKind": "toilets", "name": "Toilets", "zone": "main", "x": w - 100, "y": h - 80, "rotation": 0},
-        # ── Window 2-tops (front wall, premium spots) ──
-        {"id": "t1", "type": "table", "name": "T-01", "seats": 2, "zone": "main", "shape": "square", "x": 40,      "y": 60,  "status": "available"},
-        {"id": "t2", "type": "table", "name": "T-02", "seats": 2, "zone": "main", "shape": "square", "x": w - 130, "y": 60,  "status": "available"},
-        # ── Left wall 2-tops ──
-        {"id": "t3", "type": "table", "name": "T-03", "seats": 2, "zone": "main", "shape": "square", "x": 40,      "y": 220, "status": "available"},
-        {"id": "t4", "type": "table", "name": "T-04", "seats": 2, "zone": "main", "shape": "square", "x": 40,      "y": 380, "status": "available"},
-        # ── Centre 4-tops (main service corridor either side) ──
-        {"id": "t5", "type": "table", "name": "T-05", "seats": 4, "zone": "main", "shape": "round",  "x": cx - 50, "y": 200, "status": "available"},
-        {"id": "t6", "type": "table", "name": "T-06", "seats": 4, "zone": "main", "shape": "round",  "x": cx - 50, "y": 370, "status": "available"},
-        {"id": "t7", "type": "table", "name": "T-07", "seats": 4, "zone": "main", "shape": "round",  "x": cx - 50, "y": 540, "status": "available"},
-        # ── Right wall 2-tops ──
-        {"id": "t8", "type": "table", "name": "T-08", "seats": 2, "zone": "main", "shape": "square", "x": w - 130, "y": 220, "status": "available"},
-        {"id": "t9", "type": "table", "name": "T-09", "seats": 2, "zone": "main", "shape": "square", "x": w - 130, "y": 380, "status": "available"},
-        # ── Back section — larger table ──
-        {"id": "t10", "type": "table", "name": "T-10", "seats": 6, "zone": "main", "shape": "long", "x": cx - 100, "y": 700, "status": "available"},
+        # -- Left wall tables --
+        {"id": "t1", "type": "table", "name": "T-01", "seats": 2, "zone": "main", "shape": "square", "x": 35,      "y": 70,   "status": "seated", "timer": "38m", "vip": True},
+        {"id": "t2", "type": "table", "name": "T-02", "seats": 2, "zone": "main", "shape": "square", "x": 35,      "y": 240,  "status": "available"},
+        {"id": "t3", "type": "table", "name": "T-03", "seats": 4, "zone": "main", "shape": "round",  "x": 30,      "y": 410,  "status": "reserved", "nextTime": "7:30 PM", "guest": "Johnson (4)"},
+        {"id": "t4", "type": "table", "name": "T-04", "seats": 4, "zone": "main", "shape": "round",  "x": 30,      "y": 590,  "status": "seated", "timer": "12m"},
+        # -- Right wall tables --
+        {"id": "t5", "type": "table", "name": "T-05", "seats": 2, "zone": "main", "shape": "square", "x": w - 120, "y": 70,   "status": "reserved", "nextTime": "6:30 PM", "guest": "Smith (2)"},
+        {"id": "t6", "type": "table", "name": "T-06", "seats": 2, "zone": "main", "shape": "square", "x": w - 120, "y": 240,  "status": "seated", "timer": "22m"},
+        {"id": "t7", "type": "table", "name": "T-07", "seats": 4, "zone": "main", "shape": "round",  "x": w - 130, "y": 410,  "status": "dirty"},
+        {"id": "t8", "type": "table", "name": "T-08", "seats": 4, "zone": "main", "shape": "round",  "x": w - 130, "y": 590,  "status": "available"},
+        # -- Back section: large party table --
+        {"id": "t9", "type": "table", "name": "T-09", "seats": 6, "zone": "main", "shape": "long",  "x": w // 2 - 100, "y": 720, "status": "seated", "timer": "5m", "guest": "Williams", "vip": True},
     ]
 
 
 def _bistro_few_shot(w: int, h: int) -> str:
-    cx = w // 2
-    return f"""Example of a well-designed {w/100:.0f}m × {h/100:.0f}m bistro layout (canvas {w}×{h}px):
+    return f"""Example of a well-designed {w/100:.0f}m x {h/100:.0f}m bistro layout (canvas {w}x{h}px):
 [
-  {{"id":"t1","x":40,"y":60}},  // 2-top by left window (premium)
-  {{"id":"t2","x":{w-130},"y":60}},  // 2-top by right window
-  {{"id":"t3","x":40,"y":220}},  // 2-top left wall
-  {{"id":"t4","x":40,"y":380}},  // 2-top left wall
-  {{"id":"t5","x":{cx-50},"y":200}},  // 4-top centre
-  {{"id":"t6","x":{cx-50},"y":370}},  // 4-top centre
-  {{"id":"t7","x":{cx-50},"y":540}},  // 4-top centre
-  {{"id":"t8","x":{w-130},"y":220}},  // 2-top right wall
-  {{"id":"t9","x":{w-130},"y":380}},  // 2-top right wall
-  {{"id":"t10","x":{cx-100},"y":700}}  // 6-top back section
+  {{"id":"t1","x":35,"y":70}},  // 2-top left window (VIP)
+  {{"id":"t2","x":35,"y":240}},  // 2-top left wall
+  {{"id":"t3","x":30,"y":410}},  // 4-top left wall
+  {{"id":"t4","x":30,"y":590}},  // 4-top left wall
+  {{"id":"t5","x":{w-120},"y":70}},  // 2-top right window
+  {{"id":"t6","x":{w-120},"y":240}},  // 2-top right wall
+  {{"id":"t7","x":{w-130},"y":410}},  // 4-top right wall
+  {{"id":"t8","x":{w-130},"y":590}},  // 4-top right wall
+  {{"id":"t9","x":{w//2-100},"y":770}}  // 6-top long table, back centre
 ]
-Pattern: 2-tops along windows and walls for intimacy, 4-tops down the centre with service aisles either side, larger tables towards the back near kitchen. Minimum 60px between table edges, 90px service corridor."""
+Pattern: NARROW ROOM — only 2 columns! Tables hug left and right walls. Wide service aisle down the centre (~200px). 2-tops at front near windows, 4-tops further back. One long 6-top near kitchen for groups. ~20 covers. Do NOT put tables in the centre of a narrow room."""
 
 
 # ═══════════════════════════════════════════
@@ -105,13 +100,13 @@ def _cafe_layout(w: int, h: int) -> List[Dict]:
         {"id": "f1", "type": "fixture", "fixtureKind": "window",  "name": "Window",  "zone": "main", "x": 30,      "y": 20, "rotation": 0},
         {"id": "f2", "type": "fixture", "fixtureKind": "bar",     "name": "Counter", "zone": "main", "x": cx - 80, "y": h - 60, "rotation": 0},
         # Window seat
-        {"id": "t1", "type": "table", "name": "T-01", "seats": 2, "zone": "main", "shape": "square", "x": 40,      "y": 60,  "status": "available"},
+        {"id": "t1", "type": "table", "name": "T-01", "seats": 2, "zone": "main", "shape": "square", "x": 40,      "y": 60,  "status": "seated", "timer": "25m", "vip": True},
         {"id": "t2", "type": "table", "name": "T-02", "seats": 2, "zone": "main", "shape": "round",  "x": w - 130, "y": 60,  "status": "available"},
         # Middle
-        {"id": "t3", "type": "table", "name": "T-03", "seats": 4, "zone": "main", "shape": "round",  "x": cx - 50, "y": 230, "status": "available"},
-        {"id": "t4", "type": "table", "name": "T-04", "seats": 2, "zone": "main", "shape": "square", "x": 40,      "y": 250, "status": "available"},
+        {"id": "t3", "type": "table", "name": "T-03", "seats": 4, "zone": "main", "shape": "round",  "x": cx - 50, "y": 230, "status": "reserved", "nextTime": "1:00 PM", "guest": "Taylor (3)"},
+        {"id": "t4", "type": "table", "name": "T-04", "seats": 2, "zone": "main", "shape": "square", "x": 40,      "y": 250, "status": "seated", "timer": "8m"},
         # Back
-        {"id": "t5", "type": "table", "name": "T-05", "seats": 4, "zone": "main", "shape": "square", "x": cx - 50, "y": 430, "status": "available"},
+        {"id": "t5", "type": "table", "name": "T-05", "seats": 4, "zone": "main", "shape": "square", "x": cx - 50, "y": 430, "status": "dirty"},
         {"id": "t6", "type": "table", "name": "T-06", "seats": 2, "zone": "main", "shape": "round",  "x": w - 130, "y": 400, "status": "available"},
     ]
 
@@ -148,27 +143,27 @@ def _midsize_layout(w: int, h: int) -> List[Dict]:
         {"id": "f6", "type": "fixture", "fixtureKind": "toilets", "name": "Toilets", "zone": "main", "x": w - 100,  "y": h - 80,  "rotation": 0},
         {"id": "f7", "type": "fixture", "fixtureKind": "stairs",  "name": "Stairs",  "zone": "main", "x": 30,       "y": h - 60,  "rotation": 0},
         # ── Row 1: Window seats (3 × 2-tops) ──
-        {"id": "t1",  "type": "table", "name": "T-01", "seats": 2, "zone": "main", "shape": "square", "x": 50,       "y": 70,  "status": "available"},
-        {"id": "t2",  "type": "table", "name": "T-02", "seats": 2, "zone": "main", "shape": "square", "x": cx - 42,  "y": 70,  "status": "available"},
+        {"id": "t1",  "type": "table", "name": "T-01", "seats": 2, "zone": "main", "shape": "square", "x": 50,       "y": 70,  "status": "seated", "timer": "45m", "vip": True},
+        {"id": "t2",  "type": "table", "name": "T-02", "seats": 2, "zone": "main", "shape": "square", "x": cx - 42,  "y": 70,  "status": "reserved", "nextTime": "7:00 PM", "guest": "Khan (2)"},
         {"id": "t3",  "type": "table", "name": "T-03", "seats": 2, "zone": "main", "shape": "square", "x": w - 135,  "y": 70,  "status": "available"},
         # ── Row 2: 4-tops ──
-        {"id": "t4",  "type": "table", "name": "T-04", "seats": 4, "zone": "main", "shape": "round",  "x": 50,       "y": 260, "status": "available"},
+        {"id": "t4",  "type": "table", "name": "T-04", "seats": 4, "zone": "main", "shape": "round",  "x": 50,       "y": 260, "status": "seated", "timer": "18m", "guest": "Cooper (4)"},
         {"id": "t5",  "type": "table", "name": "T-05", "seats": 4, "zone": "main", "shape": "round",  "x": cx - 50,  "y": 260, "status": "available"},
-        {"id": "t6",  "type": "table", "name": "T-06", "seats": 4, "zone": "main", "shape": "round",  "x": w - 150,  "y": 260, "status": "available"},
+        {"id": "t6",  "type": "table", "name": "T-06", "seats": 4, "zone": "main", "shape": "round",  "x": w - 150,  "y": 260, "status": "reserved", "nextTime": "8:00 PM", "guest": "Turner (4)"},
         # ── Row 3: mixed ──
-        {"id": "t7",  "type": "table", "name": "T-07", "seats": 2, "zone": "main", "shape": "square", "x": 50,       "y": 450, "status": "available"},
-        {"id": "t8",  "type": "table", "name": "T-08", "seats": 4, "zone": "main", "shape": "round",  "x": cx - 50,  "y": 450, "status": "available"},
+        {"id": "t7",  "type": "table", "name": "T-07", "seats": 2, "zone": "main", "shape": "square", "x": 50,       "y": 450, "status": "dirty"},
+        {"id": "t8",  "type": "table", "name": "T-08", "seats": 4, "zone": "main", "shape": "round",  "x": cx - 50,  "y": 450, "status": "seated", "timer": "32m"},
         {"id": "t9",  "type": "table", "name": "T-09", "seats": 2, "zone": "main", "shape": "square", "x": w - 135,  "y": 450, "status": "available"},
         # ── Row 4: bigger tables ──
-        {"id": "t10", "type": "table", "name": "T-10", "seats": 6, "zone": "main", "shape": "round",  "x": 50,       "y": 650, "status": "available"},
+        {"id": "t10", "type": "table", "name": "T-10", "seats": 6, "zone": "main", "shape": "round",  "x": 50,       "y": 650, "status": "seated", "timer": "5m", "guest": "Williams"},
         {"id": "t11", "type": "table", "name": "T-11", "seats": 4, "zone": "main", "shape": "round",  "x": cx - 50,  "y": 650, "status": "available"},
         {"id": "t12", "type": "table", "name": "T-12", "seats": 6, "zone": "main", "shape": "round",  "x": w - 170,  "y": 650, "status": "available"},
         # ── Row 5: back section ──
-        {"id": "t13", "type": "table", "name": "T-13", "seats": 8, "zone": "main", "shape": "long",   "x": 50,       "y": 870, "status": "available"},
+        {"id": "t13", "type": "table", "name": "T-13", "seats": 8, "zone": "main", "shape": "long",   "x": 50,       "y": 870, "status": "reserved", "nextTime": "8:30 PM", "guest": "Harris (8)"},
         {"id": "t14", "type": "table", "name": "T-14", "seats": 4, "zone": "main", "shape": "round",  "x": cx - 50,  "y": 870, "status": "available"},
-        {"id": "t15", "type": "table", "name": "T-15", "seats": 4, "zone": "main", "shape": "round",  "x": w - 150,  "y": 870, "status": "available"},
+        {"id": "t15", "type": "table", "name": "T-15", "seats": 4, "zone": "main", "shape": "round",  "x": w - 150,  "y": 870, "status": "seated", "timer": "55m", "vip": True},
         # ── Deep back ──
-        {"id": "t16", "type": "table", "name": "T-16", "seats": 6, "zone": "main", "shape": "long",   "x": cx - 100, "y": 1080, "status": "available"},
+        {"id": "t16", "type": "table", "name": "T-16", "seats": 6, "zone": "main", "shape": "long",   "x": cx - 100, "y": 1080, "status": "mains", "guest": "Private Dining"},
     ]
 
 
