@@ -109,6 +109,12 @@ jobs:
             fi
 
             # ── Run data migrations ──
+            if [ -f /opt/rezvo-app/backend/reset_floor_plan.py ]; then
+              cd /opt/rezvo-app/backend
+              python3 reset_floor_plan.py || echo "Floor plan reset note: check logs"
+              rm -f reset_floor_plan.py  # One-time migration
+            fi
+
             if [ -f /opt/rezvo-app/backend/fix_micho_hours.py ]; then
               cd /opt/rezvo-app/backend
               python3 fix_micho_hours.py || echo "Migration note: check logs"
