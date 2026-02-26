@@ -115,6 +115,12 @@ jobs:
               rm -f reset_floor_plan.py  # One-time migration
             fi
 
+            if [ -f /opt/rezvo-app/backend/seed_real_data.py ]; then
+              cd /opt/rezvo-app/backend
+              python3 seed_real_data.py || echo "Seed data note: check logs"
+              rm -f seed_real_data.py  # One-time seed
+            fi
+
             if [ -f /opt/rezvo-app/backend/fix_micho_hours.py ]; then
               cd /opt/rezvo-app/backend
               python3 fix_micho_hours.py || echo "Migration note: check logs"
