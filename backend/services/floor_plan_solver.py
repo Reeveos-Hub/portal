@@ -31,7 +31,100 @@ SEAT_DOT_OVERHANG = 18    # Seat dots extend ~18px beyond table edge on frontend
 MIN_AISLE_WIDTH = 90      # ~90cm / 36 inches — ADA minimum
 FIXTURE_CLEARANCE = 40    # ~40cm clearance from fixtures
 WALL_CLEARANCE = 30       # ~30cm from canvas edges
-GRID_SNAP = 20            # Snap-to-grid increment for aesthetic alignment
+GRID_SNAP = 40            # Snap-to-grid increment for aesthetic alignment
+
+
+def align_rows_and_columns(elements: List[Dict], canvas_w: float, canvas_h: float, tolerance: float = 50) -> List[Dict]:
+    """
+    Make layouts look professionally designed by snapping tables into clean rows and columns.
+    
+    1. Detect approximate rows (tables within tolerance Y) → align to median Y
+    2. Detect approximate columns (tables within tolerance X) → align to median X
+    3. Re-check boundaries after alignment
+    
+    This is what separates 'AI placed it' from 'a designer placed it'.
+    """
+    result = copy.deepcopy(elements)
+    tables = [e for e in result if e.get("type") != "fixture"]
+    if len(tables) < 2:
+        return result
+    
+    # ── Step 1: Detect and align ROWS (same Y = same horizontal band) ──
+    # Sort by Y, then group tables within tolerance into rows
+    tables_sorted_y = sorted(tables, key=lambda t: t.get("y", 0))
+    rows = []
+    current_row = [tables_sorted_y[0]]
+    
+    for t in tables_sorted_y[1:]:
+        if abs(t.get("y", 0) - current_row[-1].get("y", 0)) <= tolerance:
+            current_row.append(t)
+        else:
+            rows.append(current_row)
+            current_row = [t]
+    rows.append(current_row)
+    
+    # Align each row to median Y
+    for row in rows:
+        if len(row) < 2:
+            continue
+        median_y = sorted([t.get("y", 0) for t in row])[len(row) // 2]
+        # Snap to grid
+        median_y = round(median_y / GRID_SNAP) * GRID_SNAP
+        for t in row:
+            t["y"] = median_y
+        
+        # Also sort tables within each row by X for even spacing
+        row.sort(key=lambda t: t.get("x", 0))
+    
+    # ── Step 2: Detect and align COLUMNS (same X = same vertical band) ──
+    tables_sorted_x = sorted(tables, key=lambda t: t.get("x", 0))
+    cols = []
+    current_col = [tables_sorted_x[0]]
+    
+    for t in tables_sorted_x[1:]:
+        if abs(t.get("x", 0) - current_col[-1].get("x", 0)) <= tolerance:
+            current_col.append(t)
+        else:
+            cols.append(current_col)
+            current_col = [t]
+    cols.append(current_col)
+    
+    # Align each column to median X
+    for col in cols:
+        if len(col) < 2:
+            continue
+        median_x = sorted([t.get("x", 0) for t in col])[len(col) // 2]
+        median_x = round(median_x / GRID_SNAP) * GRID_SNAP
+        for t in col:
+            t["x"] = median_x
+    
+    # ── Step 3: Even out row spacing ──
+    # If we have 3+ rows, try to make vertical spacing between rows consistent
+    if len(rows) >= 3:
+        row_ys = sorted(set(round(r[0].get("y", 0) / GRID_SNAP) * GRID_SNAP for r in rows if r))
+        if len(row_ys) >= 3:
+            # Calculate ideal even spacing
+            total_span = row_ys[-1] - row_ys[0]
+            ideal_gap = total_span / (len(row_ys) - 1)
+            ideal_gap = round(ideal_gap / GRID_SNAP) * GRID_SNAP
+            if ideal_gap >= 120:  # Only if spacing is reasonable
+                for i, row in enumerate(rows):
+                    new_y = row_ys[0] + i * ideal_gap
+                    new_y = max(WALL_CLEARANCE, min(canvas_h - 150, new_y))
+                    new_y = round(new_y / GRID_SNAP) * GRID_SNAP
+                    for t in row:
+                        t["y"] = new_y
+    
+    # ── Step 4: Final boundary clamp ──
+    for t in tables:
+        tw, th = get_element_size(t)
+        t["x"] = max(WALL_CLEARANCE, min(canvas_w - tw - WALL_CLEARANCE, t["x"]))
+        t["y"] = max(WALL_CLEARANCE, min(canvas_h - th - WALL_CLEARANCE, t["y"]))
+        # Final grid snap
+        t["x"] = round(t["x"] / GRID_SNAP) * GRID_SNAP
+        t["y"] = round(t["y"] / GRID_SNAP) * GRID_SNAP
+    
+    return result
 
 
 # ── Element size calculation (mirrors frontend exactly) ──
@@ -624,7 +717,11 @@ def auto_arrange(
     # ── Step 7: Final overlap resolution ──
     result = resolve_overlaps(result, canvas_w, canvas_h, min_gap)
 
-    # ── Step 8: Grid snap for clean aesthetics ──
+    # ── Step 8: Alignment snap — clean rows and columns ──
+    result = align_rows_and_columns(result, canvas_w, canvas_h)
+    result = resolve_overlaps(result, canvas_w, canvas_h, min_gap, max_iterations=200)
+
+    # ── Step 9: Grid snap for clean aesthetics ──
     for el in result:
         if el.get("type") != "fixture" and (not zone or el.get("zone") == zone):
             el["x"] = round(el["x"] / GRID_SNAP) * GRID_SNAP

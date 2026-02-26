@@ -19,7 +19,7 @@ import copy
 from typing import List, Dict, Optional
 from services.floor_plan_solver import (
     resolve_overlaps, validate_layout, get_table_size,
-    get_element_size, GRID_SNAP
+    get_element_size, GRID_SNAP, align_rows_and_columns
 )
 from services.floor_plan_presets import get_few_shot_example
 
@@ -56,9 +56,17 @@ PROVIDER_CONFIG = {
 
 SYSTEM_PROMPT = """You are a world-class restaurant interior designer. You arrange floor plans by placing tables at optimal (x, y) positions.
 
+## CRITICAL: CLEAN ALIGNMENT
+Tables MUST be in neat rows and columns — like a real restaurant, not scattered randomly.
+- Tables in the SAME ROW must have the EXACT SAME Y value
+- Tables in the SAME COLUMN must have the EXACT SAME X value
+- All coordinates must be multiples of 40 (snap to 40px grid)
+- Typical layout: 2-3 columns of tables with clear aisles between them
+- Example: left column at x=40, centre column at x=350, right column at x=660
+
 ## COORDINATE SYSTEM
 - Canvas is (0,0) top-left to (canvas_w, canvas_h) bottom-right
-- All values are INTEGER PIXELS. No decimals.
+- All values are INTEGER PIXELS, multiples of 40. No decimals.
 - Top of canvas = front of restaurant (entrance, windows)
 - Bottom of canvas = back (kitchen, toilets)
 
@@ -370,6 +378,12 @@ async def ai_auto_arrange(
     # Layer 4: Constraint solver — gap must account for seat dot overhang (~18px each side)
     min_gap = {"dense": 40, "balanced": 50, "spacious": 65}.get(style, 50)
     result = resolve_overlaps(result, canvas_w, canvas_h, min_gap)
+
+    # Layer 5: Alignment snap — detect rows/columns and align for professional look
+    result = align_rows_and_columns(result, canvas_w, canvas_h)
+
+    # Layer 6: Final overlap check after alignment (alignment can re-introduce overlaps)
+    result = resolve_overlaps(result, canvas_w, canvas_h, min_gap, max_iterations=200)
 
     # Grid snap
     for el in result:
