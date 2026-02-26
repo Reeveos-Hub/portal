@@ -367,8 +367,8 @@ async def ai_auto_arrange(
     # Layer 3: Validate + auto-fix
     result = _validate_and_fix(result, canvas_w, canvas_h)
 
-    # Layer 4: Constraint solver
-    min_gap = {"dense": 20, "balanced": 28, "spacious": 40}.get(style, 28)
+    # Layer 4: Constraint solver — gap must account for seat dot overhang (~18px each side)
+    min_gap = {"dense": 40, "balanced": 50, "spacious": 65}.get(style, 50)
     result = resolve_overlaps(result, canvas_w, canvas_h, min_gap)
 
     # Grid snap

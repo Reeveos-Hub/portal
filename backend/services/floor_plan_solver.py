@@ -27,6 +27,7 @@ import copy
 
 MIN_TABLE_GAP = 30        # ~30px minimum between table edges (casual dining)
 MIN_TABLE_GAP_FINE = 50   # ~50px for fine dining
+SEAT_DOT_OVERHANG = 18    # Seat dots extend ~18px beyond table edge on frontend
 MIN_AISLE_WIDTH = 90      # ~90cm / 36 inches — ADA minimum
 FIXTURE_CLEARANCE = 40    # ~40cm clearance from fixtures
 WALL_CLEARANCE = 30       # ~30cm from canvas edges
@@ -501,8 +502,8 @@ def auto_arrange(
 
     # Style-based gap
     if min_gap is None:
-        gaps = {"dense": 20, "balanced": 30, "spacious": 45, "grid": 25}
-        min_gap = gaps.get(style, 30)
+        gaps = {"dense": 40, "balanced": 50, "spacious": 65, "grid": 45}
+        min_gap = gaps.get(style, 50)
 
     # ── Step 1: Read the room ──
     room = _analyse_room(fixtures, canvas_w, canvas_h)
@@ -680,8 +681,8 @@ def _simulated_annealing(
                     e += 2000
                 elif dist < min_gap:
                     e += (min_gap - dist) * 10  # Spacing violation
-                elif dist > min_gap * 3:
-                    e += (dist - min_gap * 3) * 1.0  # Too far apart — pull closer
+                elif dist > min_gap * 2.5:
+                    e += (dist - min_gap * 2.5) * 2.0  # Too far apart — pull closer
 
         return e
 

@@ -146,7 +146,7 @@ const TableNode = ({ table, status, isSelected, locked, isDragging, onMouseDown,
                 <Check size={12} strokeWidth={3} />
               </button>
               <button onClick={(e) => { e.stopPropagation(); setConfirmDelete(false) }} style={{
-                width: 24, height: 24, borderRadius: '50%', border: 'none', cursor: 'pointer',
+                width: 24, height: 24, borderRadius: '50%', cursor: 'pointer',
                 background: '#fff', color: '#6B7280', display: 'flex', alignItems: 'center', justifyContent: 'center',
                 boxShadow: '0 2px 8px rgba(0,0,0,.1)', border: '1px solid #E5E7EB',
               }} title="Cancel">
@@ -815,7 +815,7 @@ const FloorPlan = ({ embedded = false }) => {
               const isActive = activeZone === floor.id
               const count = floorCounts[floor.id] || 0
               // Only show floors that have elements, or main, or the active one
-              if (floor.id !== 'all' && floor.id !== 'main' && count === 0 && !isActive && locked) return null
+              if (floor.id !== 'all' && floor.id !== 'main' && count === 0 && !isActive) return null
               return (
                 <button key={floor.id} onClick={() => setActiveZone(floor.id)}
                   className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold whitespace-nowrap transition-all shrink-0"
