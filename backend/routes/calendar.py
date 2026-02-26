@@ -39,6 +39,11 @@ def _safe_str(val):
     return str(val) if val else ""
 
 
+def _mins_to_time(m: int) -> str:
+    """Convert minutes since midnight to 'HH:MM'."""
+    return f"{(m // 60) % 24:02d}:{m % 60:02d}"
+
+
 async def _query_both_collections(db, business_id, bid_str, date_param, collection_names):
     """Query multiple collections with multiple field name patterns."""
     all_raw = []
@@ -284,15 +289,20 @@ async def get_calendar_restaurant(
         bookings.append({
             "id": _safe_str(b.get("_id")),
             "time": bl["time_str"],
+            "endTime": b.get("endTime") or _mins_to_time(bl["start_min"] + bl["duration"]),
             "partySize": bl["party"],
             "customerName": bl["customer_name"],
             "tableId": bl["table_id"],
-            "tableName": b.get("table_name") or table_id_map.get(bl["table_id"], {}).get("name", ""),
+            "tableName": b.get("tableName") or b.get("table_name") or table_id_map.get(bl["table_id"], {}).get("name", ""),
             "status": b.get("status", "confirmed"),
             "occasion": b.get("occasion"),
             "isVip": b.get("is_vip") or b.get("isVip", False),
             "notes": b.get("notes", ""),
             "duration": bl["duration"],
+            "allergens": b.get("allergens", []),
+            "deposit": b.get("deposit", {}),
+            "channel": b.get("channel", "online"),
+            "seatingPreference": b.get("seatingPreference"),
         })
 
     bookings.sort(key=lambda x: x.get("time", ""))

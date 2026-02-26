@@ -15,6 +15,164 @@ logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/book", tags=["book"])
 
+# ═══════════════ UK 14 MAIN ALLERGENS ═══════════════
+UK_ALLERGENS = [
+    "celery", "gluten", "crustaceans", "eggs", "fish", "lupin",
+    "milk", "molluscs", "mustard", "nuts", "peanuts", "sesame",
+    "soya", "sulphites",
+]
+
+DEFAULT_TURN_TIME = 90  # minutes — restaurant default booking duration
+
+
+# ═══════════════ TABLE ASSIGNMENT HELPERS ═══════════════
+
+def _time_to_mins(t: str) -> int:
+    """Convert 'HH:MM' to minutes since midnight."""
+    try:
+        parts = str(t).split(":")
+        return int(parts[0]) * 60 + int(parts[1])
+    except (ValueError, IndexError):
+        return 720  # noon fallback
+
+
+def _mins_to_time(m: int) -> str:
+    """Convert minutes since midnight to 'HH:MM'."""
+    return f"{(m // 60) % 24:02d}:{m % 60:02d}"
+
+
+def _times_overlap(start1: int, end1: int, start2: int, end2: int) -> bool:
+    """Check if two time ranges overlap."""
+    return start1 < end2 and start2 < end1
+
+
+async def _get_tables(db, business):
+    """Get tables from business doc or tables collection."""
+    tables = business.get("tables", [])
+    if tables:
+        return tables
+    # Try floor plan elements
+    fp = business.get("floor_plan", {})
+    if fp.get("elements"):
+        return [e for e in fp["elements"] if e.get("type") != "fixture"]
+    # Try separate tables collection
+    biz_id = str(business["_id"])
+    try:
+        from bson import ObjectId
+        cursor = db.tables.find({
+            "$or": [
+                {"business_id": biz_id},
+                {"businessId": biz_id},
+                {"business_id": ObjectId(biz_id)},
+            ]
+        })
+        return await cursor.to_list(length=100)
+    except Exception:
+        return []
+
+
+async def _get_day_bookings(db, biz_id: str, date_str: str):
+    """Get all non-cancelled bookings for a business on a date."""
+    return await db.bookings.find({
+        "businessId": biz_id,
+        "date": date_str,
+        "status": {"$nin": ["cancelled", "no_show"]},
+    }).to_list(length=500)
+
+
+async def _find_best_table(db, business, date_str: str, time_str: str, party_size: int, duration: int = DEFAULT_TURN_TIME, preference: str = None):
+    """
+    Find the best available table for a booking.
+    Returns (table_id, table_name) or (None, None) if no table fits.
+    
+    Strategy:
+    - Get all tables, filter by capacity >= party_size
+    - Get existing bookings for the day
+    - Check each table for time conflicts
+    - Pick the smallest available table that fits (efficient seating)
+    - Apply seating preference if specified (window, booth, terrace, etc.)
+    """
+    biz_id = str(business["_id"])
+    tables = await _get_tables(db, business)
+    if not tables:
+        return None, None
+
+    day_bookings = await _get_day_bookings(db, biz_id, date_str)
+    req_start = _time_to_mins(time_str)
+    req_end = req_start + duration
+
+    # Build occupation map: table_id -> list of (start_min, end_min)
+    occupied = {}
+    for b in day_bookings:
+        tid = b.get("tableId") or b.get("table_id")
+        if not tid:
+            continue
+        b_start = _time_to_mins(b.get("time", "12:00"))
+        b_dur = b.get("duration") or DEFAULT_TURN_TIME
+        b_end = b_start + b_dur
+        occupied.setdefault(tid, []).append((b_start, b_end))
+
+    # Filter and rank candidate tables
+    candidates = []
+    for t in tables:
+        tid = t.get("id") or t.get("_id") or t.get("name")
+        seats = t.get("seats") or t.get("capacity") or 4
+        if seats < party_size:
+            continue
+
+        # Check time conflicts
+        conflicts = occupied.get(tid, [])
+        has_conflict = any(_times_overlap(req_start, req_end, s, e) for s, e in conflicts)
+        if has_conflict:
+            continue
+
+        # Score: prefer smallest table that fits + seating preference match
+        score = seats * 10  # lower = better (smallest table)
+        zone = t.get("zone", "main")
+        shape = t.get("shape", "")
+
+        if preference:
+            pref_lower = preference.lower()
+            if pref_lower in ("window",) and zone == "main":
+                score -= 5
+            elif pref_lower in ("terrace", "outside") and zone in ("terrace", "outside"):
+                score -= 15
+            elif pref_lower in ("booth",) and shape == "booth":
+                score -= 15
+            elif pref_lower in ("quiet", "private") and zone in ("upstairs", "basement"):
+                score -= 10
+
+        candidates.append((score, tid, t.get("name") or tid))
+
+    if not candidates:
+        return None, None
+
+    candidates.sort(key=lambda x: x[0])
+    _, best_id, best_name = candidates[0]
+    return best_id, best_name
+
+
+async def _check_double_booking(db, biz_id: str, table_id: str, date_str: str, time_str: str, duration: int = DEFAULT_TURN_TIME, exclude_booking_id: str = None):
+    """Check if a specific table has a conflict at the given time. Returns conflicting booking or None."""
+    if not table_id:
+        return None
+    day_bookings = await _get_day_bookings(db, biz_id, date_str)
+    req_start = _time_to_mins(time_str)
+    req_end = req_start + duration
+
+    for b in day_bookings:
+        if exclude_booking_id and (b.get("_id") == exclude_booking_id):
+            continue
+        btid = b.get("tableId") or b.get("table_id")
+        if btid != table_id:
+            continue
+        b_start = _time_to_mins(b.get("time", "12:00"))
+        b_dur = b.get("duration") or DEFAULT_TURN_TIME
+        b_end = b_start + b_dur
+        if _times_overlap(req_start, req_end, b_start, b_end):
+            return b  # conflict found
+    return None
+
 
 def _get_address_str(business):
     """Extract address as string from either string or dict format."""
@@ -54,6 +212,22 @@ class BookingCreateRestaurant(BaseModel):
 
 
 # --- Public booking endpoints ---
+
+# ═══ Fixed routes MUST come before {business_slug} routes ═══
+
+@router.get("/allergens")
+async def get_allergens():
+    """Returns the 14 main UK allergens for booking forms."""
+    return {
+        "allergens": UK_ALLERGENS,
+        "labels": {
+            "celery": "Celery", "gluten": "Cereals (Gluten)", "crustaceans": "Crustaceans",
+            "eggs": "Eggs", "fish": "Fish", "lupin": "Lupin", "milk": "Milk",
+            "molluscs": "Molluscs", "mustard": "Mustard", "nuts": "Tree Nuts",
+            "peanuts": "Peanuts", "sesame": "Sesame", "soya": "Soya", "sulphites": "Sulphites",
+        }
+    }
+
 
 @router.get("/{business_slug}")
 async def get_booking_page(business_slug: str):
@@ -223,7 +397,7 @@ async def get_availability(
     staffId: Optional[str] = Query(None),
     partySize: int = Query(2, ge=1),
 ):
-    """Returns available time slots for a date."""
+    """Returns available time slots for a date with REAL table availability."""
     db = get_database()
     business = await db.businesses.find_one({"slug": business_slug})
     if not business or not business.get("claimed"):
@@ -234,25 +408,61 @@ async def get_availability(
     except ValueError:
         raise HTTPException(400, "Invalid date format")
 
+    biz_id = str(business["_id"])
     bs = business.get("booking_settings") or {}
     bp = business.get("bookingPage") or {}
     bp_s = bp.get("settings") or {}
     interval = bp_s.get("bookingIntervalMinutes") or bs.get("slot_duration_minutes", 30)
+    turn_time = bp_s.get("turnTimeMinutes") or bs.get("turn_time_minutes") or DEFAULT_TURN_TIME
+
+    # Get tables and existing bookings
+    tables = await _get_tables(db, business)
+    day_bookings = await _get_day_bookings(db, biz_id, date_param)
+
+    # Build occupation map
+    occupied = {}  # table_id -> [(start, end), ...]
+    for b in day_bookings:
+        tid = b.get("tableId") or b.get("table_id")
+        if not tid:
+            continue
+        b_start = _time_to_mins(b.get("time", "12:00"))
+        b_dur = b.get("duration") or turn_time
+        occupied.setdefault(tid, []).append((b_start, b_start + b_dur))
+
+    # Filter tables that can fit the party
+    fitting_tables = [t for t in tables if (t.get("seats") or t.get("capacity") or 4) >= partySize]
+
+    # Opening hours
+    open_time = _time_to_mins(bp_s.get("openTime") or bs.get("open_time") or "09:00")
+    close_time = _time_to_mins(bp_s.get("closeTime") or bs.get("close_time") or "21:00")
+    last_booking = close_time - turn_time  # Can't book if it won't finish before close
 
     slots = []
-    current = datetime.combine(d, time(9, 0))
-    end_dt = datetime.combine(d, time(21, 0))
+    current_mins = open_time
+    while current_mins <= last_booking:
+        slot_end = current_mins + turn_time
+        # Count how many fitting tables are free at this time
+        free_count = 0
+        for t in fitting_tables:
+            tid = t.get("id") or t.get("_id") or t.get("name")
+            table_slots = occupied.get(tid, [])
+            conflict = any(_times_overlap(current_mins, slot_end, s, e) for s, e in table_slots)
+            if not conflict:
+                free_count += 1
 
-    while current < end_dt:
-        slots.append({"time": current.strftime("%H:%M"), "available": True, "tablesLeft": 5})
-        current += timedelta(minutes=interval)
+        slots.append({
+            "time": _mins_to_time(current_mins),
+            "available": free_count > 0,
+            "tablesLeft": free_count,
+        })
+        current_mins += interval
 
-    return {"date": date_param, "slots": slots}
+    return {"date": date_param, "slots": slots, "turnTime": turn_time}
 
 
 @router.post("/{business_slug}/create")
 async def create_booking(business_slug: str, payload: dict):
-    """Creates a booking (services or restaurant)."""
+    """Creates a booking with auto table assignment, double-booking prevention, allergens, deposits."""
     db = get_database()
     business = await db.businesses.find_one({"slug": business_slug})
     if not business or not business.get("claimed"):
@@ -271,8 +481,77 @@ async def create_booking(business_slug: str, payload: dict):
     bs = business.get("booking_settings") or {}
     auto_confirm = bp_s.get("autoConfirm", bs.get("auto_confirm", True))
     customer = payload.get("customer", {})
+
+    # ── Duration (restaurants) ──
+    turn_time = bp_s.get("turnTimeMinutes") or bs.get("turn_time_minutes") or DEFAULT_TURN_TIME
+    duration = payload.get("duration") or turn_time
+    booking_time = payload.get("time", "12:00")
+    end_time = _add_minutes(booking_time, duration)
+
+    # ── Party size ──
+    party_size = payload.get("partySize") or 2
+
+    # ── Allergens (validate against UK 14) ──
+    raw_allergens = payload.get("allergens", [])
+    allergens = [a.lower().strip() for a in raw_allergens if a.lower().strip() in UK_ALLERGENS]
+    # Also keep free-text dietary requirements
+    dietary_reqs = payload.get("dietaryRequirements", [])
+
+    # ── Auto table assignment (restaurants only) ──
+    table_id = None
+    table_name = None
+    if biz_type == "restaurant":
+        requested_table = payload.get("tableId")
+        if requested_table:
+            # Check double-booking on requested table
+            conflict = await _check_double_booking(
+                db, biz_id, requested_table,
+                payload.get("date", ""), booking_time, duration
+            )
+            if conflict:
+                conflict_name = conflict.get("customer", {}).get("name", "another booking")
+                conflict_time = conflict.get("time", "")
+                raise HTTPException(
+                    409,
+                    f"Table {requested_table} is already booked at {conflict_time} by {conflict_name}. Please choose a different time or table."
+                )
+            table_id = requested_table
+            table_name = requested_table
+        else:
+            # Auto-assign best available table
+            table_id, table_name = await _find_best_table(
+                db, business,
+                payload.get("date", ""),
+                booking_time,
+                party_size,
+                duration,
+                payload.get("seatingPreference"),
+            )
+            # No table = venue is full at that time
+            if not table_id:
+                # Still create booking (unassigned) — staff can assign manually
+                logger.info(f"No table auto-assigned for {reference} — all tables occupied or none configured")
+
+    # ── Deposit logic ──
+    deposit_settings = bp_s.get("deposit") or bs.get("deposit") or {}
+    deposit_threshold = deposit_settings.get("minPartySize", 6)  # Default: 6+ guests
+    deposit_amount = deposit_settings.get("amount")  # e.g. 10.00 per person or flat
+    deposit_type = deposit_settings.get("type", "per_person")  # per_person or flat
+    deposit_enabled = deposit_settings.get("enabled", True) and party_size >= deposit_threshold
+    cancellation_hours = deposit_settings.get("cancellationHours", 24)
+
+    deposit_total = None
+    if deposit_enabled and deposit_amount:
+        if deposit_type == "per_person":
+            deposit_total = round(deposit_amount * party_size, 2)
+        else:
+            deposit_total = round(deposit_amount, 2)
+
+    # ── CRM: ensure client record ──
     from routes.run7_clients import ensure_client_from_booking, refresh_client_stats
     client_id = await ensure_client_from_booking(db, biz_id, customer, "online", payload.get("date"))
+
+    # ── Build booking document ──
     doc = {
         "_id": f"bkg_{datetime.utcnow().strftime('%Y%m%d%H%M%S')}_{biz_id[:8]}",
         "customerId": client_id,
@@ -282,9 +561,13 @@ async def create_booking(business_slug: str, payload: dict):
         "status": "confirmed" if auto_confirm else "pending",
         "service": payload.get("service") or None,
         "staffId": payload.get("staffId"),
-        "partySize": payload.get("partySize"),
+        "partySize": party_size,
         "date": payload.get("date"),
-        "time": payload.get("time"),
+        "time": booking_time,
+        "duration": duration,
+        "endTime": end_time,
+        "tableId": table_id,
+        "tableName": table_name,
         "customer": {
             "name": customer.get("name", ""),
             "phone": customer.get("phone", ""),
@@ -293,8 +576,16 @@ async def create_booking(business_slug: str, payload: dict):
         "notes": payload.get("notes"),
         "occasion": payload.get("occasion"),
         "seatingPreference": payload.get("seatingPreference"),
-        "dietaryRequirements": payload.get("dietaryRequirements", []),
-        "deposit": {"enabled": False, "amount": None, "stripePaymentIntentId": payload.get("depositPaymentIntentId"), "status": None},
+        "allergens": allergens,
+        "dietaryRequirements": dietary_reqs,
+        "deposit": {
+            "enabled": deposit_enabled,
+            "amount": deposit_total,
+            "threshold": deposit_threshold,
+            "cancellationHours": cancellation_hours,
+            "stripePaymentIntentId": payload.get("depositPaymentIntentId"),
+            "status": "paid" if payload.get("depositPaymentIntentId") else ("required" if deposit_enabled else None),
+        },
         "channel": "online",
         "source": "booking_link",
         "notifications": {"confirmationSent": False, "reminderScheduled": None, "reminderSent": False, "reviewRequestSent": False},
@@ -302,17 +593,19 @@ async def create_booking(business_slug: str, payload: dict):
         "updatedAt": datetime.utcnow(),
     }
 
+    # Services-specific fields
     if biz_type == "services":
         svc = next((s for s in business.get("menu", []) if s.get("id") == payload.get("serviceId")), None)
         doc["service"] = {"id": payload.get("serviceId"), "name": svc.get("name") if svc else "", "duration": (svc or {}).get("duration_minutes", 60)}
-        doc["endTime"] = _add_minutes(payload.get("time", "00:00"), (svc or {}).get("duration_minutes", 60))
+        doc["endTime"] = _add_minutes(booking_time, (svc or {}).get("duration_minutes", 60))
+        doc["duration"] = (svc or {}).get("duration_minutes", 60)
 
     await db.bookings.insert_one(doc)
 
     if client_id:
         await refresh_client_stats(db, biz_id, client_id)
 
-    # ── Fire email + SMS notifications (async, non-blocking) ──
+    # ── Notifications ──
     try:
         from helpers.notifications import notify_booking_created
         import asyncio
@@ -320,13 +613,14 @@ async def create_booking(business_slug: str, payload: dict):
     except Exception as notify_err:
         logger.warning(f"Notification dispatch failed (booking still created): {notify_err}")
 
-    # Run 3: Log to activity feed
+    # ── Activity log ──
     cust_name = (doc.get("customer") or {}).get("name", "Customer")
-    svc_name = (doc.get("service") or {}).get("name", "Booking")
+    table_info = f", table {table_name}" if table_name else ""
+    allergen_info = f", allergens: {', '.join(allergens)}" if allergens else ""
     await db.activity_log.insert_one({
         "businessId": biz_id,
         "type": "booking_created",
-        "message": f"New booking: {cust_name} — {svc_name}, {doc.get('date')} at {doc.get('time')}",
+        "message": f"New booking: {cust_name} — party of {party_size}, {doc.get('date')} at {booking_time}–{end_time}{table_info}{allergen_info}",
         "bookingId": doc["_id"],
         "timestamp": datetime.utcnow(),
     })
@@ -338,13 +632,21 @@ async def create_booking(business_slug: str, payload: dict):
             "status": doc["status"],
             "business": {"name": business.get("name"), "address": _get_address_str(business)},
             "service": doc.get("service"),
-            "staff": {"name": _get_staff_name(business, doc.get("staffId"))} if doc.get("staffId") else None,
-            "date": doc["date"],
-            "time": doc["time"],
+            "date": doc.get("date"),
+            "time": booking_time,
+            "endTime": end_time,
+            "duration": duration,
+            "partySize": party_size,
+            "tableId": table_id,
+            "tableName": table_name,
+            "allergens": allergens,
+            "deposit": doc["deposit"],
             "customer": doc["customer"],
-            "depositPaid": None,
-            "calendarLinks": _calendar_links(business, doc),
-        }
+            "notes": doc.get("notes"),
+            "calendarLinks": {
+                "google": f"https://calendar.google.com/calendar/render?action=TEMPLATE&text=Booking at {business.get('name')}&dates={doc.get('date','').replace('-','')}T{booking_time.replace(':','')}00/{doc.get('date','').replace('-','')}T{end_time.replace(':','')}00&location={_get_address_str(business)}",
+            },
+        },
     }
 
 
@@ -375,6 +677,91 @@ def _calendar_links(business, doc):
     return {
         "google": f"https://calendar.google.com/calendar/render?action=TEMPLATE&text=Booking at {name}&dates={dt.replace('-', '').replace(':', '')}/{dt.replace('-', '').replace(':', '')}&location={addr}",
         "apple": f"data:text/calendar;charset=utf8,BEGIN:VCALENDAR...",
+    }
+
+
+# ═══════════════ WALK-IN QUICK ADD ═══════════════
+
+@router.post("/{business_slug}/walkin")
+async def create_walkin(business_slug: str, payload: dict):
+    """Quick walk-in: name, party size, table — done. No email/phone required."""
+    db = get_database()
+    business = await db.businesses.find_one({"slug": business_slug})
+    if not business or not business.get("claimed"):
+        raise HTTPException(404, "Business not found")
+
+    biz_id = str(business["_id"])
+    name = payload.get("name", "Walk-in")
+    party_size = payload.get("partySize", 2)
+    table_id = payload.get("tableId")
+    table_name = payload.get("tableName") or table_id
+    notes = payload.get("notes", "")
+    now = datetime.utcnow()
+    today_str = now.strftime("%Y-%m-%d")
+    time_str = now.strftime("%H:%M")
+
+    turn_time = (business.get("bookingPage") or {}).get("settings", {}).get("turnTimeMinutes") or DEFAULT_TURN_TIME
+    duration = payload.get("duration") or turn_time
+
+    # Double-booking check if table specified
+    if table_id:
+        conflict = await _check_double_booking(db, biz_id, table_id, today_str, time_str, duration)
+        if conflict:
+            conflict_name = conflict.get("customer", {}).get("name", "someone")
+            raise HTTPException(409, f"Table {table_id} occupied by {conflict_name} until {_add_minutes(conflict.get('time',''), conflict.get('duration', duration))}")
+
+    # Auto-assign if no table given
+    if not table_id:
+        table_id, table_name = await _find_best_table(db, business, today_str, time_str, party_size, duration)
+
+    count = await db.bookings.count_documents({"businessId": biz_id})
+    reference = f"WLK-{(count % 10000) + 1:04d}"
+
+    doc = {
+        "_id": f"wlk_{now.strftime('%Y%m%d%H%M%S')}_{biz_id[:8]}",
+        "reference": reference,
+        "businessId": biz_id,
+        "type": "restaurant",
+        "status": "seated",  # Walk-ins are immediately seated
+        "partySize": party_size,
+        "date": today_str,
+        "time": time_str,
+        "duration": duration,
+        "endTime": _add_minutes(time_str, duration),
+        "tableId": table_id,
+        "tableName": table_name,
+        "customer": {"name": name, "phone": "", "email": ""},
+        "notes": notes,
+        "allergens": [a.lower() for a in payload.get("allergens", []) if a.lower() in UK_ALLERGENS],
+        "channel": "walkin",
+        "source": "floor_plan",
+        "deposit": {"enabled": False},
+        "createdAt": now,
+        "updatedAt": now,
+    }
+
+    await db.bookings.insert_one(doc)
+
+    await db.activity_log.insert_one({
+        "businessId": biz_id,
+        "type": "walkin",
+        "message": f"Walk-in: {name}, party of {party_size}" + (f", table {table_name}" if table_name else ""),
+        "bookingId": doc["_id"],
+        "timestamp": now,
+    })
+
+    return {
+        "booking": {
+            "id": doc["_id"],
+            "reference": reference,
+            "status": "seated",
+            "name": name,
+            "partySize": party_size,
+            "tableId": table_id,
+            "tableName": table_name,
+            "time": time_str,
+            "endTime": doc["endTime"],
+        }
     }
 
 

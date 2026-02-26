@@ -104,7 +104,7 @@ const SeatDots = ({ seats, w, h, color, active }) => {
 
 /* ═══════════════ TABLE NODE (unchanged styling) ═══════════════ */
 
-const TableNode = ({ table, status, isSelected, locked, isDragging, onMouseDown, onTouchStart, onClick, onEdit, onDelete, onRotate, scale = 1, hasIssue = false }) => {
+const TableNode = ({ table, status, isSelected, locked, isDragging, onMouseDown, onTouchStart, onClick, onEdit, onDelete, onRotate, scale = 1, hasIssue = false, isNewBooking = false }) => {
   const [hovered, setHovered] = useState(false)
   const [confirmDelete, setConfirmDelete] = useState(false)
   const st = STATUS[status] || STATUS.available
@@ -126,7 +126,13 @@ const TableNode = ({ table, status, isSelected, locked, isDragging, onMouseDown,
 
   return (
     <div
-      style={{ position: 'absolute', left: table.x * scale, top: table.y * scale, zIndex: isDragging ? 200 : hovered ? 150 : isSelected ? 20 : 1 }}
+      style={{
+        position: 'absolute', left: table.x * scale, top: table.y * scale,
+        zIndex: isDragging ? 200 : hovered ? 150 : isSelected ? 20 : 1,
+        ...(isNewBooking ? {
+          animation: 'fpNewBooking 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards, fpGentlePulse 2s ease-in-out 0.6s infinite',
+        } : {}),
+      }}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => { setHovered(false); setConfirmDelete(false) }}
     >
@@ -361,6 +367,9 @@ const FloorPlan = ({ embedded = false }) => {
 
   const [elements, setElements] = useState(DEFAULT_ELEMENTS)
   const [bookings, setBookings] = useState([])
+  const [newBookingTables, setNewBookingTables] = useState(new Set()) // tables that just got a booking
+  const [newBookingIds, setNewBookingIds] = useState(new Set()) // booking IDs that just appeared
+  const prevBookingIdsRef = useRef(new Set())
   const [selectedTable, setSelectedTable] = useState(null)
   const [locked, setLocked] = useState(true)
   const [loading, setLoading] = useState(true)
@@ -527,14 +536,89 @@ const FloorPlan = ({ embedded = false }) => {
     setHasChanges(JSON.stringify(elements) !== savedRef.current)
   }, [elements])
 
-  /* ── Load bookings from API ── */
+  /* ── Load bookings from API — polls every 15s, detects NEW bookings ── */
   useEffect(() => {
     if (!bid) return
-    const today = new Date().toISOString().slice(0, 10)
-    api.get(`/calendar/business/${bid}/restaurant?date=${today}&view=day`)
-      .then(d => { if (d.bookings?.length) setBookings(d.bookings) })
-      .catch(() => {})
+    let alive = true
+
+    const fetchBookings = () => {
+      const today = new Date().toISOString().slice(0, 10)
+      api.get(`/calendar/business/${bid}/restaurant?date=${today}&view=day`)
+        .then(d => {
+          if (!alive) return
+          const incoming = d.bookings || []
+          setBookings(incoming)
+
+          // Detect newly appeared bookings
+          const incomingIds = new Set(incoming.map(b => b.id || b._id))
+          const brandNew = []
+          for (const id of incomingIds) {
+            if (!prevBookingIdsRef.current.has(id)) brandNew.push(id)
+          }
+
+          // If we have new bookings AND this isn't the first load
+          if (brandNew.length > 0 && prevBookingIdsRef.current.size > 0) {
+            // Animate the booking cards in the sidebar
+            setNewBookingIds(new Set(brandNew))
+            setTimeout(() => { if (alive) setNewBookingIds(new Set()) }, 4000)
+
+            // Find which tables these new bookings are assigned to
+            const newTables = new Set()
+            for (const b of incoming) {
+              const bId = b.id || b._id
+              if (brandNew.includes(bId)) {
+                const tbl = b.tableId || b.table_id || b.tableName
+                if (tbl) newTables.add(tbl)
+              }
+            }
+            if (newTables.size > 0) {
+              setNewBookingTables(newTables)
+              setTimeout(() => { if (alive) setNewBookingTables(new Set()) }, 4000)
+            }
+          }
+
+          prevBookingIdsRef.current = incomingIds
+        })
+        .catch(() => {})
+    }
+
+    fetchBookings()
+    const interval = setInterval(fetchBookings, 10000) // poll every 10s
+    return () => { alive = false; clearInterval(interval) }
   }, [bid])
+
+  /* ── Sync bookings onto floor plan table statuses ── */
+  useEffect(() => {
+    if (!bookings.length) return
+    setElements(prev => {
+      let changed = false
+      const updated = prev.map(el => {
+        if (el.type === 'fixture') return el
+        // Find bookings assigned to this table
+        const match = bookings.find(b => {
+          const bTable = b.tableId || b.table_id || b.tableName || ''
+          return bTable === el.id || bTable === el.name
+        })
+        if (match) {
+          const newStatus = match.status === 'seated' ? 'seated'
+            : match.status === 'confirmed' ? 'confirmed'
+            : match.status === 'pending' ? 'pending'
+            : match.status === 'completed' ? 'available'
+            : 'reserved'
+          const guest = match.customerName || match.customer?.name || match.guest_name || ''
+          const nextTime = match.endTime ? `${match.time}–${match.endTime}` : (match.time || '')
+          const allergens = match.allergens || []
+          const partySize = match.partySize || 0
+          if (el.status !== newStatus || el.guest !== guest || el.nextTime !== nextTime || JSON.stringify(el.allergens || []) !== JSON.stringify(allergens)) {
+            changed = true
+            return { ...el, status: newStatus, guest, nextTime, allergens, partySize }
+          }
+        }
+        return el
+      })
+      return changed ? updated : prev
+    })
+  }, [bookings])
 
   /* ── Derived: visible elements per zone ── */
   const tables = useMemo(() => elements.filter(e => e.type !== 'fixture'), [elements])
@@ -719,6 +803,28 @@ const FloorPlan = ({ embedded = false }) => {
       <style>{`
         @keyframes fpPopIn { from { opacity: 0; transform: scale(0.7) translateY(4px); } to { opacity: 1; transform: scale(1) translateY(0); } }
         @keyframes fpPulse { 0%, 100% { box-shadow: 0 4px 14px rgba(27,67,50,0.3); } 50% { box-shadow: 0 4px 20px rgba(27,67,50,0.5); } }
+        @keyframes fpNewBooking {
+          0% { transform: scale(0); opacity: 0; }
+          50% { transform: scale(1.18); opacity: 1; }
+          70% { transform: scale(0.95); }
+          85% { transform: scale(1.06); }
+          100% { transform: scale(1); opacity: 1; }
+        }
+        @keyframes fpGentlePulse {
+          0%, 100% { transform: scale(1); }
+          50% { transform: scale(1.04); }
+        }
+        @keyframes fpCardZoomIn {
+          0% { transform: scale(0) translateY(10px); opacity: 0; }
+          50% { transform: scale(1.08) translateY(-2px); opacity: 1; }
+          70% { transform: scale(0.97) translateY(1px); }
+          85% { transform: scale(1.03) translateY(0); }
+          100% { transform: scale(1) translateY(0); opacity: 1; }
+        }
+        @keyframes fpCardGlow {
+          0%, 100% { box-shadow: 0 0 0 0 rgba(27,67,50,0); }
+          50% { box-shadow: 0 0 12px 3px rgba(27,67,50,0.15); }
+        }
       `}</style>
 
       {/* Room Setup Modal */}
@@ -1073,6 +1179,7 @@ const FloorPlan = ({ embedded = false }) => {
               {visibleElements.filter(e => e.type !== 'fixture').map(table => (
                 <TableNode key={table.id} table={table} status={table.status || 'available'} isSelected={selectedTable === table.id} locked={locked} isDragging={dragging === table.id}
                   hasIssue={problemElements.has(table.id)}
+                  isNewBooking={newBookingTables.has(table.id) || newBookingTables.has(table.name)}
                   onMouseDown={(e) => handleMouseDown(e, table.id)} onTouchStart={(e) => handleTouchStart(e, table.id)}
                   onClick={() => locked && setSelectedTable(table.id === selectedTable ? null : table.id)}
                   onEdit={() => setEditTable(table)} onDelete={() => deleteElement(table.id)}
@@ -1092,16 +1199,31 @@ const FloorPlan = ({ embedded = false }) => {
             <div className="flex-1 overflow-y-auto p-3 space-y-2">
               {bookings.length > 0 ? bookings.sort((a, b) => (a.time || '').localeCompare(b.time || '')).map((b, i) => {
                 const st = STATUS[b.status] || STATUS.confirmed
+                const bId = b.id || b._id
+                const isNew = newBookingIds.has(bId)
                 return (
-                  <div key={b.id || i} className="p-3 rounded-xl border border-gray-50 hover:border-gray-200 transition-all hover:shadow-sm" style={{ borderLeft: `3px solid ${st.border}` }}>
+                  <div key={bId || i} className="p-3 rounded-xl border border-gray-50 hover:border-gray-200 transition-all hover:shadow-sm" style={{
+                    borderLeft: `3px solid ${st.border}`,
+                    ...(isNew ? {
+                      animation: 'fpCardZoomIn 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards, fpCardGlow 2s ease-in-out 0.6s 3',
+                    } : {}),
+                  }}>
                     <div className="flex items-center justify-between mb-1">
                       <span className="font-bold text-sm text-gray-900">{b.customerName}</span>
-                      <span className="text-xs font-extrabold" style={{ color: st.text }}>{b.time}</span>
+                      <span className="text-xs font-extrabold" style={{ color: st.text }}>{b.time}{b.endTime ? `–${b.endTime}` : ''}</span>
                     </div>
                     <div className="flex items-center gap-2 text-[11px] text-gray-500 font-medium">
                       <span>{b.partySize || 2} guests</span><span>·</span><span>{b.tableName || `Table ${b.tableId}`}</span>
                       <span className="ml-auto px-2 py-0.5 rounded-full text-[9px] font-extrabold" style={{ background: st.bg, color: st.text }}>{st.label}</span>
                     </div>
+                    {b.allergens?.length > 0 && (
+                      <div className="flex flex-wrap gap-1 mt-1.5">
+                        <AlertTriangle size={11} className="text-amber-500 mt-0.5 shrink-0" />
+                        {b.allergens.map((a, ai) => (
+                          <span key={ai} className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-amber-50 text-amber-700 border border-amber-200">{a}</span>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 )
               }) : (

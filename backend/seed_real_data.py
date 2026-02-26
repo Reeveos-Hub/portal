@@ -294,12 +294,14 @@ for day_offset in range(7):
                 "email": guest["email"],
             },
             "tableId": table["id"] if table else None,
+            "tableName": table["name"] if table else None,
             "table_name": table["name"] if table else None,
             "notes": random.choice(NOTES),
             "occasion": random.choice(OCCASIONS),
             "seatingPreference": random.choice(SEATING_PREFS),
             "dietaryRequirements": random.choice(DIETARY),
-            "deposit": {"enabled": False, "amount": None, "stripePaymentIntentId": None, "status": None},
+            "allergens": random.choice([[], [], [], [], ["gluten"], ["nuts"], ["milk"], ["eggs", "gluten"], ["peanuts", "sesame"]]),
+            "deposit": {"enabled": party_size >= 6, "amount": 5.0 * party_size if party_size >= 6 else None, "threshold": 6, "cancellationHours": 24, "stripePaymentIntentId": None, "status": "paid" if party_size >= 6 else None},
             "channel": random.choice(["online", "online", "online", "phone", "walk_in"]),
             "source": "booking_link",
             "notifications": {
@@ -311,6 +313,15 @@ for day_offset in range(7):
             "createdAt": datetime.utcnow() - timedelta(days=max(1, 7 - day_offset_from_today + random.randint(0, 3))),
             "updatedAt": datetime.utcnow(),
         }
+        # Calculate endTime from time + duration
+        try:
+            h, m = map(int, time_slot.split(":"))
+            m += booking["duration"]
+            h += m // 60
+            m %= 60
+            booking["endTime"] = f"{h:02d}:{m:02d}"
+        except:
+            booking["endTime"] = time_slot
 
         day_bookings.append(booking)
         ref_counter += 1
@@ -355,12 +366,14 @@ for day_offset in range(7):
                 "email": guest["email"],
             },
             "tableId": table["id"] if table else None,
+            "tableName": table["name"] if table else None,
             "table_name": table["name"] if table else None,
             "notes": random.choice(NOTES),
             "occasion": random.choice(OCCASIONS),
             "seatingPreference": random.choice(SEATING_PREFS),
             "dietaryRequirements": random.choice(DIETARY),
-            "deposit": {"enabled": False, "amount": None, "stripePaymentIntentId": None, "status": None},
+            "allergens": random.choice([[], [], [], [], ["gluten"], ["nuts"], ["milk", "eggs"], ["peanuts"], ["sesame", "soya"]]),
+            "deposit": {"enabled": party_size >= 6, "amount": 5.0 * party_size if party_size >= 6 else None, "threshold": 6, "cancellationHours": 24, "stripePaymentIntentId": None, "status": "paid" if party_size >= 6 else None},
             "channel": random.choice(["online", "online", "online", "online", "phone", "walk_in"]),
             "source": "booking_link",
             "notifications": {
@@ -372,6 +385,15 @@ for day_offset in range(7):
             "createdAt": datetime.utcnow() - timedelta(days=max(1, 7 - day_offset_from_today + random.randint(0, 5))),
             "updatedAt": datetime.utcnow(),
         }
+        # Calculate endTime
+        try:
+            h, m = map(int, time_slot.split(":"))
+            m += booking["duration"]
+            h += m // 60
+            m %= 60
+            booking["endTime"] = f"{h:02d}:{m:02d}"
+        except:
+            booking["endTime"] = time_slot
 
         day_bookings.append(booking)
         ref_counter += 1
