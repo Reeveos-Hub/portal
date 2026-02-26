@@ -662,8 +662,26 @@ const FloorPlan = ({ embedded = false }) => {
 
   /* ── Room Setup Handler ── */
   const handleRoomSetup = async (config) => {
+    const newW = Math.min(config.width_m * 100, 2000)
+    const newH = Math.min(config.height_m * 100, 2000)
+    const oldW = canvasW
+    const oldH = canvasH
+
     setRoomConfig(config)
     setShowRoomSetup(false)
+
+    // Rescale all element positions to fit the new canvas
+    if (oldW !== newW || oldH !== newH) {
+      const scaleX = newW / oldW
+      const scaleY = newH / oldH
+      setElements(prev => prev.map(el => ({
+        ...el,
+        x: Math.max(10, Math.min(newW - 60, Math.round(el.x * scaleX))),
+        y: Math.max(10, Math.min(newH - 60, Math.round(el.y * scaleY))),
+      })))
+      setHasChanges(true)
+    }
+
     // Save to backend
     if (bid) {
       try {
@@ -672,7 +690,7 @@ const FloorPlan = ({ embedded = false }) => {
         console.error('Failed to save room config:', err)
       }
     }
-    showToast(`Room set: ${config.width_m}m × ${config.height_m}m ✓`)
+    showToast(`Room set: ${config.width_m}m × ${config.height_m}m — elements rescaled ✓`)
   }
 
   if (loading) return <RezvoLoader message="Loading floor plan..." />
