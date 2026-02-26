@@ -1,13 +1,14 @@
 """
 Rezvo AI Chatbot — Claude-powered with REAL database access
 """
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Request as FastAPIRequest
 from pydantic import BaseModel
 from typing import List, Optional
 import httpx
 import logging
 import traceback
 from datetime import datetime, timedelta
+from middleware.rate_limit import limiter
 from config import Settings
 
 router = APIRouter(prefix="/chatbot", tags=["chatbot"])
@@ -262,7 +263,8 @@ async def health():
 
 
 @router.post("/chat", response_model=ChatResponse)
-async def chat(request: ChatRequest):
+@limiter.limit("20/minute")
+async def chat(http_request: FastAPIRequest, request: ChatRequest):
     """AI chat with real database access."""
 
     if not settings.anthropic_api_key:
@@ -280,10 +282,15 @@ async def chat(request: ChatRequest):
     full_system = SYSTEM_PROMPT
     if data_context:
         full_system += "\n" + data_context
-    if request.context:
-        full_system += "\n\nADDITIONAL CONTEXT:\n" + request.context
+    # NOTE: request.context removed — user-supplied text must never enter system prompt
 
-    api_messages = [{"role": m.role, "content": m.content} for m in request.messages[-20:]]
+    # Validate message roles — only allow user/assistant to prevent role injection
+    allowed_roles = {"user", "assistant"}
+    api_messages = [
+        {"role": m.role, "content": m.content}
+        for m in request.messages[-20:]
+        if m.role in allowed_roles
+    ]
 
     try:
         async with httpx.AsyncClient(timeout=30.0) as client:

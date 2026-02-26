@@ -12,8 +12,14 @@ const GOLD = '#D4A373'
 
 const GREETING = "Hey! 👋 I'm your Rezvo AI assistant. I can see your live booking data — ask me about today's covers, upcoming reservations, customer stats, or anything about the platform."
 
+function escapeHtml(text) {
+  return text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
+}
+
 function formatMsg(text) {
-  return text
+  // Escape HTML first, THEN apply safe markdown formatting
+  const safe = escapeHtml(text)
+  return safe
     .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
     .replace(/\n• /g, '<br/>• ')
     .replace(/\n\n/g, '<br/><br/>')

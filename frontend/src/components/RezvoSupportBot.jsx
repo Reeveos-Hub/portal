@@ -4,7 +4,7 @@ import { useAuth } from "../contexts/AuthContext";
 import api from "../utils/api";
 
 const API_BASE = import.meta.env.VITE_API_URL || "https://api.rezvo.app";
-const ANTHROPIC_API_KEY = import.meta.env.VITE_ANTHROPIC_API_KEY;
+// AI calls routed through backend — never expose API keys client-side
 
 const REZVO_KNOWLEDGE = `You are Rezvo's AI support assistant. You help restaurant owners, salon owners, barbers, spa owners and their customers with questions about the Rezvo booking platform.
 

@@ -1,11 +1,12 @@
 """
 Admin API routes — platform-wide data for the /admin panel.
-No auth middleware yet (PIN-gated on frontend). Add proper admin auth later.
+Protected by admin role authentication.
 """
-from fastapi import APIRouter, Query
-from database import get_database as get_db
+from fastapi import APIRouter, Query, Depends
+from database import get_database as get_db, safe_object_id
 from datetime import datetime, timedelta
 from bson import ObjectId
+from middleware.auth import get_current_admin
 
 router = APIRouter(prefix="/admin", tags=["admin"])
 
@@ -25,7 +26,7 @@ def _serialize(doc):
 
 # ─── Overview / Briefing ──────────────────────────
 @router.get("/overview")
-async def admin_overview():
+async def admin_overview(_user=Depends(get_current_admin)):
     db = await get_db()
     
     businesses = await db.businesses.count_documents({})
@@ -62,7 +63,7 @@ async def admin_overview():
 
 
 @router.get("/briefing")
-async def admin_briefing():
+async def admin_briefing(_user=Depends(get_current_admin)):
     db = await get_db()
     biz_count = await db.businesses.count_documents({})
     user_count = await db.users.count_documents({})
@@ -84,6 +85,7 @@ async def admin_briefing():
 # ─── Businesses ───────────────────────────────────
 @router.get("/businesses")
 async def admin_list_businesses(
+    _user=Depends(get_current_admin),
     skip: int = Query(0, ge=0),
     limit: int = Query(50, le=200),
     search: str = Query("", description="Search by name"),
@@ -114,9 +116,9 @@ async def admin_list_businesses(
 
 
 @router.get("/businesses/{business_id}")
-async def admin_get_business(business_id: str):
+async def admin_get_business(business_id: str, _user=Depends(get_current_admin)):
     db = await get_db()
-    doc = await db.businesses.find_one({"_id": ObjectId(business_id)})
+    doc = await db.businesses.find_one({"_id": safe_object_id(business_id, "business")})
     if not doc:
         return {"error": "Business not found"}
     return _serialize(doc)
@@ -125,6 +127,7 @@ async def admin_get_business(business_id: str):
 # ─── Users ────────────────────────────────────────
 @router.get("/users")
 async def admin_list_users(
+    _user=Depends(get_current_admin),
     skip: int = Query(0, ge=0),
     limit: int = Query(50, le=200),
     search: str = Query(""),
@@ -166,6 +169,7 @@ async def admin_list_users(
 # ─── Bookings (platform-wide) ────────────────────
 @router.get("/bookings")
 async def admin_list_bookings(
+    _user=Depends(get_current_admin),
     skip: int = Query(0, ge=0),
     limit: int = Query(50, le=200),
     status: str = Query(""),
@@ -227,6 +231,7 @@ async def admin_list_bookings(
 # ─── Directory ────────────────────────────────────
 @router.get("/directory")
 async def admin_directory(
+    _user=Depends(get_current_admin),
     skip: int = Query(0, ge=0),
     limit: int = Query(50, le=200),
     claimed: str = Query("", description="true/false"),
@@ -263,7 +268,7 @@ async def admin_directory(
 
 # ─── Subscriptions (placeholder until Stripe wired) ─
 @router.get("/subscriptions")
-async def admin_subscriptions():
+async def admin_subscriptions(_user=Depends(get_current_admin)):
     db = await get_db()
     
     # Check businesses for subscription data

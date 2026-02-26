@@ -5,8 +5,9 @@ Customer-facing flow: /book/:businessSlug
 
 import os
 import logging
-from fastapi import APIRouter, HTTPException, status, Query
+from fastapi import APIRouter, HTTPException, status, Query, Request
 from database import get_database
+from middleware.rate_limit import limiter
 from pydantic import BaseModel, EmailStr
 from typing import List, Optional
 from datetime import datetime, date, time, timedelta
@@ -461,7 +462,8 @@ async def get_availability(
 
 
 @router.post("/{business_slug}/create")
-async def create_booking(business_slug: str, payload: dict):
+@limiter.limit("10/minute")
+async def create_booking(request: Request, business_slug: str, payload: dict):
     """Creates a booking with auto table assignment, double-booking prevention, allergens, deposits."""
     db = get_database()
     business = await db.businesses.find_one({"slug": business_slug})
@@ -472,8 +474,14 @@ async def create_booking(business_slug: str, payload: dict):
     biz_type = "restaurant" if business.get("category") == "restaurant" else "services"
 
     # Generate reference
-    count = await db.bookings.count_documents({"businessId": biz_id}) if hasattr(db, 'bookings') else 0
-    ref_num = (count % 10000) + 1
+    # Atomic reference counter — prevents collisions under concurrent bookings
+    counter_doc = await db.counters.find_one_and_update(
+        {"_id": f"booking_ref_{biz_id}"},
+        {"$inc": {"seq": 1}},
+        upsert=True,
+        return_document=True
+    )
+    ref_num = counter_doc.get("seq", 1)
     reference = f"REZ-{ref_num:04d}"
 
     bp = business.get("bookingPage") or {}
@@ -714,8 +722,13 @@ async def create_walkin(business_slug: str, payload: dict):
     if not table_id:
         table_id, table_name = await _find_best_table(db, business, today_str, time_str, party_size, duration)
 
-    count = await db.bookings.count_documents({"businessId": biz_id})
-    reference = f"WLK-{(count % 10000) + 1:04d}"
+    counter_doc = await db.counters.find_one_and_update(
+        {"_id": f"walkin_ref_{biz_id}"},
+        {"$inc": {"seq": 1}},
+        upsert=True,
+        return_document=True
+    )
+    reference = f"WLK-{counter_doc.get('seq', 1):04d}"
 
     doc = {
         "_id": f"wlk_{now.strftime('%Y%m%d%H%M%S')}_{biz_id[:8]}",

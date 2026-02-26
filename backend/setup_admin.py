@@ -21,10 +21,15 @@ MONGO_URL = os.getenv("MONGODB_URL", "mongodb://localhost:27017/rezvo")
 DB_NAME = os.getenv("MONGODB_DB_NAME", "rezvo")
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
-# ── Admin account ──
-ADMIN_EMAIL = "levelambassador@gmail.com"
-ADMIN_NAME = "Rezvo Admin"
-ADMIN_PASSWORD = "Rezvo2024!"
+# ── Admin account (from environment — NEVER hardcode credentials) ──
+ADMIN_EMAIL = os.getenv("ADMIN_EMAIL", "levelambassador@gmail.com")
+ADMIN_NAME = os.getenv("ADMIN_NAME", "Rezvo Admin")
+ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD")
+if not ADMIN_PASSWORD:
+    import secrets
+    ADMIN_PASSWORD = secrets.token_urlsafe(20)
+    print(f"⚠️  No ADMIN_PASSWORD env var set. Generated temporary: {ADMIN_PASSWORD}")
+    print(f"   Set ADMIN_PASSWORD in your .env to persist this.")
 
 
 async def main():

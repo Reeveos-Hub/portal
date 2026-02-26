@@ -44,6 +44,11 @@ jobs:
             # Update if already exists
             sed -i "s|^ANTHROPIC_API_KEY=.*|ANTHROPIC_API_KEY=${{ secrets.ANTHROPIC_API_KEY }}|" /opt/rezvo-app/backend/.env
 
+            # Admin credentials (from GitHub Secrets)
+            if [ -n "${{ secrets.ADMIN_PASSWORD }}" ]; then
+              grep -q 'ADMIN_PASSWORD' /opt/rezvo-app/backend/.env && sed -i "s|^ADMIN_PASSWORD=.*|ADMIN_PASSWORD=${{ secrets.ADMIN_PASSWORD }}|" /opt/rezvo-app/backend/.env || echo 'ADMIN_PASSWORD=${{ secrets.ADMIN_PASSWORD }}' >> /opt/rezvo-app/backend/.env
+            fi
+
             # Google Gemini (floor plan AI)
             if [ -n "${{ secrets.GEMINI_API_KEY }}" ]; then
               grep -q 'GEMINI_API_KEY' /opt/rezvo-app/backend/.env && sed -i "s|^GEMINI_API_KEY=.*|GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }}|" /opt/rezvo-app/backend/.env || echo 'GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }}' >> /opt/rezvo-app/backend/.env
@@ -62,6 +67,10 @@ jobs:
               grep -q 'SENDLY_API_KEY' /opt/rezvo-app/backend/.env && sed -i "s|^SENDLY_API_KEY=.*|SENDLY_API_KEY=${{ secrets.SENDLY_API_KEY }}|" /opt/rezvo-app/backend/.env || echo 'SENDLY_API_KEY=${{ secrets.SENDLY_API_KEY }}' >> /opt/rezvo-app/backend/.env
             fi
 
+            # ── Ensure rezvo service user exists ──
+            id -u rezvo &>/dev/null || useradd -r -s /bin/false -d /opt/rezvo-app rezvo
+            chown -R rezvo:rezvo /opt/rezvo-app/backend/static
+
             cat > /etc/systemd/system/rezvo-backend.service << 'EOF'
             [Unit]
             Description=Rezvo Backend API
@@ -69,12 +78,16 @@ jobs:
 
             [Service]
             Type=simple
-            User=root
+            User=rezvo
+            Group=rezvo
             WorkingDirectory=/opt/rezvo-app/backend
             EnvironmentFile=-/opt/rezvo-app/backend/.env
             ExecStart=/usr/local/bin/uvicorn server:app --host 0.0.0.0 --port 8000
             Restart=always
             RestartSec=10
+            NoNewPrivileges=true
+            ProtectSystem=strict
+            ReadWritePaths=/opt/rezvo-app/backend/static
 
             [Install]
             WantedBy=multi-user.target

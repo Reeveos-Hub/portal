@@ -350,7 +350,7 @@ async def upload_staff_avatar(
     db = get_database()
     business = await _get_business(db, business_id, user)
 
-    # Validate file
+    # Validate file — check MIME type AND magic bytes
     allowed = {"image/jpeg", "image/png", "image/webp", "image/gif"}
     if file.content_type not in allowed:
         raise HTTPException(400, f"File type {file.content_type} not allowed")
@@ -359,8 +359,23 @@ async def upload_staff_avatar(
     if len(data) > 3 * 1024 * 1024:
         raise HTTPException(400, "File too large (max 3MB)")
 
-    # Save file
-    ext = file.filename.rsplit(".", 1)[-1] if "." in file.filename else "jpg"
+    # Validate actual file content (magic bytes) — don't trust content_type alone
+    magic_sigs = {
+        b'\xff\xd8\xff': 'jpg',
+        b'\x89PNG': 'png',
+        b'RIFF': 'webp',
+        b'GIF8': 'gif',
+    }
+    detected_ext = None
+    for sig, ext in magic_sigs.items():
+        if data[:len(sig)] == sig:
+            detected_ext = ext
+            break
+    if not detected_ext:
+        raise HTTPException(400, "File content does not match a valid image format")
+
+    # Save file with validated extension
+    ext = detected_ext
     name = f"{uuid.uuid4().hex[:12]}.{ext}"
     path = UPLOADS_DIR / name
     path.write_bytes(data)

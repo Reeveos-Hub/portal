@@ -5,17 +5,18 @@ Full CRUD for outreach domains, accounts, campaigns, templates,
 unified inbox, analytics, Resend webhooks.
 Prefix: /outreach
 """
-from fastapi import APIRouter, HTTPException, Request, Query
+from fastapi import APIRouter, HTTPException, Request, Query, Depends
 from pydantic import BaseModel, EmailStr
 from typing import Optional, List, Dict, Any
 from datetime import datetime, timedelta
 from bson import ObjectId
 from database import get_database
+from middleware.auth import get_current_owner
 import logging
 
 logger = logging.getLogger("outreach.routes")
 
-router = APIRouter(prefix="/outreach", tags=["Email Outreach"])
+router = APIRouter(prefix="/outreach", tags=["Email Outreach"], dependencies=[Depends(get_current_owner)])
 
 
 # ═══ Request Models ═══

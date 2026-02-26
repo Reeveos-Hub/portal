@@ -1,5 +1,6 @@
-from fastapi import APIRouter, HTTPException, status, Query, Header
+from fastapi import APIRouter, HTTPException, status, Query, Header, Depends
 from database import get_database
+from middleware.auth import get_current_owner, get_current_staff
 from models.support import (
     ConversationCreate,
     ConversationUpdate,
@@ -147,7 +148,7 @@ async def log_message(conversation_id: str, data: SupportMessageCreate):
 
 
 @router.patch("/conversations/{conversation_id}", response_model=ConversationResponse)
-async def update_conversation(conversation_id: str, data: ConversationUpdate):
+async def update_conversation(conversation_id: str, data: ConversationUpdate, _user=Depends(get_current_staff)):
     """Update conversation status or metadata."""
     db = get_database()
     
@@ -213,6 +214,7 @@ async def update_conversation(conversation_id: str, data: ConversationUpdate):
 
 @router.get("/conversations", response_model=List[ConversationResponse])
 async def list_conversations(
+    _user=Depends(get_current_staff),
     skip: int = Query(0, ge=0),
     limit: int = Query(50, ge=1, le=100),
     status_filter: Optional[TicketStatus] = None,
@@ -345,6 +347,7 @@ async def get_conversation(conversation_id: str):
 
 @router.get("/tickets", response_model=List[ConversationResponse])
 async def get_tickets_needing_review(
+    _user=Depends(get_current_staff),
     skip: int = Query(0, ge=0),
     limit: int = Query(50, ge=1, le=100)
 ):
@@ -440,7 +443,7 @@ async def get_tickets_needing_review(
 
 
 @router.get("/analytics", response_model=AnalyticsResponse)
-async def get_analytics(days: int = Query(30, ge=1, le=365)):
+async def get_analytics(days: int = Query(30, ge=1, le=365), _user=Depends(get_current_owner)):
     """Get support analytics: top questions, costs, volumes."""
     db = get_database()
     

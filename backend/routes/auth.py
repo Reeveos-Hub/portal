@@ -1,9 +1,12 @@
-from fastapi import APIRouter, HTTPException, status, Depends
+from fastapi import APIRouter, HTTPException, status, Depends, Request
 from passlib.context import CryptContext
 from datetime import datetime, timedelta
+from bson import ObjectId
 from database import get_database
+from config import settings
 from models.user import UserCreate, UserResponse, UserRole
-from middleware.auth import create_access_token
+from middleware.auth import create_access_token, create_refresh_token
+from middleware.rate_limit import limiter
 from pydantic import BaseModel, EmailStr
 
 router = APIRouter(prefix="/auth", tags=["auth"])
@@ -17,8 +20,9 @@ class LoginRequest(BaseModel):
 
 class TokenResponse(BaseModel):
     access_token: str
-    token_type: str
-    user: UserResponse
+    refresh_token: str = ""
+    token_type: str = "bearer"
+    user: Optional[dict] = None
 
 
 class PasswordResetRequest(BaseModel):
@@ -69,6 +73,7 @@ async def register(user_data: UserCreate):
     user_dict["_id"] = str(result.inserted_id)
     
     access_token = create_access_token(data={"sub": user_dict["_id"]})
+    refresh_token = create_refresh_token(data={"sub": user_dict["_id"]})
     
     user_response = UserResponse(
         id=user_dict["_id"],
@@ -85,13 +90,15 @@ async def register(user_data: UserCreate):
     
     return TokenResponse(
         access_token=access_token,
+        refresh_token=refresh_token,
         token_type="bearer",
         user=user_response
     )
 
 
 @router.post("/login", response_model=TokenResponse)
-async def login(login_data: LoginRequest):
+@limiter.limit("5/minute")
+async def login(request: Request, login_data: LoginRequest):
     db = get_database()
     
     user = await db.users.find_one({"email": login_data.email})
@@ -102,6 +109,7 @@ async def login(login_data: LoginRequest):
         )
     
     access_token = create_access_token(data={"sub": str(user["_id"])})
+    refresh_token = create_refresh_token(data={"sub": str(user["_id"])})
     
     user_response = UserResponse(
         id=str(user["_id"]),
@@ -118,17 +126,56 @@ async def login(login_data: LoginRequest):
     
     return TokenResponse(
         access_token=access_token,
+        refresh_token=refresh_token,
         token_type="bearer",
         user=user_response
     )
 
 
+class RefreshRequest(BaseModel):
+    refresh_token: str
+
+
+@router.post("/refresh")
+@limiter.limit("10/minute")
+async def refresh_access_token(request: Request, body: RefreshRequest):
+    """Exchange a valid refresh token for a new access token."""
+    from jose import JWTError, jwt as jose_jwt
+    
+    try:
+        payload = jose_jwt.decode(
+            body.refresh_token, settings.jwt_secret_key,
+            algorithms=[settings.jwt_algorithm]
+        )
+        if payload.get("token_type") != "refresh":
+            raise HTTPException(401, "Invalid token type")
+        user_id = payload.get("sub")
+        if not user_id:
+            raise HTTPException(401, "Invalid refresh token")
+    except JWTError:
+        raise HTTPException(401, "Invalid or expired refresh token")
+    
+    db = get_database()
+    try:
+        user = await db.users.find_one({"_id": ObjectId(user_id)})
+    except Exception:
+        user = await db.users.find_one({"_id": user_id})
+    
+    if not user:
+        raise HTTPException(401, "User not found")
+    
+    new_access = create_access_token(data={"sub": str(user["_id"])})
+    return {"access_token": new_access, "token_type": "bearer"}
+
+
 @router.post("/password-reset-request")
-async def request_password_reset(request: PasswordResetRequest):
+@limiter.limit("3/minute")
+async def request_password_reset(request: Request, reset_req: PasswordResetRequest):
     db = get_database()
     
-    user = await db.users.find_one({"email": request.email})
+    user = await db.users.find_one({"email": reset_req.email})
     if not user:
+        # Return same message whether user exists or not (prevent enumeration)
         return {"detail": "If the email exists, a reset link has been sent"}
     
     reset_token = create_access_token(
@@ -136,9 +183,45 @@ async def request_password_reset(request: PasswordResetRequest):
         expires_delta=timedelta(hours=1)
     )
     
-    return {"detail": "If the email exists, a reset link has been sent", "token": reset_token}
+    # TODO: Send reset email with token via Resend/SendGrid
+    # For now, log it server-side only — NEVER return token in HTTP response
+    import logging
+    logging.getLogger("auth").info(f"Password reset requested for {reset_req.email}")
+    
+    return {"detail": "If the email exists, a reset link has been sent"}
 
 
 @router.post("/password-reset-confirm")
 async def confirm_password_reset(request: PasswordResetConfirm):
+    """Verify reset token and update password."""
+    from jose import JWTError, jwt as jose_jwt
+    
+    try:
+        payload = jose_jwt.decode(
+            request.token, settings.jwt_secret_key,
+            algorithms=[settings.jwt_algorithm]
+        )
+        if payload.get("type") != "password_reset":
+            raise HTTPException(400, "Invalid reset token")
+        user_id = payload.get("sub")
+        if not user_id:
+            raise HTTPException(400, "Invalid reset token")
+    except JWTError:
+        raise HTTPException(400, "Invalid or expired reset token")
+    
+    db = get_database()
+    try:
+        user = await db.users.find_one({"_id": ObjectId(user_id)})
+    except Exception:
+        user = await db.users.find_one({"_id": user_id})
+    
+    if not user:
+        raise HTTPException(400, "Invalid reset token")
+    
+    new_hash = get_password_hash(request.new_password)
+    await db.users.update_one(
+        {"_id": user["_id"]},
+        {"$set": {"password_hash": new_hash, "updated_at": datetime.utcnow()}}
+    )
+    
     return {"detail": "Password reset successfully"}

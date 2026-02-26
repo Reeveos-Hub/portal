@@ -4,11 +4,12 @@ Business Insights Report API
 - Unique expiring links (15 days)
 - Email drip: initial → 10 days left → 5 days left → expired
 """
-from fastapi import APIRouter, HTTPException, Request
+from fastapi import APIRouter, HTTPException, Request, Depends
 from pydantic import BaseModel
 from typing import Optional, List
 from datetime import datetime, timedelta
 from models.insights_report import InsightsReport, slugify
+from middleware.auth import get_current_owner
 import database
 import logging
 
@@ -95,7 +96,7 @@ def estimate_commission_savings(
 # ─── Endpoints ─── #
 
 @router.post("/reports", response_model=dict)
-async def create_report(req: CreateReportRequest):
+async def create_report(req: CreateReportRequest, _user=Depends(get_current_owner)):
     """Generate a new insights report for a business"""
 
     coll = get_collection()
@@ -248,6 +249,7 @@ async def view_report(slug: str, token: str):
 
 @router.get("/reports", response_model=List[ReportSummary])
 async def list_reports(
+    _user=Depends(get_current_owner),
     status: Optional[str] = None,
     expired: Optional[bool] = None,
     limit: int = 50

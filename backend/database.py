@@ -1,4 +1,6 @@
 from motor.motor_asyncio import AsyncIOMotorClient
+from bson import ObjectId
+from fastapi import HTTPException
 from config import settings
 
 client: AsyncIOMotorClient = None
@@ -21,3 +23,11 @@ async def close_mongo_connection():
 
 def get_database():
     return db
+
+
+def safe_object_id(id_str: str, label: str = "Resource") -> ObjectId:
+    """Convert string to ObjectId safely, raising 400 on invalid format."""
+    try:
+        return ObjectId(id_str)
+    except Exception:
+        raise HTTPException(400, f"Invalid {label} ID format: {id_str}")

@@ -5,7 +5,9 @@ backend/__pycache__/
 backend/.env
 backend/venv/
 .env
+frontend/.env
+frontend/.env.production
+frontend/.env.local
 *.pyc
+*.bak
 .DS_Store
-Marketing.old.bak
-.bak

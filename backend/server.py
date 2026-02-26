@@ -2,9 +2,12 @@ from pathlib import Path
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
+from slowapi import _rate_limit_exceeded_handler
+from slowapi.errors import RateLimitExceeded
 from contextlib import asynccontextmanager
 import database
 from middleware.cors import setup_cors
+from middleware.rate_limit import limiter
 from routes import (
     auth_router,
     book_router,
@@ -70,6 +73,8 @@ app = FastAPI(
 )
 
 setup_cors(app)
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 app.include_router(auth_router)
 app.include_router(book_router)
