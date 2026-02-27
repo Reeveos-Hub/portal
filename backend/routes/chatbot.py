@@ -56,17 +56,9 @@ async def build_business_snapshot(business_id: str) -> str:
         today = datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0)
         today_str = today.strftime("%Y-%m-%d")
 
-        # ── Today's bookings (try both collections and field names) ──
-        today_bookings = []
-        try:
-            today_bookings = await db.bookings.find({"businessId": biz_id, "date": today_str}).to_list(500)
-        except Exception:
-            pass
-        if not today_bookings:
-            try:
-                today_bookings = await db.reservations.find({"business_id": biz_id, "date": today_str}).to_list(500)
-            except Exception:
-                pass
+        # ── Today's bookings (handle both field naming conventions) ──
+        biz_match = {"$or": [{"businessId": biz_id}, {"business_id": biz_id}]}
+        today_bookings = await db.bookings.find({**biz_match, "date": today_str}).to_list(500)
 
         def covers(b):
             return b.get("partySize", b.get("party_size", b.get("covers", b.get("guests", 2))))
@@ -98,46 +90,16 @@ async def build_business_snapshot(business_id: str) -> str:
         # ── This week ──
         week_start = today - timedelta(days=today.weekday())
         week_dates = [(week_start + timedelta(days=i)).strftime("%Y-%m-%d") for i in range(7)]
-        week_bookings = []
-        try:
-            week_bookings = await db.bookings.find({"businessId": biz_id, "date": {"$in": week_dates}}).to_list(2000)
-        except Exception:
-            pass
-        if not week_bookings:
-            try:
-                week_bookings = await db.reservations.find({"business_id": biz_id, "date": {"$in": week_dates}}).to_list(2000)
-            except Exception:
-                pass
+        week_bookings = await db.bookings.find({**biz_match, "date": {"$in": week_dates}}).to_list(2000)
         week_covers = sum(covers(b) for b in week_bookings)
 
         # ── All time stats ──
-        total_alltime = 0
-        try:
-            total_alltime = await db.bookings.count_documents({"businessId": biz_id})
-        except Exception:
-            pass
-        if total_alltime == 0:
-            try:
-                total_alltime = await db.reservations.count_documents({"business_id": biz_id})
-            except Exception:
-                pass
+        total_alltime = await db.bookings.count_documents(biz_match)
 
-        all_bookings = []
-        try:
-            all_bookings = await db.bookings.find(
-                {"businessId": biz_id},
-                {"partySize": 1, "status": 1, "customerId": 1, "customer": 1}
-            ).to_list(10000)
-        except Exception:
-            pass
-        if not all_bookings:
-            try:
-                all_bookings = await db.reservations.find(
-                    {"business_id": biz_id},
-                    {"party_size": 1, "status": 1, "user_id": 1}
-                ).to_list(10000)
-            except Exception:
-                pass
+        all_bookings = await db.bookings.find(
+            biz_match,
+            {"partySize": 1, "party_size": 1, "status": 1, "customerId": 1, "user_id": 1, "customer": 1, "covers": 1, "guests": 1}
+        ).to_list(10000)
 
         covers_alltime = sum(covers(b) for b in all_bookings)
 

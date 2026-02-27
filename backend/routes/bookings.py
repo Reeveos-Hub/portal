@@ -46,7 +46,7 @@ async def create_reservation(
     if booking_settings.get("auto_confirm", True):
         reservation_dict["status"] = ReservationStatus.CONFIRMED.value
     
-    result = await db.reservations.insert_one(reservation_dict)
+    result = await db.bookings.insert_one(reservation_dict)
     reservation_id = str(result.inserted_id)
     
     await db.users.update_one(
@@ -81,7 +81,7 @@ async def get_reservation(
 ):
     db = get_database()
     
-    reservation = await db.reservations.find_one({"_id": reservation_id})
+    reservation = await db.bookings.find_one({"_id": reservation_id})
     if not reservation:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -124,7 +124,7 @@ async def update_reservation(
 ):
     db = get_database()
     
-    reservation = await db.reservations.find_one({"_id": reservation_id})
+    reservation = await db.bookings.find_one({"_id": reservation_id})
     if not reservation:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -150,12 +150,12 @@ async def update_reservation(
     
     update_data["updated_at"] = datetime.utcnow()
     
-    await db.reservations.update_one(
+    await db.bookings.update_one(
         {"_id": reservation_id},
         {"$set": update_data}
     )
     
-    updated_reservation = await db.reservations.find_one({"_id": reservation_id})
+    updated_reservation = await db.bookings.find_one({"_id": reservation_id})
     
     return ReservationResponse(
         id=str(updated_reservation["_id"]),
@@ -182,7 +182,7 @@ async def cancel_reservation(
 ):
     db = get_database()
     
-    reservation = await db.reservations.find_one({"_id": reservation_id})
+    reservation = await db.bookings.find_one({"_id": reservation_id})
     if not reservation:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -195,7 +195,7 @@ async def cancel_reservation(
             detail="Not authorized to cancel this reservation"
         )
     
-    await db.reservations.update_one(
+    await db.bookings.update_one(
         {"_id": reservation_id},
         {
             "$set": {

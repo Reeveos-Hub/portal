@@ -77,12 +77,21 @@ async def _get_audience_emails(business_id: str, audience: str, filters: Optiona
     db = get_database()
     now = datetime.utcnow()
 
-    # Aggregate unique clients from bookings
+    # Aggregate unique clients from bookings (handle both field naming conventions)
     pipeline = [
-        {"$match": {"business_id": business_id, "client_email": {"$exists": True, "$ne": ""}}},
+        {"$match": {
+            "$or": [
+                {"business_id": business_id, "client_email": {"$exists": True, "$ne": ""}},
+                {"businessId": business_id, "customer.email": {"$exists": True, "$ne": ""}},
+            ]
+        }},
+        {"$addFields": {
+            "_email": {"$ifNull": ["$client_email", "$customer.email"]},
+            "_name": {"$ifNull": ["$client_name", "$customer.name"]},
+        }},
         {"$group": {
-            "_id": "$client_email",
-            "name": {"$last": "$client_name"},
+            "_id": "$_email",
+            "name": {"$last": "$_name"},
             "last_visit": {"$max": "$date"},
             "visit_count": {"$sum": 1},
             "first_visit": {"$min": "$date"},
@@ -94,7 +103,7 @@ async def _get_audience_emails(business_id: str, audience: str, filters: Optiona
 
     # Pull from bookings collection
     async for doc in db.bookings.aggregate(pipeline):
-        email = doc["_id"].lower().strip()
+        email = (doc["_id"] or "").lower().strip()
         if email:
             clients[email] = {
                 "email": email,
@@ -104,22 +113,6 @@ async def _get_audience_emails(business_id: str, audience: str, filters: Optiona
                 "visit_count": doc.get("visit_count", 0),
                 "first_visit": str(doc.get("first_visit", "")),
             }
-
-    # Also check reservations collection (for restaurants)
-    try:
-        async for doc in db.reservations.aggregate(pipeline):
-            email = doc["_id"].lower().strip()
-            if email and email not in clients:
-                clients[email] = {
-                    "email": email,
-                    "name": doc.get("name", ""),
-                    "client_name": doc.get("name", ""),
-                    "last_visit": str(doc.get("last_visit", "")),
-                    "visit_count": doc.get("visit_count", 0),
-                    "first_visit": str(doc.get("first_visit", "")),
-                }
-    except Exception:
-        pass
 
     # Also check clients collection directly
     try:
