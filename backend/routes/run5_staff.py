@@ -6,6 +6,7 @@ Staff stored in business.staff (extended schema)
 from fastapi import APIRouter, HTTPException, Depends, Body, Query, UploadFile, File
 from database import get_database
 from middleware.auth import get_current_owner
+from middleware.tenant import verify_business_access, TenantContext
 from datetime import datetime, date
 from bson import ObjectId
 from pathlib import Path
@@ -56,7 +57,7 @@ def _is_on_holiday(staff):
 
 
 @router.get("/business/{business_id}")
-async def list_staff(business_id: str, user: dict = Depends(get_current_owner)):
+async def list_staff(business_id: str, tenant: TenantContext = Depends(verify_business_access)):
     db = get_database()
     business = await _get_business(db, business_id, user)
     staff_list = business.get("staff", [])
@@ -111,7 +112,7 @@ async def list_staff(business_id: str, user: dict = Depends(get_current_owner)):
 
 
 @router.post("/business/{business_id}")
-async def create_staff(business_id: str, payload: dict = Body(...), user: dict = Depends(get_current_owner)):
+async def create_staff(business_id: str, payload: dict = Body(...), tenant: TenantContext = Depends(verify_business_access)):
     db = get_database()
     business = await _get_business(db, business_id, user)
     staff_list = [s for s in business.get("staff", []) if s.get("active", True)]
@@ -163,7 +164,7 @@ async def create_staff(business_id: str, payload: dict = Body(...), user: dict =
 
 
 @router.put("/business/{business_id}/{staff_id}")
-async def update_staff(business_id: str, staff_id: str, payload: dict = Body(...), user: dict = Depends(get_current_owner)):
+async def update_staff(business_id: str, staff_id: str, payload: dict = Body(...), tenant: TenantContext = Depends(verify_business_access)):
     db = get_database()
     business = await _get_business(db, business_id, user)
     staff_list = business.get("staff", [])
@@ -187,7 +188,7 @@ async def update_staff(business_id: str, staff_id: str, payload: dict = Body(...
 
 
 @router.delete("/business/{business_id}/{staff_id}")
-async def delete_staff(business_id: str, staff_id: str, confirm: bool = Query(False), user: dict = Depends(get_current_owner)):
+async def delete_staff(business_id: str, staff_id: str, confirm: bool = Query(False), tenant: TenantContext = Depends(verify_business_access)):
     db = get_database()
     business = await _get_business(db, business_id, user)
     if staff_list[idx].get("permissions") == "owner":
@@ -223,7 +224,7 @@ async def delete_staff(business_id: str, staff_id: str, confirm: bool = Query(Fa
 
 
 @router.patch("/business/{business_id}/{staff_id}/hours")
-async def update_hours(business_id: str, staff_id: str, payload: dict = Body(...), user: dict = Depends(get_current_owner)):
+async def update_hours(business_id: str, staff_id: str, payload: dict = Body(...), tenant: TenantContext = Depends(verify_business_access)):
     db = get_database()
     business = await _get_business(db, business_id, user)
     staff_list = business.get("staff", [])
@@ -243,7 +244,7 @@ async def update_hours(business_id: str, staff_id: str, payload: dict = Body(...
 
 
 @router.post("/business/{business_id}/{staff_id}/time-off")
-async def add_time_off(business_id: str, staff_id: str, payload: dict = Body(...), user: dict = Depends(get_current_owner)):
+async def add_time_off(business_id: str, staff_id: str, payload: dict = Body(...), tenant: TenantContext = Depends(verify_business_access)):
     db = get_database()
     business = await _get_business(db, business_id, user)
     staff_list = business.get("staff", [])
@@ -297,7 +298,7 @@ async def add_time_off(business_id: str, staff_id: str, payload: dict = Body(...
 
 
 @router.delete("/business/{business_id}/{staff_id}/time-off/{time_off_id}")
-async def remove_time_off(business_id: str, staff_id: str, time_off_id: str, user: dict = Depends(get_current_owner)):
+async def remove_time_off(business_id: str, staff_id: str, time_off_id: str, tenant: TenantContext = Depends(verify_business_access)):
     db = get_database()
     business = await _get_business(db, business_id, user)
     staff_list = business.get("staff", [])
@@ -316,7 +317,7 @@ async def remove_time_off(business_id: str, staff_id: str, time_off_id: str, use
 
 
 @router.post("/business/{business_id}/{staff_id}/reinvite")
-async def reinvite_staff(business_id: str, staff_id: str, user: dict = Depends(get_current_owner)):
+async def reinvite_staff(business_id: str, staff_id: str, tenant: TenantContext = Depends(verify_business_access)):
     """Resend invite email to pending staff member."""
     db = get_database()
     business = await _get_business(db, business_id, user)
@@ -344,7 +345,7 @@ async def upload_staff_avatar(
     business_id: str,
     staff_id: str,
     file: UploadFile = File(...),
-    user: dict = Depends(get_current_owner),
+    tenant: TenantContext = Depends(verify_business_access),
 ):
     """Upload staff avatar photo."""
     db = get_database()

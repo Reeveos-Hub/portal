@@ -6,6 +6,7 @@ Stored in business.menu + business.categories
 from fastapi import APIRouter, HTTPException, Depends, Body
 from database import get_database
 from middleware.auth import get_current_staff
+from middleware.tenant import verify_business_access, TenantContext
 from datetime import datetime
 from bson import ObjectId
 
@@ -33,7 +34,7 @@ def _gen_id():
 
 
 @router.get("/business/{business_id}")
-async def get_menu_grouped(business_id: str, user: dict = Depends(get_current_staff)):
+async def get_menu_grouped(business_id: str, tenant: TenantContext = Depends(verify_business_access)):
     db = get_database()
     business = await _get_business(db, business_id, user)
     menu = business.get("menu", [])
@@ -74,7 +75,7 @@ async def get_menu_grouped(business_id: str, user: dict = Depends(get_current_st
 
 
 @router.post("/business/{business_id}")
-async def create_menu_item(business_id: str, payload: dict = Body(...), user: dict = Depends(get_current_staff)):
+async def create_menu_item(business_id: str, payload: dict = Body(...), tenant: TenantContext = Depends(verify_business_access)):
     db = get_database()
     business = await _get_business(db, business_id, user)
     name = (payload.get("name") or "").strip()
@@ -112,7 +113,7 @@ async def create_menu_item(business_id: str, payload: dict = Body(...), user: di
 
 
 @router.put("/business/{business_id}/{item_id}")
-async def update_menu_item(business_id: str, item_id: str, payload: dict = Body(...), user: dict = Depends(get_current_staff)):
+async def update_menu_item(business_id: str, item_id: str, payload: dict = Body(...), tenant: TenantContext = Depends(verify_business_access)):
     db = get_database()
     business = await _get_business(db, business_id, user)
     menu = business.get("menu", [])
@@ -147,7 +148,7 @@ async def update_menu_item(business_id: str, item_id: str, payload: dict = Body(
 
 
 @router.delete("/business/{business_id}/{item_id}")
-async def delete_menu_item(business_id: str, item_id: str, user: dict = Depends(get_current_staff)):
+async def delete_menu_item(business_id: str, item_id: str, tenant: TenantContext = Depends(verify_business_access)):
     db = get_database()
     business = await _get_business(db, business_id, user)
     menu = business.get("menu", [])
@@ -164,7 +165,7 @@ async def delete_menu_item(business_id: str, item_id: str, user: dict = Depends(
 
 
 @router.patch("/business/{business_id}/{item_id}/86")
-async def toggle_86(business_id: str, item_id: str, payload: dict = Body(...), user: dict = Depends(get_current_staff)):
+async def toggle_86(business_id: str, item_id: str, payload: dict = Body(...), tenant: TenantContext = Depends(verify_business_access)):
     """One-tap 86 toggle — critical for kitchen."""
     db = get_database()
     business = await _get_business(db, business_id, user)
@@ -183,7 +184,7 @@ async def toggle_86(business_id: str, item_id: str, payload: dict = Body(...), u
 
 
 @router.put("/business/{business_id}/reorder")
-async def reorder_menu(business_id: str, payload: dict = Body(...), user: dict = Depends(get_current_staff)):
+async def reorder_menu(business_id: str, payload: dict = Body(...), tenant: TenantContext = Depends(verify_business_access)):
     db = get_database()
     business = await _get_business(db, business_id, user)
     category_id = payload.get("categoryId")

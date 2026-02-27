@@ -1,5 +1,50 @@
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000'
 
+/**
+ * Get the current user's active business ID.
+ * Used by the tenant safety check below.
+ */
+function getCurrentBusinessId() {
+  try {
+    const user = JSON.parse(localStorage.getItem('user') || '{}')
+    return user?.business_ids?.[0] || null
+  } catch { return null }
+}
+
+/**
+ * TENANT SAFETY CHECK
+ * If the server accidentally returns data for a different business,
+ * this catches it before it reaches the UI. Defense-in-depth.
+ */
+function checkTenantMismatch(data, endpoint) {
+  if (!data || typeof data !== 'object') return
+  const myBid = getCurrentBusinessId()
+  if (!myBid) return
+
+  // Check if response contains a businessId that doesn't match ours
+  const responseBid = data.businessId || data.business_id
+  if (responseBid && String(responseBid) !== String(myBid)) {
+    console.error(
+      `[TENANT MISMATCH] Expected business ${myBid}, got ${responseBid} from ${endpoint}`
+    )
+    // Throw — this will trigger the error boundary
+    throw new Error('Data integrity error. Please refresh and try again.')
+  }
+
+  // Check arrays of items too
+  if (Array.isArray(data)) {
+    for (const item of data) {
+      const itemBid = item?.businessId || item?.business_id
+      if (itemBid && String(itemBid) !== String(myBid)) {
+        console.error(
+          `[TENANT MISMATCH] Array item has business ${itemBid}, expected ${myBid} from ${endpoint}`
+        )
+        throw new Error('Data integrity error. Please refresh and try again.')
+      }
+    }
+  }
+}
+
 async function tryRefreshToken() {
   const refreshToken = localStorage.getItem('refresh_token')
   if (!refreshToken) return false
@@ -51,7 +96,14 @@ const api = {
       throw new Error(`${response.status}: ${msg}`)
     }
 
-    return response.json()
+    const data = await response.json()
+    
+    // TENANT SAFETY: verify response data belongs to current user's business
+    if (endpoint.includes('/business/')) {
+      try { checkTenantMismatch(data, endpoint) } catch (e) { throw e }
+    }
+    
+    return data
   },
 
   get(endpoint, options = {}) {

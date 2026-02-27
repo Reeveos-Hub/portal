@@ -1,6 +1,7 @@
 from fastapi import APIRouter, HTTPException, status, Depends
 from database import get_database
 from middleware.auth import get_current_owner
+from middleware.tenant import verify_business_access, TenantContext
 from pydantic import BaseModel
 from typing import List, Optional, Dict, Any
 from datetime import datetime
@@ -71,10 +72,10 @@ class TextGenerateRequest(BaseModel):
 @router.get("/business/{business_id}/floor-plan")
 async def get_floor_plan(
     business_id: str,
-    current_user: dict = Depends(get_current_owner)
+    tenant: TenantContext = Depends(verify_business_access)
 ):
     db = get_database()
-    business = await find_business(db, business_id, str(current_user["_id"]))
+    business = await find_business(db, business_id, tenant.user_id)
 
     fp = business.get("floor_plan") or {}
     room_config = fp.get("room_config")
@@ -104,10 +105,10 @@ async def get_floor_plan(
 async def update_floor_plan(
     business_id: str,
     floor_plan_data: FloorPlanUpdate,
-    current_user: dict = Depends(get_current_owner)
+    tenant: TenantContext = Depends(verify_business_access)
 ):
     db = get_database()
-    business = await find_business(db, business_id, str(current_user["_id"]))
+    business = await find_business(db, business_id, tenant.user_id)
 
     data = floor_plan_data.model_dump(exclude_none=True)
 
@@ -139,20 +140,20 @@ async def update_floor_plan(
 async def save_floor_plan(
     business_id: str,
     floor_plan_data: FloorPlanUpdate,
-    current_user: dict = Depends(get_current_owner)
+    tenant: TenantContext = Depends(verify_business_access)
 ):
-    return await update_floor_plan(business_id, floor_plan_data, current_user)
+    return await update_floor_plan(business_id, floor_plan_data, tenant)
 
 
 @router.post("/business/{business_id}/generate-preset")
 async def generate_preset_layout(
     business_id: str,
     room_config: RoomConfig,
-    current_user: dict = Depends(get_current_owner)
+    tenant: TenantContext = Depends(verify_business_access)
 ):
     """Generate a fresh layout from a room preset. Wipes old data and starts clean."""
     db = get_database()
-    business = await find_business(db, business_id, str(current_user["_id"]))
+    business = await find_business(db, business_id, tenant.user_id)
 
     from services.floor_plan_presets import get_preset_layout
 
@@ -184,11 +185,11 @@ async def generate_preset_layout(
 async def update_room_config(
     business_id: str,
     room_config: RoomConfig,
-    current_user: dict = Depends(get_current_owner)
+    tenant: TenantContext = Depends(verify_business_access)
 ):
     """Save room dimensions and rescale existing elements to fit."""
     db = get_database()
-    business = await find_business(db, business_id, str(current_user["_id"]))
+    business = await find_business(db, business_id, tenant.user_id)
 
     rc = room_config.model_dump()
     # Compute canvas pixels (1m = 100px, capped at 2000px)
@@ -223,10 +224,10 @@ async def update_room_config(
 async def delete_table(
     business_id: str,
     table_id: str,
-    current_user: dict = Depends(get_current_owner)
+    tenant: TenantContext = Depends(verify_business_access)
 ):
     db = get_database()
-    business = await find_business(db, business_id, str(current_user["_id"]))
+    business = await find_business(db, business_id, tenant.user_id)
 
     fp = business.get("floor_plan") or {}
     if "elements" in fp:
@@ -250,7 +251,7 @@ from services.floor_plan_solver import auto_arrange, validate_layout, generate_f
 async def auto_arrange_floor_plan(
     business_id: str,
     request: AutoArrangeRequest,
-    current_user: dict = Depends(get_current_owner)
+    tenant: TenantContext = Depends(verify_business_access)
 ):
     """
     AI auto-arrange: uses LLM spatial reasoning (Claude/Grok/GPT-4o) to
@@ -258,7 +259,7 @@ async def auto_arrange_floor_plan(
     physics constraints. Falls back to rule-based solver if no API key.
     """
     db = get_database()
-    business = await find_business(db, business_id, str(current_user["_id"]))
+    business = await find_business(db, business_id, tenant.user_id)
 
     # Load room config if available (real-world dimensions help AI reason spatially)
     fp = business.get("floor_plan") or {}
@@ -319,14 +320,14 @@ async def auto_arrange_floor_plan(
 async def validate_floor_plan(
     business_id: str,
     request: ValidateRequest,
-    current_user: dict = Depends(get_current_owner)
+    tenant: TenantContext = Depends(verify_business_access)
 ):
     """
     Validate current layout: check for overlaps, spacing violations,
     ADA compliance issues, and return actionable feedback.
     """
     db = get_database()
-    business = await find_business(db, business_id, str(current_user["_id"]))
+    business = await find_business(db, business_id, tenant.user_id)
 
     result = validate_layout(
         request.elements,
@@ -341,7 +342,7 @@ async def validate_floor_plan(
 async def generate_floor_plan(
     business_id: str,
     request: GenerateRequest,
-    current_user: dict = Depends(get_current_owner)
+    tenant: TenantContext = Depends(verify_business_access)
 ):
     """
     Generate a complete floor plan from a structured description.
@@ -356,7 +357,7 @@ async def generate_floor_plan(
     }
     """
     db = get_database()
-    business = await find_business(db, business_id, str(current_user["_id"]))
+    business = await find_business(db, business_id, tenant.user_id)
 
     elements = generate_from_description(
         request.description,

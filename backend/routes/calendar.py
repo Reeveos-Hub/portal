@@ -6,6 +6,8 @@ Handles both snake_case (seed data) and camelCase (form data) field names.
 from fastapi import APIRouter, HTTPException, Depends, Query
 from database import get_database
 from middleware.auth import get_current_staff
+from middleware.tenant import verify_business_access, TenantContext
+from middleware.encryption import TenantEncryption
 from datetime import datetime, timedelta
 from bson import ObjectId
 
@@ -87,11 +89,12 @@ async def get_calendar(
     business_id: str,
     date_param: str = Query(..., alias="date"),
     view: str = Query("day"),
-    user: dict = Depends(get_current_staff),
+    tenant: TenantContext = Depends(verify_business_access),
 ):
     """Calendar data for service businesses (salons, spas, etc.)."""
     db = get_database()
-    business = await _get_business(db, business_id, user)
+    # Access already verified by verify_business_access — just load business
+    business = await _get_business(db, business_id, {"_id": tenant.user_id, "role": tenant.role})
     bid_str = _safe_str(business.get("_id"))
 
     try:
@@ -173,11 +176,11 @@ async def get_calendar_restaurant(
     business_id: str,
     date_param: str = Query(..., alias="date"),
     view: str = Query("day"),
-    user: dict = Depends(get_current_staff),
+    tenant: TenantContext = Depends(verify_business_access),
 ):
     """Calendar for restaurant businesses."""
     db = get_database()
-    business = await _get_business(db, business_id, user)
+    business = await _get_business(db, business_id, {"_id": tenant.user_id, "role": tenant.role})
     bid_str = _safe_str(business.get("_id"))
 
     try:

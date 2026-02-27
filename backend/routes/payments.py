@@ -1,6 +1,7 @@
 from fastapi import APIRouter, HTTPException, status, Depends, Request
 from database import get_database
 from middleware.auth import get_current_owner
+from middleware.tenant import verify_business_access, TenantContext
 from pydantic import BaseModel
 from typing import Optional
 from datetime import datetime
@@ -19,7 +20,7 @@ class StripeConnectResponse(BaseModel):
 @router.post("/stripe/connect", response_model=StripeConnectResponse)
 async def create_stripe_connect_account(
     business_id: str,
-    current_user: dict = Depends(get_current_owner)
+    current_tenant: TenantContext = Depends(verify_business_access)
 ):
     db = get_database()
     
@@ -30,7 +31,7 @@ async def create_stripe_connect_account(
             detail="Business not found"
         )
     
-    if business["owner_id"] != str(current_user["_id"]):
+    if business["owner_id"] != tenant.user_id:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Not authorized"
@@ -81,7 +82,7 @@ async def create_stripe_connect_account(
 @router.get("/stripe/account/{business_id}")
 async def get_stripe_account_status(
     business_id: str,
-    current_user: dict = Depends(get_current_owner)
+    current_tenant: TenantContext = Depends(verify_business_access)
 ):
     db = get_database()
     
@@ -92,7 +93,7 @@ async def get_stripe_account_status(
             detail="Business not found"
         )
     
-    if business["owner_id"] != str(current_user["_id"]):
+    if business["owner_id"] != tenant.user_id:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Not authorized"
@@ -141,7 +142,7 @@ async def create_payment_intent(
     amount: float,
     business_id: str,
     reservation_id: str,
-    current_user: dict = Depends(get_current_owner)
+    current_tenant: TenantContext = Depends(verify_business_access)
 ):
     db = get_database()
     

@@ -11,6 +11,7 @@ from fastapi import APIRouter, HTTPException, Depends, Query, Body, UploadFile, 
 from fastapi.responses import StreamingResponse
 from database import get_database
 from middleware.auth import get_current_owner
+from middleware.tenant import verify_business_access, TenantContext
 from bson import ObjectId
 
 router = APIRouter(prefix="/clients-v2", tags=["clients-v2"])
@@ -116,7 +117,7 @@ async def list_clients(
     tag: str = Query(""),
     sort: str = Query("last_visit_desc"),
     segment: str = Query("all"),
-    user: dict = Depends(get_current_owner),
+    tenant: TenantContext = Depends(verify_business_access),
 ):
     db = get_database()
     business = await _get_business(db, business_id, user)
@@ -185,7 +186,7 @@ async def list_clients(
 
 
 @router.get("/business/{business_id}/{client_id}")
-async def get_client(business_id: str, client_id: str, user: dict = Depends(get_current_owner)):
+async def get_client(business_id: str, client_id: str, tenant: TenantContext = Depends(verify_business_access)):
     db = get_database()
     business = await _get_business(db, business_id, user)
     biz_id = str(business["_id"])
@@ -262,7 +263,7 @@ async def get_client(business_id: str, client_id: str, user: dict = Depends(get_
 
 
 @router.post("/business/{business_id}")
-async def create_client(business_id: str, payload: dict = Body(...), user: dict = Depends(get_current_owner)):
+async def create_client(business_id: str, payload: dict = Body(...), tenant: TenantContext = Depends(verify_business_access)):
     db = get_database()
     business = await _get_business(db, business_id, user)
     biz_id = str(business["_id"])
@@ -318,7 +319,7 @@ async def create_client(business_id: str, payload: dict = Body(...), user: dict 
 
 
 @router.put("/business/{business_id}/{client_id}")
-async def update_client(business_id: str, client_id: str, payload: dict = Body(...), user: dict = Depends(get_current_owner)):
+async def update_client(business_id: str, client_id: str, payload: dict = Body(...), tenant: TenantContext = Depends(verify_business_access)):
     db = get_database()
     business = await _get_business(db, business_id, user)
     biz_id = str(business["_id"])
@@ -342,7 +343,7 @@ async def update_client(business_id: str, client_id: str, payload: dict = Body(.
 
 
 @router.delete("/business/{business_id}/{client_id}")
-async def delete_client(business_id: str, client_id: str, user: dict = Depends(get_current_owner)):
+async def delete_client(business_id: str, client_id: str, tenant: TenantContext = Depends(verify_business_access)):
     db = get_database()
     business = await _get_business(db, business_id, user)
     biz_id = str(business["_id"])
@@ -361,7 +362,7 @@ async def delete_client(business_id: str, client_id: str, user: dict = Depends(g
 
 
 @router.post("/business/{business_id}/{client_id}/tags")
-async def add_tags(business_id: str, client_id: str, payload: dict = Body(...), user: dict = Depends(get_current_owner)):
+async def add_tags(business_id: str, client_id: str, payload: dict = Body(...), tenant: TenantContext = Depends(verify_business_access)):
     db = get_database()
     business = await _get_business(db, business_id, user)
     biz_id = str(business["_id"])
@@ -386,7 +387,7 @@ async def add_tags(business_id: str, client_id: str, payload: dict = Body(...), 
 
 
 @router.delete("/business/{business_id}/{client_id}/tags/{tag}")
-async def remove_tag(business_id: str, client_id: str, tag: str, user: dict = Depends(get_current_owner)):
+async def remove_tag(business_id: str, client_id: str, tag: str, tenant: TenantContext = Depends(verify_business_access)):
     db = get_database()
     business = await _get_business(db, business_id, user)
     biz_id = str(business["_id"])
@@ -406,7 +407,7 @@ async def remove_tag(business_id: str, client_id: str, tag: str, user: dict = De
 
 
 @router.post("/business/{business_id}/{client_id}/notes")
-async def add_note(business_id: str, client_id: str, payload: dict = Body(...), user: dict = Depends(get_current_owner)):
+async def add_note(business_id: str, client_id: str, payload: dict = Body(...), tenant: TenantContext = Depends(verify_business_access)):
     db = get_database()
     business = await _get_business(db, business_id, user)
     biz_id = str(business["_id"])
@@ -437,7 +438,7 @@ async def add_note(business_id: str, client_id: str, payload: dict = Body(...), 
 
 
 @router.delete("/business/{business_id}/{client_id}/notes/{note_id}")
-async def delete_note(business_id: str, client_id: str, note_id: str, user: dict = Depends(get_current_owner)):
+async def delete_note(business_id: str, client_id: str, note_id: str, tenant: TenantContext = Depends(verify_business_access)):
     db = get_database()
     business = await _get_business(db, business_id, user)
     biz_id = str(business["_id"])
@@ -457,7 +458,7 @@ async def delete_note(business_id: str, client_id: str, note_id: str, user: dict
 
 
 @router.get("/business/{business_id}/export")
-async def export_clients(business_id: str, user: dict = Depends(get_current_owner)):
+async def export_clients(business_id: str, tenant: TenantContext = Depends(verify_business_access)):
     db = get_database()
     business = await _get_business(db, business_id, user)
     biz_id = str(business["_id"])
@@ -489,7 +490,7 @@ async def export_clients(business_id: str, user: dict = Depends(get_current_owne
 
 
 @router.post("/business/{business_id}/import")
-async def import_clients(business_id: str, file: UploadFile = File(...), user: dict = Depends(get_current_owner)):
+async def import_clients(business_id: str, file: UploadFile = File(...), tenant: TenantContext = Depends(verify_business_access)):
     db = get_database()
     business = await _get_business(db, business_id, user)
     biz_id = str(business["_id"])

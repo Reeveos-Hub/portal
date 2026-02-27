@@ -6,6 +6,7 @@ Stored in business.menu + business.categories for backward compat with Run 2
 from fastapi import APIRouter, HTTPException, Depends, Query, Body
 from database import get_database
 from middleware.auth import get_current_staff
+from middleware.tenant import verify_business_access, TenantContext
 from pydantic import BaseModel
 from typing import List, Optional
 from datetime import datetime
@@ -37,7 +38,7 @@ def _cat_id():
 
 
 @router.get("/business/{business_id}")
-async def get_services_grouped(business_id: str, user: dict = Depends(get_current_staff)):
+async def get_services_grouped(business_id: str, tenant: TenantContext = Depends(verify_business_access)):
     """Run 4: Services grouped by category."""
     db = get_database()
     business = await _get_business(db, business_id, user)
@@ -98,7 +99,7 @@ async def get_services_grouped(business_id: str, user: dict = Depends(get_curren
 
 
 @router.post("/business/{business_id}")
-async def create_service(business_id: str, payload: dict = Body(...), user: dict = Depends(get_current_staff)):
+async def create_service(business_id: str, payload: dict = Body(...), tenant: TenantContext = Depends(verify_business_access)):
     db = get_database()
     business = await _get_business(db, business_id, user)
     name = (payload.get("name") or "").strip()
@@ -140,7 +141,7 @@ async def create_service(business_id: str, payload: dict = Body(...), user: dict
 
 
 @router.put("/business/{business_id}/{service_id}")
-async def update_service(business_id: str, service_id: str, payload: dict = Body(...), user: dict = Depends(get_current_staff)):
+async def update_service(business_id: str, service_id: str, payload: dict = Body(...), tenant: TenantContext = Depends(verify_business_access)):
     db = get_database()
     business = await _get_business(db, business_id, user)
     menu = business.get("menu", [])
@@ -178,7 +179,7 @@ async def update_service(business_id: str, service_id: str, payload: dict = Body
 async def delete_service(
     business_id: str, service_id: str,
     confirm: bool = Query(False),
-    user: dict = Depends(get_current_staff),
+    tenant: TenantContext = Depends(verify_business_access),
 ):
     db = get_database()
     business = await _get_business(db, business_id, user)
@@ -209,7 +210,7 @@ async def delete_service(
 
 
 @router.put("/business/{business_id}/reorder")
-async def reorder_services(business_id: str, payload: dict = Body(...), user: dict = Depends(get_current_staff)):
+async def reorder_services(business_id: str, payload: dict = Body(...), tenant: TenantContext = Depends(verify_business_access)):
     db = get_database()
     business = await _get_business(db, business_id, user)
     category_id = payload.get("categoryId")
@@ -230,7 +231,7 @@ async def reorder_services(business_id: str, payload: dict = Body(...), user: di
 
 
 @router.patch("/business/{business_id}/{service_id}/toggle")
-async def toggle_online(business_id: str, service_id: str, payload: dict = Body(...), user: dict = Depends(get_current_staff)):
+async def toggle_online(business_id: str, service_id: str, payload: dict = Body(...), tenant: TenantContext = Depends(verify_business_access)):
     db = get_database()
     business = await _get_business(db, business_id, user)
     menu = business.get("menu", [])
@@ -249,14 +250,14 @@ async def toggle_online(business_id: str, service_id: str, payload: dict = Body(
 # --- Categories ---
 
 @router.get("/categories/business/{business_id}")
-async def get_categories(business_id: str, user: dict = Depends(get_current_staff)):
+async def get_categories(business_id: str, tenant: TenantContext = Depends(verify_business_access)):
     db = get_database()
     business = await _get_business(db, business_id, user)
     return {"categories": business.get("categories", [])}
 
 
 @router.post("/categories/business/{business_id}")
-async def create_category(business_id: str, payload: dict = Body(...), user: dict = Depends(get_current_staff)):
+async def create_category(business_id: str, payload: dict = Body(...), tenant: TenantContext = Depends(verify_business_access)):
     db = get_database()
     business = await _get_business(db, business_id, user)
     name = (payload.get("name") or "").strip()
@@ -276,7 +277,7 @@ async def create_category(business_id: str, payload: dict = Body(...), user: dic
 
 
 @router.put("/categories/business/{business_id}/{category_id}")
-async def update_category(business_id: str, category_id: str, payload: dict = Body(...), user: dict = Depends(get_current_staff)):
+async def update_category(business_id: str, category_id: str, payload: dict = Body(...), tenant: TenantContext = Depends(verify_business_access)):
     db = get_database()
     business = await _get_business(db, business_id, user)
     cats = business.get("categories", [])
@@ -292,7 +293,7 @@ async def update_category(business_id: str, category_id: str, payload: dict = Bo
 
 
 @router.delete("/categories/business/{business_id}/{category_id}")
-async def delete_category(business_id: str, category_id: str, user: dict = Depends(get_current_staff)):
+async def delete_category(business_id: str, category_id: str, tenant: TenantContext = Depends(verify_business_access)):
     db = get_database()
     business = await _get_business(db, business_id, user)
     menu = business.get("menu", [])

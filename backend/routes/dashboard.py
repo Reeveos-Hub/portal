@@ -5,6 +5,7 @@ Run 3: Dashboard API — summary, today's bookings, activity feed
 from fastapi import APIRouter, HTTPException, Depends, Query
 from database import get_database
 from middleware.auth import get_current_staff
+from middleware.tenant import verify_business_access, TenantContext
 from datetime import datetime, date, timedelta
 from bson import ObjectId
 
@@ -94,10 +95,10 @@ def _extract_booking_fields(b):
 @router.get("/business/{business_id}/summary")
 async def get_dashboard_summary(
     business_id: str,
-    user: dict = Depends(get_current_staff),
+    tenant: TenantContext = Depends(verify_business_access),
 ):
     db = get_database()
-    business = await _ensure_business_access(db, business_id, user)
+    business = await _ensure_business_access(db, business_id, {"_id": tenant.user_id, "role": tenant.role})
     today_str = date.today().isoformat()
 
     all_bookings = await _query_all_bookings(db, business_id)
@@ -183,10 +184,10 @@ def _staff_name(business, staff_id):
 @router.get("/business/{business_id}/today")
 async def get_today_bookings(
     business_id: str,
-    user: dict = Depends(get_current_staff),
+    tenant: TenantContext = Depends(verify_business_access),
 ):
     db = get_database()
-    business = await _ensure_business_access(db, business_id, user)
+    business = await _ensure_business_access(db, business_id, {"_id": tenant.user_id, "role": tenant.role})
     today_str = date.today().isoformat()
 
     all_bookings = await _query_all_bookings(db, business_id)
@@ -224,10 +225,11 @@ async def get_today_bookings(
 async def get_activity_feed(
     business_id: str,
     limit: int = Query(20, ge=1, le=50),
-    user: dict = Depends(get_current_staff),
+    tenant: TenantContext = Depends(verify_business_access),
 ):
     db = get_database()
-    await _ensure_business_access(db, business_id, user)
+    # Access verified by tenant guard
+    await _ensure_business_access(db, business_id, {"_id": tenant.user_id, "role": tenant.role})
 
     bid_values = [business_id]
     try:

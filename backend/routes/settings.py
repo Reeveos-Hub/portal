@@ -1,6 +1,7 @@
 from fastapi import APIRouter, HTTPException, status, Depends
 from database import get_database
 from middleware.auth import get_current_owner
+from middleware.tenant import verify_business_access, TenantContext
 from models.business import OpeningHours, BookingSettings
 from pydantic import BaseModel
 from typing import Optional
@@ -17,7 +18,7 @@ class BusinessSettings(BaseModel):
 @router.get("/business/{business_id}")
 async def get_business_settings(
     business_id: str,
-    current_user: dict = Depends(get_current_owner)
+    current_tenant: TenantContext = Depends(verify_business_access)
 ):
     db = get_database()
     
@@ -28,7 +29,7 @@ async def get_business_settings(
             detail="Business not found"
         )
     
-    if business["owner_id"] != str(current_user["_id"]):
+    if business["owner_id"] != tenant.user_id:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Not authorized"
@@ -44,7 +45,7 @@ async def get_business_settings(
 async def update_business_settings(
     business_id: str,
     settings_update: BusinessSettings,
-    current_user: dict = Depends(get_current_owner)
+    current_tenant: TenantContext = Depends(verify_business_access)
 ):
     db = get_database()
     
@@ -55,7 +56,7 @@ async def update_business_settings(
             detail="Business not found"
         )
     
-    if business["owner_id"] != str(current_user["_id"]):
+    if business["owner_id"] != tenant.user_id:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Not authorized"
@@ -87,7 +88,7 @@ async def update_business_settings(
 async def upgrade_tier(
     business_id: str,
     tier: str,
-    current_user: dict = Depends(get_current_owner)
+    current_tenant: TenantContext = Depends(verify_business_access)
 ):
     db = get_database()
     
@@ -98,7 +99,7 @@ async def upgrade_tier(
             detail="Business not found"
         )
     
-    if business["owner_id"] != str(current_user["_id"]):
+    if business["owner_id"] != tenant.user_id:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Not authorized"

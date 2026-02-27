@@ -1,10 +1,13 @@
 from pathlib import Path
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 from contextlib import asynccontextmanager
+import uuid
+import logging
 import database
 from middleware.cors import setup_cors
 from middleware.rate_limit import limiter
@@ -48,6 +51,9 @@ from routes import (
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     await database.connect_to_mongo()
+    # Create audit log indexes
+    from middleware.audit import ensure_audit_indexes
+    await ensure_audit_indexes()
     # Start background email scheduler (drip sequences, reminders, agent tasks)
     from helpers.scheduler import start_scheduler, stop_scheduler
     start_scheduler()
@@ -75,6 +81,30 @@ app = FastAPI(
 setup_cors(app)
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+
+# ── Global exception handler: NEVER leak tenant data in errors ──
+_error_logger = logging.getLogger("error_handler")
+
+@app.exception_handler(Exception)
+async def safe_exception_handler(request: Request, exc: Exception):
+    """
+    Catches ALL unhandled exceptions. Returns a safe, generic error
+    with an opaque reference ID. NEVER includes stack traces, SQL errors,
+    tenant data, or any internal details in the response.
+    """
+    error_ref = str(uuid.uuid4())[:8].upper()
+    _error_logger.critical(
+        f"Unhandled exception ref={error_ref}: {type(exc).__name__}: {exc}",
+        exc_info=True,
+        extra={"error_ref": error_ref, "path": str(request.url.path)}
+    )
+    return JSONResponse(
+        status_code=500,
+        content={
+            "detail": "Something went wrong. Please try again.",
+            "reference": error_ref,
+        }
+    )
 
 app.include_router(auth_router)
 app.include_router(book_router)

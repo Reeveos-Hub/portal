@@ -11,6 +11,7 @@ from fastapi import APIRouter, HTTPException, Depends, Body, Query
 from fastapi.responses import StreamingResponse
 from database import get_database
 from middleware.auth import get_current_owner
+from middleware.tenant import verify_business_access, TenantContext
 from bson import ObjectId
 
 router = APIRouter(prefix="/settings-v2", tags=["settings-v2"])
@@ -132,7 +133,7 @@ def _build_settings_response(business: dict) -> dict:
 
 
 @router.get("/business/{business_id}")
-async def get_settings(business_id: str, user: dict = Depends(get_current_owner)):
+async def get_settings(business_id: str, tenant: TenantContext = Depends(verify_business_access)):
     """Returns all settings for Run 13 Settings page."""
     db = get_database()
     business = await _get_business(db, business_id, user)
@@ -145,7 +146,7 @@ def _category_to_type(cat):
 
 
 @router.put("/business/{business_id}")
-async def update_settings(business_id: str, payload: dict = Body(default={}), user: dict = Depends(get_current_owner)):
+async def update_settings(business_id: str, payload: dict = Body(default={}), tenant: TenantContext = Depends(verify_business_access)):
     """Partial update of business settings."""
     db = get_database()
     business = await _get_business(db, business_id, user)
@@ -207,7 +208,7 @@ async def update_settings(business_id: str, payload: dict = Body(default={}), us
 
 
 @router.put("/business/{business_id}/hours")
-async def update_hours(business_id: str, payload: dict = Body(...), user: dict = Depends(get_current_owner)):
+async def update_hours(business_id: str, payload: dict = Body(...), tenant: TenantContext = Depends(verify_business_access)):
     """Update opening hours."""
     db = get_database()
     business = await _get_business(db, business_id, user)
@@ -236,7 +237,7 @@ async def update_hours(business_id: str, payload: dict = Body(...), user: dict =
 
 
 @router.post("/business/{business_id}/special-hours")
-async def add_special_hours(business_id: str, payload: dict = Body(...), user: dict = Depends(get_current_owner)):
+async def add_special_hours(business_id: str, payload: dict = Body(...), tenant: TenantContext = Depends(verify_business_access)):
     """Add special hours entry."""
     db = get_database()
     business = await _get_business(db, business_id, user)
@@ -260,7 +261,7 @@ async def add_special_hours(business_id: str, payload: dict = Body(...), user: d
 
 
 @router.delete("/business/{business_id}/special-hours/{entry_id}")
-async def delete_special_hours(business_id: str, entry_id: str, user: dict = Depends(get_current_owner)):
+async def delete_special_hours(business_id: str, entry_id: str, tenant: TenantContext = Depends(verify_business_access)):
     """Remove special hours entry."""
     db = get_database()
     business = await _get_business(db, business_id, user)
@@ -273,7 +274,7 @@ async def delete_special_hours(business_id: str, entry_id: str, user: dict = Dep
 
 
 @router.put("/business/{business_id}/notifications")
-async def update_notifications(business_id: str, payload: dict = Body(...), user: dict = Depends(get_current_owner)):
+async def update_notifications(business_id: str, payload: dict = Body(...), tenant: TenantContext = Depends(verify_business_access)):
     """Update notification preferences."""
     db = get_database()
     business = await _get_business(db, business_id, user)
@@ -288,7 +289,7 @@ async def update_notifications(business_id: str, payload: dict = Body(...), user
 
 # --- Subscription ---
 @router.get("/subscription/{business_id}")
-async def get_subscription(business_id: str, user: dict = Depends(get_current_owner)):
+async def get_subscription(business_id: str, tenant: TenantContext = Depends(verify_business_access)):
     """Current plan details."""
     db = get_database()
     business = await _get_business(db, business_id, user)
@@ -309,7 +310,7 @@ PLAN_TO_TIER = {"Free": "free", "Starter": "starter", "Growth": "pro", "Scale": 
 
 
 @router.post("/subscription/{business_id}/change")
-async def change_subscription(business_id: str, payload: dict = Body(...), user: dict = Depends(get_current_owner)):
+async def change_subscription(business_id: str, payload: dict = Body(...), tenant: TenantContext = Depends(verify_business_access)):
     """Upgrade/downgrade plan."""
     db = get_database()
     business = await _get_business(db, business_id, user)
@@ -324,7 +325,7 @@ async def change_subscription(business_id: str, payload: dict = Body(...), user:
 
 
 @router.post("/subscription/{business_id}/cancel")
-async def cancel_subscription(business_id: str, user: dict = Depends(get_current_owner)):
+async def cancel_subscription(business_id: str, tenant: TenantContext = Depends(verify_business_access)):
     """Cancel at end of billing period."""
     db = get_database()
     business = await _get_business(db, business_id, user)
@@ -336,7 +337,7 @@ async def cancel_subscription(business_id: str, user: dict = Depends(get_current
 
 
 @router.get("/subscription/{business_id}/portal")
-async def get_customer_portal(business_id: str, user: dict = Depends(get_current_owner)):
+async def get_customer_portal(business_id: str, tenant: TenantContext = Depends(verify_business_access)):
     """Stripe Customer Portal URL for payment method / invoices."""
     try:
         import stripe
@@ -356,7 +357,7 @@ async def get_customer_portal(business_id: str, user: dict = Depends(get_current
 
 # --- Integrations ---
 @router.post("/business/{business_id}/integrations/{integration_type}/connect")
-async def connect_integration(business_id: str, integration_type: str, user: dict = Depends(get_current_owner)):
+async def connect_integration(business_id: str, integration_type: str, tenant: TenantContext = Depends(verify_business_access)):
     """Start connect flow for integration. For Stripe, returns onboarding URL."""
     if integration_type == "stripe":
         try:
@@ -391,7 +392,7 @@ async def connect_integration(business_id: str, integration_type: str, user: dic
 
 
 @router.delete("/business/{business_id}/integrations/{integration_type}/disconnect")
-async def disconnect_integration(business_id: str, integration_type: str, user: dict = Depends(get_current_owner)):
+async def disconnect_integration(business_id: str, integration_type: str, tenant: TenantContext = Depends(verify_business_access)):
     """Disconnect integration."""
     db = get_database()
     business = await _get_business(db, business_id, user)
@@ -406,7 +407,7 @@ async def disconnect_integration(business_id: str, integration_type: str, user: 
 
 # --- Export & Delete ---
 @router.get("/business/{business_id}/export")
-async def export_business_data(business_id: str, user: dict = Depends(get_current_owner)):
+async def export_business_data(business_id: str, tenant: TenantContext = Depends(verify_business_access)):
     """Export all business data as ZIP of CSVs."""
     db = get_database()
     business = await _get_business(db, business_id, user)
@@ -461,7 +462,7 @@ async def delete_business_soft(
     business_id: str,
     confirm_name: str = Query(None, alias="confirmName"),
     payload: dict = Body(default={}),
-    user: dict = Depends(get_current_owner),
+    tenant: TenantContext = Depends(verify_business_access),
 ):
     """Soft-delete business. Requires typing business name to confirm."""
     db = get_database()

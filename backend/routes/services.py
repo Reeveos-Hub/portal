@@ -1,6 +1,7 @@
 from fastapi import APIRouter, HTTPException, status, Depends
 from database import get_database
 from middleware.auth import get_current_owner
+from middleware.tenant import verify_business_access, TenantContext
 from pydantic import BaseModel
 from typing import List, Optional
 from datetime import datetime
@@ -29,7 +30,7 @@ class ServiceUpdate(BaseModel):
 async def add_service(
     business_id: str,
     service_data: ServiceCreate,
-    current_user: dict = Depends(get_current_owner)
+    current_tenant: TenantContext = Depends(verify_business_access)
 ):
     db = get_database()
     
@@ -40,7 +41,7 @@ async def add_service(
             detail="Business not found"
         )
     
-    if business["owner_id"] != str(current_user["_id"]):
+    if business["owner_id"] != tenant.user_id:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Not authorized"
@@ -83,7 +84,7 @@ async def update_service(
     business_id: str,
     service_id: str,
     service_update: ServiceUpdate,
-    current_user: dict = Depends(get_current_owner)
+    current_tenant: TenantContext = Depends(verify_business_access)
 ):
     db = get_database()
     
@@ -94,7 +95,7 @@ async def update_service(
             detail="Business not found"
         )
     
-    if business["owner_id"] != str(current_user["_id"]):
+    if business["owner_id"] != tenant.user_id:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Not authorized"
@@ -128,7 +129,7 @@ async def update_service(
 async def delete_service(
     business_id: str,
     service_id: str,
-    current_user: dict = Depends(get_current_owner)
+    current_tenant: TenantContext = Depends(verify_business_access)
 ):
     db = get_database()
     
@@ -139,7 +140,7 @@ async def delete_service(
             detail="Business not found"
         )
     
-    if business["owner_id"] != str(current_user["_id"]):
+    if business["owner_id"] != tenant.user_id:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Not authorized"

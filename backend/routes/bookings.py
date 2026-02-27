@@ -5,6 +5,7 @@ from models.reservation import (
     ReservationStatus, DepositStatus
 )
 from middleware.auth import get_current_user, get_current_staff
+from middleware.tenant import verify_business_access, TenantContext
 from datetime import datetime, date, time, timedelta
 from typing import List, Optional
 
@@ -219,7 +220,7 @@ async def list_bookings(
     from_date: Optional[str] = Query(None, alias="from"),
     to_date: Optional[str] = Query(None, alias="to"),
     sort: str = Query("date_desc"),
-    current_user: dict = Depends(get_current_staff),
+    tenant: TenantContext = Depends(verify_business_access),
 ):
     """Run 3: Paginated bookings list with filters."""
     from bson import ObjectId
@@ -230,7 +231,7 @@ async def list_bookings(
         business = await db.businesses.find_one({"_id": business_id})
     if not business:
         raise HTTPException(404, "Business not found")
-    if str(business.get("owner_id")) != str(current_user.get("_id")) and current_user.get("role") not in ["staff", "admin"]:
+    if str(business.get("owner_id")) != tenant.user_id and tenant.role not in ["staff", "admin"]:
         raise HTTPException(403, "Not authorized")
 
     # Build business ID values (string + ObjectId) for compatibility
@@ -335,7 +336,7 @@ async def list_bookings(
 async def get_booking_detail(
     business_id: str,
     booking_id: str,
-    current_user: dict = Depends(get_current_staff),
+    tenant: TenantContext = Depends(verify_business_access),
 ):
     """Run 3: Full booking detail for side panel."""
     from bson import ObjectId
@@ -346,7 +347,7 @@ async def get_booking_detail(
         business = await db.businesses.find_one({"_id": business_id})
     if not business:
         raise HTTPException(404, "Business not found")
-    if str(business.get("owner_id")) != str(current_user.get("_id")) and current_user.get("role") not in ["staff", "admin"]:
+    if str(business.get("owner_id")) != tenant.user_id and tenant.role not in ["staff", "admin"]:
         raise HTTPException(403, "Not authorized")
 
     # Try both _id formats and both businessId field names
@@ -409,7 +410,7 @@ async def update_booking_status(
     business_id: str,
     booking_id: str,
     payload: dict = Body(...),
-    current_user: dict = Depends(get_current_staff),
+    tenant: TenantContext = Depends(verify_business_access),
 ):
     """Run 3: Update booking status (confirm, check-in, complete, cancel, no-show)."""
     from bson import ObjectId
@@ -420,7 +421,7 @@ async def update_booking_status(
         business = await db.businesses.find_one({"_id": business_id})
     if not business:
         raise HTTPException(404, "Business not found")
-    if str(business.get("owner_id")) != str(current_user.get("_id")) and current_user.get("role") not in ["staff", "admin"]:
+    if str(business.get("owner_id")) != tenant.user_id and tenant.role not in ["staff", "admin"]:
         raise HTTPException(403, "Not authorized")
 
     bid_str = str(business.get("_id", ""))
@@ -520,7 +521,7 @@ async def get_business_calendar(
     business_id: str,
     start_date: date = Query(...),
     end_date: date = Query(...),
-    current_user: dict = Depends(get_current_staff)
+    tenant: TenantContext = Depends(verify_business_access)
 ):
     db = get_database()
     
@@ -531,7 +532,7 @@ async def get_business_calendar(
             detail="Business not found"
         )
     
-    if business.get("owner_id") != str(current_user["_id"]) and current_user.get("role") != "admin":
+    if business.get("owner_id") != tenant.user_id and tenant.role != "admin":
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Not authorized to view this calendar"
@@ -551,7 +552,7 @@ async def move_booking(
     business_id: str,
     booking_id: str,
     payload: dict = Body(...),
-    current_user: dict = Depends(get_current_staff),
+    tenant: TenantContext = Depends(verify_business_access),
 ):
     """Calendar drag-drop: update time, duration, staffId, tableId."""
     from bson import ObjectId
@@ -562,7 +563,7 @@ async def move_booking(
         business = await db.businesses.find_one({"_id": business_id})
     if not business:
         raise HTTPException(404, "Business not found")
-    if str(business.get("owner_id")) != str(current_user.get("_id")) and current_user.get("role") not in ["staff", "admin"]:
+    if str(business.get("owner_id")) != tenant.user_id and tenant.role not in ["staff", "admin"]:
         raise HTTPException(403, "Not authorized")
 
     bid_str = str(business.get("_id"))

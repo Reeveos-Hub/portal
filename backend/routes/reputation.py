@@ -1,6 +1,7 @@
 from fastapi import APIRouter, HTTPException, status, Depends
 from database import get_database
 from middleware.auth import get_current_owner
+from middleware.tenant import verify_business_access, TenantContext
 
 router = APIRouter(prefix="/reputation", tags=["reputation"])
 
@@ -8,7 +9,7 @@ router = APIRouter(prefix="/reputation", tags=["reputation"])
 @router.get("/business/{business_id}/review-stats")
 async def get_review_stats(
     business_id: str,
-    current_user: dict = Depends(get_current_owner)
+    current_tenant: TenantContext = Depends(verify_business_access)
 ):
     db = get_database()
     
@@ -19,7 +20,7 @@ async def get_review_stats(
             detail="Business not found"
         )
     
-    if business["owner_id"] != str(current_user["_id"]):
+    if business["owner_id"] != tenant.user_id:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Not authorized"
@@ -58,7 +59,7 @@ async def get_review_stats(
 @router.get("/business/{business_id}/sentiment")
 async def get_sentiment_analysis(
     business_id: str,
-    current_user: dict = Depends(get_current_owner)
+    current_tenant: TenantContext = Depends(verify_business_access)
 ):
     db = get_database()
     
@@ -69,7 +70,7 @@ async def get_sentiment_analysis(
             detail="Business not found"
         )
     
-    if business["owner_id"] != str(current_user["_id"]):
+    if business["owner_id"] != tenant.user_id:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Not authorized"
@@ -92,7 +93,7 @@ async def get_sentiment_analysis(
 @router.post("/business/{business_id}/google-review-booster")
 async def trigger_google_review_booster(
     business_id: str,
-    current_user: dict = Depends(get_current_owner)
+    current_tenant: TenantContext = Depends(verify_business_access)
 ):
     db = get_database()
     
@@ -103,7 +104,7 @@ async def trigger_google_review_booster(
             detail="Business not found"
         )
     
-    if business["owner_id"] != str(current_user["_id"]):
+    if business["owner_id"] != tenant.user_id:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Not authorized"

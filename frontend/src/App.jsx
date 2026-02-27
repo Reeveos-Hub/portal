@@ -3,6 +3,7 @@ import { AuthProvider } from './contexts/AuthContext'
 import { TierProvider } from './contexts/TierContext'
 import { BusinessProvider } from './contexts/BusinessContext'
 import ScrollToTop from './components/ScrollToTop'
+import TenantErrorBoundary from './components/TenantErrorBoundary'
 
 import DashboardLayout from './layouts/DashboardLayout'
 import AdminLayout from './layouts/AdminLayout'
@@ -71,9 +72,11 @@ const App = () => {
 
             {/* Dashboard — owner portal */}
             <Route path="/dashboard" element={
-              <BusinessProvider>
-                <DashboardLayout />
-              </BusinessProvider>
+              <TenantErrorBoundary>
+                <BusinessProvider>
+                  <DashboardLayout />
+                </BusinessProvider>
+              </TenantErrorBoundary>
             }>
               <Route index element={<Dashboard />} />
               <Route path="bookings" element={<Bookings />} />

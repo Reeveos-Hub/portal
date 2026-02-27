@@ -11,6 +11,7 @@ from fastapi import APIRouter, HTTPException, Depends, UploadFile, File, Body
 from fastapi.responses import Response
 from database import get_database
 from middleware.auth import get_current_owner
+from middleware.tenant import verify_business_access, TenantContext
 from datetime import datetime
 from bson import ObjectId
 
@@ -72,7 +73,7 @@ def _base_url():
 
 
 @router.get("/{business_id}")
-async def get_booking_page(business_id: str, user: dict = Depends(get_current_owner)):
+async def get_booking_page(business_id: str, tenant: TenantContext = Depends(verify_business_access)):
     db = get_database()
     business = await _get_business(db, business_id, user)
     slug = business.get("slug", "your-business")
@@ -91,7 +92,7 @@ async def get_booking_page(business_id: str, user: dict = Depends(get_current_ow
 
 
 @router.put("/{business_id}")
-async def update_booking_page(business_id: str, payload: dict = Body(default={}), user: dict = Depends(get_current_owner)):
+async def update_booking_page(business_id: str, payload: dict = Body(default={}), tenant: TenantContext = Depends(verify_business_access)):
     db = get_database()
     business = await _get_business(db, business_id, user)
     current = business.get("bookingPage") or {}
@@ -138,7 +139,7 @@ def _save_upload(file: UploadFile, max_size: int, allowed: set, resize_size=None
 
 
 @router.post("/{business_id}/logo")
-async def upload_logo(business_id: str, file: UploadFile = File(...), user: dict = Depends(get_current_owner)):
+async def upload_logo(business_id: str, file: UploadFile = File(...), tenant: TenantContext = Depends(verify_business_access)):
     db = get_database()
     business = await _get_business(db, business_id, user)
     allowed = {"jpg", "jpeg", "png", "webp", "svg"}
@@ -155,7 +156,7 @@ async def upload_logo(business_id: str, file: UploadFile = File(...), user: dict
 
 
 @router.post("/{business_id}/cover")
-async def upload_cover(business_id: str, file: UploadFile = File(...), user: dict = Depends(get_current_owner)):
+async def upload_cover(business_id: str, file: UploadFile = File(...), tenant: TenantContext = Depends(verify_business_access)):
     db = get_database()
     business = await _get_business(db, business_id, user)
     allowed = {"jpg", "jpeg", "png", "webp"}
@@ -172,7 +173,7 @@ async def upload_cover(business_id: str, file: UploadFile = File(...), user: dic
 
 
 @router.get("/{business_id}/qr")
-async def get_qr_code(business_id: str, user: dict = Depends(get_current_owner)):
+async def get_qr_code(business_id: str, tenant: TenantContext = Depends(verify_business_access)):
     db = get_database()
     business = await _get_business(db, business_id, user)
     slug = business.get("slug", "your-business")
@@ -195,7 +196,7 @@ async def get_qr_code(business_id: str, user: dict = Depends(get_current_owner))
 
 
 @router.get("/{business_id}/embed")
-async def get_embed_code(business_id: str, user: dict = Depends(get_current_owner)):
+async def get_embed_code(business_id: str, tenant: TenantContext = Depends(verify_business_access)):
     db = get_database()
     business = await _get_business(db, business_id, user)
     slug = business.get("slug", "your-business")

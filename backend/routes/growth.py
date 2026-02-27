@@ -1,6 +1,7 @@
 from fastapi import APIRouter, HTTPException, status, Depends, Query
 from database import get_database
 from middleware.auth import get_current_owner
+from middleware.tenant import verify_business_access, TenantContext
 from pydantic import BaseModel, EmailStr
 from typing import Optional
 from datetime import datetime
@@ -42,7 +43,7 @@ async def get_business_leads(
     business_id: str,
     limit: int = Query(50, ge=1, le=500),
     skip: int = Query(0, ge=0),
-    current_user: dict = Depends(get_current_owner)
+    current_tenant: TenantContext = Depends(verify_business_access)
 ):
     db = get_database()
     
@@ -53,7 +54,7 @@ async def get_business_leads(
             detail="Business not found"
         )
     
-    if business["owner_id"] != str(current_user["_id"]):
+    if business["owner_id"] != tenant.user_id:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Not authorized"
@@ -92,7 +93,7 @@ async def get_notify_count(business_id: str):
 @router.post("/business/{business_id}/send-warm-lead-email")
 async def send_warm_lead_email(
     business_id: str,
-    current_user: dict = Depends(get_current_owner)
+    current_tenant: TenantContext = Depends(verify_business_access)
 ):
     db = get_database()
     
