@@ -40,15 +40,30 @@ async def create_business(
     
     existing = await db.businesses.find_one({"slug": slug})
     if existing:
-        slug = f"{slug}-{datetime.utcnow().timestamp()}"
+        slug = f"{slug}-{int(datetime.utcnow().timestamp())}"
     
     business_dict = business_data.model_dump()
+    
+    # Map frontend tier names to backend enum if needed
+    tier_map = {"free": "solo", "starter": "team", "growth": "venue", "scale": "venue"}
+    raw_tier = business_dict.get("tier", "solo")
+    if raw_tier in tier_map:
+        business_dict["tier"] = tier_map[raw_tier]
+    
+    # Build full address if city/postcode provided separately
+    if business_data.city or business_data.postcode:
+        parts = [business_dict["address"]]
+        if business_data.city:
+            parts.append(business_data.city)
+        if business_data.postcode:
+            parts.append(business_data.postcode)
+        business_dict["full_address"] = ", ".join(parts)
+    
     business_dict.update({
         "slug": slug,
         "claimed": True,
         "owner_id": str(current_user["_id"]),
         "rezvo_tier": RezvoTier.FREE.value,
-        "tier": business_data.tier.value,
         "promoted": False,
         "notify_count": 0,
         "rating": None,
@@ -79,17 +94,19 @@ async def create_business(
         address=business_dict["address"],
         phone=business_dict.get("phone"),
         website=business_dict.get("website"),
-        lat=business_dict["lat"],
-        lng=business_dict["lng"],
+        lat=business_dict.get("lat", 0.0),
+        lng=business_dict.get("lng", 0.0),
         rating=business_dict.get("rating"),
-        review_count=business_dict["review_count"],
+        review_count=business_dict.get("review_count", 0),
         price_level=business_dict.get("price_level"),
-        photo_refs=business_dict["photo_refs"],
-        claimed=business_dict["claimed"],
-        rezvo_tier=RezvoTier(business_dict["rezvo_tier"]),
-        tier=business_dict["tier"],
-        promoted=business_dict["promoted"],
-        opening_hours=business_dict.get("opening_hours")
+        photo_refs=business_dict.get("photo_refs", []),
+        claimed=business_dict.get("claimed", True),
+        rezvo_tier=business_dict.get("rezvo_tier", "free"),
+        tier=business_dict.get("tier", "solo"),
+        promoted=business_dict.get("promoted", False),
+        opening_hours=business_dict.get("opening_hours"),
+        city=business_dict.get("city"),
+        postcode=business_dict.get("postcode"),
     )
 
 

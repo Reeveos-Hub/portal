@@ -51,13 +51,17 @@ class BusinessBase(BaseModel):
     address: str
     phone: Optional[str] = None
     website: Optional[HttpUrl] = None
-    lat: float
-    lng: float
+    lat: float = 0.0
+    lng: float = 0.0
 
 
 class BusinessCreate(BusinessBase):
-    location_id: str
-    tier: BusinessTier
+    location_id: Optional[str] = ""
+    tier: BusinessTier = BusinessTier.SOLO
+    city: Optional[str] = None
+    postcode: Optional[str] = None
+    email: Optional[str] = None
+    opening_hours: Optional[dict] = None
 
 
 class BusinessUpdate(BaseModel):
@@ -124,17 +128,19 @@ class BusinessResponse(BaseModel):
     address: str
     phone: Optional[str] = None
     website: Optional[HttpUrl] = None
-    lat: float
-    lng: float
+    lat: float = 0.0
+    lng: float = 0.0
     rating: Optional[float] = None
     review_count: int = 0
     price_level: Optional[int] = None
     photo_refs: List[str] = []
     claimed: bool = False
-    rezvo_tier: RezvoTier
-    tier: Optional[BusinessTier] = None
+    rezvo_tier: RezvoTier = RezvoTier.FREE
+    tier: Optional[str] = None
     promoted: bool = False
     opening_hours: Optional[OpeningHours] = None
+    city: Optional[str] = None
+    postcode: Optional[str] = None
 
     class Config:
         from_attributes = True

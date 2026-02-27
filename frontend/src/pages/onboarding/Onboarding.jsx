@@ -5,7 +5,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../contexts/AuthContext'
-import { useBusiness } from '../../contexts/BusinessContext'
+import api from '../../utils/api'
 import {
   UtensilsCrossed, Scissors, Sparkles, Heart,
   ArrowRight, ArrowLeft, Check, MapPin, Phone, Mail,
@@ -45,6 +45,7 @@ export default function Onboarding() {
   const { user } = useAuth()
   const [step, setStep] = useState(0)
   const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
   const [form, setForm] = useState({
     category: '',
     name: '',
@@ -74,11 +75,40 @@ export default function Onboarding() {
   const handleComplete = async () => {
     setLoading(true)
     try {
-      // In production: await api.post('/businesses/', form)
-      await new Promise((r) => setTimeout(r, 1500))
+      // Map frontend tier to backend tier
+      const tierMap = { free: 'solo', starter: 'team', growth: 'venue', scale: 'venue' }
+      
+      // Build opening_hours in the format the backend expects
+      const openingHours = {}
+      const dayMap = { mon: 'monday', tue: 'tuesday', wed: 'wednesday', thu: 'thursday', fri: 'friday', sat: 'saturday', sun: 'sunday' }
+      Object.entries(form.hours).forEach(([key, val]) => {
+        openingHours[dayMap[key]] = val.closed 
+          ? { open: '', close: '', closed: true }
+          : { open: val.open, close: val.close, closed: false }
+      })
+
+      const payload = {
+        name: form.name,
+        category: form.category,
+        address: form.address,
+        city: form.city,
+        postcode: form.postcode,
+        phone: form.phone,
+        email: form.email,
+        tier: tierMap[form.tier] || 'solo',
+        opening_hours: openingHours,
+      }
+
+      const created = await api.post('/businesses/', payload)
+      
+      // Refresh user data so business_ids is populated
+      const updatedUser = await api.get('/users/me')
+      localStorage.setItem('user', JSON.stringify(updatedUser))
+      
       setStep(4)
     } catch (err) {
-      console.error(err)
+      console.error('Business creation failed:', err)
+      setError(err.message || 'Failed to create business. Please try again.')
     } finally {
       setLoading(false)
     }
@@ -120,6 +150,13 @@ export default function Onboarding() {
       {/* Main content */}
       <div className="flex-1 flex items-center justify-center px-4 py-10">
         <div className="w-full max-w-2xl">
+
+          {/* Error message */}
+          {error && (
+            <div className="mb-6 px-4 py-3 bg-red-50 border border-red-200 rounded-xl text-red-700 text-sm font-medium text-center">
+              {error}
+            </div>
+          )}
 
           {/* ─── Step 0: Business Type ─── */}
           {step === 0 && (
@@ -382,7 +419,10 @@ export default function Onboarding() {
               </div>
 
               <button
-                onClick={() => navigate('/dashboard')}
+                onClick={() => {
+                  // Force full reload so TierContext + BusinessContext pick up the new business
+                  window.location.href = '/dashboard'
+                }}
                 className="px-8 py-3.5 bg-primary text-white font-bold rounded-xl hover:bg-primary-hover transition-all shadow-lg text-sm"
               >
                 Go to Dashboard <ArrowRight className="inline ml-2 w-4 h-4" />

@@ -8,6 +8,7 @@ from models.user import UserCreate, UserResponse, UserRole
 from middleware.auth import create_access_token, create_refresh_token
 from middleware.rate_limit import limiter
 from pydantic import BaseModel, EmailStr
+from typing import Optional
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
