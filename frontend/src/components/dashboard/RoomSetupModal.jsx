@@ -268,7 +268,7 @@ export default function RoomSetupModal({ onComplete, onSkip }) {
               {customW && customH && parseFloat(customW) >= 2 && parseFloat(customH) >= 2 && (
                 <div style={{
                   marginTop: 12, padding: '10px 14px', borderRadius: 10,
-                  background: '#F0FDF4', fontSize: 13, color: '#166534',
+                  background: '#F5F5F5', fontSize: 13, color: '#111111',
                 }}>
                   {parseFloat(customW)}m × {parseFloat(customH)}m = {(parseFloat(customW) * parseFloat(customH)).toFixed(0)} m² dining area
                 </div>
