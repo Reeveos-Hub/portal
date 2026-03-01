@@ -1,5 +1,6 @@
 from fastapi import APIRouter, HTTPException, status, Depends
 from database import get_database
+from middleware.tenant_db import get_scoped_db
 from middleware.auth import get_current_owner
 from middleware.tenant import verify_business_access, TenantContext
 from pydantic import BaseModel, EmailStr
@@ -43,6 +44,7 @@ async def add_staff_member(
     current_tenant: TenantContext = Depends(verify_business_access)
 ):
     db = get_database()
+    sdb = get_scoped_db(tenant.business_id)
     
     business = await db.businesses.find_one({"_id": business_id})
     if not business:
@@ -103,6 +105,7 @@ async def update_staff_member(
     current_tenant: TenantContext = Depends(verify_business_access)
 ):
     db = get_database()
+    sdb = get_scoped_db(tenant.business_id)
     
     business = await db.businesses.find_one({"_id": business_id})
     if not business:
@@ -148,6 +151,7 @@ async def delete_staff_member(
     current_tenant: TenantContext = Depends(verify_business_access)
 ):
     db = get_database()
+    sdb = get_scoped_db(tenant.business_id)
     
     business = await db.businesses.find_one({"_id": business_id})
     if not business:

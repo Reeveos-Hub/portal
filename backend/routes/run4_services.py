@@ -5,6 +5,7 @@ Stored in business.menu + business.categories for backward compat with Run 2
 
 from fastapi import APIRouter, HTTPException, Depends, Query, Body
 from database import get_database
+from middleware.tenant_db import get_scoped_db
 from middleware.auth import get_current_staff
 from middleware.tenant import verify_business_access, TenantContext
 from pydantic import BaseModel
@@ -41,6 +42,7 @@ def _cat_id():
 async def get_services_grouped(business_id: str, tenant: TenantContext = Depends(verify_business_access)):
     """Run 4: Services grouped by category."""
     db = get_database()
+    sdb = get_scoped_db(tenant.business_id)
     business = await _get_business(db, business_id, user)
     menu = business.get("menu", [])
     categories_raw = business.get("categories", [])
@@ -101,6 +103,7 @@ async def get_services_grouped(business_id: str, tenant: TenantContext = Depends
 @router.post("/business/{business_id}")
 async def create_service(business_id: str, payload: dict = Body(...), tenant: TenantContext = Depends(verify_business_access)):
     db = get_database()
+    sdb = get_scoped_db(tenant.business_id)
     business = await _get_business(db, business_id, user)
     name = (payload.get("name") or "").strip()
     if len(name) < 2 or len(name) > 100:
@@ -143,6 +146,7 @@ async def create_service(business_id: str, payload: dict = Body(...), tenant: Te
 @router.put("/business/{business_id}/{service_id}")
 async def update_service(business_id: str, service_id: str, payload: dict = Body(...), tenant: TenantContext = Depends(verify_business_access)):
     db = get_database()
+    sdb = get_scoped_db(tenant.business_id)
     business = await _get_business(db, business_id, user)
     menu = business.get("menu", [])
     idx = next((i for i, s in enumerate(menu) if s.get("id") == service_id), None)
@@ -182,6 +186,7 @@ async def delete_service(
     tenant: TenantContext = Depends(verify_business_access),
 ):
     db = get_database()
+    sdb = get_scoped_db(tenant.business_id)
     business = await _get_business(db, business_id, user)
     menu = business.get("menu", [])
     idx = next((i for i, s in enumerate(menu) if s.get("id") == service_id), None)
@@ -190,7 +195,7 @@ async def delete_service(
 
     future = 0
     if hasattr(db, "bookings"):
-        future = await db.bookings.count_documents({
+        future = await sdb.bookings.count_documents({
             "businessId": str(business["_id"]),
             "date": {"$gte": datetime.utcnow().strftime("%Y-%m-%d")},
             "status": {"$nin": ["cancelled"]},
@@ -212,6 +217,7 @@ async def delete_service(
 @router.put("/business/{business_id}/reorder")
 async def reorder_services(business_id: str, payload: dict = Body(...), tenant: TenantContext = Depends(verify_business_access)):
     db = get_database()
+    sdb = get_scoped_db(tenant.business_id)
     business = await _get_business(db, business_id, user)
     category_id = payload.get("categoryId")
     ids = payload.get("serviceIds", [])
@@ -233,6 +239,7 @@ async def reorder_services(business_id: str, payload: dict = Body(...), tenant: 
 @router.patch("/business/{business_id}/{service_id}/toggle")
 async def toggle_online(business_id: str, service_id: str, payload: dict = Body(...), tenant: TenantContext = Depends(verify_business_access)):
     db = get_database()
+    sdb = get_scoped_db(tenant.business_id)
     business = await _get_business(db, business_id, user)
     menu = business.get("menu", [])
     idx = next((i for i, s in enumerate(menu) if s.get("id") == service_id), None)
@@ -252,6 +259,7 @@ async def toggle_online(business_id: str, service_id: str, payload: dict = Body(
 @router.get("/categories/business/{business_id}")
 async def get_categories(business_id: str, tenant: TenantContext = Depends(verify_business_access)):
     db = get_database()
+    sdb = get_scoped_db(tenant.business_id)
     business = await _get_business(db, business_id, user)
     return {"categories": business.get("categories", [])}
 
@@ -259,6 +267,7 @@ async def get_categories(business_id: str, tenant: TenantContext = Depends(verif
 @router.post("/categories/business/{business_id}")
 async def create_category(business_id: str, payload: dict = Body(...), tenant: TenantContext = Depends(verify_business_access)):
     db = get_database()
+    sdb = get_scoped_db(tenant.business_id)
     business = await _get_business(db, business_id, user)
     name = (payload.get("name") or "").strip()
     if len(name) < 2 or len(name) > 50:
@@ -279,6 +288,7 @@ async def create_category(business_id: str, payload: dict = Body(...), tenant: T
 @router.put("/categories/business/{business_id}/{category_id}")
 async def update_category(business_id: str, category_id: str, payload: dict = Body(...), tenant: TenantContext = Depends(verify_business_access)):
     db = get_database()
+    sdb = get_scoped_db(tenant.business_id)
     business = await _get_business(db, business_id, user)
     cats = business.get("categories", [])
     idx = next((i for i, c in enumerate(cats) if c.get("id") == category_id), None)
@@ -295,6 +305,7 @@ async def update_category(business_id: str, category_id: str, payload: dict = Bo
 @router.delete("/categories/business/{business_id}/{category_id}")
 async def delete_category(business_id: str, category_id: str, tenant: TenantContext = Depends(verify_business_access)):
     db = get_database()
+    sdb = get_scoped_db(tenant.business_id)
     business = await _get_business(db, business_id, user)
     menu = business.get("menu", [])
     active_in_cat = sum(1 for s in menu if (s.get("categoryId") or s.get("category")) == category_id and s.get("active", True))

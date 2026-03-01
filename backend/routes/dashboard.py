@@ -4,6 +4,7 @@ Run 3: Dashboard API — summary, today's bookings, activity feed
 
 from fastapi import APIRouter, HTTPException, Depends, Query
 from database import get_database
+from middleware.tenant_db import get_scoped_db
 from middleware.auth import get_current_staff
 from middleware.tenant import verify_business_access, TenantContext
 from datetime import datetime, date, timedelta
@@ -98,6 +99,7 @@ async def get_dashboard_summary(
     tenant: TenantContext = Depends(verify_business_access),
 ):
     db = get_database()
+    sdb = get_scoped_db(tenant.business_id)
     business = await _ensure_business_access(db, business_id, {"_id": tenant.user_id, "role": tenant.role})
     today_str = date.today().isoformat()
 
@@ -187,6 +189,7 @@ async def get_today_bookings(
     tenant: TenantContext = Depends(verify_business_access),
 ):
     db = get_database()
+    sdb = get_scoped_db(tenant.business_id)
     business = await _ensure_business_access(db, business_id, {"_id": tenant.user_id, "role": tenant.role})
     today_str = date.today().isoformat()
 
@@ -228,6 +231,7 @@ async def get_activity_feed(
     tenant: TenantContext = Depends(verify_business_access),
 ):
     db = get_database()
+    sdb = get_scoped_db(tenant.business_id)
     # Access verified by tenant guard
     await _ensure_business_access(db, business_id, {"_id": tenant.user_id, "role": tenant.role})
 
@@ -237,7 +241,7 @@ async def get_activity_feed(
     except Exception:
         pass
     
-    cursor = db.activity_log.find({"$or": [{"businessId": {"$in": bid_values}}, {"business_id": {"$in": bid_values}}]}).sort("timestamp", -1).limit(limit)
+    cursor = sdb.activity_log.find({"$or": [{"businessId": {"$in": bid_values}}, {"business_id": {"$in": bid_values}}]}).sort("timestamp", -1).limit(limit)
     events = await cursor.to_list(length=limit)
 
     return {

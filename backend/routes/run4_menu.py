@@ -5,6 +5,7 @@ Stored in business.menu + business.categories
 
 from fastapi import APIRouter, HTTPException, Depends, Body
 from database import get_database
+from middleware.tenant_db import get_scoped_db
 from middleware.auth import get_current_staff
 from middleware.tenant import verify_business_access, TenantContext
 from datetime import datetime
@@ -36,6 +37,7 @@ def _gen_id():
 @router.get("/business/{business_id}")
 async def get_menu_grouped(business_id: str, tenant: TenantContext = Depends(verify_business_access)):
     db = get_database()
+    sdb = get_scoped_db(tenant.business_id)
     business = await _get_business(db, business_id, user)
     menu = business.get("menu", [])
     categories_raw = business.get("categories", [])
@@ -77,6 +79,7 @@ async def get_menu_grouped(business_id: str, tenant: TenantContext = Depends(ver
 @router.post("/business/{business_id}")
 async def create_menu_item(business_id: str, payload: dict = Body(...), tenant: TenantContext = Depends(verify_business_access)):
     db = get_database()
+    sdb = get_scoped_db(tenant.business_id)
     business = await _get_business(db, business_id, user)
     name = (payload.get("name") or "").strip()
     if len(name) < 2 or len(name) > 100:
@@ -115,6 +118,7 @@ async def create_menu_item(business_id: str, payload: dict = Body(...), tenant: 
 @router.put("/business/{business_id}/{item_id}")
 async def update_menu_item(business_id: str, item_id: str, payload: dict = Body(...), tenant: TenantContext = Depends(verify_business_access)):
     db = get_database()
+    sdb = get_scoped_db(tenant.business_id)
     business = await _get_business(db, business_id, user)
     menu = business.get("menu", [])
     idx = next((i for i, m in enumerate(menu) if m.get("id") == item_id), None)
@@ -150,6 +154,7 @@ async def update_menu_item(business_id: str, item_id: str, payload: dict = Body(
 @router.delete("/business/{business_id}/{item_id}")
 async def delete_menu_item(business_id: str, item_id: str, tenant: TenantContext = Depends(verify_business_access)):
     db = get_database()
+    sdb = get_scoped_db(tenant.business_id)
     business = await _get_business(db, business_id, user)
     menu = business.get("menu", [])
     idx = next((i for i, m in enumerate(menu) if m.get("id") == item_id), None)
@@ -168,6 +173,7 @@ async def delete_menu_item(business_id: str, item_id: str, tenant: TenantContext
 async def toggle_86(business_id: str, item_id: str, payload: dict = Body(...), tenant: TenantContext = Depends(verify_business_access)):
     """One-tap 86 toggle — critical for kitchen."""
     db = get_database()
+    sdb = get_scoped_db(tenant.business_id)
     business = await _get_business(db, business_id, user)
     menu = business.get("menu", [])
     idx = next((i for i, m in enumerate(menu) if m.get("id") == item_id), None)
@@ -186,6 +192,7 @@ async def toggle_86(business_id: str, item_id: str, payload: dict = Body(...), t
 @router.put("/business/{business_id}/reorder")
 async def reorder_menu(business_id: str, payload: dict = Body(...), tenant: TenantContext = Depends(verify_business_access)):
     db = get_database()
+    sdb = get_scoped_db(tenant.business_id)
     business = await _get_business(db, business_id, user)
     category_id = payload.get("categoryId")
     ids = payload.get("serviceIds", []) or payload.get("itemIds", [])

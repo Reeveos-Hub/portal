@@ -1,5 +1,6 @@
 from fastapi import APIRouter, HTTPException, status, Depends, Request
 from database import get_database
+from middleware.tenant_db import get_scoped_db
 from middleware.auth import get_current_owner
 from middleware.tenant import verify_business_access, TenantContext
 from pydantic import BaseModel
@@ -23,6 +24,7 @@ async def create_stripe_connect_account(
     current_tenant: TenantContext = Depends(verify_business_access)
 ):
     db = get_database()
+    sdb = get_scoped_db(tenant.business_id)
     
     business = await db.businesses.find_one({"_id": business_id})
     if not business:
@@ -85,6 +87,7 @@ async def get_stripe_account_status(
     current_tenant: TenantContext = Depends(verify_business_access)
 ):
     db = get_database()
+    sdb = get_scoped_db(tenant.business_id)
     
     business = await db.businesses.find_one({"_id": business_id})
     if not business:
@@ -145,6 +148,7 @@ async def create_payment_intent(
     current_tenant: TenantContext = Depends(verify_business_access)
 ):
     db = get_database()
+    sdb = get_scoped_db(tenant.business_id)
     
     business = await db.businesses.find_one({"_id": business_id})
     if not business:

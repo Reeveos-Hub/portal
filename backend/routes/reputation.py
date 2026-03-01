@@ -1,5 +1,6 @@
 from fastapi import APIRouter, HTTPException, status, Depends
 from database import get_database
+from middleware.tenant_db import get_scoped_db
 from middleware.auth import get_current_owner
 from middleware.tenant import verify_business_access, TenantContext
 
@@ -12,6 +13,7 @@ async def get_review_stats(
     current_tenant: TenantContext = Depends(verify_business_access)
 ):
     db = get_database()
+    sdb = get_scoped_db(tenant.business_id)
     
     business = await db.businesses.find_one({"_id": business_id})
     if not business:
@@ -41,7 +43,7 @@ async def get_review_stats(
         }
     ]
     
-    rating_distribution = await db.reviews.aggregate(pipeline).to_list(length=None)
+    rating_distribution = await sdb.reviews.aggregate(pipeline).to_list(length=None)
     
     total_reviews = sum(item["count"] for item in rating_distribution)
     
@@ -62,6 +64,7 @@ async def get_sentiment_analysis(
     current_tenant: TenantContext = Depends(verify_business_access)
 ):
     db = get_database()
+    sdb = get_scoped_db(tenant.business_id)
     
     business = await db.businesses.find_one({"_id": business_id})
     if not business:
@@ -76,7 +79,7 @@ async def get_sentiment_analysis(
             detail="Not authorized"
         )
     
-    reviews = await db.reviews.find({"business_id": business_id}).to_list(length=None)
+    reviews = await sdb.reviews.find({"business_id": business_id}).to_list(length=None)
     
     positive = sum(1 for r in reviews if r["rating"] >= 4)
     neutral = sum(1 for r in reviews if r["rating"] == 3)
@@ -96,6 +99,7 @@ async def trigger_google_review_booster(
     current_tenant: TenantContext = Depends(verify_business_access)
 ):
     db = get_database()
+    sdb = get_scoped_db(tenant.business_id)
     
     business = await db.businesses.find_one({"_id": business_id})
     if not business:

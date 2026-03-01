@@ -1,5 +1,6 @@
 from fastapi import APIRouter, HTTPException, status, Depends, Query
 from database import get_database
+from middleware.tenant_db import get_scoped_db
 from middleware.auth import get_current_owner
 from middleware.tenant import verify_business_access, TenantContext
 from datetime import datetime, date, timedelta
@@ -16,6 +17,7 @@ async def get_analytics_overview(
     tenant: TenantContext = Depends(verify_business_access)
 ):
     db = get_database()
+    sdb = get_scoped_db(tenant.business_id)
     
     business = await db.businesses.find_one({"_id": business_id})
     if not business:
@@ -38,30 +40,30 @@ async def get_analytics_overview(
     # Use bookings collection (Run 2) — aligned with dashboard, calendar, staff
     start_str = start_date.isoformat()
     end_str = end_date.isoformat()
-    total_bookings = await db.bookings.count_documents({
+    total_bookings = await sdb.bookings.count_documents({
         "businessId": business_id,
         "date": {"$gte": start_str, "$lte": end_str}
     })
 
-    confirmed_bookings = await db.bookings.count_documents({
+    confirmed_bookings = await sdb.bookings.count_documents({
         "businessId": business_id,
         "date": {"$gte": start_str, "$lte": end_str},
         "status": {"$in": ["confirmed", "completed", "checked_in"]}
     })
 
-    cancelled_bookings = await db.bookings.count_documents({
+    cancelled_bookings = await sdb.bookings.count_documents({
         "businessId": business_id,
         "date": {"$gte": start_str, "$lte": end_str},
         "status": "cancelled"
     })
 
-    no_shows = await db.bookings.count_documents({
+    no_shows = await sdb.bookings.count_documents({
         "businessId": business_id,
         "date": {"$gte": start_str, "$lte": end_str},
         "status": "no_show"
     })
     
-    total_reviews = await db.reviews.count_documents({
+    total_reviews = await sdb.reviews.count_documents({
         "business_id": business_id,
         "created_at": {"$gte": datetime.combine(start_date, datetime.min.time())}
     })
@@ -94,6 +96,7 @@ async def get_bookings_by_day(
     tenant: TenantContext = Depends(verify_business_access)
 ):
     db = get_database()
+    sdb = get_scoped_db(tenant.business_id)
     
     business = await db.businesses.find_one({"_id": business_id})
     if not business:
@@ -128,7 +131,7 @@ async def get_bookings_by_day(
         }
     ]
 
-    results = await db.bookings.aggregate(pipeline).to_list(length=None)
+    results = await sdb.bookings.aggregate(pipeline).to_list(length=None)
     
     return results
 
@@ -141,6 +144,7 @@ async def get_revenue_analytics(
     tenant: TenantContext = Depends(verify_business_access)
 ):
     db = get_database()
+    sdb = get_scoped_db(tenant.business_id)
     
     business = await db.businesses.find_one({"_id": business_id})
     if not business:
@@ -161,7 +165,7 @@ async def get_revenue_analytics(
         {"$match": {"businessId": business_id, "date": {"$gte": start_str, "$lte": end_str}, "status": {"$in": ["confirmed", "completed", "checked_in"]}}},
         {"$group": {"_id": None, "total_revenue": {"$sum": {"$ifNull": ["$service.price", 0]}}, "count": {"$sum": 1}}}
     ]
-    results = await db.bookings.aggregate(pipeline).to_list(length=None)
+    results = await sdb.bookings.aggregate(pipeline).to_list(length=None)
 
     if results and results[0].get("count", 0) > 0:
         tot = results[0].get("total_revenue", 0) or 0
@@ -181,6 +185,7 @@ async def get_popular_times(
     tenant: TenantContext = Depends(verify_business_access)
 ):
     db = get_database()
+    sdb = get_scoped_db(tenant.business_id)
     
     business = await db.businesses.find_one({"_id": business_id})
     if not business:
@@ -203,5 +208,5 @@ async def get_popular_times(
         {"$group": {"_id": "$hour", "count": {"$sum": 1}}},
         {"$sort": {"_id": 1}}
     ]
-    results = await db.bookings.aggregate(pipeline).to_list(length=None)
+    results = await sdb.bookings.aggregate(pipeline).to_list(length=None)
     return results

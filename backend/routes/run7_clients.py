@@ -10,6 +10,7 @@ from datetime import datetime, date, timedelta
 from fastapi import APIRouter, HTTPException, Depends, Query, Body, UploadFile, File
 from fastapi.responses import StreamingResponse
 from database import get_database
+from middleware.tenant_db import get_scoped_db
 from middleware.auth import get_current_owner
 from middleware.tenant import verify_business_access, TenantContext
 from bson import ObjectId
@@ -120,6 +121,7 @@ async def list_clients(
     tenant: TenantContext = Depends(verify_business_access),
 ):
     db = get_database()
+    sdb = get_scoped_db(tenant.business_id)
     business = await _get_business(db, business_id, user)
     biz_id = str(business["_id"])
 
@@ -150,9 +152,9 @@ async def list_clients(
     }
     sort_spec = sort_map.get(sort, sort_map["last_visit_desc"])
 
-    total = await db.clients.count_documents(match)
+    total = await sdb.clients.count_documents(match)
     skip = (page - 1) * limit
-    cursor = db.clients.find(match).sort(sort_spec).skip(skip).limit(limit)
+    cursor = sdb.clients.find(match).sort(sort_spec).skip(skip).limit(limit)
     rows = await cursor.to_list(length=limit)
 
     clients = []
@@ -172,11 +174,11 @@ async def list_clients(
         })
 
     now = date.today()
-    segments = {"all": await db.clients.count_documents({"businessId": biz_id, "active": {"$ne": False}})}
+    segments = {"all": await sdb.clients.count_documents({"businessId": biz_id, "active": {"$ne": False}})}
     for seg in ["new", "returning", "inactive", "at_risk"]:
         m = {"businessId": biz_id, "active": {"$ne": False}}
         m.update(_segment_filter(seg, now))
-        segments[seg] = await db.clients.count_documents(m)
+        segments[seg] = await sdb.clients.count_documents(m)
 
     return {
         "clients": clients,
@@ -188,18 +190,19 @@ async def list_clients(
 @router.get("/business/{business_id}/{client_id}")
 async def get_client(business_id: str, client_id: str, tenant: TenantContext = Depends(verify_business_access)):
     db = get_database()
+    sdb = get_scoped_db(tenant.business_id)
     business = await _get_business(db, business_id, user)
     biz_id = str(business["_id"])
     staff_map = {s.get("id"): s.get("name", "") for s in business.get("staff", [])}
 
-    c = await db.clients.find_one({"businessId": biz_id, "id": client_id, "active": {"$ne": False}})
+    c = await sdb.clients.find_one({"businessId": biz_id, "id": client_id, "active": {"$ne": False}})
     if not c:
-        c = await db.clients.find_one({"businessId": biz_id, "_id": client_id, "active": {"$ne": False}})
+        c = await sdb.clients.find_one({"businessId": biz_id, "_id": client_id, "active": {"$ne": False}})
     if not c:
         raise HTTPException(404, "Client not found")
 
     stats = await _get_client_stats(db, biz_id, c.get("id") or str(c.get("_id", "")), c)
-    await db.clients.update_one(
+    await sdb.clients.update_one(
         {"_id": c["_id"]},
         {"$set": {"stats": stats, "updatedAt": datetime.utcnow()}},
     )
@@ -216,7 +219,7 @@ async def get_client(business_id: str, client_id: str, tenant: TenantContext = D
         if phone:
             ors.append({"customer.phone": {"$regex": phone[-10:] if len(phone) >= 10 else phone}})
         match = {"businessId": biz_id, "$or": ors}
-    cursor = db.bookings.find(match).sort("date", -1).sort("time", -1).limit(50)
+    cursor = sdb.bookings.find(match).sort("date", -1).sort("time", -1).limit(50)
     bkg_list = await cursor.to_list(length=50)
 
     bookings = []
@@ -265,6 +268,7 @@ async def get_client(business_id: str, client_id: str, tenant: TenantContext = D
 @router.post("/business/{business_id}")
 async def create_client(business_id: str, payload: dict = Body(...), tenant: TenantContext = Depends(verify_business_access)):
     db = get_database()
+    sdb = get_scoped_db(tenant.business_id)
     business = await _get_business(db, business_id, user)
     biz_id = str(business["_id"])
 
@@ -278,9 +282,9 @@ async def create_client(business_id: str, payload: dict = Body(...), tenant: Ten
 
     existing = None
     if email:
-        existing = await db.clients.find_one({"businessId": biz_id, "email": email, "active": {"$ne": False}})
+        existing = await sdb.clients.find_one({"businessId": biz_id, "email": email, "active": {"$ne": False}})
     if not existing and phone:
-        existing = await db.clients.find_one({"businessId": biz_id, "phone": phone, "active": {"$ne": False}})
+        existing = await sdb.clients.find_one({"businessId": biz_id, "phone": phone, "active": {"$ne": False}})
     if existing:
         return {
             "warning": "A client with this email or phone already exists.",
@@ -314,19 +318,20 @@ async def create_client(business_id: str, payload: dict = Body(...), tenant: Ten
         "createdAt": datetime.utcnow(),
         "updatedAt": datetime.utcnow(),
     }
-    await db.clients.insert_one(doc)
+    await sdb.clients.insert_one(doc)
     return {"client": doc}
 
 
 @router.put("/business/{business_id}/{client_id}")
 async def update_client(business_id: str, client_id: str, payload: dict = Body(...), tenant: TenantContext = Depends(verify_business_access)):
     db = get_database()
+    sdb = get_scoped_db(tenant.business_id)
     business = await _get_business(db, business_id, user)
     biz_id = str(business["_id"])
 
-    c = await db.clients.find_one({"businessId": biz_id, "id": client_id})
+    c = await sdb.clients.find_one({"businessId": biz_id, "id": client_id})
     if not c:
-        c = await db.clients.find_one({"businessId": biz_id, "_id": client_id})
+        c = await sdb.clients.find_one({"businessId": biz_id, "_id": client_id})
     if not c:
         raise HTTPException(404, "Client not found")
 
@@ -337,24 +342,25 @@ async def update_client(business_id: str, client_id: str, payload: dict = Body(.
     if "name" in updates and (len(updates["name"]) < 2 or len(updates["name"]) > 100):
         raise HTTPException(400, "Name must be 2-100 chars")
 
-    await db.clients.update_one({"_id": c["_id"]}, {"$set": updates})
-    updated = await db.clients.find_one({"_id": c["_id"]})
+    await sdb.clients.update_one({"_id": c["_id"]}, {"$set": updates})
+    updated = await sdb.clients.find_one({"_id": c["_id"]})
     return updated
 
 
 @router.delete("/business/{business_id}/{client_id}")
 async def delete_client(business_id: str, client_id: str, tenant: TenantContext = Depends(verify_business_access)):
     db = get_database()
+    sdb = get_scoped_db(tenant.business_id)
     business = await _get_business(db, business_id, user)
     biz_id = str(business["_id"])
 
-    c = await db.clients.find_one({"businessId": biz_id, "id": client_id})
+    c = await sdb.clients.find_one({"businessId": biz_id, "id": client_id})
     if not c:
-        c = await db.clients.find_one({"businessId": biz_id, "_id": client_id})
+        c = await sdb.clients.find_one({"businessId": biz_id, "_id": client_id})
     if not c:
         raise HTTPException(404, "Client not found")
 
-    await db.clients.update_one(
+    await sdb.clients.update_one(
         {"_id": c["_id"]},
         {"$set": {"active": False, "updatedAt": datetime.utcnow()}},
     )
@@ -364,12 +370,13 @@ async def delete_client(business_id: str, client_id: str, tenant: TenantContext 
 @router.post("/business/{business_id}/{client_id}/tags")
 async def add_tags(business_id: str, client_id: str, payload: dict = Body(...), tenant: TenantContext = Depends(verify_business_access)):
     db = get_database()
+    sdb = get_scoped_db(tenant.business_id)
     business = await _get_business(db, business_id, user)
     biz_id = str(business["_id"])
 
-    c = await db.clients.find_one({"businessId": biz_id, "id": client_id})
+    c = await sdb.clients.find_one({"businessId": biz_id, "id": client_id})
     if not c:
-        c = await db.clients.find_one({"businessId": biz_id, "_id": client_id})
+        c = await sdb.clients.find_one({"businessId": biz_id, "_id": client_id})
     if not c:
         raise HTTPException(404, "Client not found")
 
@@ -378,43 +385,45 @@ async def add_tags(business_id: str, client_id: str, payload: dict = Body(...), 
     for t in new_tags:
         if t:
             existing.add(str(t).strip())
-    await db.clients.update_one(
+    await sdb.clients.update_one(
         {"_id": c["_id"]},
         {"$set": {"tags": list(existing), "updatedAt": datetime.utcnow()}},
     )
-    updated = await db.clients.find_one({"_id": c["_id"]})
+    updated = await sdb.clients.find_one({"_id": c["_id"]})
     return updated
 
 
 @router.delete("/business/{business_id}/{client_id}/tags/{tag}")
 async def remove_tag(business_id: str, client_id: str, tag: str, tenant: TenantContext = Depends(verify_business_access)):
     db = get_database()
+    sdb = get_scoped_db(tenant.business_id)
     business = await _get_business(db, business_id, user)
     biz_id = str(business["_id"])
 
-    c = await db.clients.find_one({"businessId": biz_id, "id": client_id})
+    c = await sdb.clients.find_one({"businessId": biz_id, "id": client_id})
     if not c:
-        c = await db.clients.find_one({"businessId": biz_id, "_id": client_id})
+        c = await sdb.clients.find_one({"businessId": biz_id, "_id": client_id})
     if not c:
         raise HTTPException(404, "Client not found")
 
     tags = [t for t in c.get("tags", []) if t != tag]
-    await db.clients.update_one(
+    await sdb.clients.update_one(
         {"_id": c["_id"]},
         {"$set": {"tags": tags, "updatedAt": datetime.utcnow()}},
     )
-    return await db.clients.find_one({"_id": c["_id"]})
+    return await sdb.clients.find_one({"_id": c["_id"]})
 
 
 @router.post("/business/{business_id}/{client_id}/notes")
 async def add_note(business_id: str, client_id: str, payload: dict = Body(...), tenant: TenantContext = Depends(verify_business_access)):
     db = get_database()
+    sdb = get_scoped_db(tenant.business_id)
     business = await _get_business(db, business_id, user)
     biz_id = str(business["_id"])
 
-    c = await db.clients.find_one({"businessId": biz_id, "id": client_id})
+    c = await sdb.clients.find_one({"businessId": biz_id, "id": client_id})
     if not c:
-        c = await db.clients.find_one({"businessId": biz_id, "_id": client_id})
+        c = await sdb.clients.find_one({"businessId": biz_id, "_id": client_id})
     if not c:
         raise HTTPException(404, "Client not found")
 
@@ -430,40 +439,42 @@ async def add_note(business_id: str, client_id: str, payload: dict = Body(...), 
         "createdAt": datetime.utcnow(),
     }
     notes = c.get("notes", []) + [note]
-    await db.clients.update_one(
+    await sdb.clients.update_one(
         {"_id": c["_id"]},
         {"$set": {"notes": notes, "updatedAt": datetime.utcnow()}},
     )
-    return await db.clients.find_one({"_id": c["_id"]})
+    return await sdb.clients.find_one({"_id": c["_id"]})
 
 
 @router.delete("/business/{business_id}/{client_id}/notes/{note_id}")
 async def delete_note(business_id: str, client_id: str, note_id: str, tenant: TenantContext = Depends(verify_business_access)):
     db = get_database()
+    sdb = get_scoped_db(tenant.business_id)
     business = await _get_business(db, business_id, user)
     biz_id = str(business["_id"])
 
-    c = await db.clients.find_one({"businessId": biz_id, "id": client_id})
+    c = await sdb.clients.find_one({"businessId": biz_id, "id": client_id})
     if not c:
-        c = await db.clients.find_one({"businessId": biz_id, "_id": client_id})
+        c = await sdb.clients.find_one({"businessId": biz_id, "_id": client_id})
     if not c:
         raise HTTPException(404, "Client not found")
 
     notes = [n for n in c.get("notes", []) if n.get("id") != note_id]
-    await db.clients.update_one(
+    await sdb.clients.update_one(
         {"_id": c["_id"]},
         {"$set": {"notes": notes, "updatedAt": datetime.utcnow()}},
     )
-    return await db.clients.find_one({"_id": c["_id"]})
+    return await sdb.clients.find_one({"_id": c["_id"]})
 
 
 @router.get("/business/{business_id}/export")
 async def export_clients(business_id: str, tenant: TenantContext = Depends(verify_business_access)):
     db = get_database()
+    sdb = get_scoped_db(tenant.business_id)
     business = await _get_business(db, business_id, user)
     biz_id = str(business["_id"])
 
-    cursor = db.clients.find({"businessId": biz_id, "active": {"$ne": False}})
+    cursor = sdb.clients.find({"businessId": biz_id, "active": {"$ne": False}})
     rows = await cursor.to_list(length=10000)
 
     output = io.StringIO()
@@ -492,6 +503,7 @@ async def export_clients(business_id: str, tenant: TenantContext = Depends(verif
 @router.post("/business/{business_id}/import")
 async def import_clients(business_id: str, file: UploadFile = File(...), tenant: TenantContext = Depends(verify_business_access)):
     db = get_database()
+    sdb = get_scoped_db(tenant.business_id)
     business = await _get_business(db, business_id, user)
     biz_id = str(business["_id"])
 
@@ -518,9 +530,9 @@ async def import_clients(business_id: str, file: UploadFile = File(...), tenant:
             continue
         tags = [t.strip() for t in (row.get("Tags") or row.get("tags") or "").split(",") if t.strip()]
 
-        existing = await db.clients.find_one({"businessId": biz_id, "email": email, "active": {"$ne": False}}) if email else None
+        existing = await sdb.clients.find_one({"businessId": biz_id, "email": email, "active": {"$ne": False}}) if email else None
         if not existing and phone:
-            existing = await db.clients.find_one({"businessId": biz_id, "phoneNormalized": phone, "active": {"$ne": False}})
+            existing = await sdb.clients.find_one({"businessId": biz_id, "phoneNormalized": phone, "active": {"$ne": False}})
         if existing:
             duplicates += 1
             continue
@@ -540,7 +552,7 @@ async def import_clients(business_id: str, file: UploadFile = File(...), tenant:
             "createdAt": datetime.utcnow(),
             "updatedAt": datetime.utcnow(),
         }
-        await db.clients.insert_one(doc)
+        await sdb.clients.insert_one(doc)
         imported += 1
 
     return {"imported": imported, "duplicates": duplicates, "errors": errors}

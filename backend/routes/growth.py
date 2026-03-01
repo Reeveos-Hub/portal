@@ -1,5 +1,6 @@
 from fastapi import APIRouter, HTTPException, status, Depends, Query
 from database import get_database
+from middleware.tenant_db import get_scoped_db
 from middleware.auth import get_current_owner
 from middleware.tenant import verify_business_access, TenantContext
 from pydantic import BaseModel, EmailStr
@@ -46,6 +47,7 @@ async def get_business_leads(
     current_tenant: TenantContext = Depends(verify_business_access)
 ):
     db = get_database()
+    sdb = get_scoped_db(tenant.business_id)
     
     business = await db.businesses.find_one({"_id": business_id})
     if not business:
@@ -96,6 +98,7 @@ async def send_warm_lead_email(
     current_tenant: TenantContext = Depends(verify_business_access)
 ):
     db = get_database()
+    sdb = get_scoped_db(tenant.business_id)
     
     business = await db.businesses.find_one({"_id": business_id})
     if not business:

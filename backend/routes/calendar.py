@@ -5,6 +5,7 @@ Handles both snake_case (seed data) and camelCase (form data) field names.
 
 from fastapi import APIRouter, HTTPException, Depends, Query
 from database import get_database
+from middleware.tenant_db import get_scoped_db
 from middleware.auth import get_current_staff
 from middleware.tenant import verify_business_access, TenantContext
 from middleware.encryption import TenantEncryption
@@ -93,6 +94,7 @@ async def get_calendar(
 ):
     """Calendar data for service businesses (salons, spas, etc.)."""
     db = get_database()
+    sdb = get_scoped_db(tenant.business_id)
     # Access already verified by verify_business_access — just load business
     business = await _get_business(db, business_id, {"_id": tenant.user_id, "role": tenant.role})
     bid_str = _safe_str(business.get("_id"))
@@ -180,6 +182,7 @@ async def get_calendar_restaurant(
 ):
     """Calendar for restaurant businesses."""
     db = get_database()
+    sdb = get_scoped_db(tenant.business_id)
     business = await _get_business(db, business_id, {"_id": tenant.user_id, "role": tenant.role})
     bid_str = _safe_str(business.get("_id"))
 
@@ -196,7 +199,7 @@ async def get_calendar_restaurant(
     tables = business.get("tables", [])
     if not tables:
         try:
-            tables_cursor = db.tables.find({
+            tables_cursor = sdb.tables.find({
                 "$or": [
                     {"business_id": business_id},
                     {"businessId": business_id},

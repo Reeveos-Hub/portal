@@ -10,6 +10,7 @@ from pathlib import Path
 from fastapi import APIRouter, HTTPException, Depends, UploadFile, File, Body
 from fastapi.responses import Response
 from database import get_database
+from middleware.tenant_db import get_scoped_db
 from middleware.auth import get_current_owner
 from middleware.tenant import verify_business_access, TenantContext
 from datetime import datetime
@@ -75,6 +76,7 @@ def _base_url():
 @router.get("/{business_id}")
 async def get_booking_page(business_id: str, tenant: TenantContext = Depends(verify_business_access)):
     db = get_database()
+    sdb = get_scoped_db(tenant.business_id)
     business = await _get_business(db, business_id, user)
     slug = business.get("slug", "your-business")
     bp = _merge_defaults(business.get("bookingPage"))
@@ -94,6 +96,7 @@ async def get_booking_page(business_id: str, tenant: TenantContext = Depends(ver
 @router.put("/{business_id}")
 async def update_booking_page(business_id: str, payload: dict = Body(default={}), tenant: TenantContext = Depends(verify_business_access)):
     db = get_database()
+    sdb = get_scoped_db(tenant.business_id)
     business = await _get_business(db, business_id, user)
     current = business.get("bookingPage") or {}
     updated = {}
@@ -141,6 +144,7 @@ def _save_upload(file: UploadFile, max_size: int, allowed: set, resize_size=None
 @router.post("/{business_id}/logo")
 async def upload_logo(business_id: str, file: UploadFile = File(...), tenant: TenantContext = Depends(verify_business_access)):
     db = get_database()
+    sdb = get_scoped_db(tenant.business_id)
     business = await _get_business(db, business_id, user)
     allowed = {"jpg", "jpeg", "png", "webp", "svg"}
     url = _save_upload(file, 2 * 1024 * 1024, allowed, resize_size=(200, 200))
@@ -158,6 +162,7 @@ async def upload_logo(business_id: str, file: UploadFile = File(...), tenant: Te
 @router.post("/{business_id}/cover")
 async def upload_cover(business_id: str, file: UploadFile = File(...), tenant: TenantContext = Depends(verify_business_access)):
     db = get_database()
+    sdb = get_scoped_db(tenant.business_id)
     business = await _get_business(db, business_id, user)
     allowed = {"jpg", "jpeg", "png", "webp"}
     url = _save_upload(file, 5 * 1024 * 1024, allowed, resize_size=(1200, 400))
@@ -175,6 +180,7 @@ async def upload_cover(business_id: str, file: UploadFile = File(...), tenant: T
 @router.get("/{business_id}/qr")
 async def get_qr_code(business_id: str, tenant: TenantContext = Depends(verify_business_access)):
     db = get_database()
+    sdb = get_scoped_db(tenant.business_id)
     business = await _get_business(db, business_id, user)
     slug = business.get("slug", "your-business")
     base = _base_url()
@@ -198,6 +204,7 @@ async def get_qr_code(business_id: str, tenant: TenantContext = Depends(verify_b
 @router.get("/{business_id}/embed")
 async def get_embed_code(business_id: str, tenant: TenantContext = Depends(verify_business_access)):
     db = get_database()
+    sdb = get_scoped_db(tenant.business_id)
     business = await _get_business(db, business_id, user)
     slug = business.get("slug", "your-business")
     base = _base_url()

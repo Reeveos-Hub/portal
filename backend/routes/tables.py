@@ -1,5 +1,6 @@
 from fastapi import APIRouter, HTTPException, status, Depends
 from database import get_database
+from middleware.tenant_db import get_scoped_db
 from middleware.auth import get_current_owner
 from middleware.tenant import verify_business_access, TenantContext
 from pydantic import BaseModel
@@ -75,6 +76,7 @@ async def get_floor_plan(
     tenant: TenantContext = Depends(verify_business_access)
 ):
     db = get_database()
+    sdb = get_scoped_db(tenant.business_id)
     business = await find_business(db, business_id, tenant.user_id)
 
     fp = business.get("floor_plan") or {}
@@ -108,6 +110,7 @@ async def update_floor_plan(
     tenant: TenantContext = Depends(verify_business_access)
 ):
     db = get_database()
+    sdb = get_scoped_db(tenant.business_id)
     business = await find_business(db, business_id, tenant.user_id)
 
     data = floor_plan_data.model_dump(exclude_none=True)
@@ -153,6 +156,7 @@ async def generate_preset_layout(
 ):
     """Generate a fresh layout from a room preset. Wipes old data and starts clean."""
     db = get_database()
+    sdb = get_scoped_db(tenant.business_id)
     business = await find_business(db, business_id, tenant.user_id)
 
     from services.floor_plan_presets import get_preset_layout
@@ -189,6 +193,7 @@ async def update_room_config(
 ):
     """Save room dimensions and rescale existing elements to fit."""
     db = get_database()
+    sdb = get_scoped_db(tenant.business_id)
     business = await find_business(db, business_id, tenant.user_id)
 
     rc = room_config.model_dump()
@@ -227,6 +232,7 @@ async def delete_table(
     tenant: TenantContext = Depends(verify_business_access)
 ):
     db = get_database()
+    sdb = get_scoped_db(tenant.business_id)
     business = await find_business(db, business_id, tenant.user_id)
 
     fp = business.get("floor_plan") or {}
@@ -259,6 +265,7 @@ async def auto_arrange_floor_plan(
     physics constraints. Falls back to rule-based solver if no API key.
     """
     db = get_database()
+    sdb = get_scoped_db(tenant.business_id)
     business = await find_business(db, business_id, tenant.user_id)
 
     # Load room config if available (real-world dimensions help AI reason spatially)
@@ -327,6 +334,7 @@ async def validate_floor_plan(
     ADA compliance issues, and return actionable feedback.
     """
     db = get_database()
+    sdb = get_scoped_db(tenant.business_id)
     business = await find_business(db, business_id, tenant.user_id)
 
     result = validate_layout(
@@ -357,6 +365,7 @@ async def generate_floor_plan(
     }
     """
     db = get_database()
+    sdb = get_scoped_db(tenant.business_id)
     business = await find_business(db, business_id, tenant.user_id)
 
     elements = generate_from_description(

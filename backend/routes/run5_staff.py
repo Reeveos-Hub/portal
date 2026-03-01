@@ -5,6 +5,7 @@ Staff stored in business.staff (extended schema)
 
 from fastapi import APIRouter, HTTPException, Depends, Body, Query, UploadFile, File
 from database import get_database
+from middleware.tenant_db import get_scoped_db
 from middleware.auth import get_current_owner
 from middleware.tenant import verify_business_access, TenantContext
 from datetime import datetime, date
@@ -59,6 +60,7 @@ def _is_on_holiday(staff):
 @router.get("/business/{business_id}")
 async def list_staff(business_id: str, tenant: TenantContext = Depends(verify_business_access)):
     db = get_database()
+    sdb = get_scoped_db(tenant.business_id)
     business = await _get_business(db, business_id, user)
     staff_list = business.get("staff", [])
     today_str = date.today().isoformat()
@@ -78,7 +80,7 @@ async def list_staff(business_id: str, tenant: TenantContext = Depends(verify_bu
 
         bookings_today = 0
         try:
-            bookings_today = await db.bookings.count_documents({
+            bookings_today = await sdb.bookings.count_documents({
                 "businessId": str(business["_id"]),
                 "date": today_str,
                 "staffId": s.get("id"),
@@ -114,6 +116,7 @@ async def list_staff(business_id: str, tenant: TenantContext = Depends(verify_bu
 @router.post("/business/{business_id}")
 async def create_staff(business_id: str, payload: dict = Body(...), tenant: TenantContext = Depends(verify_business_access)):
     db = get_database()
+    sdb = get_scoped_db(tenant.business_id)
     business = await _get_business(db, business_id, user)
     staff_list = [s for s in business.get("staff", []) if s.get("active", True)]
     limit = _staff_limit(business.get("tier") or business.get("rezvo_tier"))
@@ -166,6 +169,7 @@ async def create_staff(business_id: str, payload: dict = Body(...), tenant: Tena
 @router.put("/business/{business_id}/{staff_id}")
 async def update_staff(business_id: str, staff_id: str, payload: dict = Body(...), tenant: TenantContext = Depends(verify_business_access)):
     db = get_database()
+    sdb = get_scoped_db(tenant.business_id)
     business = await _get_business(db, business_id, user)
     staff_list = business.get("staff", [])
     idx = next((i for i, s in enumerate(staff_list) if s.get("id") == staff_id), None)
@@ -190,6 +194,7 @@ async def update_staff(business_id: str, staff_id: str, payload: dict = Body(...
 @router.delete("/business/{business_id}/{staff_id}")
 async def delete_staff(business_id: str, staff_id: str, confirm: bool = Query(False), tenant: TenantContext = Depends(verify_business_access)):
     db = get_database()
+    sdb = get_scoped_db(tenant.business_id)
     business = await _get_business(db, business_id, user)
     if staff_list[idx].get("permissions") == "owner":
         raise HTTPException(400, "Cannot delete the owner")
@@ -202,7 +207,7 @@ async def delete_staff(business_id: str, staff_id: str, confirm: bool = Query(Fa
     today = date.today().isoformat()
     future = 0
     try:
-        future = await db.bookings.count_documents({
+        future = await sdb.bookings.count_documents({
             "businessId": str(business["_id"]),
             "staffId": staff_id,
             "date": {"$gte": today},
@@ -226,6 +231,7 @@ async def delete_staff(business_id: str, staff_id: str, confirm: bool = Query(Fa
 @router.patch("/business/{business_id}/{staff_id}/hours")
 async def update_hours(business_id: str, staff_id: str, payload: dict = Body(...), tenant: TenantContext = Depends(verify_business_access)):
     db = get_database()
+    sdb = get_scoped_db(tenant.business_id)
     business = await _get_business(db, business_id, user)
     staff_list = business.get("staff", [])
     idx = next((i for i, s in enumerate(staff_list) if s.get("id") == staff_id), None)
@@ -246,6 +252,7 @@ async def update_hours(business_id: str, staff_id: str, payload: dict = Body(...
 @router.post("/business/{business_id}/{staff_id}/time-off")
 async def add_time_off(business_id: str, staff_id: str, payload: dict = Body(...), tenant: TenantContext = Depends(verify_business_access)):
     db = get_database()
+    sdb = get_scoped_db(tenant.business_id)
     business = await _get_business(db, business_id, user)
     staff_list = business.get("staff", [])
     idx = next((i for i, s in enumerate(staff_list) if s.get("id") == staff_id), None)
@@ -272,7 +279,7 @@ async def add_time_off(business_id: str, staff_id: str, payload: dict = Body(...
 
     conflict_count = 0
     try:
-        conflict_count = await db.bookings.count_documents({
+        conflict_count = await sdb.bookings.count_documents({
             "businessId": str(business["_id"]),
             "staffId": staff_id,
             "date": {"$gte": start_date, "$lte": end_date},
@@ -300,6 +307,7 @@ async def add_time_off(business_id: str, staff_id: str, payload: dict = Body(...
 @router.delete("/business/{business_id}/{staff_id}/time-off/{time_off_id}")
 async def remove_time_off(business_id: str, staff_id: str, time_off_id: str, tenant: TenantContext = Depends(verify_business_access)):
     db = get_database()
+    sdb = get_scoped_db(tenant.business_id)
     business = await _get_business(db, business_id, user)
     staff_list = business.get("staff", [])
     idx = next((i for i, s in enumerate(staff_list) if s.get("id") == staff_id), None)
@@ -320,6 +328,7 @@ async def remove_time_off(business_id: str, staff_id: str, time_off_id: str, ten
 async def reinvite_staff(business_id: str, staff_id: str, tenant: TenantContext = Depends(verify_business_access)):
     """Resend invite email to pending staff member."""
     db = get_database()
+    sdb = get_scoped_db(tenant.business_id)
     business = await _get_business(db, business_id, user)
     staff_list = business.get("staff", [])
     idx = next((i for i, s in enumerate(staff_list) if s.get("id") == staff_id), None)
@@ -349,6 +358,7 @@ async def upload_staff_avatar(
 ):
     """Upload staff avatar photo."""
     db = get_database()
+    sdb = get_scoped_db(tenant.business_id)
     business = await _get_business(db, business_id, user)
 
     # Validate file — check MIME type AND magic bytes
