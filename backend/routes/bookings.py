@@ -1,5 +1,6 @@
 from fastapi import APIRouter, HTTPException, status, Depends, Query, Body
 from database import get_database
+from middleware.tenant_db import get_scoped_db
 from models.reservation import (
     ReservationCreate, ReservationUpdate, ReservationResponse,
     ReservationStatus, DepositStatus
@@ -34,6 +35,7 @@ async def create_reservation(
     
     reservation_dict = reservation_data.model_dump()
     reservation_dict.update({
+        "businessId": reservation_data.business_id,  # Canonical field name (matches book.py)
         "user_id": str(current_user["_id"]),
         "status": ReservationStatus.PENDING.value,
         "deposit_amount": None,
@@ -58,7 +60,7 @@ async def create_reservation(
     
     return ReservationResponse(
         id=reservation_id,
-        business_id=reservation_dict["business_id"],
+        business_id=reservation_dict.get("businessId") or reservation_dict.get("business_id", ""),
         user_id=reservation_dict["user_id"],
         date=reservation_dict["date"],
         time=reservation_dict["time"],
@@ -88,7 +90,8 @@ async def get_reservation(
             detail="Reservation not found"
         )
     
-    business = await db.businesses.find_one({"_id": reservation["business_id"]})
+    biz_id = reservation.get("businessId") or reservation.get("business_id")
+    business = await db.businesses.find_one({"_id": biz_id})
     
     if (reservation["user_id"] != str(current_user["_id"]) and 
         business.get("owner_id") != str(current_user["_id"]) and
@@ -100,7 +103,7 @@ async def get_reservation(
     
     return ReservationResponse(
         id=str(reservation["_id"]),
-        business_id=reservation["business_id"],
+        business_id=biz_id,
         user_id=reservation["user_id"],
         date=reservation["date"],
         time=reservation["time"],
@@ -131,7 +134,8 @@ async def update_reservation(
             detail="Reservation not found"
         )
     
-    business = await db.businesses.find_one({"_id": reservation["business_id"]})
+    biz_id = reservation.get("businessId") or reservation.get("business_id")
+    business = await db.businesses.find_one({"_id": biz_id})
     
     if (reservation["user_id"] != str(current_user["_id"]) and 
         business.get("owner_id") != str(current_user["_id"]) and
@@ -159,7 +163,7 @@ async def update_reservation(
     
     return ReservationResponse(
         id=str(updated_reservation["_id"]),
-        business_id=updated_reservation["business_id"],
+        business_id=updated_reservation.get("businessId") or updated_reservation.get("business_id", ""),
         user_id=updated_reservation["user_id"],
         date=updated_reservation["date"],
         time=updated_reservation["time"],
@@ -225,33 +229,16 @@ async def list_bookings(
     """Run 3: Paginated bookings list with filters."""
     from bson import ObjectId
     db = get_database()
+    sdb = get_scoped_db(tenant.business_id)
     try:
         business = await db.businesses.find_one({"_id": ObjectId(business_id)})
     except Exception:
         business = await db.businesses.find_one({"_id": business_id})
     if not business:
         raise HTTPException(404, "Business not found")
-    if str(business.get("owner_id")) != tenant.user_id and tenant.role not in ["staff", "admin"]:
-        raise HTTPException(403, "Not authorized")
 
-    # Build business ID values (string + ObjectId) for compatibility
-    bid_values = [business_id]
-    try:
-        bid_values.append(ObjectId(business_id))
-    except Exception:
-        pass
-    bid_str = str(business.get("_id", ""))
-    if bid_str and bid_str not in bid_values:
-        bid_values.append(bid_str)
-        try:
-            bid_values.append(ObjectId(bid_str))
-        except Exception:
-            pass
-
-    match = {"$or": [
-        {"businessId": {"$in": bid_values}},
-        {"business_id": {"$in": bid_values}},
-    ]}
+    # TenantScopedDB auto-injects businessId filter on every query
+    match = {}
     if status != "all":
         match["status"] = status
     if from_date:
@@ -259,22 +246,18 @@ async def list_bookings(
     if to_date:
         match.setdefault("date", {})["$lte"] = to_date
     if search:
-        # Search customer name, reference, phone, email
-        # Need to handle both field naming conventions
         search_or = [
             {"customer.name": {"$regex": search, "$options": "i"}},
             {"client_name": {"$regex": search, "$options": "i"}},
             {"reference": {"$regex": search, "$options": "i"}},
             {"customer.phone": {"$regex": search, "$options": "i"}},
-            {"client_phone": {"$regex": search, "$options": "i"}},
             {"customer.email": {"$regex": search, "$options": "i"}},
-            {"client_email": {"$regex": search, "$options": "i"}},
         ]
-        match = {"$and": [match, {"$or": search_or}]}
+        match = {"$and": [match, {"$or": search_or}]} if match else {"$or": search_or}
 
-    total = await db.bookings.count_documents(match)
+    total = await sdb.bookings.count_documents(match)
     sort_dir = -1 if sort == "date_desc" else 1
-    cursor = db.bookings.find(match).sort("date", sort_dir).sort("time", sort_dir).skip((page - 1) * limit).limit(limit)
+    cursor = sdb.bookings.find(match).sort("date", sort_dir).sort("time", sort_dir).skip((page - 1) * limit).limit(limit)
     docs = await cursor.to_list(length=None)
 
     staff_map = {st.get("id"): st for st in business.get("staff", [])}
@@ -313,17 +296,11 @@ async def list_bookings(
             "createdAt": d.get("createdAt") or d.get("created_at"),
         })
 
-    # Count bookings using both field name conventions
-    bid_match = {"$or": [
-        {"businessId": {"$in": bid_values}},
-        {"business_id": {"$in": bid_values}},
-    ]}
+    # Count bookings (TenantScopedDB auto-filters by businessId)
     counts = {}
     for s in ["all", "confirmed", "pending", "checked_in", "completed", "cancelled", "no_show"]:
-        m = dict(bid_match)
-        if s != "all":
-            m = {"$and": [bid_match, {"status": s}]}
-        counts[s] = await db.bookings.count_documents(m)
+        m = {} if s == "all" else {"status": s}
+        counts[s] = await sdb.bookings.count_documents(m)
 
     return {
         "bookings": bookings,
@@ -341,26 +318,19 @@ async def get_booking_detail(
     """Run 3: Full booking detail for side panel."""
     from bson import ObjectId
     db = get_database()
+    sdb = get_scoped_db(tenant.business_id)
     try:
         business = await db.businesses.find_one({"_id": ObjectId(business_id)})
     except Exception:
         business = await db.businesses.find_one({"_id": business_id})
     if not business:
         raise HTTPException(404, "Business not found")
-    if str(business.get("owner_id")) != tenant.user_id and tenant.role not in ["staff", "admin"]:
-        raise HTTPException(403, "Not authorized")
 
-    # Try both _id formats and both businessId field names
-    bid_str = str(business.get("_id", ""))
-    b = None
-    for bid_field, bid_val in [("businessId", business_id), ("businessId", bid_str), ("business_id", business_id), ("business_id", bid_str)]:
-        b = await db.bookings.find_one({"_id": booking_id, bid_field: bid_val})
-        if b:
-            break
+    # TenantScopedDB ensures we only see this business's bookings
+    b = await sdb.bookings.find_one({"_id": booking_id})
+    if not b:
         try:
-            b = await db.bookings.find_one({"_id": ObjectId(booking_id), bid_field: bid_val})
-            if b:
-                break
+            b = await sdb.bookings.find_one({"_id": ObjectId(booking_id)})
         except Exception:
             pass
     if not b:
@@ -415,28 +385,22 @@ async def update_booking_status(
     """Run 3: Update booking status (confirm, check-in, complete, cancel, no-show)."""
     from bson import ObjectId
     db = get_database()
+    sdb = get_scoped_db(tenant.business_id)
     try:
         business = await db.businesses.find_one({"_id": ObjectId(business_id)})
     except Exception:
         business = await db.businesses.find_one({"_id": business_id})
     if not business:
         raise HTTPException(404, "Business not found")
-    if str(business.get("owner_id")) != tenant.user_id and tenant.role not in ["staff", "admin"]:
-        raise HTTPException(403, "Not authorized")
 
-    bid_str = str(business.get("_id", ""))
-    b = None
-    doc_id = None
-    for bid_field, bid_val in [("businessId", business_id), ("businessId", bid_str), ("business_id", business_id), ("business_id", bid_str)]:
-        b = await db.bookings.find_one({"_id": booking_id, bid_field: bid_val})
-        if b:
-            doc_id = booking_id
-            break
+    # TenantScopedDB ensures we only access this business's bookings
+    b = await sdb.bookings.find_one({"_id": booking_id})
+    doc_id = booking_id
+    if not b:
         try:
-            b = await db.bookings.find_one({"_id": ObjectId(booking_id), bid_field: bid_val})
+            b = await sdb.bookings.find_one({"_id": ObjectId(booking_id)})
             if b:
                 doc_id = ObjectId(booking_id)
-                break
         except Exception:
             pass
     if not b:
@@ -447,7 +411,7 @@ async def update_booking_status(
     if new_status not in valid:
         raise HTTPException(400, f"Invalid status. Use one of: {valid}")
 
-    await db.bookings.update_one(
+    await sdb.bookings.update_one(
         {"_id": doc_id},
         {"$set": {"status": new_status, "updatedAt": datetime.utcnow()}},
     )
@@ -458,15 +422,14 @@ async def update_booking_status(
         cust_name = b["customer"].get("name", "Customer")
     else:
         cust_name = b.get("client_name", "Customer")
-    await db.activity_log.insert_one({
-        "businessId": business_id,
+    await sdb.activity_log.insert_one({
         "type": f"booking_{new_status}" if new_status != "cancelled" else "booking_cancelled",
         "message": f"Booking {b.get('reference', '')} {new_status}: {cust_name}",
         "bookingId": str(doc_id),
         "timestamp": datetime.utcnow(),
     })
 
-    updated = await db.bookings.find_one({"_id": doc_id})
+    updated = await sdb.bookings.find_one({"_id": doc_id})
     staff = next((st for st in business.get("staff", []) if st.get("id") == updated.get("staffId")), {})
     svc = updated.get("service") or {}
     return {
@@ -557,43 +520,21 @@ async def move_booking(
     """Calendar drag-drop: update time, duration, staffId, tableId."""
     from bson import ObjectId
     db = get_database()
+    sdb = get_scoped_db(tenant.business_id)
     try:
         business = await db.businesses.find_one({"_id": ObjectId(business_id)})
     except Exception:
         business = await db.businesses.find_one({"_id": business_id})
     if not business:
         raise HTTPException(404, "Business not found")
-    if str(business.get("owner_id")) != tenant.user_id and tenant.role not in ["staff", "admin"]:
-        raise HTTPException(403, "Not authorized")
 
-    bid_str = str(business.get("_id"))
-    # Try all combinations like calendar.py does
-    bid_values = list(set([v for v in [business_id, bid_str] if v]))
-    bid_oid_values = []
-    for v in bid_values:
+    # TenantScopedDB handles all businessId matching automatically
+    b = await sdb.bookings.find_one({"_id": booking_id})
+    if not b:
         try:
-            bid_oid_values.append(ObjectId(v))
+            b = await sdb.bookings.find_one({"_id": ObjectId(booking_id)})
         except Exception:
             pass
-    all_bids = bid_values + bid_oid_values
-
-    booking_ids = [booking_id]
-    try:
-        booking_ids.append(ObjectId(booking_id))
-    except Exception:
-        pass
-
-    b = None
-    for bid_field in ["businessId", "business_id"]:
-        if b:
-            break
-        for bk_id in booking_ids:
-            for bz_id in all_bids:
-                b = await db.bookings.find_one({"_id": bk_id, bid_field: bz_id})
-                if b:
-                    break
-            if b:
-                break
     if not b:
         raise HTTPException(404, "Booking not found")
 
@@ -609,9 +550,9 @@ async def move_booking(
     if "tableId" in payload:
         update["tableId"] = payload["tableId"]
 
-    await db.bookings.update_one({"_id": b["_id"]}, {"$set": update})
+    await sdb.bookings.update_one({"_id": b["_id"]}, {"$set": update})
 
-    updated = await db.bookings.find_one({"_id": b["_id"]})
+    updated = await sdb.bookings.find_one({"_id": b["_id"]})
     return {
         "id": str(updated.get("_id")),
         "time": updated.get("time"),
