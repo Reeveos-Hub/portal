@@ -1,0 +1,13 @@
+{
+  "name": "Studio Import",
+  "id": "studio-import-rezvo",
+  "api": "1.0.0",
+  "main": "code.js",
+  "capabilities": [],
+  "enableProposedApi": false,
+  "editorType": ["figma"],
+  "ui": "ui.html",
+  "networkAccess": {
+    "allowedDomains": ["*"]
+  }
+}

@@ -1,0 +1,111 @@
+<!--
+  Studio → Figma Plugin
+  ======================
+  This is a Figma plugin UI that takes a design_map.json URL,
+  fetches it, and creates real editable Figma nodes:
+  - Rectangles with fills, borders, corner radius
+  - Text nodes with proper fonts
+  - Image fills from base64 data
+  - Named layers matching the original DOM structure
+
+  Usage:
+  1. In Figma: Plugins > Development > Import plugin from manifest
+  2. Point to the manifest.json in the same folder
+  3. Run the plugin, paste the design_map.json URL
+  4. Click "Import" — real editable Figma layers appear
+-->
+<html>
+<head>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: Inter, -apple-system, sans-serif; padding: 16px; background: #1e1e1e; color: #e0e0e0; width: 380px; }
+  h2 { font-size: 15px; margin-bottom: 12px; color: #fff; }
+  label { font-size: 12px; color: #999; display: block; margin-bottom: 4px; }
+  input, textarea { width: 100%; padding: 8px 10px; border: 1px solid #444; border-radius: 6px; background: #2a2a2a; color: #fff; font-size: 13px; margin-bottom: 12px; }
+  textarea { height: 120px; font-family: monospace; font-size: 11px; resize: vertical; }
+  button { width: 100%; padding: 10px; border: none; border-radius: 6px; font-size: 13px; font-weight: 700; cursor: pointer; }
+  .btn-primary { background: #a259ff; color: #fff; }
+  .btn-primary:hover { background: #b47aff; }
+  .btn-primary:disabled { background: #555; cursor: wait; }
+  .status { font-size: 11px; color: #888; margin-top: 8px; min-height: 30px; }
+  .status.error { color: #ff5555; }
+  .status.success { color: #50fa7b; }
+  .or { text-align: center; color: #666; font-size: 11px; margin: 8px 0; }
+</style>
+</head>
+<body>
+  <h2>🎨 Studio → Figma Import</h2>
+
+  <label>Design Map URL (from Studio API)</label>
+  <input id="url" placeholder="https://studio.rezvo.app/static/studio/jobs/.../design_map.json" />
+
+  <div class="or">— or paste JSON directly —</div>
+
+  <label>Design Map JSON</label>
+  <textarea id="json" placeholder='Paste design_map.json content here...'></textarea>
+
+  <button id="importBtn" class="btn-primary" onclick="doImport()">Import to Figma</button>
+
+  <div id="status" class="status"></div>
+
+<script>
+  const statusEl = document.getElementById('status');
+  const importBtn = document.getElementById('importBtn');
+
+  function setStatus(msg, type = '') {
+    statusEl.textContent = msg;
+    statusEl.className = 'status ' + type;
+  }
+
+  async function doImport() {
+    importBtn.disabled = true;
+    setStatus('Loading design map...');
+
+    let designMap;
+    const jsonStr = document.getElementById('json').value.trim();
+    const url = document.getElementById('url').value.trim();
+
+    try {
+      if (jsonStr) {
+        designMap = JSON.parse(jsonStr);
+      } else if (url) {
+        const resp = await fetch(url);
+        designMap = await resp.json();
+      } else {
+        setStatus('Provide a URL or paste JSON', 'error');
+        importBtn.disabled = false;
+        return;
+      }
+    } catch (e) {
+      setStatus('Failed to parse design map: ' + e.message, 'error');
+      importBtn.disabled = false;
+      return;
+    }
+
+    if (!designMap.root) {
+      setStatus('Invalid design map — no root node', 'error');
+      importBtn.disabled = false;
+      return;
+    }
+
+    setStatus(`Sending ${designMap.nodeCount || '?'} nodes to Figma...`);
+    parent.postMessage({ pluginMessage: { type: 'import', designMap } }, '*');
+  }
+
+  // Listen for messages from plugin code
+  window.onmessage = (e) => {
+    const msg = e.data.pluginMessage;
+    if (!msg) return;
+    if (msg.type === 'progress') setStatus(msg.text);
+    if (msg.type === 'done') {
+      setStatus(`✅ Imported ${msg.count} nodes!`, 'success');
+      importBtn.disabled = false;
+    }
+    if (msg.type === 'error') {
+      setStatus('❌ ' + msg.text, 'error');
+      importBtn.disabled = false;
+    }
+  };
+</script>
+</body>
+</html>
