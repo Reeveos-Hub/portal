@@ -328,6 +328,17 @@ async def capture_website(url: str, viewport: str = "desktop", wait_extra: int =
             step(f"Captured: {cap['pixel_width']}x{cap['pixel_height']}px ({cap['file_size_mb']}MB)")
             if cap["stitched"]: step(f"Stitched {cap['sections']} sections")
 
+            # DOM extraction for Figma export
+            job["status"] = "extracting_dom"; step("Extracting DOM design map")
+            try:
+                from services.studio_dom_extract import extract_design_map
+                design_map = await extract_design_map(page, job_dir)
+                job["design_map_nodes"] = design_map.get("nodeCount", 0)
+                step(f"Extracted {job['design_map_nodes']} nodes")
+            except Exception as dm_err:
+                step(f"DOM extraction skipped: {dm_err}")
+                job["design_map_nodes"] = 0
+
             try:
                 thumb = job_dir / "thumbnail.png"
                 await page.set_viewport_size(vp); await page.evaluate("window.scrollTo(0,0)"); await page.wait_for_timeout(200)
@@ -349,6 +360,7 @@ async def capture_website(url: str, viewport: str = "desktop", wait_extra: int =
         job["status"] = "complete"; job["completed_at"] = datetime.now(timezone.utc).isoformat()
         job["screenshot_path"] = f"/static/studio/jobs/{job_id}/screenshot.png"
         job["thumbnail_path"] = f"/static/studio/jobs/{job_id}/thumbnail.png"
+        job["design_map_path"] = f"/static/studio/jobs/{job_id}/design_map.json"
         job["duration_seconds"] = round(job["steps"][-1]["time"] - job["steps"][0]["time"], 2)
         step(f"Done in {job['duration_seconds']}s")
         (job_dir / "job.json").write_text(json.dumps(job, indent=2, default=str))
