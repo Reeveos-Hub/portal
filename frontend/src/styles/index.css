@@ -73,36 +73,38 @@ h1, h2, h3, h4, h5, h6,
   }
 }
 
-/* ═══ Global: Kill all default browser select/dropdown styling ═══ */
+/* ═══════════════════════════════════════════════════════
+   GLOBAL RESETS — appearance + font only, NO colors
+   ═══════════════════════════════════════════════════════ */
 select {
   -webkit-appearance: none !important;
   -moz-appearance: none !important;
   appearance: none !important;
-  background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' fill='none' stroke='%23999' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='3 5 7 9 11 5'/%3E%3C/svg%3E") !important;
-  background-repeat: no-repeat !important;
-  background-position: right 12px center !important;
-  background-size: 14px !important;
-  padding-right: 36px !important;
   font-family: 'Figtree', sans-serif !important;
   cursor: pointer;
+  padding-right: 36px !important;
 }
 
-select:focus {
-  border-color: #52B788 !important;
-  box-shadow: 0 0 0 2px rgba(82, 183, 136, 0.15) !important;
-}
-
-/* Remove default arrow in IE */
 select::-ms-expand {
   display: none;
 }
 
-/* ═══ Global: Style date/time inputs to match brand ═══ */
+input[type="text"],
+input[type="email"],
+input[type="tel"],
+input[type="url"],
+input[type="number"],
+input[type="password"],
+input[type="search"],
+textarea {
+  font-family: 'Figtree', sans-serif !important;
+  transition: all 0.15s ease !important;
+}
+
 input[type="date"],
 input[type="time"] {
   -webkit-appearance: none !important;
   font-family: 'Figtree', sans-serif !important;
-  color: #111111 !important;
 }
 
 input[type="date"]::-webkit-calendar-picker-indicator,
@@ -111,61 +113,58 @@ input[type="time"]::-webkit-calendar-picker-indicator {
   cursor: pointer;
 }
 
-input[type="date"]:focus,
-input[type="time"]:focus {
-  border-color: #52B788 !important;
-  box-shadow: 0 0 0 2px rgba(82, 183, 136, 0.15) !important;
-}
-
-/* ═══ Global input focus styling ═══ */
-input:focus,
-textarea:focus {
-  border-color: #52B788 !important;
-  box-shadow: 0 0 0 2px rgba(82, 183, 136, 0.15) !important;
-}
 
 /* ═══════════════════════════════════════════════════════
-   GLOBAL BRANDED OVERRIDES — Kill all default styles
-   Scoped to dashboard/public pages ONLY (not admin panel)
+   LIGHT MODE — Dashboard / public pages (default)
+   ═══════════════════════════════════════════════════════ */
+select {
+  font-weight: 500;
+  color: #111111;
+  border-radius: 12px;
+  border: 1px solid #E5E7EB;
+  padding: 10px 36px 10px 14px;
+  font-size: 13px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%239CA3AF' stroke-width='2.5' stroke-linecap='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  background-color: #fff;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+}
+
+select:hover {
+  border-color: #D1D5DB;
+}
+
+select:focus {
+  border-color: rgba(17, 17, 17, 0.3);
+  box-shadow: 0 0 0 2px rgba(17, 17, 17, 0.08);
+  outline: none;
+}
+
+input:focus,
+textarea:focus {
+  border-color: #52B788;
+  box-shadow: 0 0 0 2px rgba(82, 183, 136, 0.15);
+}
+
+input[type="date"],
+input[type="time"] {
+  color: #111111;
+}
+
+::placeholder {
+  color: #9CA3AF;
+  font-weight: 400;
+}
+
+
+/* ═══════════════════════════════════════════════════════
+   DARK MODE — Admin panel (.admin-shell)
+   All use !important to override the light defaults above
    ═══════════════════════════════════════════════════════ */
 
-/* All selects: branded dropdown (dashboard/public only) */
-:root:not(.admin-mode) select:not(.admin-select) {
-  -webkit-appearance: none !important;
-  -moz-appearance: none !important;
-  appearance: none !important;
-  font-family: 'Figtree', sans-serif !important;
-  font-weight: 500 !important;
-  color: #111111 !important;
-  border-radius: 12px !important;
-  border: 1px solid #E5E7EB !important;
-  padding: 10px 36px 10px 14px !important;
-  font-size: 13px !important;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%239CA3AF' stroke-width='2.5' stroke-linecap='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E") !important;
-  background-repeat: no-repeat !important;
-  background-position: right 12px center !important;
-  background-color: #fff !important;
-  box-shadow: 0 1px 2px rgba(0,0,0,0.04) !important;
-  transition: all 0.15s ease !important;
-  cursor: pointer !important;
-}
-
-:root:not(.admin-mode) select:not(.admin-select):hover {
-  border-color: #D1D5DB !important;
-}
-
-:root:not(.admin-mode) select:not(.admin-select):focus {
-  border-color: rgba(17, 17, 17, 0.3) !important;
-  box-shadow: 0 0 0 2px rgba(17, 17, 17, 0.08) !important;
-  outline: none !important;
-}
-
-/* Admin panel: dark-mode select styling */
+/* Selects */
 .admin-shell select {
-  -webkit-appearance: none !important;
-  -moz-appearance: none !important;
-  appearance: none !important;
-  font-family: 'Figtree', sans-serif !important;
   font-weight: 500 !important;
   color: #E5E7EB !important;
   border-radius: 8px !important;
@@ -177,8 +176,6 @@ textarea:focus {
   background-position: right 10px center !important;
   background-color: #1F2937 !important;
   box-shadow: none !important;
-  transition: all 0.15s ease !important;
-  cursor: pointer !important;
 }
 
 .admin-shell select:hover {
@@ -191,7 +188,12 @@ textarea:focus {
   outline: none !important;
 }
 
-/* Admin panel: dark-mode input styling */
+.admin-shell select option {
+  background-color: #1F2937 !important;
+  color: #E5E7EB !important;
+}
+
+/* Text inputs */
 .admin-shell input[type="text"],
 .admin-shell input[type="email"],
 .admin-shell input[type="tel"],
@@ -203,6 +205,7 @@ textarea:focus {
   color: #E5E7EB !important;
   background-color: #1F2937 !important;
   border-color: #374151 !important;
+  border-radius: 8px !important;
 }
 
 .admin-shell input:focus,
@@ -215,6 +218,7 @@ textarea:focus {
   color: #6B7280 !important;
 }
 
+/* Date/time */
 .admin-shell input[type="date"],
 .admin-shell input[type="time"] {
   color: #E5E7EB !important;
@@ -222,28 +226,37 @@ textarea:focus {
   border-color: #374151 !important;
 }
 
-/* All text inputs: branded style */
-input[type="text"],
-input[type="email"],
-input[type="tel"],
-input[type="url"],
-input[type="number"],
-input[type="password"],
-input[type="search"],
-textarea {
-  font-family: 'Figtree', sans-serif !important;
-  border-radius: 12px !important;
-  font-size: 13px !important;
-  transition: all 0.15s ease !important;
+.admin-shell input[type="date"]::-webkit-calendar-picker-indicator,
+.admin-shell input[type="time"]::-webkit-calendar-picker-indicator {
+  filter: invert(1);
 }
 
-/* Placeholder styling */
-::placeholder {
-  color: #9CA3AF !important;
-  font-weight: 400 !important;
+/* Radio/checkbox */
+.admin-shell input[type="radio"],
+.admin-shell input[type="checkbox"] {
+  accent-color: #10B981;
 }
 
-/* All scrollbars: thin and subtle */
+/* Scrollbar — dark */
+.admin-shell ::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+.admin-shell ::-webkit-scrollbar-track {
+  background: transparent;
+}
+.admin-shell ::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 999px;
+}
+.admin-shell ::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+
+/* ═══════════════════════════════════════════════════════
+   LIGHT SCROLLBAR — Dashboard / public pages
+   ═══════════════════════════════════════════════════════ */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
@@ -259,7 +272,10 @@ textarea {
   background: rgba(17, 17, 17, 0.25);
 }
 
-/* Live booking animation */
+
+/* ═══════════════════════════════════════════════════════
+   ANIMATIONS
+   ═══════════════════════════════════════════════════════ */
 @keyframes slideInGlow {
   0% {
     opacity: 0;

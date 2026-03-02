@@ -283,7 +283,7 @@ const LinkedIn = () => {
           {draftPosts.length === 0 && approvedPosts.length === 0 ? (
             <div className="bg-gray-900/50 rounded-xl border-2 border-dashed border-gray-700 p-12 text-center">
               <i className="fa-solid fa-calendar-plus text-4xl text-gray-300 mb-4" />
-              <h3 className="text-lg font-semibold text-gray-700 mb-2">No posts queued yet</h3>
+              <h3 className="text-lg font-semibold text-gray-300 mb-2">No posts queued yet</h3>
               <p className="text-gray-500 mb-6">Hit "Generate This Week" to create 4 posts following the proven 4-3-2-1 system</p>
               <button
                 onClick={generateWeek}
@@ -330,7 +330,7 @@ const LinkedIn = () => {
                             {(dayPost.framework || 'slay').toUpperCase()}
                           </span>
                           <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${
-                            dayPost.status === 'approved' ? 'bg-green-100 text-green-700' : 'bg-amber-900/30 text-amber-400'
+                            dayPost.status === 'approved' ? 'bg-green-900/20 text-green-400' : 'bg-amber-900/30 text-amber-400'
                           }`}>
                             {dayPost.status}
                           </span>
@@ -349,7 +349,7 @@ const LinkedIn = () => {
                             />
                             <div className="flex gap-2 mt-2">
                               <button onClick={() => saveEdit(dayPost._id)} className="px-3 py-1.5 rounded-lg bg-green-600 text-white text-sm font-medium">Save</button>
-                              <button onClick={() => setEditingPost(null)} className="px-3 py-1.5 rounded-lg bg-gray-200 text-gray-700 text-sm font-medium">Cancel</button>
+                              <button onClick={() => setEditingPost(null)} className="px-3 py-1.5 rounded-lg bg-gray-200 text-gray-300 text-sm font-medium">Cancel</button>
                             </div>
                           </div>
                         ) : (
@@ -382,7 +382,7 @@ const LinkedIn = () => {
                         </button>
                         <button
                           onClick={() => updateStatus(dayPost._id, dayPost.status === 'approved' ? 'draft' : 'approved')}
-                          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-green-50 text-green-700 text-sm font-medium hover:bg-green-100"
+                          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-green-900/20 text-green-400 text-sm font-medium hover:bg-green-900/30"
                         >
                           <i className="fa-solid fa-check" />
                           {dayPost.status === 'approved' ? 'Unapprove' : 'Approve'}
@@ -396,13 +396,13 @@ const LinkedIn = () => {
                         <button
                           onClick={() => regeneratePost(dayPost._id)}
                           disabled={generating}
-                          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-50 text-amber-700 text-sm font-medium hover:bg-amber-100"
+                          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-900/20 text-amber-400 text-sm font-medium hover:bg-amber-900/30"
                         >
                           <i className={`fa-solid ${generating ? 'fa-spinner fa-spin' : 'fa-rotate'}`} /> Regen
                         </button>
                         <button
                           onClick={() => deletePost(dayPost._id)}
-                          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-red-50 text-red-700 text-sm font-medium hover:bg-red-100"
+                          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-red-900/20 text-red-400 text-sm font-medium hover:bg-red-900/30"
                         >
                           <i className="fa-solid fa-trash" /> Delete
                         </button>
@@ -415,11 +415,11 @@ const LinkedIn = () => {
           )}
 
           {/* Posting Guide */}
-          <div className="mt-6 bg-blue-50 rounded-xl p-5 border border-blue-100">
+          <div className="mt-6 bg-blue-900/20 rounded-xl p-5 border border-blue-700/40">
             <h3 className="font-semibold text-blue-900 mb-2 flex items-center gap-2">
               <i className="fa-solid fa-lightbulb" /> Posting Playbook
             </h3>
-            <div className="grid sm:grid-cols-2 gap-3 text-sm text-blue-800">
+            <div className="grid sm:grid-cols-2 gap-3 text-sm text-blue-400">
               <div><strong>When to post:</strong> 12:00 PM GMT (lunchtime gets highest engagement)</div>
               <div><strong>After posting:</strong> Spend 30 mins engaging with comments</div>
               <div><strong>Copy → paste to LinkedIn:</strong> Hit the blue Copy button, open LinkedIn, paste, post</div>
@@ -440,14 +440,14 @@ const LinkedIn = () => {
               <h3 className="font-semibold text-white mb-4">Generate a Post</h3>
 
               {/* Pillar */}
-              <label className="block text-sm font-medium text-gray-700 mb-2">Content Pillar</label>
+              <label className="block text-sm font-medium text-gray-300 mb-2">Content Pillar</label>
               <div className="grid grid-cols-3 gap-2 mb-4">
                 {Object.entries(PILLARS).map(([k, v]) => (
                   <button
                     key={k}
                     onClick={() => setGenPillar(k)}
                     className={`p-3 rounded-xl border-2 text-center transition-all ${
-                      genPillar === k ? 'border-current shadow-sm' : 'border-gray-700 hover:border-gray-600'
+                      genPillar === k ? 'border-current bg-gray-800' : 'border-gray-700 hover:border-gray-600'
                     }`}
                     style={genPillar === k ? { borderColor: v.color, background: v.bg } : {}}
                   >
@@ -458,7 +458,7 @@ const LinkedIn = () => {
               </div>
 
               {/* Framework */}
-              <label className="block text-sm font-medium text-gray-700 mb-2">Framework</label>
+              <label className="block text-sm font-medium text-gray-300 mb-2">Framework</label>
               <div className="grid grid-cols-2 gap-2 mb-4">
                 {Object.entries(FRAMEWORKS).map(([k, v]) => (
                   <button
@@ -475,14 +475,14 @@ const LinkedIn = () => {
               </div>
 
               {/* Tone */}
-              <label className="block text-sm font-medium text-gray-700 mb-2">Tone</label>
+              <label className="block text-sm font-medium text-gray-300 mb-2">Tone</label>
               <div className="flex flex-wrap gap-2 mb-4">
                 {TONES.map(t => (
                   <button
                     key={t.value}
                     onClick={() => setGenTone(t.value)}
                     className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
-                      genTone === t.value ? 'bg-gray-200 text-black' : 'bg-gray-800 text-gray-300 hover:bg-gray-700'
+                      genTone === t.value ? 'bg-gray-600 text-white' : 'bg-gray-800 text-gray-300 hover:bg-gray-700'
                     }`}
                   >
                     {t.icon} {t.label}
@@ -491,7 +491,7 @@ const LinkedIn = () => {
               </div>
 
               {/* Topic */}
-              <label className="block text-sm font-medium text-gray-700 mb-2">Topic / Angle (optional)</label>
+              <label className="block text-sm font-medium text-gray-300 mb-2">Topic / Angle (optional)</label>
               <input
                 value={genTopic}
                 onChange={(e) => setGenTopic(e.target.value)}
@@ -560,7 +560,7 @@ const LinkedIn = () => {
                     <button
                       onClick={generateSingle}
                       disabled={generating}
-                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-50 text-amber-700 text-sm font-medium"
+                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-900/20 text-amber-400 text-sm font-medium"
                     >
                       <i className="fa-solid fa-rotate" /> Regenerate
                     </button>
@@ -593,7 +593,7 @@ const LinkedIn = () => {
                       <div className="text-xs text-gray-500">Save the High Street • Building @Rezvo</div>
                     </div>
                   </div>
-                  <div className="whitespace-pre-line text-sm text-gray-800 leading-relaxed">
+                  <div className="whitespace-pre-line text-sm text-gray-300 leading-relaxed">
                     {genResult.full_post || genResult.hook}
                   </div>
                 </div>
@@ -611,7 +611,7 @@ const LinkedIn = () => {
                     </span>
                   )}
                   {genResult.estimated_impressions && (
-                    <span className="text-xs px-2 py-1 rounded-full bg-purple-100 text-purple-700">
+                    <span className="text-xs px-2 py-1 rounded-full bg-purple-900/20 text-purple-400">
                       Est: {genResult.estimated_impressions}
                     </span>
                   )}
@@ -619,7 +619,7 @@ const LinkedIn = () => {
 
                 {/* Reasoning */}
                 {genResult.reasoning && (
-                  <div className="mt-3 p-3 bg-blue-50 rounded-lg text-xs text-blue-800">
+                  <div className="mt-3 p-3 bg-blue-900/20 rounded-lg text-xs text-blue-400">
                     <strong>Why this works:</strong> {genResult.reasoning}
                   </div>
                 )}
@@ -747,8 +747,8 @@ const LinkedIn = () => {
                           {pillar.label}
                         </span>
                         <span className={`text-xs px-2 py-0.5 rounded-full ${
-                          post.status === 'posted' ? 'bg-blue-100 text-blue-700' :
-                          post.status === 'approved' ? 'bg-green-100 text-green-700' :
+                          post.status === 'posted' ? 'bg-blue-900/20 text-blue-400' :
+                          post.status === 'approved' ? 'bg-green-900/20 text-green-400' :
                           'bg-amber-900/30 text-amber-400'
                         }`}>
                           {post.status}
@@ -769,7 +769,7 @@ const LinkedIn = () => {
                       <button onClick={() => setSelectedPost(post)} className="p-2 rounded-lg hover:bg-gray-800" title="View">
                         <i className="fa-solid fa-eye text-gray-400" />
                       </button>
-                      <button onClick={() => deletePost(post._id)} className="p-2 rounded-lg hover:bg-red-50" title="Delete">
+                      <button onClick={() => deletePost(post._id)} className="p-2 rounded-lg hover:bg-red-900/20" title="Delete">
                         <i className="fa-solid fa-trash text-gray-300 hover:text-red-500" />
                       </button>
                     </div>
@@ -899,7 +899,7 @@ const LinkedIn = () => {
                   <div className="text-xs text-gray-400">Just now • <i className="fa-solid fa-earth-americas" /></div>
                 </div>
               </div>
-              <div className="whitespace-pre-line text-sm text-gray-800 leading-relaxed">
+              <div className="whitespace-pre-line text-sm text-gray-300 leading-relaxed">
                 {getPostText(selectedPost)}
               </div>
               <div className="flex items-center gap-6 mt-4 pt-3 border-t border-gray-800 text-xs text-gray-500">
@@ -912,7 +912,7 @@ const LinkedIn = () => {
 
             {/* Meta */}
             {selectedPost.content?.reasoning && (
-              <div className="mt-4 p-3 bg-blue-50 rounded-lg text-sm text-blue-800">
+              <div className="mt-4 p-3 bg-blue-900/20 rounded-lg text-sm text-blue-400">
                 <strong>Strategy:</strong> {selectedPost.content.reasoning}
               </div>
             )}

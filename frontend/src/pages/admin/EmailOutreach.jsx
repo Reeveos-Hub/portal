@@ -18,11 +18,11 @@ const ANGLES = [
 ]
 
 const CLASSIFICATION_STYLES = {
-  interested: { bg: 'bg-green-50', text: 'text-green-700', border: 'border-green-200', icon: 'fa-face-smile', label: 'INTERESTED' },
-  question: { bg: 'bg-blue-50', text: 'text-blue-700', border: 'border-blue-200', icon: 'fa-circle-question', label: 'QUESTION' },
-  not_interested: { bg: 'bg-red-50', text: 'text-red-700', border: 'border-red-200', icon: 'fa-xmark', label: 'NOT INTERESTED' },
+  interested: { bg: 'bg-green-900/20', text: 'text-green-400', border: 'border-green-700', icon: 'fa-face-smile', label: 'INTERESTED' },
+  question: { bg: 'bg-blue-900/20', text: 'text-blue-400', border: 'border-blue-700', icon: 'fa-circle-question', label: 'QUESTION' },
+  not_interested: { bg: 'bg-red-900/20', text: 'text-red-400', border: 'border-red-700', icon: 'fa-xmark', label: 'NOT INTERESTED' },
   out_of_office: { bg: 'bg-gray-800', text: 'text-gray-400', border: 'border-gray-700', icon: 'fa-plane', label: 'OOO' },
-  unsubscribe: { bg: 'bg-orange-50', text: 'text-orange-700', border: 'border-orange-200', icon: 'fa-ban', label: 'UNSUBSCRIBE' },
+  unsubscribe: { bg: 'bg-orange-900/20', text: 'text-orange-400', border: 'border-orange-700', icon: 'fa-ban', label: 'UNSUBSCRIBE' },
   unknown: { bg: 'bg-gray-800', text: 'text-gray-400', border: 'border-gray-700', icon: 'fa-question', label: 'UNKNOWN' },
 }
 
@@ -234,11 +234,11 @@ export default function EmailOutreach() {
 
   const StatusBadge = ({ status }) => {
     const styles = {
-      active: 'bg-green-50 text-green-700 border-green-200',
-      warming: 'bg-amber-50 text-amber-700 border-amber-200',
+      active: 'bg-green-900/20 text-green-400 border-green-700',
+      warming: 'bg-amber-900/20 text-amber-400 border-amber-700',
       draft: 'bg-gray-800 text-gray-400 border-gray-700',
-      paused: 'bg-yellow-50 text-yellow-700 border-yellow-200',
-      complete: 'bg-blue-50 text-blue-700 border-blue-200',
+      paused: 'bg-yellow-900/20 text-yellow-400 border-yellow-700',
+      complete: 'bg-blue-900/20 text-blue-400 border-blue-700',
     }
     return (
       <span className={`inline-flex px-2.5 py-0.5 rounded-full text-xs font-bold border ${styles[status] || styles.draft}`}>
@@ -290,16 +290,16 @@ export default function EmailOutreach() {
         </div>
         <div className="flex items-center gap-3">
           {stats?.warming_accounts > 0 && (
-            <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold bg-amber-50 text-amber-700 border border-amber-200">
+            <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold bg-amber-900/20 text-amber-400 border border-amber-700">
               <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" /> {stats.warming_accounts} Warming
             </span>
           )}
           {stats?.unread_replies > 0 && (
-            <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold bg-red-50 text-red-700 border border-red-200">
+            <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold bg-red-900/20 text-red-400 border border-red-700">
               <i className="fas fa-inbox" /> {stats.unread_replies} Unread
             </span>
           )}
-          <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold bg-green-50 text-green-700 border border-green-200">
+          <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold bg-green-900/20 text-green-400 border border-green-700">
             <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" /> Engine Active
           </span>
         </div>
@@ -383,7 +383,7 @@ export default function EmailOutreach() {
               <div className="bg-gray-900 rounded-2xl border border-gray-800 p-5">
                 <div className="flex justify-between items-center mb-4">
                   <h3 className="font-bold text-white text-sm">Recent Replies</h3>
-                  <button onClick={() => setTab('inbox')} className="text-xs font-bold text-emerald-700 hover:underline">VIEW ALL</button>
+                  <button onClick={() => setTab('inbox')} className="text-xs font-bold text-emerald-400 hover:underline">VIEW ALL</button>
                 </div>
                 <div className="space-y-3">
                   {replies.slice(0, 4).map((r, i) => (
@@ -429,10 +429,10 @@ export default function EmailOutreach() {
                   <button onClick={triggerProcess} className="w-full py-2 rounded-lg border border-gray-700 text-xs font-bold text-gray-300 hover:bg-gray-800">
                     <i className="fas fa-play mr-2" />Process Campaign Sends
                   </button>
-                  <button onClick={triggerWarmup} className="w-full py-2 rounded-lg border border-amber-200 text-xs font-bold text-amber-700 hover:bg-amber-50">
+                  <button onClick={triggerWarmup} className="w-full py-2 rounded-lg border border-amber-700 text-xs font-bold text-amber-400 hover:bg-amber-900/30">
                     <i className="fas fa-temperature-half mr-2" />Run Warmup Cycle
                   </button>
-                  <button onClick={seedTemplates} className="w-full py-2 rounded-lg border border-purple-200 text-xs font-bold text-purple-700 hover:bg-purple-50">
+                  <button onClick={seedTemplates} className="w-full py-2 rounded-lg border border-purple-700 text-xs font-bold text-purple-400 hover:bg-purple-900/30">
                     <i className="fas fa-sparkles mr-2" />Seed Default Templates
                   </button>
                 </div>
@@ -489,7 +489,7 @@ export default function EmailOutreach() {
                   {c.status === 'active' && (
                     <>
                       <button onClick={() => pauseCampaign(c._id)} className="flex-1 py-2 rounded-lg border border-gray-700 text-xs font-bold text-gray-400 hover:bg-gray-800">PAUSE</button>
-                      <button className="flex-1 py-2 rounded-lg border border-emerald-200 text-emerald-700 text-xs font-bold hover:bg-emerald-50">DETAILS</button>
+                      <button className="flex-1 py-2 rounded-lg border border-emerald-700 text-emerald-400 text-xs font-bold hover:bg-emerald-900/30">DETAILS</button>
                     </>
                   )}
                   {c.status === 'paused' && (
@@ -554,7 +554,7 @@ export default function EmailOutreach() {
                   <div className="flex items-center gap-2">
                     <ClassBadge classification={selectedReply.classification} />
                     {selectedReply.classification === 'interested' && !selectedReply.moved_to_pipeline && (
-                      <button onClick={() => moveToP(selectedReply._id)} className="px-3 py-1.5 rounded-lg text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100">
+                      <button onClick={() => moveToP(selectedReply._id)} className="px-3 py-1.5 rounded-lg text-xs font-bold bg-emerald-900/20 text-emerald-400 border border-emerald-700 hover:bg-emerald-900/30">
                         <i className="fas fa-crosshairs mr-1" />Move to Pipeline
                       </button>
                     )}
@@ -584,9 +584,9 @@ export default function EmailOutreach() {
                       {/* AI note */}
                       {r.classification_reasoning && (
                         <div className="flex justify-center my-3">
-                          <div className="bg-purple-50 border border-purple-100 rounded-xl px-4 py-2 flex items-center gap-2 max-w-md">
+                          <div className="bg-purple-900/20 border border-purple-800/40 rounded-xl px-4 py-2 flex items-center gap-2 max-w-md">
                             <i className="fas fa-sparkles text-purple-500 text-xs" />
-                            <p className="text-xs text-purple-700"><strong>AI:</strong> {r.classification_reasoning}</p>
+                            <p className="text-xs text-purple-400"><strong>AI:</strong> {r.classification_reasoning}</p>
                           </div>
                         </div>
                       )}
@@ -607,7 +607,7 @@ export default function EmailOutreach() {
                     <button
                       onClick={sendReplyMessage}
                       disabled={sendingReply || !replyText.trim()}
-                      className="px-5 py-2 self-end rounded-xl bg-emerald-700 text-white text-sm font-bold hover:bg-emerald-800 disabled:bg-gray-300"
+                      className="px-5 py-2 self-end rounded-xl bg-emerald-700 text-white text-sm font-bold hover:bg-emerald-800 disabled:bg-gray-700 disabled:text-gray-500"
                     >
                       {sendingReply ? <i className="fas fa-spinner fa-spin" /> : <><i className="fas fa-paper-plane mr-1" /> Send</>}
                     </button>
@@ -693,7 +693,7 @@ export default function EmailOutreach() {
           <div className="flex items-center justify-between mb-6">
             <h2 className="font-bold text-lg text-white">Email Templates</h2>
             <div className="flex gap-2">
-              <button onClick={seedTemplates} className="px-4 py-2 rounded-xl text-xs font-bold border border-purple-200 text-purple-700 hover:bg-purple-50">
+              <button onClick={seedTemplates} className="px-4 py-2 rounded-xl text-xs font-bold border border-purple-700 text-purple-400 hover:bg-purple-900/30">
                 <i className="fas fa-sparkles mr-1" /> Seed Defaults
               </button>
             </div>
@@ -709,10 +709,10 @@ export default function EmailOutreach() {
                   </div>
                   <div className="flex gap-2">
                     {t.reply_rate > 0 && (
-                      <span className="px-2 py-1 bg-green-50 text-green-700 text-[10px] font-bold rounded">{(t.reply_rate * 100).toFixed(1)}% reply</span>
+                      <span className="px-2 py-1 bg-green-900/20 text-green-400 text-[10px] font-bold rounded">{(t.reply_rate * 100).toFixed(1)}% reply</span>
                     )}
                     {t.open_rate > 0 && (
-                      <span className="px-2 py-1 bg-blue-50 text-blue-700 text-[10px] font-bold rounded">{(t.open_rate * 100).toFixed(0)}% open</span>
+                      <span className="px-2 py-1 bg-blue-900/20 text-blue-400 text-[10px] font-bold rounded">{(t.open_rate * 100).toFixed(0)}% open</span>
                     )}
                     {t.angle && (
                       <span className="px-2 py-1 bg-gray-800 text-gray-400 text-[10px] font-bold rounded">{t.angle.replace('_', ' ')}</span>
@@ -725,7 +725,7 @@ export default function EmailOutreach() {
                 </div>
                 <div className="flex items-center gap-2 mt-3">
                   {(t.variables || []).slice(0, 5).map((v, j) => (
-                    <span key={j} className="px-2 py-0.5 bg-blue-50 text-blue-600 text-[10px] rounded font-mono">{`{${v}}`}</span>
+                    <span key={j} className="px-2 py-0.5 bg-blue-900/20 text-blue-400 text-[10px] rounded font-mono">{`{${v}}`}</span>
                   ))}
                   {(t.variables || []).length > 5 && <span className="text-[10px] text-gray-400">+{t.variables.length - 5} more</span>}
                 </div>
@@ -815,7 +815,7 @@ export default function EmailOutreach() {
                   </thead>
                   <tbody>
                     {daily.map((d, i) => (
-                      <tr key={i} className="border-b border-gray-50 hover:bg-gray-800">
+                      <tr key={i} className="border-b border-gray-800 hover:bg-gray-800">
                         <td className="py-2 px-3 text-xs text-gray-600">{d.date}</td>
                         <td className="py-2 px-3 font-bold">{d.sent}</td>
                         <td className="py-2 px-3 text-green-400">{d.delivered}</td>
@@ -891,12 +891,12 @@ export default function EmailOutreach() {
                 </div>
               </div>
               {/* AI personalisation */}
-              <div className="bg-purple-50 border border-purple-100 rounded-xl p-4 flex items-center justify-between">
+              <div className="bg-purple-900/20 border border-purple-800/40 rounded-xl p-4 flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <i className="fas fa-sparkles text-purple-500" />
                   <div>
-                    <p className="text-sm font-medium text-purple-800">AI Personalisation</p>
-                    <p className="text-xs text-purple-600">Claude writes unique emails per lead using Google Places data</p>
+                    <p className="text-sm font-medium text-purple-300">AI Personalisation</p>
+                    <p className="text-xs text-purple-400">Claude writes unique emails per lead using Google Places data</p>
                   </div>
                 </div>
                 <label className="relative inline-flex items-center cursor-pointer">
@@ -907,7 +907,7 @@ export default function EmailOutreach() {
             </div>
             <div className="p-6 border-t border-gray-800 flex justify-between items-center sticky bottom-0 bg-gray-900 rounded-b-2xl">
               <button onClick={() => setShowNewCampaign(false)} className="px-6 py-2.5 border border-gray-700 rounded-xl text-sm font-medium text-gray-400 hover:bg-gray-800">Cancel</button>
-              <button onClick={createCampaign} disabled={creating || !newCampaign.name.trim()} className="px-6 py-2.5 bg-emerald-700 text-white rounded-xl text-sm font-bold hover:bg-emerald-800 disabled:bg-gray-300">
+              <button onClick={createCampaign} disabled={creating || !newCampaign.name.trim()} className="px-6 py-2.5 bg-emerald-700 text-white rounded-xl text-sm font-bold hover:bg-emerald-800 disabled:bg-gray-700 disabled:text-gray-500">
                 {creating ? <><i className="fas fa-spinner fa-spin mr-2" />Creating...</> : <><i className="fas fa-rocket mr-1" /> Create Campaign</>}
               </button>
             </div>

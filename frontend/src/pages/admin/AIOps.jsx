@@ -153,7 +153,7 @@ export default function AIOps() {
           <p className="text-sm text-gray-500 mt-1">Autonomous platform management • 11 scheduled tasks • Three-tier guardrails</p>
         </div>
         <div className="flex items-center gap-2">
-          <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold bg-green-900/30 text-green-400 border border-green-200">
+          <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold bg-green-900/30 text-green-400 border border-green-700">
             <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" /> Agent Active
           </span>
         </div>
@@ -200,7 +200,7 @@ export default function AIOps() {
               <div className="space-y-3">
                 {stats.task_breakdown.map((t, i) => (
                   <div key={i} className="flex items-center justify-between text-sm">
-                    <span className="font-medium text-gray-700">{t.task}</span>
+                    <span className="font-medium text-gray-300">{t.task}</span>
                     <div className="flex items-center gap-4 text-gray-500">
                       <span>{t.runs} runs</span>
                       <span>{t.tokens.toLocaleString()} tokens</span>
@@ -241,8 +241,8 @@ export default function AIOps() {
                 <div key={task.id} className="bg-gray-900 rounded-2xl border border-gray-800 p-5">
                   <div className="flex items-start justify-between">
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-xl bg-emerald-50 flex items-center justify-center">
-                        <i className={`fas ${task.icon} text-emerald-700`} />
+                      <div className="w-10 h-10 rounded-xl bg-emerald-900/20 flex items-center justify-center">
+                        <i className={`fas ${task.icon} text-emerald-400`} />
                       </div>
                       <div>
                         <h4 className="font-bold text-white text-sm">{task.label}</h4>
@@ -266,7 +266,7 @@ export default function AIOps() {
                   {schedule && (
                     <div className="mt-3 flex items-center gap-4 text-xs text-gray-400">
                       <span>Every {schedule.interval_minutes} min</span>
-                      {schedule.daily_only && <span className="px-2 py-0.5 rounded bg-blue-50 text-blue-600">Daily at {schedule.run_at_hour}:00</span>}
+                      {schedule.daily_only && <span className="px-2 py-0.5 rounded bg-blue-900/20 text-blue-400">Daily at {schedule.run_at_hour}:00</span>}
                       {schedule.last_run && <span>Last: {new Date(schedule.last_run).toLocaleTimeString()}</span>}
                     </div>
                   )}
@@ -277,7 +277,7 @@ export default function AIOps() {
 
           {/* Task Result */}
           {taskResult && (
-            <div className={`mt-6 rounded-2xl border p-6 ${taskResult.error ? 'bg-red-50 border-red-200' : 'bg-green-50 border-green-200'}`}>
+            <div className={`mt-6 rounded-2xl border p-6 ${taskResult.error ? 'bg-red-900/20 border-red-700' : 'bg-green-900/20 border-green-700'}`}>
               <h3 className="font-bold mb-2">{taskResult.task} — {taskResult.error ? '❌ Error' : '✅ Complete'}</h3>
               <pre className="text-sm whitespace-pre-wrap">{taskResult.error || JSON.stringify(taskResult.result, null, 2)}</pre>
             </div>
@@ -300,7 +300,7 @@ export default function AIOps() {
                 <div key={i} className="bg-gray-900 rounded-2xl border border-gray-800 p-6">
                   <div className="flex items-start justify-between">
                     <div>
-                      <span className="inline-flex px-3 py-1 rounded-full text-xs font-bold bg-red-50 text-red-700 border border-red-200 mb-2">
+                      <span className="inline-flex px-3 py-1 rounded-full text-xs font-bold bg-red-900/20 text-red-400 border border-red-700 mb-2">
                         ⚠️ Requires Approval
                       </span>
                       <h4 className="font-bold text-white">{a.tool}</h4>
@@ -350,7 +350,7 @@ export default function AIOps() {
               const count = leads.filter(l => l.status === status).length
               const colors = { new: 'blue', researched: 'purple', contacted: 'yellow', engaged: 'emerald', converted: 'green', dead: 'gray' }
               return (
-                <div key={status} className={`bg-${colors[status]}-50 rounded-xl p-3 text-center border border-${colors[status]}-200`}>
+                <div key={status} className={`bg-${colors[status]}-900/20 rounded-xl p-3 text-center border border-${colors[status]}-700`}>
                   <div className="text-xl font-extrabold">{count}</div>
                   <div className="text-xs text-gray-600 capitalize">{status}</div>
                 </div>
@@ -423,13 +423,13 @@ export default function AIOps() {
                   <h3 className="font-bold mb-4">At-Risk Businesses</h3>
                   <div className="space-y-3">
                     {churn.at_risk_businesses.map((biz, i) => (
-                      <div key={i} className="flex items-center justify-between py-3 border-b border-gray-50 last:border-0">
+                      <div key={i} className="flex items-center justify-between py-3 border-b border-gray-800 last:border-0">
                         <div>
                           <h4 className="font-bold text-sm">{biz.business_name || biz.business_id}</h4>
                           <div className="flex items-center gap-2 mt-1">
                             <span className="text-xs px-2 py-0.5 rounded-full bg-gray-800 text-gray-400">{biz.plan}</span>
                             {biz.signals?.map((s, j) => (
-                              <span key={j} className="text-xs px-2 py-0.5 rounded-full bg-red-50 text-red-600">{s}</span>
+                              <span key={j} className="text-xs px-2 py-0.5 rounded-full bg-red-900/20 text-red-400">{s}</span>
                             ))}
                           </div>
                         </div>
@@ -511,7 +511,7 @@ export default function AIOps() {
               <div key={i} className="bg-gray-900 rounded-xl border border-gray-800 p-4">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <span className="text-xs px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 font-bold">{log.task_type}</span>
+                    <span className="text-xs px-2 py-0.5 rounded-full bg-emerald-900/20 text-emerald-400 font-bold">{log.task_type}</span>
                     <span className="text-xs text-gray-400">{log.tokens_used} tokens • {log.duration_seconds}s</span>
                   </div>
                   <span className="text-xs text-gray-400">{new Date(log.created_at).toLocaleString()}</span>
@@ -588,7 +588,7 @@ export default function AIOps() {
                   {askResult.tool_calls?.length > 0 && <span>{askResult.tool_calls.length} tool calls</span>}
                 </div>
               </div>
-              <div className="text-sm text-gray-700 whitespace-pre-line">{askResult.result}</div>
+              <div className="text-sm text-gray-300 whitespace-pre-line">{askResult.result}</div>
             </div>
           )}
         </div>

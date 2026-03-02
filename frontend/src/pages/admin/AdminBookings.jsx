@@ -90,7 +90,7 @@ export default function AdminBookings() {
         <div className="flex justify-center py-12"><RefreshCw className="animate-spin text-emerald-500" size={20} /></div>
       ) : data?.bookings?.length === 0 ? (
         <div className="bg-gray-900 border border-gray-800 rounded-xl p-12 text-center">
-          <CalendarCheck size={32} className="mx-auto text-gray-700 mb-3" />
+          <CalendarCheck size={32} className="mx-auto text-gray-500 mb-3" />
           <p className="text-gray-500 text-sm">No bookings found</p>
           <p className="text-gray-600 text-xs mt-1">Bookings will appear here as customers make reservations</p>
         </div>
