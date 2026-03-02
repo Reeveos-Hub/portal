@@ -264,7 +264,7 @@ export default function CommandCentre() {
           </div>
           <div className="flex items-center gap-2">
             {features.length === 0 && (
-              <button onClick={handleSeed} disabled={seeding} className="px-3 py-1.5 rounded-lg bg-amber-500/15 text-amber-400 text-xs font-semibold hover:bg-amber-500/25 transition-colors disabled:opacity-50">
+              <button onClick={handleSeed} disabled={seeding} className="px-4 py-2 rounded-lg bg-amber-500 text-black text-xs font-bold hover:bg-amber-400 transition-colors disabled:opacity-50 animate-pulse">
                 {seeding ? 'Seeding...' : '⚡ Seed 35 Features'}
               </button>
             )}
