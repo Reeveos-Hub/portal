@@ -329,7 +329,10 @@ async def food_cost_report(business_id: str):
 async def log_waste(business_id: str, body: WasteLog):
     """Log food waste — tracks cost and reason."""
     db = get_database()
-    ingredient = await db.ingredients.find_one({"_id": ObjectId(body.ingredient_id), "business_id": business_id})
+    try:
+        ingredient = await db.ingredients.find_one({"_id": ObjectId(body.ingredient_id), "business_id": business_id})
+    except Exception:
+        raise HTTPException(400, "Invalid ingredient ID format")
     if not ingredient:
         raise HTTPException(404, "Ingredient not found")
 

@@ -1,4 +1,5 @@
 from fastapi import APIRouter, HTTPException, Query, Request
+from fastapi.encoders import jsonable_encoder
 from middleware.rate_limit import limiter
 from database import get_database
 from typing import Optional, List
@@ -57,7 +58,7 @@ async def search_businesses(
         "total": total,
         "limit": limit,
         "skip": skip,
-        "results": businesses
+        "results": jsonable_encoder(businesses)
     }
 
 
@@ -78,7 +79,7 @@ async def get_category_businesses(
     
     businesses = await db.businesses.find(filters).limit(limit).to_list(length=None)
     
-    return businesses
+    return jsonable_encoder(businesses)
 
 
 @router.get("/locations")
@@ -124,7 +125,7 @@ async def get_featured_businesses(
     
     businesses = await db.businesses.find(filters).limit(limit).to_list(length=None)
     
-    return businesses
+    return jsonable_encoder(businesses)
 
 
 @router.post("/notify/{business_id}")

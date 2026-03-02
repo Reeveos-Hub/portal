@@ -46,9 +46,16 @@ async def clock_in(business_id: str, body: ClockEvent):
     db = get_database()
 
     # Verify staff exists
+    try:
+        oid_filter = {"_id": ObjectId(body.staff_id)} if len(body.staff_id) == 24 else {}
+    except Exception:
+        oid_filter = {}
     staff = await db.staff_members.find_one({
         "business_id": business_id,
-        "$or": [{"_id": ObjectId(body.staff_id)}, {"staff_id": body.staff_id}]
+        "$or": [oid_filter, {"staff_id": body.staff_id}]
+    }) if oid_filter else await db.staff_members.find_one({
+        "business_id": business_id,
+        "staff_id": body.staff_id,
     })
 
     # Check not already clocked in
