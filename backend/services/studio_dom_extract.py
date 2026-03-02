@@ -145,7 +145,9 @@ DOM_EXTRACT_JS = r"""
 
 
 async def _download_images(page: Page, images: list, max_images: int = 50) -> dict:
-    """Download images via canvas and return {url: data_uri} map."""
+    """Download images via Playwright request context (bypasses CORS)."""
+    import base64 as b64mod
+
     seen = set()
     unique = []
     for img in images[:max_images]:
@@ -157,37 +159,35 @@ async def _download_images(page: Page, images: list, max_images: int = 50) -> di
     if not unique:
         return {}
 
-    logger.info(f"Downloading {len(unique)} images as base64...")
+    logger.info(f"Downloading {len(unique)} images via Playwright request...")
+    result = {}
+    ctx = page.context
 
-    result = await page.evaluate("""(urls) => {
-        return Promise.all(urls.map(url => {
-            return new Promise(resolve => {
-                const img = new Image();
-                img.crossOrigin = 'anonymous';
-                img.onload = () => {
-                    try {
-                        const c = document.createElement('canvas');
-                        c.width = Math.min(img.naturalWidth || img.width, 1200);
-                        c.height = Math.min(img.naturalHeight || img.height, 1200);
-                        const ctx = c.getContext('2d');
-                        ctx.drawImage(img, 0, 0, c.width, c.height);
-                        resolve({ url, data: c.toDataURL('image/png', 0.85) });
-                    } catch(e) { resolve({ url, data: null }); }
-                };
-                img.onerror = () => resolve({ url, data: null });
-                setTimeout(() => resolve({ url, data: null }), 5000);
-                img.src = url;
-            });
-        }));
-    }""", unique)
+    for src in unique:
+        try:
+            resp = await ctx.request.get(src, timeout=8000)
+            if resp.ok:
+                body = await resp.body()
+                content_type = resp.headers.get("content-type", "image/png")
+                # Determine mime type
+                if "svg" in content_type:
+                    mime = "image/svg+xml"
+                elif "jpeg" in content_type or "jpg" in content_type:
+                    mime = "image/jpeg"
+                elif "webp" in content_type:
+                    mime = "image/webp"
+                elif "gif" in content_type:
+                    mime = "image/gif"
+                else:
+                    mime = "image/png"
+                encoded = b64mod.b64encode(body).decode("ascii")
+                result[src] = f"data:{mime};base64,{encoded}"
+            await resp.dispose()
+        except Exception as e:
+            logger.debug(f"Image download failed: {src[:60]} — {e}")
 
-    img_map = {}
-    for item in (result or []):
-        if item and item.get("data"):
-            img_map[item["url"]] = item["data"]
-
-    logger.info(f"Downloaded {len(img_map)}/{len(unique)} images")
-    return img_map
+    logger.info(f"Downloaded {len(result)}/{len(unique)} images")
+    return result
 
 
 async def extract_design_map(page: Page, job_dir: Path) -> dict:

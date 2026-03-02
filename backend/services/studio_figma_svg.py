@@ -81,6 +81,9 @@ def generate_figma_svg(design_map: dict, output_path: Path, include_images: bool
             parts.append(f'<rect x="{x}" y="{y}" width="{w}" height="{h}" fill="{bg_col}"{rx}{stroke}/>')
         elif bw > 0 and bc:
             parts.append(f'<rect x="{x}" y="{y}" width="{w}" height="{h}" fill="none"{rx}{stroke}/>')
+        elif tag in ('section', 'header', 'footer', 'nav', 'main', 'article', 'aside', 'div') and w > 100 and h > 50:
+            # Structural elements: draw faint outline so they're visible in Figma
+            parts.append(f'<rect x="{x}" y="{y}" width="{w}" height="{h}" fill="none" stroke="#e0e0e0" stroke-width="0.5" stroke-dasharray="4 2"{rx}/>')
 
         # Gradient background
         grad = n.get("bgGradient")
