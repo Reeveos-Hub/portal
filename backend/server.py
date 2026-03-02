@@ -78,6 +78,13 @@ async def lifespan(app: FastAPI):
     except Exception as e:
         import logging
         logging.getLogger("agent").error(f"Agent init error: {e}")
+    # Create library indexes (full-text search)
+    try:
+        from routes.library import _ensure_indexes as ensure_library_indexes
+        await ensure_library_indexes()
+    except Exception as e:
+        import logging
+        logging.getLogger("library").error(f"Library index init error: {e}")
     yield
     stop_scheduler()
     await database.close_mongo_connection()

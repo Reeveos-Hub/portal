@@ -180,8 +180,6 @@ async def list_documents(
         query["tags"] = tag
     if source:
         query["source"] = source
-    if q:
-        query["$text"] = {"$search": q}
 
     sort_field = [("created_at", -1)]
     if sort == "oldest":
@@ -191,7 +189,18 @@ async def list_documents(
     elif sort == "alpha":
         sort_field = [("title", 1)]
 
-    total = await col.count_documents(query)
+    # Try text search first, fall back to regex if index missing
+    if q:
+        try:
+            query["$text"] = {"$search": q}
+            total = await col.count_documents(query)
+        except Exception:
+            del query["$text"]
+            pattern = {"$regex": q, "$options": "i"}
+            query["$or"] = [{"title": pattern}, {"content": pattern}, {"tags": pattern}]
+            total = await col.count_documents(query)
+    else:
+        total = await col.count_documents(query)
     cursor = col.find(query).sort(sort_field).skip(skip).limit(limit)
     docs = [_ser(d) async for d in cursor]
 
@@ -288,12 +297,19 @@ async def list_tags():
 async def search_library(q: str, limit: int = 20):
     """Full-text search across all documents."""
     db = database.db
-    query = {"$text": {"$search": q}}
-    cursor = db["library"].find(
-        query,
-        {"score": {"$meta": "textScore"}},
-    ).sort([("score", {"$meta": "textScore"})]).limit(limit)
-    docs = [_ser(d) async for d in cursor]
+    try:
+        query = {"$text": {"$search": q}}
+        cursor = db["library"].find(
+            query,
+            {"score": {"$meta": "textScore"}},
+        ).sort([("score", {"$meta": "textScore"})]).limit(limit)
+        docs = [_ser(d) async for d in cursor]
+    except Exception:
+        # Fallback to regex search if text index not available
+        pattern = {"$regex": q, "$options": "i"}
+        query = {"$or": [{"title": pattern}, {"content": pattern}, {"tags": pattern}]}
+        cursor = db["library"].find(query).sort("created_at", -1).limit(limit)
+        docs = [_ser(d) async for d in cursor]
     return {"results": docs, "query": q}
 
 
