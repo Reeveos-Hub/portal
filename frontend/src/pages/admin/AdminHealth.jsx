@@ -46,7 +46,13 @@ export default function AdminHealth() {
       <div className="shrink-0 px-5 pt-5 pb-3 border-b border-gray-800">
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-3">
-            <div className={`w-9 h-9 rounded-xl flex items-center justify-center ${h.status==='down'?'bg-red-500/15':'h.status==='degraded'?'bg-amber-500/15':'bg-emerald-500/15'}`}><Activity size={18} className={h.status==='down'?'text-red-400':h.status==='degraded'?'text-amber-400':'text-emerald-400'}/></div>
+            <div className={`w-9 h-9 rounded-xl flex items-center justify-center ${
+              h.status === 'down' ? 'bg-red-500/15' : h.status === 'degraded' ? 'bg-amber-500/15' : 'bg-emerald-500/15'
+            }`}>
+              <Activity size={18} className={
+                h.status === 'down' ? 'text-red-400' : h.status === 'degraded' ? 'text-amber-400' : 'text-emerald-400'
+              } />
+            </div>
             <div><h1 className="text-lg font-bold text-white">System Health</h1><p className="text-[11px] text-gray-500">Real-time monitoring · Auto-refresh {autoRefresh?'on':'off'} · API latency {h.api_latency||0}ms</p></div>
           </div>
           <div className="flex gap-2 items-center">
