@@ -46,6 +46,7 @@ from routes import (
     outreach_router,
     admin_router,
     command_centre_router,
+    admin_extended_router,
 )
 
 
@@ -141,6 +142,7 @@ app.include_router(agent_router)
 app.include_router(outreach_router)
 app.include_router(admin_router)
 app.include_router(command_centre_router)
+app.include_router(admin_extended_router)
 
 # Static uploads for booking page logo/cover
 static_dir = Path(__file__).parent / "static" / "uploads"

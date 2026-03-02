@@ -44,6 +44,18 @@ import AdminBookings from './pages/admin/AdminBookings'
 import AdminDirectory from './pages/admin/AdminDirectory'
 import AdminSubscriptions from './pages/admin/AdminSubscriptions'
 import CommandCentre from './pages/admin/CommandCentre'
+import AdminPipeline from './pages/admin/AdminPipeline'
+import AdminSupport from './pages/admin/AdminSupport'
+import AdminReviews from './pages/admin/AdminReviews'
+import AdminChurn from './pages/admin/AdminChurn'
+import AdminEmailMarketing from './pages/admin/AdminEmailMarketing'
+import AdminSEO from './pages/admin/AdminSEO'
+import AdminContent from './pages/admin/AdminContent'
+import AdminAnalytics from './pages/admin/AdminAnalytics'
+import AdminHealth from './pages/admin/AdminHealth'
+import AdminAudit from './pages/admin/AdminAudit'
+import AdminErrors from './pages/admin/AdminErrors'
+import AdminSettings from './pages/admin/AdminSettings'
 
 import Onboarding from './pages/onboarding/Onboarding'
 
@@ -105,23 +117,23 @@ const App = () => {
               <Route path="ai-ops" element={<AdminAIOps />} />
               <Route path="outreach" element={<AdminOutreach />} />
               <Route path="linkedin" element={<AdminLinkedIn />} />
-              <Route path="pipeline" element={<AdminPlaceholder section="pipeline" />} />
+              <Route path="pipeline" element={<AdminPipeline />} />
               <Route path="businesses" element={<AdminBusinesses />} />
               <Route path="bookings" element={<AdminBookings />} />
               <Route path="users" element={<AdminUsers />} />
               <Route path="subscriptions" element={<AdminSubscriptions />} />
               <Route path="directory" element={<AdminDirectory />} />
-              <Route path="support" element={<AdminPlaceholder section="support" />} />
-              <Route path="reviews" element={<AdminPlaceholder section="reviews" />} />
-              <Route path="churn" element={<AdminPlaceholder section="churn" />} />
-              <Route path="email-marketing" element={<AdminPlaceholder section="email-marketing" />} />
-              <Route path="seo" element={<AdminPlaceholder section="seo" />} />
-              <Route path="content" element={<AdminPlaceholder section="content" />} />
-              <Route path="analytics" element={<AdminPlaceholder section="analytics" />} />
-              <Route path="health" element={<AdminPlaceholder section="health" />} />
-              <Route path="audit" element={<AdminPlaceholder section="audit" />} />
-              <Route path="errors" element={<AdminPlaceholder section="errors" />} />
-              <Route path="settings" element={<AdminPlaceholder section="settings" />} />
+              <Route path="support" element={<AdminSupport />} />
+              <Route path="reviews" element={<AdminReviews />} />
+              <Route path="churn" element={<AdminChurn />} />
+              <Route path="email-marketing" element={<AdminEmailMarketing />} />
+              <Route path="seo" element={<AdminSEO />} />
+              <Route path="content" element={<AdminContent />} />
+              <Route path="analytics" element={<AdminAnalytics />} />
+              <Route path="health" element={<AdminHealth />} />
+              <Route path="audit" element={<AdminAudit />} />
+              <Route path="errors" element={<AdminErrors />} />
+              <Route path="settings" element={<AdminSettings />} />
             </Route>
 
             {/* Public booking flow */}
