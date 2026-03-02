@@ -5,7 +5,7 @@ import {
   Globe, FileText, Settings, LogOut, ChevronLeft, ChevronRight,
   Zap, Building2, CalendarCheck, MessageSquare, Star, AlertTriangle,
   CreditCard, ScrollText, Bug, Megaphone, ShieldCheck, Linkedin,
-  Package, TrendingUp, Search, Crosshair
+  Package, TrendingUp, Search, Crosshair, BookOpen
 } from 'lucide-react'
 
 const NAV_SECTIONS = [
@@ -17,6 +17,7 @@ const NAV_SECTIONS = [
       { id: 'ai-ops', label: 'AI Ops Centre', icon: Bot, path: '/admin/ai-ops' },
       { id: 'outreach', label: 'Email Outreach', icon: Send, path: '/admin/outreach' },
       { id: 'pipeline', label: 'Sales Pipeline', icon: TrendingUp, path: '/admin/pipeline' },
+      { id: 'library', label: 'Knowledge Library', icon: BookOpen, path: '/admin/library' },
     ],
   },
   {

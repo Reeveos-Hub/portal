@@ -61,6 +61,7 @@ import AdminHealth from './pages/admin/AdminHealth'
 import AdminAudit from './pages/admin/AdminAudit'
 import AdminErrors from './pages/admin/AdminErrors'
 import AdminSettings from './pages/admin/AdminSettings'
+import Library from './pages/admin/Library'
 
 import Onboarding from './pages/onboarding/Onboarding'
 
@@ -171,6 +172,7 @@ const App = () => {
               <Route path="audit" element={<AdminAudit />} />
               <Route path="errors" element={<AdminErrors />} />
               <Route path="settings" element={<AdminSettings />} />
+              <Route path="library" element={<Library />} />
             </Route>
 
             {/* Old /book/ routes → redirect to book.rezvo.app */}
