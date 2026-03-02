@@ -47,6 +47,13 @@ from routes import (
     admin_router,
     command_centre_router,
     admin_extended_router,
+    orders_router,
+    kds_router,
+    inventory_router,
+    epos_ai_router,
+    labour_router,
+    online_ordering_router,
+    ops_router,
 )
 
 
@@ -143,6 +150,13 @@ app.include_router(outreach_router)
 app.include_router(admin_router)
 app.include_router(command_centre_router)
 app.include_router(admin_extended_router)
+app.include_router(orders_router)
+app.include_router(kds_router)
+app.include_router(inventory_router)
+app.include_router(epos_ai_router)
+app.include_router(labour_router)
+app.include_router(online_ordering_router)
+app.include_router(ops_router)
 
 # Static uploads for booking page logo/cover
 static_dir = Path(__file__).parent / "static" / "uploads"

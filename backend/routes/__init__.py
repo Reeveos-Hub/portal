@@ -33,6 +33,13 @@ from .outreach import router as outreach_router
 from .admin import router as admin_router
 from .command_centre import router as command_centre_router
 from .admin_extended import router as admin_extended_router
+from .orders import router as orders_router
+from .kds import router as kds_router
+from .inventory import router as inventory_router
+from .epos_ai import router as epos_ai_router
+from .labour import router as labour_router
+from .online_ordering import router as online_ordering_router
+from .ops import router as ops_router
 
 __all__ = [
     "auth_router",
@@ -70,4 +77,11 @@ __all__ = [
     "admin_router",
     "command_centre_router",
     "admin_extended_router",
+    "orders_router",
+    "kds_router",
+    "inventory_router",
+    "epos_ai_router",
+    "labour_router",
+    "online_ordering_router",
+    "ops_router",
 ]
