@@ -58,36 +58,59 @@ const NAV_SECTIONS = [
   },
 ]
 
-const ADMIN_PIN = 'rezvo2024'
+const ADMIN_API = import.meta.env.VITE_API_URL || ''
 
 export default function AdminLayout() {
   const navigate = useNavigate()
   const location = useLocation()
   const [collapsed, setCollapsed] = useState(false)
-  const [authed, setAuthed] = useState(() => sessionStorage.getItem('rezvo_admin') === 'true')
-  const [pin, setPin] = useState('')
-  const [pinError, setPinError] = useState(false)
+  const [authed, setAuthed] = useState(() => !!sessionStorage.getItem('rezvo_admin_token'))
+  const [adminUser, setAdminUser] = useState(() => {
+    try { return JSON.parse(sessionStorage.getItem('rezvo_admin_user') || 'null') } catch { return null }
+  })
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [loginError, setLoginError] = useState('')
+  const [loggingIn, setLoggingIn] = useState(false)
 
   const isActive = (path) => {
     if (path === '/admin') return location.pathname === '/admin'
     return location.pathname.startsWith(path)
   }
 
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault()
-    if (pin === ADMIN_PIN) {
-      sessionStorage.setItem('rezvo_admin', 'true')
+    setLoginError('')
+    setLoggingIn(true)
+    try {
+      const res = await fetch(`${ADMIN_API}/auth/admin-login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
+      })
+      const data = await res.json()
+      if (!res.ok) {
+        setLoginError(data.detail || 'Login failed')
+        return
+      }
+      sessionStorage.setItem('rezvo_admin_token', data.access_token)
+      sessionStorage.setItem('rezvo_admin_user', JSON.stringify(data.user))
+      setAdminUser(data.user)
       setAuthed(true)
-      setPinError(false)
-    } else {
-      setPinError(true)
+    } catch (err) {
+      setLoginError('Network error — please try again')
+    } finally {
+      setLoggingIn(false)
     }
   }
 
   const handleLogout = () => {
-    sessionStorage.removeItem('rezvo_admin')
+    sessionStorage.removeItem('rezvo_admin_token')
+    sessionStorage.removeItem('rezvo_admin_user')
     setAuthed(false)
-    setPin('')
+    setAdminUser(null)
+    setEmail('')
+    setPassword('')
   }
 
   // ─── Login Gate ─── //
@@ -99,23 +122,58 @@ export default function AdminLayout() {
             <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-emerald-500 to-emerald-700 flex items-center justify-center mx-auto mb-4">
               <Zap size={24} className="text-white" />
             </div>
-            <h1 className="text-2xl font-bold text-white">Rezvo Admin</h1>
+            <h1 className="text-2xl font-bold text-white" style={{ fontFamily: "'Figtree', sans-serif" }}>Rezvo Admin</h1>
             <p className="text-sm text-gray-500 mt-1">Internal Operations Portal</p>
           </div>
-          <div className="space-y-4">
-            <input
-              type="password"
-              value={pin}
-              onChange={e => { setPin(e.target.value); setPinError(false) }}
-              placeholder="Enter admin PIN"
-              autoFocus
-              className={`w-full bg-gray-900 border ${pinError ? 'border-red-500' : 'border-gray-700'} rounded-xl px-4 py-3 text-white text-center text-lg tracking-widest placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-emerald-500/40 focus:border-emerald-500`}
-            />
-            {pinError && <p className="text-red-400 text-xs text-center">Wrong PIN. Try again.</p>}
-            <button type="submit" className="w-full py-3 rounded-xl bg-emerald-600 text-white font-bold hover:bg-emerald-700 transition-colors">
-              Enter
+          <div className="space-y-3">
+            <div>
+              <label className="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1.5 ml-1">Email</label>
+              <input
+                type="email"
+                value={email}
+                onChange={e => { setEmail(e.target.value); setLoginError('') }}
+                placeholder="admin@rezvo.co.uk"
+                autoFocus
+                autoComplete="email"
+                className="w-full bg-gray-900 border border-gray-700 rounded-xl px-4 py-3 text-white text-sm placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-emerald-500/40 focus:border-emerald-500"
+                style={{ fontFamily: "'Figtree', sans-serif" }}
+              />
+            </div>
+            <div>
+              <label className="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1.5 ml-1">Password</label>
+              <input
+                type="password"
+                value={password}
+                onChange={e => { setPassword(e.target.value); setLoginError('') }}
+                placeholder="••••••••"
+                autoComplete="current-password"
+                className="w-full bg-gray-900 border border-gray-700 rounded-xl px-4 py-3 text-white text-sm placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-emerald-500/40 focus:border-emerald-500"
+                style={{ fontFamily: "'Figtree', sans-serif" }}
+              />
+            </div>
+            {loginError && (
+              <div className="flex items-center gap-2 bg-red-500/10 border border-red-500/20 rounded-lg px-3 py-2">
+                <ShieldCheck size={14} className="text-red-400 shrink-0" />
+                <p className="text-red-400 text-xs">{loginError}</p>
+              </div>
+            )}
+            <button
+              type="submit"
+              disabled={loggingIn || !email || !password}
+              className="w-full py-3 rounded-xl bg-emerald-600 text-white font-bold hover:bg-emerald-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              style={{ fontFamily: "'Figtree', sans-serif" }}
+            >
+              {loggingIn ? (
+                <>
+                  <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  Signing in...
+                </>
+              ) : (
+                'Sign In'
+              )}
             </button>
           </div>
+          <p className="text-center text-[10px] text-gray-600 mt-6">Authorized personnel only</p>
         </form>
       </div>
     )
@@ -177,13 +235,19 @@ export default function AdminLayout() {
 
         {/* Bottom */}
         <div className="p-2 border-t border-gray-800">
+          {!collapsed && adminUser && (
+            <div className="px-3 py-2 mb-1">
+              <p className="text-[10px] font-bold text-gray-500 truncate">{adminUser.email}</p>
+              <p className="text-[9px] text-emerald-500 uppercase tracking-widest font-bold">Admin</p>
+            </div>
+          )}
           <button
             onClick={handleLogout}
             className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs text-gray-500 hover:text-red-400 hover:bg-gray-800/60 transition-all"
             title={collapsed ? 'Logout' : undefined}
           >
             <LogOut size={15} />
-            {!collapsed && <span>Logout</span>}
+            {!collapsed && <span>Sign Out</span>}
           </button>
         </div>
       </aside>

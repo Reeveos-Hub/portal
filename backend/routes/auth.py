@@ -225,3 +225,40 @@ async def confirm_password_reset(request: PasswordResetConfirm):
     )
     
     return {"detail": "Password reset successfully"}
+
+
+# ─── Admin Login ───────────────────────────────────────────
+@router.post("/admin-login")
+@limiter.limit("5/minute")
+async def admin_login(request: Request, login_data: LoginRequest):
+    """Admin-only login — requires role == 'admin'."""
+    db = get_database()
+
+    user = await db.users.find_one({"email": login_data.email})
+    if not user or not verify_password(login_data.password, user["password_hash"]):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Incorrect email or password",
+        )
+
+    if user.get("role", "").lower() != "admin":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Not authorized — admin access only",
+        )
+
+    access_token = create_access_token(data={"sub": str(user["_id"])})
+    refresh_token = create_refresh_token(data={"sub": str(user["_id"])})
+
+    return {
+        "access_token": access_token,
+        "refresh_token": refresh_token,
+        "token_type": "bearer",
+        "user": {
+            "id": str(user["_id"]),
+            "email": user["email"],
+            "name": user.get("name", "Admin"),
+            "role": user["role"],
+            "avatar": user.get("avatar"),
+        },
+    }
