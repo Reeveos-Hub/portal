@@ -32,6 +32,12 @@ import Marketing from './pages/dashboard/Marketing'
 import Payments from './pages/dashboard/Payments'
 import Help from './pages/dashboard/Help'
 
+/* EPOS pages — restaurant only */
+import EposInventory from './pages/dashboard/EposInventory'
+import EposKDS from './pages/dashboard/EposKDS'
+import EposLabour from './pages/dashboard/EposLabour'
+import EposCash from './pages/dashboard/EposCash'
+
 /* Admin pages — internal ops only */
 import AdminOverview from './pages/admin/AdminOverview'
 import AdminAIOps from './pages/admin/AIOps'
@@ -135,6 +141,11 @@ const App = () => {
               <Route path="marketing" element={<Marketing />} />
               <Route path="settings" element={<Settings />} />
               <Route path="help" element={<Help />} />
+              {/* EPOS pages */}
+              <Route path="inventory" element={<EposInventory />} />
+              <Route path="kds" element={<EposKDS />} />
+              <Route path="labour" element={<EposLabour />} />
+              <Route path="cash" element={<EposCash />} />
             </Route>
 
             {/* Admin — internal ops portal (PIN protected) */}

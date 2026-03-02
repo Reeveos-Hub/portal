@@ -19,6 +19,12 @@ export const getNavItems = (businessType) => {
       { id: 'staff', label: 'Staff', icon: 'fa-users', path: '/dashboard/staff', minTier: 'starter' },
       { id: 'online-booking', label: 'Online Booking', icon: 'fa-globe', path: '/dashboard/online-booking', minTier: 'starter' },
     ],
+    epos: isRestaurant ? [
+      { id: 'epos-inventory', label: 'Inventory', icon: 'fa-boxes-stacked', path: '/dashboard/inventory', minTier: 'free' },
+      { id: 'epos-kds', label: 'Kitchen Display', icon: 'fa-fire-burner', path: '/dashboard/kds', minTier: 'free' },
+      { id: 'epos-labour', label: 'Labour & Rota', icon: 'fa-clock', path: '/dashboard/labour', minTier: 'free' },
+      { id: 'epos-cash', label: 'Cash & Finance', icon: 'fa-cash-register', path: '/dashboard/cash', minTier: 'free' },
+    ] : [],
     business: [
       ...(isRestaurant ? [{ id: 'orders', label: 'Orders', icon: 'fa-bag-shopping', path: '/dashboard/orders', minTier: 'growth' }] : []),
       { id: 'clients', label: isRestaurant ? 'Guest CRM' : 'Clients', icon: 'fa-address-book', path: '/dashboard/clients', minTier: 'growth' },

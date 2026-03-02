@@ -13,7 +13,8 @@ import {
   Users, Globe, ShoppingBag, BookUser, Star, BarChart3, CreditCard,
   LayoutGrid, Megaphone, Settings, HelpCircle,
   ChevronLeft, ChevronRight, ChevronDown, Lock,
-  Send, Bot, Linkedin, Bell
+  Send, Bot, Linkedin, Bell,
+  Package, Flame, Clock, Wallet
 } from 'lucide-react'
 
 /* ── Color tokens ── */
@@ -49,6 +50,10 @@ const ICON_MAP = {
   'fa-robot': Bot,
   'fa-linkedin': Linkedin,
   'fa-bell': Bell,
+  'fa-boxes-stacked': Package,
+  'fa-fire-burner': Flame,
+  'fa-clock': Clock,
+  'fa-cash-register': Wallet,
 }
 
 /* ── Build grouped sections from nav config ── */
@@ -107,6 +112,28 @@ function buildSections(navItems, tier, businessType) {
         })),
       ].filter(Boolean) },
     ]},
+    ...((navItems.epos || []).length > 0 ? [{ label: 'EPOS', items: [
+      { id: 'epos-inventory', Icon: Package, label: 'Inventory', children: [
+        ...(navItems.epos || []).filter(i => i.id === 'epos-inventory').map(i => ({
+          id: i.id, label: i.label, path: i.path, Icon: iconFor(i), locked: locked(i),
+        })),
+      ].filter(Boolean) },
+      { id: 'epos-kds', Icon: Flame, label: 'Kitchen Display', children: [
+        ...(navItems.epos || []).filter(i => i.id === 'epos-kds').map(i => ({
+          id: i.id, label: i.label, path: i.path, Icon: iconFor(i), locked: locked(i),
+        })),
+      ].filter(Boolean) },
+      { id: 'epos-labour', Icon: Clock, label: 'Labour & Rota', children: [
+        ...(navItems.epos || []).filter(i => i.id === 'epos-labour').map(i => ({
+          id: i.id, label: i.label, path: i.path, Icon: iconFor(i), locked: locked(i),
+        })),
+      ].filter(Boolean) },
+      { id: 'epos-cash', Icon: Wallet, label: 'Cash & Finance', children: [
+        ...(navItems.epos || []).filter(i => i.id === 'epos-cash').map(i => ({
+          id: i.id, label: i.label, path: i.path, Icon: iconFor(i), locked: locked(i),
+        })),
+      ].filter(Boolean) },
+    ]}] : []),
     { label: 'MANAGE', items: [
       { id: 'people', Icon: Users, label: 'People', children: [
         ...(navItems.management || []).filter(i => i.id === 'staff').map(i => ({
