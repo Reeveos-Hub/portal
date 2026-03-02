@@ -502,6 +502,30 @@ async def place_online_order(
             logger.error(f"Online payment error: {e}")
             raise HTTPException(400, f"Payment failed: {str(e)}")
 
+    # Send order confirmation email
+    if customer_email:
+        try:
+            import asyncio
+            from helpers.email import send_order_confirmation
+            est_mins = biz.get("avg_delivery_time", 35) if order_type == "delivery" else biz.get("avg_collection_time", 20)
+            addr_str = ""
+            if delivery_address:
+                addr_str = delivery_address.get("line1", "") if isinstance(delivery_address, dict) else str(delivery_address)
+            asyncio.ensure_future(send_order_confirmation(
+                to=customer_email,
+                customer_name=customer_name,
+                business_name=biz.get("name", "Restaurant"),
+                order_number=str(order["order_number"]),
+                order_type=order_type,
+                items=order_items,
+                total=round(total_with_delivery, 2),
+                estimated_minutes=est_mins,
+                delivery_address=addr_str,
+                track_url=f"https://rezvo.co.uk/track/{order_id}",
+            ))
+        except Exception as email_err:
+            logger.warning(f"Order confirmation email failed: {email_err}")
+
     return {
         "order_id": order_id,
         "order_number": order["order_number"],

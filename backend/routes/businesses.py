@@ -85,7 +85,22 @@ async def create_business(
     )
     
     business_dict["_id"] = business_id
-    
+
+    # Send welcome email
+    try:
+        import asyncio
+        from helpers.email import send_welcome_business
+        owner_email = current_user.get("email")
+        owner_name = current_user.get("name", "there")
+        if owner_email:
+            asyncio.ensure_future(send_welcome_business(
+                to=owner_email,
+                owner_name=owner_name,
+                business_name=business_dict["name"],
+            ))
+    except Exception:
+        pass  # Don't block business creation if email fails
+
     return BusinessResponse(
         id=business_id,
         name=business_dict["name"],

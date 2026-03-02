@@ -561,3 +561,209 @@ def verify_resend_webhook(payload: bytes, signature: str, secret: str) -> bool:
         hashlib.sha256,
     ).hexdigest()
     return hmac.compare_digest(expected, signature)
+
+
+# ─── Missing Templates: Orders, Cancellations, Welcome ─── #
+
+async def send_order_confirmation(
+    to: str,
+    customer_name: str,
+    business_name: str,
+    order_number: str,
+    order_type: str,
+    items: list,
+    total: float,
+    estimated_minutes: int = 30,
+    delivery_address: str = "",
+    track_url: str = "",
+):
+    """Confirmation email for online orders (collection/delivery)."""
+    items_html = "".join(
+        f"<tr><td style='padding:6px 0; border-bottom:1px solid #f0f0f0;'>{i.get('name','Item')}</td>"
+        f"<td style='padding:6px 0; border-bottom:1px solid #f0f0f0; text-align:right;'>x{i.get('quantity',1)}</td>"
+        f"<td style='padding:6px 0; border-bottom:1px solid #f0f0f0; text-align:right;'>£{(i.get('unit_price',0) * i.get('quantity',1)):.2f}</td></tr>"
+        for i in items
+    )
+
+    type_label = "Delivery" if order_type == "delivery" else "Collection"
+    address_html = f"<p><strong>Delivery to:</strong> {delivery_address}</p>" if delivery_address else ""
+
+    body = f"""
+    <h2>Order Confirmed! 🎉</h2>
+    <p>Hi {customer_name},</p>
+    <p>Your {type_label.lower()} order from <strong>{business_name}</strong> has been confirmed.</p>
+    <div style="background:#f0fdf4; border-left:4px solid #1B4332; padding:16px; border-radius:0 8px 8px 0; margin:16px 0;">
+      <p style="margin:0;"><strong>Order #{order_number}</strong></p>
+      <p style="margin:4px 0 0;"><strong>Estimated {type_label.lower()}:</strong> {estimated_minutes} minutes</p>
+      {address_html}
+    </div>
+    <table style="width:100%; border-collapse:collapse; margin:16px 0; font-size:14px;">
+      <thead><tr style="border-bottom:2px solid #e5e7eb;">
+        <th style="text-align:left; padding:8px 0;">Item</th>
+        <th style="text-align:right; padding:8px 0;">Qty</th>
+        <th style="text-align:right; padding:8px 0;">Price</th>
+      </tr></thead>
+      <tbody>{items_html}</tbody>
+      <tfoot><tr>
+        <td colspan="2" style="padding:12px 0; font-weight:700; font-size:16px;">Total</td>
+        <td style="padding:12px 0; text-align:right; font-weight:700; font-size:16px;">£{total:.2f}</td>
+      </tr></tfoot>
+    </table>
+    {"<p><a href='" + track_url + "' class='cta'>Track Your Order</a></p>" if track_url else ""}
+    """
+
+    html = wrap_html(body, preheader=f"Order #{order_number} confirmed — {type_label} in ~{estimated_minutes} mins")
+
+    return await send_email(
+        to=to,
+        subject=f"Order Confirmed — {business_name} #{order_number}",
+        html=html,
+        tags=[{"name": "type", "value": "order_confirmation"}],
+    )
+
+
+async def send_order_status_update(
+    to: str,
+    customer_name: str,
+    business_name: str,
+    order_number: str,
+    new_status: str,
+    track_url: str = "",
+):
+    """Notify customer of order status change."""
+    status_messages = {
+        "preparing": ("Your order is being prepared! 👨‍🍳", "The kitchen is working on your order now."),
+        "ready": ("Your order is ready! ✅", "Head over to collect your order — it's waiting for you."),
+        "delivered": ("Order delivered! 🎉", "Your order has been delivered. Enjoy your meal!"),
+        "cancelled": ("Order cancelled", "Your order has been cancelled. If you didn't request this, please contact the restaurant."),
+    }
+
+    title, message = status_messages.get(new_status, (f"Order update: {new_status}", f"Your order status is now: {new_status}"))
+
+    body = f"""
+    <h2>{title}</h2>
+    <p>Hi {customer_name},</p>
+    <p>{message}</p>
+    <div style="background:#f0fdf4; border-left:4px solid #1B4332; padding:16px; border-radius:0 8px 8px 0; margin:16px 0;">
+      <p style="margin:0;"><strong>Order #{order_number}</strong> at {business_name}</p>
+    </div>
+    {"<p><a href='" + track_url + "' class='cta'>Track Order</a></p>" if track_url else ""}
+    """
+
+    html = wrap_html(body, preheader=f"Order #{order_number}: {title}")
+
+    return await send_email(
+        to=to,
+        subject=f"{title} — {business_name}",
+        html=html,
+        tags=[{"name": "type", "value": "order_status"}],
+    )
+
+
+async def send_cancellation_confirmation(
+    to: str,
+    client_name: str,
+    business_name: str,
+    booking_date: str,
+    booking_time: str,
+    booking_ref: str = "",
+    cancelled_by: str = "customer",
+    reason: str = "",
+):
+    """Booking cancellation confirmation."""
+    if cancelled_by == "customer":
+        intro = "Your booking has been cancelled as requested."
+    else:
+        intro = f"Unfortunately, {business_name} has had to cancel your booking."
+        if reason:
+            intro += f" Reason: {reason}"
+
+    body = f"""
+    <h2>Booking Cancelled</h2>
+    <p>Hi {client_name},</p>
+    <p>{intro}</p>
+    <div style="background:#fef2f2; border-left:4px solid #dc2626; padding:16px; border-radius:0 8px 8px 0; margin:16px 0;">
+      <p style="margin:0;"><strong>Date:</strong> {booking_date}</p>
+      <p style="margin:4px 0 0;"><strong>Time:</strong> {booking_time}</p>
+      <p style="margin:4px 0 0;"><strong>Ref:</strong> {booking_ref}</p>
+    </div>
+    <p>Would you like to rebook?</p>
+    <p><a href="https://rezvo.co.uk" class="cta">Find a Table</a></p>
+    """
+
+    html = wrap_html(body, preheader=f"Booking at {business_name} on {booking_date} has been cancelled")
+
+    return await send_email(
+        to=to,
+        subject=f"Booking Cancelled — {business_name}",
+        html=html,
+        tags=[{"name": "type", "value": "booking_cancellation"}],
+    )
+
+
+async def send_welcome_business(
+    to: str,
+    owner_name: str,
+    business_name: str,
+    dashboard_url: str = "https://portal.rezvo.app",
+):
+    """Welcome email for newly registered businesses."""
+    body = f"""
+    <h2>Welcome to ReeveOS! 🎉</h2>
+    <p>Hi {owner_name},</p>
+    <p>You've just taken the first step towards <strong>zero-commission bookings</strong> for {business_name}. Nice one.</p>
+    <p>Here's what to do next:</p>
+    <div style="margin:16px 0;">
+      <p>✅ <strong>Set up your booking page</strong> — customise your availability, table layout, and services</p>
+      <p>✅ <strong>Add your menu</strong> — ready for online ordering and QR table ordering</p>
+      <p>✅ <strong>Invite your team</strong> — give staff access to manage bookings and EPOS</p>
+      <p>✅ <strong>Share your booking link</strong> — add it to your website, Instagram bio, and Google listing</p>
+    </div>
+    <p style="text-align:center;"><a href="{dashboard_url}" class="cta">Open Your Dashboard</a></p>
+    <p style="font-size:13px; color:#6b7280;">Need help getting set up? Reply to this email — we're here to help, and it's free.</p>
+    """
+
+    html = wrap_html(body, preheader=f"Welcome to ReeveOS — let's get {business_name} set up")
+
+    return await send_email(
+        to=to,
+        subject=f"Welcome to ReeveOS — Let's get {business_name} live!",
+        html=html,
+        reply_to="hello@rezvo.app",
+        tags=[{"name": "type", "value": "welcome_business"}],
+    )
+
+
+async def send_deposit_receipt(
+    to: str,
+    client_name: str,
+    business_name: str,
+    booking_date: str,
+    booking_time: str,
+    deposit_amount: float,
+    booking_ref: str = "",
+    party_size: int = 2,
+):
+    """Deposit payment receipt."""
+    body = f"""
+    <h2>Deposit Payment Received</h2>
+    <p>Hi {client_name},</p>
+    <p>Your deposit of <strong>£{deposit_amount:.2f}</strong> for {business_name} has been processed.</p>
+    <div style="background:#f0fdf4; border-left:4px solid #1B4332; padding:16px; border-radius:0 8px 8px 0; margin:16px 0;">
+      <p style="margin:0;"><strong>Date:</strong> {booking_date}</p>
+      <p style="margin:4px 0 0;"><strong>Time:</strong> {booking_time}</p>
+      <p style="margin:4px 0 0;"><strong>Party:</strong> {party_size} guests</p>
+      <p style="margin:4px 0 0;"><strong>Deposit:</strong> £{deposit_amount:.2f}</p>
+      <p style="margin:4px 0 0;"><strong>Ref:</strong> {booking_ref}</p>
+    </div>
+    <p style="font-size:13px; color:#6b7280;">This deposit will be deducted from your final bill. Cancellation policy applies — check with {business_name} for details.</p>
+    """
+
+    html = wrap_html(body, preheader=f"£{deposit_amount:.2f} deposit received for {business_name}")
+
+    return await send_email(
+        to=to,
+        subject=f"Deposit Received — {business_name} ({booking_ref})",
+        html=html,
+        tags=[{"name": "type", "value": "deposit_receipt"}],
+    )
