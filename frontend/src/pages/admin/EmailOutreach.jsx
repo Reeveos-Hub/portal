@@ -501,7 +501,7 @@ export default function EmailOutreach() {
 
             {/* Create placeholder */}
             <div onClick={() => setShowNewCampaign(true)} className="bg-gray-900/50 rounded-2xl border-2 border-dashed border-gray-700 p-6 flex flex-col items-center justify-center min-h-[260px] cursor-pointer hover:border-emerald-400 hover:bg-emerald-900/20 transition-all">
-              <div className="w-12 h-12 rounded-full bg-gray-200 text-gray-400 flex items-center justify-center mb-3">
+              <div className="w-12 h-12 rounded-full bg-gray-800 text-gray-400 flex items-center justify-center mb-3">
                 <i className="fas fa-plus text-lg" />
               </div>
               <p className="text-sm font-medium text-gray-500">Create New Campaign</p>
@@ -816,11 +816,11 @@ export default function EmailOutreach() {
                   <tbody>
                     {daily.map((d, i) => (
                       <tr key={i} className="border-b border-gray-800 hover:bg-gray-800">
-                        <td className="py-2 px-3 text-xs text-gray-600">{d.date}</td>
+                        <td className="py-2 px-3 text-xs text-gray-400">{d.date}</td>
                         <td className="py-2 px-3 font-bold">{d.sent}</td>
                         <td className="py-2 px-3 text-green-400">{d.delivered}</td>
-                        <td className="py-2 px-3 text-blue-600">{d.opened}</td>
-                        <td className="py-2 px-3 text-emerald-600 font-bold">{d.replied}</td>
+                        <td className="py-2 px-3 text-blue-400">{d.opened}</td>
+                        <td className="py-2 px-3 text-emerald-400 font-bold">{d.replied}</td>
                         <td className="py-2 px-3 text-red-500">{d.bounced}</td>
                       </tr>
                     ))}
