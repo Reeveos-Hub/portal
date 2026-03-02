@@ -863,3 +863,25 @@ async def _next_order_number(db, business_id: str) -> str:
     )
     seq = result["seq"]
     return f"#{seq:03d}"
+
+
+class UpdateOrderStatus(BaseModel):
+    status: str
+
+@router.patch("/{order_id}/status")
+async def update_order_status(order_id: str, body: UpdateOrderStatus):
+    db = get_database()
+    valid = ["confirmed", "preparing", "ready", "collected", "delivered", "cancelled"]
+    if body.status not in valid:
+        raise HTTPException(400, f"Invalid status")
+    order = await db.orders.find_one({"_id": ObjectId(order_id)})
+    if not order:
+        raise HTTPException(404, "Order not found")
+    update = {"status": body.status, "updated_at": datetime.utcnow()}
+    if body.status in ("collected", "delivered"):
+        update["closed_at"] = datetime.utcnow()
+    await db.orders.update_one({"_id": ObjectId(order_id)}, {"$set": update})
+    kds_map = {"preparing": "in_progress", "ready": "ready", "collected": "completed", "delivered": "completed"}
+    if body.status in kds_map:
+        await db.kds_tickets.update_many({"order_id": order_id}, {"$set": {"status": kds_map[body.status]}})
+    return {"ok": True, "status": body.status}

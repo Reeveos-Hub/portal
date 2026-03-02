@@ -44,6 +44,7 @@ from .cash_and_tax import router as cash_and_tax_router
 from .ops import router as ops_router
 from .library import router as library_router
 from .studio import router as studio_router
+from .notifications import router as notifications_router
 
 __all__ = [
     "auth_router",
@@ -92,4 +93,5 @@ __all__ = [
     "ops_router",
     "library_router",
     "studio_router",
+    "notifications_router",
 ]

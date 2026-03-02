@@ -234,3 +234,17 @@ async def mark_helpful(
     )
     
     return {"detail": "Marked as helpful"}
+
+
+@router.patch("/{review_id}/reply")
+async def owner_reply_to_review(review_id: str, owner_reply: str = Query(..., min_length=1)):
+    db = get_database()
+    from bson import ObjectId
+    review = await db.reviews.find_one({"_id": review_id})
+    if not review:
+        try: review = await db.reviews.find_one({"_id": ObjectId(review_id)})
+        except: pass
+    if not review:
+        raise HTTPException(status_code=404, detail="Review not found")
+    await db.reviews.update_one({"_id": review["_id"]}, {"$set": {"owner_reply": owner_reply, "replied_at": datetime.utcnow(), "updated_at": datetime.utcnow()}})
+    return {"ok": True}

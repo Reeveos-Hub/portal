@@ -15,6 +15,7 @@ class ReviewBase(BaseModel):
     rating: int = Field(..., ge=1, le=5)
     body: Optional[str] = None
     categories: Optional[ReviewCategories] = None
+    owner_reply: Optional[str] = None
 
 
 class ReviewCreate(ReviewBase):
@@ -25,6 +26,7 @@ class ReviewUpdate(BaseModel):
     rating: Optional[int] = Field(None, ge=1, le=5)
     body: Optional[str] = None
     categories: Optional[ReviewCategories] = None
+    owner_reply: Optional[str] = None
 
 
 class Review(ReviewBase):
@@ -47,6 +49,7 @@ class ReviewResponse(BaseModel):
     rating: int
     body: Optional[str] = None
     categories: Optional[ReviewCategories] = None
+    owner_reply: Optional[str] = None
     photos: List[str] = []
     helpful_count: int = 0
     created_at: datetime
