@@ -39,6 +39,8 @@ from .inventory import router as inventory_router
 from .epos_ai import router as epos_ai_router
 from .labour import router as labour_router
 from .online_ordering import router as online_ordering_router
+from .pay_at_table import router as pay_at_table_router
+from .cash_and_tax import router as cash_and_tax_router
 from .ops import router as ops_router
 
 __all__ = [
@@ -83,5 +85,7 @@ __all__ = [
     "epos_ai_router",
     "labour_router",
     "online_ordering_router",
+    "pay_at_table_router",
+    "cash_and_tax_router",
     "ops_router",
 ]

@@ -53,6 +53,8 @@ from routes import (
     epos_ai_router,
     labour_router,
     online_ordering_router,
+    pay_at_table_router,
+    cash_and_tax_router,
     ops_router,
 )
 
@@ -156,6 +158,8 @@ app.include_router(inventory_router)
 app.include_router(epos_ai_router)
 app.include_router(labour_router)
 app.include_router(online_ordering_router)
+app.include_router(pay_at_table_router)
+app.include_router(cash_and_tax_router)
 app.include_router(ops_router)
 
 # Static uploads for booking page logo/cover
