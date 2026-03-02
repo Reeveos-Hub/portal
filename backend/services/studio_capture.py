@@ -184,6 +184,31 @@ async def _capture_screenshot(page: Page, out: Path, dpr: int = DPR) -> dict:
         # Stitch mode — scroll through page capturing viewport-sized chunks
         # DO NOT resize viewport (causes page reflow and content loss)
         logger.info(f"Stitching: {aph}px > {CHROMIUM_MAX_HEIGHT}px (page: {ph}px CSS, viewport: {vh}px)")
+
+        # Neutralize fixed/sticky elements so they don't repeat in every section
+        fixed_count = await page.evaluate("""() => {
+            let count = 0;
+            document.querySelectorAll('*').forEach(el => {
+                const pos = getComputedStyle(el).position;
+                if (pos === 'fixed' || pos === 'sticky') {
+                    el.setAttribute('data-studio-pos', pos);
+                    el.style.setProperty('position', 'absolute', 'important');
+                    count++;
+                }
+            });
+            return count;
+        }""")
+        if fixed_count:
+            logger.info(f"Neutralized {fixed_count} fixed/sticky elements for stitch")
+            # Re-measure height — removing sticky can change layout
+            await page.wait_for_timeout(300)
+            ph2, _, _ = await _get_dims(page)
+            if ph2 > ph:
+                ph = ph2
+                aph = ph * dpr
+                info["pixel_height"] = aph
+                info["page_height"] = ph
+
         sections, cy, idx = [], 0, 0
         while cy < ph:
             await page.evaluate(f"window.scrollTo(0,{cy})")
@@ -225,6 +250,14 @@ async def _capture_screenshot(page: Page, out: Path, dpr: int = DPR) -> dict:
         stitched.close()
         info["stitched"] = True
         info["sections"] = idx
+
+        # Restore fixed/sticky elements
+        await page.evaluate("""() => {
+            document.querySelectorAll('[data-studio-pos]').forEach(el => {
+                el.style.position = el.getAttribute('data-studio-pos') || '';
+                el.removeAttribute('data-studio-pos');
+            });
+        }""")
 
     info["file_size_mb"] = round(out.stat().st_size/(1024*1024), 2)
     return info
