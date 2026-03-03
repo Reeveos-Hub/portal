@@ -546,7 +546,7 @@ export default function AdminLayout() {
           {!collapsed && adminUser && (
             <div style={{ padding: '8px 12px' }}>
               <div style={{ fontSize: 11, fontWeight: 600, color: t.userEmail, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{adminUser.email}</div>
-              <div style={{ fontSize: 9, fontWeight: 700, color: t.userRole, textTransform: 'uppercase', letterSpacing: '0.1em' }}>Admin</div>
+              <div style={{ fontSize: 9, fontWeight: 700, color: adminUser.role === 'super_admin' ? '#FFB627' : t.userRole, textTransform: 'uppercase', letterSpacing: '0.1em' }}>{adminUser.role === 'super_admin' ? 'Super Admin' : 'Admin'}</div>
             </div>
           )}
 

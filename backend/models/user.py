@@ -11,6 +11,7 @@ class UserRole(str, Enum):
     STAFF = "staff"
     ADMIN = "admin"
     PLATFORM_ADMIN = "platform_admin"
+    SUPER_ADMIN = "super_admin"
 
 
 class UserBase(BaseModel):

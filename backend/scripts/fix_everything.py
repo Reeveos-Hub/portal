@@ -31,13 +31,13 @@ async def main():
         if not user:
             if email == "ibbyonline@gmail.com":
                 await db.users.insert_one({
-                    "email": email, "name": "Ambassador", "role": "platform_admin",
+                    "email": email, "name": "Ambassador", "role": "super_admin",
                     "password_hash": hashed, "phone": None, "avatar": None,
                     "saved_businesses": [], "business_ids": [], "booking_history": [],
                     "review_history": [], "stripe_connected": False,
                     "created_at": datetime.utcnow(), "updated_at": datetime.utcnow(),
                 })
-                print(f"  ✅ {email} — CREATED as platform_admin")
+                print(f"  ✅ {email} — CREATED as super_admin")
             else:
                 print(f"  ❌ {email} — NOT FOUND")
             continue
@@ -82,6 +82,14 @@ async def main():
     # Ensure peter's role works with frontend
     if peter and peter.get("role") == "business_owner":
         print(f"  ⚠️  Peter role is 'business_owner' — frontend now supports this")
+    
+    # Ensure ibby is super_admin
+    ibby = await db.users.find_one({"email": "ibbyonline@gmail.com"})
+    if ibby and ibby.get("role") != "super_admin":
+        await db.users.update_one({"_id": ibby["_id"]}, {"$set": {"role": "super_admin"}})
+        print(f"  ✅ ibbyonline@gmail.com promoted to super_admin (was {ibby.get('role')})")
+    elif ibby:
+        print(f"  ✅ ibbyonline@gmail.com already super_admin")
     
     print("\n═══ DONE ═══")
     client.close()

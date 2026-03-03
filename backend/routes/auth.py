@@ -243,7 +243,7 @@ async def admin_login(request: Request, login_data: LoginRequest):
             detail="Incorrect email or password",
         )
 
-    if user.get("role", "").lower() not in ("admin", "platform_admin"):
+    if user.get("role", "").lower() not in ("admin", "platform_admin", "super_admin"):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Not authorized — admin access only",

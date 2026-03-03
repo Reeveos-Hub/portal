@@ -58,7 +58,7 @@ async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(s
 
 
 async def get_current_owner(current_user: dict = Depends(get_current_user)):
-    if current_user["role"] not in [UserRole.OWNER.value, UserRole.ADMIN.value]:
+    if current_user["role"] not in [UserRole.OWNER.value, UserRole.BUSINESS_OWNER.value, UserRole.ADMIN.value, UserRole.PLATFORM_ADMIN.value, UserRole.SUPER_ADMIN.value]:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Not enough permissions"
@@ -67,8 +67,8 @@ async def get_current_owner(current_user: dict = Depends(get_current_user)):
 
 
 async def get_current_admin(current_user: dict = Depends(get_current_user)):
-    """Platform admin only — not business owners."""
-    if current_user.get("role") not in ("admin", "platform_admin"):
+    """Platform admin or super admin — not business owners."""
+    if current_user.get("role") not in ("admin", "platform_admin", "super_admin"):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Admin access required"
@@ -76,8 +76,18 @@ async def get_current_admin(current_user: dict = Depends(get_current_user)):
     return current_user
 
 
+async def get_current_super_admin(current_user: dict = Depends(get_current_user)):
+    """Super admin ONLY — for API keys, sensitive config, system-level operations."""
+    if current_user.get("role") != "super_admin":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Super admin access required"
+        )
+    return current_user
+
+
 async def get_current_staff(current_user: dict = Depends(get_current_user)):
-    if current_user["role"] not in [UserRole.STAFF.value, UserRole.OWNER.value, UserRole.ADMIN.value]:
+    if current_user["role"] not in [UserRole.STAFF.value, UserRole.OWNER.value, UserRole.BUSINESS_OWNER.value, UserRole.ADMIN.value, UserRole.PLATFORM_ADMIN.value, UserRole.SUPER_ADMIN.value]:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Not enough permissions"

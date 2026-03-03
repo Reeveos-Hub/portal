@@ -45,7 +45,7 @@ ACCOUNTS = {
     "ibby": {
         "email": "ibbyonline@gmail.com",
         "password": "Reeve@Micho2026",
-        "expected_role": "platform_admin",
+        "expected_role": "super_admin",
         "expected_biz": None,
         "login_endpoint": "/auth/admin-login",
     },
@@ -295,15 +295,42 @@ if tokens.get("grant"):
 
 
 # ═══════════════════════════════════════════════════
-# TEST 6: FIELD CONSISTENCY
+# TEST 6: SUPER ADMIN vs PLATFORM ADMIN
 # ═══════════════════════════════════════════════════
-section("6. FIELD & ROLE CONSISTENCY")
+section("6. SUPER ADMIN ISOLATION")
+
+# Both ibby (super_admin) and grant (platform_admin) can access admin
+if tokens.get("ibby") and tokens.get("grant"):
+    for name, tok in [("ibby/super", tokens["ibby"]), ("grant/admin", tokens["grant"])]:
+        status, _ = api_call("/admin/overview", token=tok)
+        if status == 200:
+            ok(f"{name} can access admin panel")
+        else:
+            fail(f"{name} admin access", f"HTTP {status}")
+
+# Verify ibby is super_admin
+if tokens.get("ibby"):
+    status, resp = api_call("/admin/users", token=tokens["ibby"])
+    if status == 200:
+        ibby_user = next((u for u in resp.get("users", []) if u.get("email") == "ibbyonline@gmail.com"), None)
+        if ibby_user and ibby_user.get("role") == "super_admin":
+            ok("ibby role is super_admin")
+        elif ibby_user:
+            fail("ibby role", f"expected super_admin, got {ibby_user.get('role')}")
+        else:
+            fail("ibby not found in users list")
+
+
+# ═══════════════════════════════════════════════════
+# TEST 7: FIELD & ROLE CONSISTENCY
+# ═══════════════════════════════════════════════════
+section("7. FIELD & ROLE CONSISTENCY")
 
 # Check all users have valid roles
 if tokens.get("grant"):
     status, resp = api_call("/admin/users", token=tokens["grant"])
     if status == 200:
-        valid_roles = {"diner", "owner", "business_owner", "staff", "admin", "platform_admin"}
+        valid_roles = {"diner", "owner", "business_owner", "staff", "admin", "platform_admin", "super_admin"}
         for u in resp.get("users", []):
             role = u.get("role", "MISSING")
             if role not in valid_roles:
