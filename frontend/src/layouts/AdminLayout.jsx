@@ -175,31 +175,38 @@ const LIGHT_OVERRIDES = `
    to clean neutral blacks/dark grays.
    ══════════════════════════════════════════════════════ */
 const DARK_OVERRIDES = `
-/* ── Fix blue-tinted backgrounds → neutral blacks ── */
-.admin-dark .bg-gray-950 { background-color: #0a0a0a !important; }
-.admin-dark .bg-gray-900 { background-color: #111111 !important; }
-.admin-dark .bg-gray-900\\/60 { background-color: rgba(17,17,17,0.6) !important; }
-.admin-dark .bg-gray-900\\/50 { background-color: rgba(17,17,17,0.5) !important; }
-.admin-dark .bg-gray-900\\/40 { background-color: rgba(17,17,17,0.4) !important; }
-.admin-dark .bg-gray-800 { background-color: #1a1a1a !important; }
-.admin-dark .bg-gray-800\\/60 { background-color: rgba(26,26,26,0.6) !important; }
-.admin-dark .bg-gray-800\\/50 { background-color: rgba(26,26,26,0.5) !important; }
-.admin-dark .bg-gray-800\\/40 { background-color: rgba(26,26,26,0.4) !important; }
-.admin-dark .bg-gray-700 { background-color: #252525 !important; }
-.admin-dark .bg-gray-700\\/50 { background-color: rgba(37,37,37,0.5) !important; }
+/* ═══════════════════════════════════════════════════════
+   DARK HIERARCHY (lightest to darkest):
+   Sidebar:  #111111 (Brand Black — inline styled)
+   Page bg:  #1e1e1e (dark gray — visible contrast)
+   Cards:    #282828 (lifted off page)
+   Inputs:   #313131 (lifted off cards)
+   Borders:  #333333 / #3a3a3a
+   ═══════════════════════════════════════════════════════ */
+.admin-dark .bg-gray-950 { background-color: #1e1e1e !important; }
+.admin-dark .bg-gray-900 { background-color: #282828 !important; }
+.admin-dark .bg-gray-900\\/60 { background-color: rgba(40,40,40,0.6) !important; }
+.admin-dark .bg-gray-900\\/50 { background-color: rgba(40,40,40,0.5) !important; }
+.admin-dark .bg-gray-900\\/40 { background-color: rgba(40,40,40,0.4) !important; }
+.admin-dark .bg-gray-800 { background-color: #313131 !important; }
+.admin-dark .bg-gray-800\\/60 { background-color: rgba(49,49,49,0.6) !important; }
+.admin-dark .bg-gray-800\\/50 { background-color: rgba(49,49,49,0.5) !important; }
+.admin-dark .bg-gray-800\\/40 { background-color: rgba(49,49,49,0.4) !important; }
+.admin-dark .bg-gray-700 { background-color: #3a3a3a !important; }
+.admin-dark .bg-gray-700\\/50 { background-color: rgba(58,58,58,0.5) !important; }
 
-/* ── Fix blue-tinted borders → neutral ── */
-.admin-dark .border-gray-800 { border-color: #222222 !important; }
-.admin-dark .border-gray-700 { border-color: #2a2a2a !important; }
-.admin-dark .border-gray-700\\/50 { border-color: rgba(42,42,42,0.5) !important; }
-.admin-dark .border-gray-600 { border-color: #333333 !important; }
+/* ── Borders ── */
+.admin-dark .border-gray-800 { border-color: #333333 !important; }
+.admin-dark .border-gray-700 { border-color: #3a3a3a !important; }
+.admin-dark .border-gray-700\\/50 { border-color: rgba(58,58,58,0.5) !important; }
+.admin-dark .border-gray-600 { border-color: #444444 !important; }
 
-/* ── Hover bg fixes ── */
-.admin-dark .hover\\:bg-gray-800:hover { background-color: #1a1a1a !important; }
-.admin-dark .hover\\:bg-gray-800\\/60:hover { background-color: rgba(26,26,26,0.6) !important; }
-.admin-dark .hover\\:bg-gray-700:hover { background-color: #252525 !important; }
-.admin-dark .hover\\:border-gray-600:hover { border-color: #333333 !important; }
-.admin-dark .hover\\:border-gray-700:hover { border-color: #2a2a2a !important; }
+/* ── Hovers ── */
+.admin-dark .hover\\:bg-gray-800:hover { background-color: #363636 !important; }
+.admin-dark .hover\\:bg-gray-800\\/60:hover { background-color: rgba(54,54,54,0.6) !important; }
+.admin-dark .hover\\:bg-gray-700:hover { background-color: #404040 !important; }
+.admin-dark .hover\\:border-gray-600:hover { border-color: #444444 !important; }
+.admin-dark .hover\\:border-gray-700:hover { border-color: #3a3a3a !important; }
 
 /* ── Focus fixes ── */
 .admin-dark .focus\\:border-gray-600:focus { border-color: #C9A84C !important; }
@@ -236,8 +243,8 @@ const DARK_OVERRIDES = `
 /* ── Scrollbar (dark) ── */
 .admin-dark ::-webkit-scrollbar { width: 6px; }
 .admin-dark ::-webkit-scrollbar-track { background: transparent; }
-.admin-dark ::-webkit-scrollbar-thumb { background: #333; border-radius: 3px; }
-.admin-dark ::-webkit-scrollbar-thumb:hover { background: #444; }
+.admin-dark ::-webkit-scrollbar-thumb { background: #444; border-radius: 3px; }
+.admin-dark ::-webkit-scrollbar-thumb:hover { background: #555; }
 `
 
 /* ── Theme tokens for sidebar/shell (inline styles) ── */
@@ -263,24 +270,24 @@ const LIGHT = {
 }
 
 const DARK = {
-  bg: '#0a0a0a',
+  bg: '#1e1e1e',
   sidebar: '#111111',
-  sidebarBorder: '#1f1f1f',
-  sectionLabel: '#555',
-  navText: '#888',
-  navTextHover: '#ccc',
-  navHoverBg: 'rgba(255,255,255,0.05)',
+  sidebarBorder: '#222222',
+  sectionLabel: '#666',
+  navText: '#999',
+  navTextHover: '#ddd',
+  navHoverBg: 'rgba(201,168,76,0.06)',
   navActiveText: '#C9A84C',
-  navActiveBg: 'rgba(201,168,76,0.1)',
+  navActiveBg: 'rgba(201,168,76,0.12)',
   navActiveIcon: '#C9A84C',
-  navIcon: '#555',
+  navIcon: '#666',
   brandText: '#FFFFFF',
-  brandSub: '#666',
-  userEmail: '#888',
+  brandSub: '#777',
+  userEmail: '#999',
   userRole: '#C9A84C',
-  logoutText: '#666',
+  logoutText: '#777',
   logoutHover: '#EF4444',
-  collapseIcon: '#555',
+  collapseIcon: '#666',
 }
 
 const ADMIN_API = import.meta.env.VITE_API_URL || ''
