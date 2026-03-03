@@ -45,6 +45,8 @@ from .ops import router as ops_router
 from .library import router as library_router
 from .studio import router as studio_router
 from .notifications import router as notifications_router
+from .allergen_management import router as allergen_management_router
+from .tronc import router as tronc_router
 
 __all__ = [
     "auth_router",
@@ -94,4 +96,6 @@ __all__ = [
     "library_router",
     "studio_router",
     "notifications_router",
+    "allergen_management_router",
+    "tronc_router",
 ]

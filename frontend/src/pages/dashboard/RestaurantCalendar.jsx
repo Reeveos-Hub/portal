@@ -987,7 +987,15 @@ export default function RestaurantCalendar() {
             {editMode ? (
               <div style={{ display: 'flex', gap: 8 }}>
                 <button onClick={() => setEditMode(false)} style={{ flex: 1, padding: '12px 16px', borderRadius: 999, border: `1px solid ${T.border}`, background: '#fff', color: '#555', fontWeight: 600, fontSize: 13, cursor: 'pointer', fontFamily: "'Figtree', sans-serif" }}>Cancel</button>
-                <button onClick={() => { setEditMode(false); /* TODO: save to API */ }} style={{ flex: 2, padding: '12px 16px', borderRadius: 999, border: 'none', background: T.forest, color: '#fff', fontWeight: 600, fontSize: 13, cursor: 'pointer', fontFamily: "'Figtree', sans-serif", boxShadow: '0 4px 12px rgba(17,17,17,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+                <button onClick={async () => {
+                  try {
+                    await api.patch(`/bookings/business/${bid}/detail/${selectedBooking.id}/edit`, editedBooking)
+                    setEditMode(false)
+                    fetchCalendar(false)
+                  } catch (err) {
+                    console.error('Save failed:', err)
+                  }
+                }} style={{ flex: 2, padding: '12px 16px', borderRadius: 999, border: 'none', background: T.forest, color: '#fff', fontWeight: 600, fontSize: 13, cursor: 'pointer', fontFamily: "'Figtree', sans-serif", boxShadow: '0 4px 12px rgba(17,17,17,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
                   ✓ Save Changes
                 </button>
               </div>

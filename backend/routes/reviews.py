@@ -1,5 +1,4 @@
-from fastapi import APIRouter, HTTPException, status, Depends, Query, Request
-from middleware.rate_limit import limiter
+from fastapi import APIRouter, HTTPException, status, Depends, Query
 from database import get_database
 from models.review import ReviewCreate, ReviewUpdate, ReviewResponse
 from middleware.auth import get_current_user, get_current_owner
@@ -10,9 +9,7 @@ router = APIRouter(prefix="/reviews", tags=["reviews"])
 
 
 @router.post("/", response_model=ReviewResponse, status_code=status.HTTP_201_CREATED)
-@limiter.limit("5/minute")
 async def create_review(
-    request: Request,
     review_data: ReviewCreate,
     current_user: dict = Depends(get_current_user)
 ):
@@ -239,15 +236,31 @@ async def mark_helpful(
     return {"detail": "Marked as helpful"}
 
 
-@router.patch("/{review_id}/reply")
-async def owner_reply_to_review(review_id: str, owner_reply: str = Query(..., min_length=1)):
+# ─── Owner Reply ─── #
+
+@router.post("/{review_id}/reply")
+async def reply_to_review(
+    review_id: str,
+    body: dict,
+    current_user: dict = Depends(get_current_user)
+):
+    """Business owner replies to a review."""
     db = get_database()
-    from bson import ObjectId
     review = await db.reviews.find_one({"_id": review_id})
     if not review:
-        try: review = await db.reviews.find_one({"_id": ObjectId(review_id)})
-        except: pass
-    if not review:
         raise HTTPException(status_code=404, detail="Review not found")
-    await db.reviews.update_one({"_id": review["_id"]}, {"$set": {"owner_reply": owner_reply, "replied_at": datetime.utcnow(), "updated_at": datetime.utcnow()}})
-    return {"ok": True}
+
+    reply_text = body.get("reply", "").strip()
+    if not reply_text:
+        raise HTTPException(status_code=400, detail="Reply text is required")
+
+    await db.reviews.update_one(
+        {"_id": review_id},
+        {"$set": {
+            "owner_reply": reply_text,
+            "owner_reply_at": datetime.utcnow(),
+            "owner_reply_by": str(current_user.get("_id", "")),
+            "updated_at": datetime.utcnow(),
+        }}
+    )
+    return {"detail": "Reply saved", "reply": reply_text}

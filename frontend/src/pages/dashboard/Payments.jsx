@@ -63,7 +63,7 @@ const RangePill = ({ active, onClick, label }) => (
 
 /* ═══ Main ═══ */
 const Payments = () => {
-  const { business, isDemo } = useBusiness()
+  const { business, loading: bizLoading } = useBusiness()
   const [tab, setTab] = useState('analytics')
   const [loading, setLoading] = useState(true)
   const [stats, setStats] = useState({})
@@ -73,7 +73,7 @@ const Payments = () => {
   const bid = business?.id ?? business?._id
 
   useEffect(() => {
-    if (!bid || isDemo) { setLoading(false); return }
+    if (!bid) { setLoading(false); return }
     const load = async () => {
       try {
         const [s, t] = await Promise.all([
@@ -85,45 +85,29 @@ const Payments = () => {
       setLoading(false)
     }
     load()
-  }, [bid, isDemo])
+  }, [bid])
 
   const kpis = [
-    { label: 'Total Revenue', value: '£12,450.00', Icon: PoundSterling, iconColor: '#111111', iconBg: 'bg-emerald-50', trend: '12.5%', trendLabel: 'vs last 30 days', trendUp: true },
-    { label: 'Occupancy', value: '84%', Icon: Users, iconColor: '#2563EB', iconBg: 'bg-blue-50', trend: '4.2%', trendLabel: 'vs last 30 days', trendUp: true },
-    { label: 'Bookings', value: '142', Icon: CalendarCheck, iconColor: '#D97706', iconBg: 'bg-amber-50', trend: '1.8%', trendLabel: 'vs last 30 days', trendUp: false },
-    { label: 'No-Show Rate', value: '2.1%', Icon: UserX, iconColor: '#EF4444', iconBg: 'bg-red-50', trend: '0.5%', trendLabel: 'Improvement', trendUp: true },
+    { label: 'Total Revenue', value: stats.total_revenue ? `£${Number(stats.total_revenue).toLocaleString('en-GB', {minimumFractionDigits: 2})}` : '£0.00', Icon: PoundSterling, iconColor: '#111111', iconBg: 'bg-emerald-50', trend: stats.revenue_trend || '—', trendLabel: 'vs last 30 days', trendUp: (stats.revenue_trend_pct || 0) > 0 },
+    { label: 'Occupancy', value: stats.occupancy_rate ? `${stats.occupancy_rate}%` : '—', Icon: Users, iconColor: '#2563EB', iconBg: 'bg-blue-50', trend: stats.occupancy_trend || '—', trendLabel: 'vs last 30 days', trendUp: (stats.occupancy_trend_pct || 0) > 0 },
+    { label: 'Bookings', value: stats.total_bookings || '0', Icon: CalendarCheck, iconColor: '#D97706', iconBg: 'bg-amber-50', trend: stats.bookings_trend || '—', trendLabel: 'vs last 30 days', trendUp: (stats.bookings_trend_pct || 0) > 0 },
+    { label: 'No-Show Rate', value: stats.no_show_rate ? `${stats.no_show_rate}%` : '—', Icon: UserX, iconColor: '#EF4444', iconBg: 'bg-red-50', trend: stats.no_show_trend || '—', trendLabel: 'Improvement', trendUp: (stats.no_show_trend_pct || 0) < 0 },
   ]
 
-  const topItems = [
-    { name: 'Sunday Roast', bookings: 62, revenue: 3100 },
-    { name: 'Steak Night', bookings: 45, revenue: 2700 },
-    { name: 'Tasting Menu', bookings: 28, revenue: 2520 },
-    { name: 'Lunch Special', bookings: 85, revenue: 1700 },
-    { name: 'Kids Eat Free', bookings: 30, revenue: 900 },
-  ]
+  const topItems = (stats.top_items || []).slice(0, 5).map(i => ({
+    name: i.name, bookings: i.count || 0, revenue: i.revenue || 0,
+  }))
 
   const revData = useMemo(() => {
-    const days = chartRange === '30' ? 30 : 90
-    return Array.from({ length: days }, (_, i) => ({
-      day: i + 1,
-      revenue: Math.floor(Math.sin(i * 0.3) * 150 + 350 + Math.random() * 80),
-      bookings: Math.floor(Math.random() * 6 + 3),
-    }))
-  }, [chartRange])
+    if (stats.daily_revenue?.length > 0) return stats.daily_revenue
+    return []
+  }, [stats.daily_revenue, chartRange])
 
-  const maxRev = Math.max(...revData.map(d => d.revenue))
+  const maxRev = revData.length > 0 ? Math.max(...revData.map(d => d.revenue || 0)) : 0
 
-  const demoTransactions = [
-    { id: 't1', date: 'Feb 25, 2:30 PM', client: 'David James', type: 'Payment', desc: 'Sunday Roast x2', amount: 58, status: 'completed', method: 'Card' },
-    { id: 't2', date: 'Feb 25, 12:15 PM', client: 'Sarah Park', type: 'Deposit', desc: 'Deposit: Tasting Menu', amount: 25, status: 'completed', method: 'Card' },
-    { id: 't3', date: 'Feb 24, 7:00 PM', client: 'Charlie Jame', type: 'Payment', desc: 'Steak Night x4', amount: 196, status: 'completed', method: 'Apple Pay' },
-    { id: 't4', date: 'Feb 24, 1:00 PM', client: 'Emily Chen', type: 'Refund', desc: 'Cancelled: Lunch Special', amount: -20, status: 'refunded', method: 'Card' },
-    { id: 't5', date: 'Feb 23, 8:45 PM', client: 'Priya King', type: 'Payment', desc: 'Tasting Menu x6', amount: 540, status: 'completed', method: 'Google Pay' },
-  ]
+  const displayTx = transactions
 
-  const displayTx = transactions.length > 0 ? transactions : demoTransactions
-
-  if (loading) return <RezvoLoader message="Loading analytics..." />
+  if (bizLoading || loading) return <RezvoLoader message="Loading analytics..." />
 
   return (
     <div className="space-y-6" style={{ fontFamily: "'Figtree', sans-serif" }}>

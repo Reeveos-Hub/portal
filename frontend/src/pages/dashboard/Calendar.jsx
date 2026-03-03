@@ -75,38 +75,9 @@ const Spark = ({ data, color }) => {
   return <svg width={w} height={h}><polyline points={pts} fill="none" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
 }
 
-/* ─────────────────── DEMO DATA ─────────────────── */
-const DEMO_STAFF = [
-  { id: 's1', name: 'Sarah', full: 'Sarah Jenkins', initials: 'SJ', color: '#D4A574' },
-  { id: 's2', name: 'Mike', full: 'Mike Ross', initials: 'MR', color: '#6BA3C7' },
-  { id: 's3', name: 'Jenny', full: 'Jenny Wilson', initials: 'JW', color: '#A87BBF' },
-  { id: 's4', name: 'Tom', full: 'Tom Walker', initials: 'TW', color: '#6BC7A3' },
-]
-const DEMO_BOOKINGS = [
-  { id: 'd1', staffId: 's1', customerName: 'Emma Watson', service: 'Full Balayage & Cut', cat: 'colour', start: 8.5, dur: 2, price: 145, status: 'confirmed' },
-  { id: 'd2', staffId: 's1', customerName: 'Sophie Turner', service: 'Ladies Cut & Blow Dry', cat: 'cut', start: 11, dur: 1, price: 65, status: 'confirmed' },
-  { id: 'd3', staffId: 's1', customerName: 'Olivia Rodrigo', service: 'HydraFacial Deluxe', cat: 'facial', start: 14, dur: 1.5, price: 120, status: 'pending', isNewClient: true },
-  { id: 'd4', staffId: 's1', customerName: 'Laura Chen', service: 'Balayage Touch-Up', cat: 'colour', start: 16, dur: 1.25, price: 95, status: 'confirmed' },
-  { id: 'd5', staffId: 's2', customerName: 'James Bond', service: "Men's Cut & Style", cat: 'cut', start: 8, dur: 1, price: 35, status: 'confirmed' },
-  { id: 'd6', staffId: 's2', customerName: 'Marilyn Carder', service: 'Hair and Beard Cut', cat: 'beard', start: 10, dur: 1.25, price: 65, status: 'completed' },
-  { id: 'd7', staffId: 's2', customerName: 'Desirae Stanton', service: 'Blow Dry & Style', cat: 'style', start: 12.5, dur: 1, price: 45, status: 'confirmed' },
-  { id: 'd8', staffId: 's2', customerName: 'Walk-in Client', service: 'Beard Trim', cat: 'beard', start: 14.5, dur: 0.75, price: 25, status: 'walkin' },
-  { id: 'd9', staffId: 's3', customerName: 'Phillip Dorwart', service: 'Beard Colouring', cat: 'beard', start: 9, dur: 1.5, price: 55, status: 'confirmed' },
-  { id: 'd10', staffId: 's3', customerName: 'Amy Jones', service: 'Haircut & Colour', cat: 'colour', start: 11, dur: 1.5, price: 85, status: 'checked_in' },
-  { id: 'd11', staffId: 's3', customerName: 'Alena Dias', service: 'Haircut & Colour', cat: 'colour', start: 13, dur: 1.25, price: 75, status: 'confirmed' },
-  { id: 'd12', staffId: 's3', customerName: 'Zendaya C.', service: 'Brow Lamination', cat: 'brow', start: 15.5, dur: 1, price: 55, status: 'pending' },
-  { id: 'd13', staffId: 's4', customerName: 'James Herwitz', service: 'Balinese Massage', cat: 'massage', start: 8.5, dur: 1.5, price: 70, status: 'confirmed' },
-  { id: 'd14', staffId: 's4', customerName: 'Randy Press', service: 'Swedish Massage', cat: 'massage', start: 11, dur: 1.25, price: 80, status: 'confirmed' },
-  { id: 'd15', staffId: 's4', customerName: 'Ryan Brooks', service: 'Sports Massage', cat: 'massage', start: 14, dur: 2.25, price: 130, status: 'confirmed' },
-]
-const DEMO_BLOCKS = [
-  { staffId: 's1', start: 12.25, dur: 0.5, label: 'Lunch', type: 'break' },
-  { start: 13, dur: 0.5, label: 'Team Huddle', type: 'meeting', allStaff: true },
-]
-
 /* ═══════════════════ MAIN COMPONENT ═══════════════════ */
 const Calendar = () => {
-  const { business, businessType, isDemo, loading: bizLoading } = useBusiness()
+  const { business, businessType, loading: bizLoading } = useBusiness()
   const bid = business?.id ?? business?._id
 
   /* ── Restaurant mode: use dedicated restaurant calendar ── */
@@ -121,7 +92,7 @@ const Calendar = () => {
 
   /* ── SAFEGUARD: If user is logged in but got demo fallback, something failed.
        NEVER show salon demo to an authenticated user — show error instead. ── */
-  if (isDemo && localStorage.getItem('token')) {
+  if (false && localStorage.getItem('token')) {
     return (
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '60vh', fontFamily: "'Figtree', sans-serif", color: '#111111' }}>
         <p style={{ fontSize: 18, fontWeight: 600 }}>Could not load your business</p>
@@ -173,9 +144,9 @@ const Calendar = () => {
 
   /* ── Fetch API data ── */
   const fetchCalendarData = useCallback((showLoading = true) => {
-    if (!bid || isDemo) {
+    if (!bid) {
       setLoading(false)
-      setData({ staff: DEMO_STAFF, bookings: DEMO_BOOKINGS, blocks: DEMO_BLOCKS })
+      setData({ staff: [], bookings: [], blocks: [] })
       return
     }
     if (showLoading) { setLoading(true); setError(null) }
@@ -226,7 +197,7 @@ const Calendar = () => {
         setError('Could not load calendar')
       })
       .finally(() => setLoading(false))
-  }, [bid, selectedDate, viewMode, isRestaurant, isDemo])
+  }, [bid, selectedDate, viewMode, isRestaurant])
 
   useEffect(() => {
     fetchCalendarData(true)
@@ -234,10 +205,10 @@ const Calendar = () => {
 
   // Live polling — refresh every 15 seconds without showing loading spinner
   useEffect(() => {
-    if (!bid || isDemo) return
+    if (!bid) return
     const interval = setInterval(() => fetchCalendarData(false), 15000)
     return () => clearInterval(interval)
-  }, [fetchCalendarData, bid, isDemo])
+  }, [fetchCalendarData, bid])
 
   // Clear new-booking animation after 3 seconds
   useEffect(() => {
@@ -405,7 +376,7 @@ const Calendar = () => {
           timer: toastTimer,
         })
 
-        if (!isDemo && bid) {
+        if (bid) {
           const timeStr = `${Math.floor(newStart)}:${String(Math.round((newStart % 1) * 60)).padStart(2, '0')}`
           api.patch(`/bookings/business/${bid}/detail/${d.id}/move`, {
             time: timeStr,
@@ -440,7 +411,7 @@ const Calendar = () => {
         window.removeEventListener('mouseup', onUp)
       }
     }
-  }, [drag, totHrs, getGridY, getStaffIdAtX, staffColumns, isDemo, bid])
+  }, [drag, totHrs, getGridY, getStaffIdAtX, staffColumns, bid])
 
   const handleUndo = useCallback(() => {
     if (!undoToast) return
@@ -450,12 +421,12 @@ const Calendar = () => {
       if (!prev) return prev
       return { ...prev, bookings: prev.bookings.map(b => b.id === id ? { ...b, start: origStart, dur: origDur, staffId: origStaffId } : b) }
     })
-    if (!isDemo && bid) {
+    if (bid) {
       const timeStr = `${Math.floor(origStart)}:${String(Math.round((origStart % 1) * 60)).padStart(2, '0')}`
       api.patch(`/bookings/business/${bid}/detail/${id}/move`, { time: timeStr, duration: Math.round(origDur * 60), staffId: origStaffId }).catch(err => console.error('Undo API error:', err))
     }
     setUndoToast(null)
-  }, [undoToast, isDemo, bid])
+  }, [undoToast, bid])
 
   /* ── Popover ── */
   const Pop = ({ a }) => {

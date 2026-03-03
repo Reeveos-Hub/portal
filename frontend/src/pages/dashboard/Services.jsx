@@ -13,7 +13,7 @@ const DURATIONS = ['15 mins', '30 mins', '45 mins', '1 hour', '1 hr 15 mins', '1
 const BUFFER_TIMES = ['None', '5 mins', '10 mins', '15 mins', '30 mins']
 
 const Services = () => {
-  const { business, businessType, isDemo } = useBusiness()
+  const { business, businessType, loading: bizLoading } = useBusiness()
   const [services, setServices] = useState([])
   const [categories, setCategories] = useState([])
   const [loading, setLoading] = useState(true)
@@ -27,7 +27,7 @@ const Services = () => {
   const isFood = businessType === 'food' || businessType === 'restaurant'
 
   useEffect(() => {
-    if (!bid || isDemo) { setLoading(false); return }
+    if (!bid) { setLoading(false); return }
     const fetchServices = async () => {
       try {
         const res = await api.get(`/services/business/${bid}`)
@@ -37,31 +37,10 @@ const Services = () => {
       finally { setLoading(false) }
     }
     fetchServices()
-  }, [bid, isDemo])
+  }, [bid])
 
-  const demoCategories = isFood
-    ? ['Starters', 'Mains', 'Desserts', 'Drinks']
-    : ['Hair Styling', 'Colouring', 'Treatments', 'Packages']
-
-  const demoServices = isFood ? [
-    { id: 's1', name: 'Smashed Burger', category: 'Mains', price: 12.99, duration: '—', color: '#FFD166', active: true, staff: [] },
-    { id: 's2', name: 'Loaded Fries', category: 'Starters', price: 6.99, duration: '—', color: '#06D6A0', active: true, staff: [] },
-    { id: 's3', name: 'Chicken Wings (6)', category: 'Starters', price: 8.99, duration: '—', color: '#06D6A0', active: true, staff: [] },
-    { id: 's4', name: 'Double Stack', category: 'Mains', price: 15.99, duration: '—', color: '#FFD166', active: true, staff: [] },
-    { id: 's5', name: 'Brownie Sundae', category: 'Desserts', price: 7.50, duration: '—', color: '#EF476F', active: true, staff: [] },
-    { id: 's6', name: 'Milkshake', category: 'Drinks', price: 5.99, duration: '—', color: '#118AB2', active: true, staff: [] },
-  ] : [
-    { id: 's1', name: 'Ladies Cut & Blow Dry', category: 'Hair Styling', price: 45.00, duration: '45 mins', color: '#FFD166', active: true, staff: ['Sarah Jenkins', 'John Doe'], description: 'Wash, cut and professional blow dry styling for ladies with medium to long hair.' },
-    { id: 's2', name: 'Blow Dry', category: 'Hair Styling', price: 30.00, duration: '30 mins', color: '#FFD166', active: true, staff: ['Sarah Jenkins', 'John Doe'] },
-    { id: 's3', name: 'Gents Cut', category: 'Hair Styling', price: 25.00, duration: '30 mins', color: '#FFD166', active: true, staff: ['All'] },
-    { id: 's4', name: 'Full Head Colour', category: 'Colouring', price: 85.00, duration: '120 mins', color: '#EF476F', active: true, staff: ['Sarah Jenkins'] },
-    { id: 's5', name: 'Balayage (Seasonal)', category: 'Colouring', price: 120.00, duration: '180 mins', color: '#EF476F', active: false, staff: ['Sarah Jenkins'] },
-    { id: 's6', name: 'Deep Conditioning', category: 'Treatments', price: 35.00, duration: '45 mins', color: '#06D6A0', active: true, staff: ['All'] },
-    { id: 's7', name: 'Keratin Treatment', category: 'Treatments', price: 150.00, duration: '120 mins', color: '#06D6A0', active: true, staff: ['Sarah Jenkins'] },
-  ]
-
-  const displayServices = services.length > 0 ? services : (isDemo ? demoServices : [])
-  const displayCategories = categories.length > 0 ? categories : (isDemo ? demoCategories : [])
+  const displayServices = services
+  const displayCategories = categories
 
   const filtered = displayServices.filter(s => {
     if (search && !s.name.toLowerCase().includes(search.toLowerCase())) return false

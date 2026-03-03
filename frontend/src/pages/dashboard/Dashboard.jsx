@@ -32,7 +32,7 @@ const formatDate = () => {
   return d.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' })
 }
 
-/* ═══ Floor Status Widget — reads LIVE from localStorage ═══ */
+/* ═══ Floor Status Widget — reads LIVE from API ═══ */
 const STATUS_STYLES = {
   seated:    { border: '#059669', bg: '#ECFDF5', text: '#065F46', label: 'Seated', dot: '#059669' },
   mains:     { border: '#EA580C', bg: '#FFF7ED', text: '#9A3412', label: 'Mains', dot: '#EA580C' },
@@ -49,53 +49,24 @@ const FloorStatusWidget = ({ navigate }) => {
   const { business } = useBusiness()
   const bid = business?.id ?? business?._id
 
-  // Fallback demo tables (mirrors FloorPlan DEFAULT_TABLES)
-  const DEMO_TABLES = [
-    { id: 't1', name: 'T-01', seats: 4, zone: 'window', shape: 'round', x: 80, y: 60, status: 'seated', timer: '45m' },
-    { id: 't2', name: 'T-02', seats: 4, zone: 'window', shape: 'square', x: 250, y: 60, status: 'reserved', nextTime: '6:30 PM', guest: 'Smith (4)' },
-    { id: 't3', name: 'T-03', seats: 2, zone: 'main', shape: 'square', x: 80, y: 240, status: 'available' },
-    { id: 't4', name: 'T-04', seats: 6, zone: 'main', shape: 'round', x: 280, y: 250, status: 'seated', timer: '12m', vip: true },
-    { id: 't5', name: 'T-05', seats: 4, zone: 'main', shape: 'round', x: 500, y: 60, status: 'dirty' },
-    { id: 't6', name: 'T-06', seats: 8, zone: 'main', shape: 'long', x: 480, y: 230, status: 'available' },
-  ]
+  const [liveTables, setLiveTables] = useState([])
 
-  // Read tables from localStorage (same source as FloorPlan page)
-  const [liveTables, setLiveTables] = useState(() => {
-    try {
-      // Try all possible keys
-      const keys = [
-        bid ? `rezvo_fp_${bid}` : null,
-        'rezvo_fp_demo',
-        bid ? `rezvo_floorplan_${bid}` : null,
-        'rezvo_floorplan_demo',
-      ].filter(Boolean)
-      for (const key of keys) {
-        const s = localStorage.getItem(key)
-        if (s) { const p = JSON.parse(s); if (Array.isArray(p) && p.length) return p }
-      }
-    } catch {}
-    return DEMO_TABLES
-  })
-
-  // Re-read on focus (user may have edited floor plan in another tab)
+  // Load floor plan from API (same source as FloorPlan page)
   useEffect(() => {
-    const reload = () => {
+    if (!bid) return
+    const load = async () => {
       try {
-        const keys = [
-          bid ? `rezvo_fp_${bid}` : null,
-          'rezvo_fp_demo',
-          bid ? `rezvo_floorplan_${bid}` : null,
-          'rezvo_floorplan_demo',
-        ].filter(Boolean)
-        for (const key of keys) {
-          const s = localStorage.getItem(key)
-          if (s) { const p = JSON.parse(s); if (Array.isArray(p) && p.length) { setLiveTables(p); return } }
-        }
-      } catch {}
+        const data = await api.get(`/tables/business/${bid}/floor-plan`)
+        const els = data.elements || data.tables || []
+        setLiveTables(els.filter(e => e.type !== 'fixture'))
+      } catch {
+        setLiveTables([])
+      }
     }
-    window.addEventListener('focus', reload)
-    const iv = setInterval(reload, 10000)
-    return () => { window.removeEventListener('focus', reload); clearInterval(iv) }
+    load()
+    // Re-poll every 15s for live status
+    const iv = setInterval(load, 15000)
+    return () => clearInterval(iv)
   }, [bid])
 
   // Show first 6 tables from main zone, or just first 6
@@ -483,7 +454,7 @@ const Dashboard = () => {
               </div>
             </div>
 
-            {/* Floor Status — LIVE from localStorage */}
+            {/* Floor Status — LIVE from API */}
             <FloorStatusWidget tables={tables} navigate={navigate} />
           </div>
 

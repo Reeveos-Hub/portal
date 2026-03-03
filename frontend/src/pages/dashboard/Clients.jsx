@@ -41,94 +41,9 @@ const FILTER_TABS = [
   { id: 'at-risk', label: 'At Risk' },
 ]
 
-const DEMO_GUESTS = [
-  {
-    id: '1', name: 'Tim Henman', email: 'tim.henman@gmail.co.uk', phone: '+44 7886 483772',
-    location: 'London, SW19 5AE', since: '2023-12-15',
-    tags: ['Regular', 'High Value', 'Wine Lover'],
-    stats: { visits: 12, spend: 847, avgSpend: 70.58, noShows: 0 },
-    riskLevel: 'Low Risk', riskTag: 'bg-green-50 text-green-700',
-    preferences: ['Booth Preferred', 'Shellfish Allergy', 'Birthday Dec'],
-    notes: 'Prefers corner booth. Wife allergic to shellfish. Anniversary in December.',
-    lastVisit: '2026-02-20',
-    activity: [
-      { id: 'a1', type: 'visit', date: '2026-02-20', title: 'Visit — Table 7 (Booth)', desc: 'Spend: £89.50 — Mains: Steak, Sea Bass', rating: 5 },
-      { id: 'a2', type: 'review', date: '2026-02-21', title: 'Google Review — 5 Stars', desc: '"Exceptional as always. The sea bass was perfect."' },
-      { id: 'a3', type: 'visit', date: '2026-02-14', title: "Valentine's Dinner — Table 12 (VIP)", desc: 'Spend: £380.00', rating: 5 },
-      { id: 'a4', type: 'visit', date: '2026-01-31', title: 'Friday Dinner — Table 7', desc: 'Spend: £78.00' },
-      { id: 'a5', type: 'comms', date: '2026-01-25', title: 'Birthday Campaign Sent', desc: 'Email: "Happy Birthday Tim! Enjoy 15% off your next visit"' },
-      { id: 'a6', type: 'visit', date: '2026-01-17', title: 'Friday Dinner — Table 7', desc: 'Spend: £65.00' },
-    ],
-    upcoming: [{ date: '2026-02-28', time: '19:30', guests: 2, table: 'T-07' }],
-    marketing: { emailOptIn: true, smsOptIn: false, lastCampaign: '2026-01-25', campaignsSent: 4, opened: 3 },
-  },
-  {
-    id: '2', name: 'Sarah Williams', email: 'sarah.w@outlook.com', phone: '+44 7700 900123',
-    location: 'Nottingham, NG1 5FW', since: '2024-06-10',
-    tags: ['VIP', 'Loyal'],
-    stats: { visits: 28, spend: 2140, avgSpend: 76.43, noShows: 1 },
-    riskLevel: 'Low Risk', riskTag: 'bg-green-50 text-green-700',
-    preferences: ['Window seat', 'Gluten free options'],
-    notes: 'Long-standing regular. Prefers window seating. Gluten intolerant.',
-    lastVisit: '2026-02-22',
-    activity: [
-      { id: 'b1', type: 'visit', date: '2026-02-22', title: 'Saturday Lunch — Table 3', desc: 'Spend: £62.00', rating: 4 },
-      { id: 'b2', type: 'visit', date: '2026-02-15', title: 'Friday Dinner — Table 3', desc: 'Spend: £95.00', rating: 5 },
-    ],
-    upcoming: [],
-    marketing: { emailOptIn: true, smsOptIn: true, lastCampaign: '2026-02-01', campaignsSent: 8, opened: 6 },
-  },
-  {
-    id: '3', name: 'James Anderson', email: 'j.anderson@gmail.com', phone: '+44 7911 123456',
-    location: 'Derby, DE1 3QT', since: '2025-11-20',
-    tags: ['New'],
-    stats: { visits: 2, spend: 120, avgSpend: 60, noShows: 0 },
-    riskLevel: 'New Guest', riskTag: 'bg-blue-50 text-blue-700',
-    preferences: [], notes: '', lastVisit: '2026-02-10',
-    activity: [
-      { id: 'c1', type: 'visit', date: '2026-02-10', title: 'Walk-in — Table 9', desc: 'Spend: £72.00' },
-      { id: 'c2', type: 'visit', date: '2025-12-28', title: 'First Visit — Table 5', desc: 'Spend: £48.00' },
-    ],
-    upcoming: [{ date: '2026-03-01', time: '20:00', guests: 4, table: null }],
-    marketing: { emailOptIn: true, smsOptIn: false, lastCampaign: null, campaignsSent: 0, opened: 0 },
-  },
-  {
-    id: '4', name: 'Emily Chen', email: 'emily.chen@yahoo.com', phone: '+44 7456 789012',
-    location: 'Nottingham, NG7 2RD', since: '2024-03-05',
-    tags: ['Regular', 'At Risk'],
-    stats: { visits: 8, spend: 520, avgSpend: 65, noShows: 2 },
-    riskLevel: 'At Risk', riskTag: 'bg-red-50 text-red-700',
-    preferences: ['Vegetarian', 'Quiet table'],
-    notes: 'Two recent no-shows. May need re-engagement.',
-    lastVisit: '2025-12-15',
-    activity: [
-      { id: 'd1', type: 'no_show', date: '2026-01-20', title: 'No-Show — Table 4', desc: 'Party of 3, no cancellation' },
-      { id: 'd2', type: 'no_show', date: '2026-01-05', title: 'No-Show — Table 11', desc: 'Party of 2, no cancellation' },
-      { id: 'd3', type: 'visit', date: '2025-12-15', title: 'Friday Dinner — Table 4', desc: 'Spend: £55.00' },
-    ],
-    upcoming: [],
-    marketing: { emailOptIn: false, smsOptIn: false, lastCampaign: '2025-12-20', campaignsSent: 3, opened: 1 },
-  },
-  {
-    id: '5', name: 'Mike Brown', email: 'mike.b@hotmail.com', phone: '+44 7890 345678',
-    location: 'Long Eaton, NG10 1JR', since: '2025-01-12',
-    tags: ['Regular'],
-    stats: { visits: 6, spend: 410, avgSpend: 68.33, noShows: 0 },
-    riskLevel: 'Low Risk', riskTag: 'bg-green-50 text-green-700',
-    preferences: ['Birthday Mar', 'Steak lover'],
-    notes: 'Birthday on March 15th. Always orders steak.',
-    lastVisit: '2026-02-18',
-    activity: [
-      { id: 'e1', type: 'visit', date: '2026-02-18', title: 'Tuesday Dinner — Table 2', desc: 'Spend: £82.00', rating: 5 },
-    ],
-    upcoming: [{ date: '2026-03-15', time: '19:00', guests: 6, table: 'T-12' }],
-    marketing: { emailOptIn: true, smsOptIn: true, lastCampaign: '2026-02-10', campaignsSent: 2, opened: 2 },
-  },
-]
-
 const Clients = () => {
   const navigate = useNavigate()
-  const { business, isDemo } = useBusiness()
+  const { business, loading: bizLoading } = useBusiness()
   const bid = business?.id ?? business?._id
   const [guests, setGuests] = useState([])
   const [loading, setLoading] = useState(true)
@@ -142,10 +57,10 @@ const Clients = () => {
   const [addGuestModal, setAddGuestModal] = useState(false)
 
   useEffect(() => {
-    if (!bid || isDemo) { setGuests(DEMO_GUESTS); setLoading(false); return }
+    if (!bid) { setLoading(false); return }
     const load = async () => {
       try {
-        const res = await api.get(`/clients/business/${bid}`)
+        const res = await api.get(`/clients-v2/business/${bid}`)
         const c = (res.clients || []).map(c => ({
           id: c.id || c._id, name: c.name || c.customerName || 'Unknown',
           email: c.email || '', phone: c.phone || '', location: c.location || '',
@@ -157,12 +72,12 @@ const Clients = () => {
           activity: c.activity || [], upcoming: c.upcoming || [],
           marketing: c.marketing || { emailOptIn: false, smsOptIn: false },
         }))
-        setGuests(c.length > 0 ? c : DEMO_GUESTS)
-      } catch { setGuests(DEMO_GUESTS) }
+        setGuests(c)
+      } catch { setGuests([]) }
       setLoading(false)
     }
     load()
-  }, [bid, isDemo])
+  }, [bid])
 
   const filteredGuests = guests.filter(g => {
     if (search && !g.name.toLowerCase().includes(search.toLowerCase()) && !(g.email||'').toLowerCase().includes(search.toLowerCase())) return false

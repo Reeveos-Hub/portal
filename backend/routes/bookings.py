@@ -561,3 +561,49 @@ async def move_booking(
         "tableId": updated.get("tableId"),
         "status": updated.get("status"),
     }
+
+
+@router.patch("/business/{business_id}/detail/{booking_id}/edit")
+async def edit_booking_details(
+    business_id: str,
+    booking_id: str,
+    payload: dict = Body(...),
+    tenant: TenantContext = Depends(verify_business_access),
+):
+    """Calendar edit mode: update customer details, notes, party size, tags, etc."""
+    from bson import ObjectId
+    db = get_database()
+    sdb = get_scoped_db(tenant.business_id)
+    try:
+        business = await db.businesses.find_one({"_id": ObjectId(business_id)})
+    except Exception:
+        business = await db.businesses.find_one({"_id": business_id})
+    if not business:
+        raise HTTPException(404, "Business not found")
+
+    b = await sdb.bookings.find_one({"_id": booking_id})
+    if not b:
+        try:
+            b = await sdb.bookings.find_one({"_id": ObjectId(booking_id)})
+        except Exception:
+            pass
+    if not b:
+        raise HTTPException(404, "Booking not found")
+
+    # Allowed fields for edit
+    allowed = {
+        "customerName", "phone", "email", "notes", "partySize",
+        "tags", "tableId", "time", "date", "duration", "specialRequests",
+        "dietaryRequirements", "occasion",
+    }
+    update = {"updatedAt": datetime.utcnow()}
+    for k, v in payload.items():
+        if k in allowed:
+            update[k] = v
+
+    await sdb.bookings.update_one({"_id": b["_id"]}, {"$set": update})
+
+    updated = await sdb.bookings.find_one({"_id": b["_id"]})
+    if updated and "_id" in updated:
+        updated["_id"] = str(updated["_id"])
+    return {"detail": "Booking updated", "booking": updated}

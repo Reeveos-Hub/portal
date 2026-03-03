@@ -56,7 +56,7 @@ const formatTime = (timeStr) => {
 }
 
 const Bookings = () => {
-  const { business, isDemo } = useBusiness()
+  const { business, loading: bizLoading } = useBusiness()
   const [searchParams, setSearchParams] = useSearchParams()
   const [bookings, setBookings] = useState([])
   const [pagination, setPagination] = useState({})
@@ -126,10 +126,10 @@ const Bookings = () => {
 
   // Live polling — silently refresh every 15 seconds
   useEffect(() => {
-    if (!bid || isDemo) return
+    if (!bid) return
     const interval = setInterval(() => fetchBookings(true), 15000)
     return () => clearInterval(interval)
-  }, [bid, status, searchDebounce, isDemo])
+  }, [bid, status, searchDebounce])
 
   // Clear new-booking animation after 3 seconds
   useEffect(() => {
@@ -141,18 +141,7 @@ const Bookings = () => {
   const openDetail = (id) => setSearchParams({ booking: id })
   const closeDetail = () => setSearchParams({})
 
-  const demoBookings = [
-    { id: 'd1', reference: 'REZ-0001', customerName: 'John Doe', phone: '(555) 123-4567', email: 'john@example.com', service: 'Table for 4', guests: 4, table: 'T-02', zone: 'Main Dining', date: 'Today', time: '18:30', status: 'confirmed', vip: true },
-    { id: 'd2', reference: 'REZ-0002', customerName: 'Alice Smith', phone: '(555) 987-6543', service: 'Table for 2', guests: 2, date: 'Today', time: '18:45', status: 'late', vip: true, lateMinutes: 10 },
-    { id: 'd3', reference: 'REZ-0003', customerName: 'Michael Ross', phone: '(555) 222-3333', email: 'michael@mail.com', service: 'Table for 6', guests: 6, table: 'T-08', zone: 'Main Dining', date: 'Today', time: '19:00', status: 'confirmed', occasion: 'Birthday' },
-    { id: 'd4', reference: 'REZ-0004', customerName: 'Sarah Jenkins', phone: '(555) 444-5555', service: 'Table for 3', guests: 3, date: 'Today', time: '19:15', status: 'waitlist', waitMinutes: 25 },
-    { id: 'd5', reference: 'REZ-0005', customerName: 'David Lee', phone: '(555) 777-8888', email: 'david.lee@mail.com', service: 'Table for 2', guests: 2, table: 'T-14', zone: 'Patio', date: 'Today', time: '19:30', status: 'confirmed' },
-    { id: 'd6', reference: 'REZ-0006', customerName: 'Priya Patel', phone: '(555) 333-2222', email: 'priya@gmail.com', service: 'Table for 4', guests: 4, table: 'T-05', zone: 'Window', date: 'Today', time: '20:00', status: 'confirmed', vip: true },
-    { id: 'd7', reference: 'REZ-0007', customerName: 'Tom Walker', phone: '(555) 111-9999', service: 'Table for 8', guests: 8, table: 'T-12', zone: 'Private', date: 'Tomorrow', time: '19:00', status: 'pending', notes: 'Anniversary dinner' },
-    { id: 'd8', reference: 'REZ-0008', customerName: 'Grace Kim', phone: '(555) 666-7777', email: 'grace@company.com', service: 'Table for 2', guests: 2, table: 'T-03', zone: 'Bar', date: 'Tomorrow', time: '20:30', status: 'confirmed' },
-  ]
-
-  const displayBookings = (bookings.length > 0 || !isDemo) ? bookings : demoBookings
+  const displayBookings = bookings
 
   const getPrimaryAction = (b) => {
     const s = b.status

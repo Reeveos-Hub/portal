@@ -1,7 +1,6 @@
 /**
- * Run 1: Shell business context — type, tier, dev toggle
- * When TierContext has real business: use it and map tier.
- * Otherwise: mock for development.
+ * BusinessContext — provides real business data from TierContext.
+ * No demo fallbacks. If business hasn't loaded, pages get null and must handle it.
  */
 
 import { createContext, useContext, useState, useMemo } from 'react'
@@ -16,7 +15,7 @@ export const useBusiness = () => {
   return ctx
 }
 
-// Map backend tier names to Run 1 tiers
+// Map backend tier names to frontend tiers
 const mapTier = (backendTier) => {
   const m = {
     solo: 'free',
@@ -37,7 +36,7 @@ export const BusinessProvider = ({ children }) => {
   const [devTierOverride, setDevTierOverride] = useState(null)
 
   const value = useMemo(() => {
-    const business = tierCtx?.business
+    const business = tierCtx?.business || null
     const businessType = devTypeOverride ?? (business?.type === 'restaurant' ? 'restaurant' : 'services')
     const tier = devTierOverride ?? mapTier(business?.tier || business?.rezvo_tier) ?? 'enterprise'
 
@@ -48,21 +47,10 @@ export const BusinessProvider = ({ children }) => {
       setDevTierOverride(next)
     }
 
-    const isDemo = !business
-    const displayBusiness = business || {
-      id: 'demo-001',
-      name: businessType === 'restaurant' ? 'The Oak Kitchen' : 'Luxe Hair Studio',
-      type: businessType,
-      tier,
-      logo: null,
-      subtitle: businessType === 'restaurant' ? 'Restaurant & Bar' : 'Salon & Spa',
-    }
-
     return {
-      business: displayBusiness,
+      business,       // null if not loaded — pages must handle this
       businessType,
       tier,
-      isDemo,
       setBusinessType,
       cycleTier,
       loading: tierCtx?.loading ?? false,
