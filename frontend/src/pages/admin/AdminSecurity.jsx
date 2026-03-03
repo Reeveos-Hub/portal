@@ -42,7 +42,13 @@ export default function AdminSecurity() {
 
   const ta = tenantAudit || {}
   const r = report || {}
-  const severity = r.overall_severity || (ta.pass ? 'ok' : ta.coverage_percent !== undefined ? 'critical' : 'ok')
+  
+  // GDPR compliance is specifically about tenant isolation + violations
+  const gdprCompliant = ta.pass && (r.cross_tenant_violations?.violations_found ?? 0) === 0
+  // Overall severity factors in data issues too
+  const hasDataIssues = (r.data_integrity?.issues_found ?? 0) > 0 || (r.auth_anomalies?.anomalies_found ?? 0) > 0
+  const hasViolations = (r.cross_tenant_violations?.violations_found ?? 0) > 0
+  const severity = hasViolations ? 'critical' : !ta.pass && ta.coverage_percent !== undefined ? 'critical' : hasDataIssues ? 'warning' : 'ok'
   const SevIcon = severity === 'ok' ? ShieldCheck : severity === 'warning' ? ShieldAlert : ShieldAlert
 
   return (
@@ -99,18 +105,20 @@ export default function AdminSecurity() {
         ) : tab === 'overview' ? (
           <>
             {/* ICO Compliance Banner */}
-            <div className={`rounded-xl p-4 border ${severity === 'ok' ? 'bg-emerald-500/5 border-emerald-500/20' : 'bg-red-500/5 border-red-500/20'}`}>
+            <div className={`rounded-xl p-4 border ${gdprCompliant ? 'bg-emerald-500/5 border-emerald-500/20' : hasViolations ? 'bg-red-500/5 border-red-500/20' : 'bg-amber-500/5 border-amber-500/20'}`}>
               <div className="flex items-start gap-3">
-                {severity === 'ok' ? <CheckCircle2 size={18} className="text-emerald-400 mt-0.5"/> : <XCircle size={18} className="text-red-400 mt-0.5"/>}
+                {gdprCompliant ? <CheckCircle2 size={18} className="text-emerald-400 mt-0.5"/> : hasViolations ? <XCircle size={18} className="text-red-400 mt-0.5"/> : <AlertTriangle size={18} className="text-amber-400 mt-0.5"/>}
                 <div>
-                  <h3 className={`text-sm font-bold ${severity === 'ok' ? 'text-emerald-400' : 'text-red-400'}`}>
-                    {severity === 'ok' ? 'UK GDPR Article 32 — Compliant' : 'UK GDPR Article 32 — Compliance Gap'}
+                  <h3 className={`text-sm font-bold ${gdprCompliant ? 'text-emerald-400' : hasViolations ? 'text-red-400' : 'text-amber-400'}`}>
+                    {gdprCompliant ? 'UK GDPR Article 32 — Compliant' : hasViolations ? 'UK GDPR Article 32 — Breach Detected' : 'UK GDPR Article 32 — Compliance Gap'}
                   </h3>
                   <p className="text-[11px] text-gray-400 mt-1">
-                    {r.ico_compliance_note || (ta.pass
-                      ? 'All business-scoped API routes have tenant isolation guards. Cross-tenant data leakage is structurally prevented.'
-                      : `Tenant isolation coverage: ${ta.coverage_percent ?? '?'}%. ${ta.unguarded_routes ?? '?'} routes across ${ta.unguarded_files ?? '?'} files are unprotected. ICO fines in 2025 averaged £2.8M for security failures.`
-                    )}
+                    {gdprCompliant
+                      ? `Tenant isolation at ${ta.coverage_percent ?? 100}%. All business-scoped API routes have isolation guards. Zero cross-tenant violations. Data leakage is structurally prevented.`
+                      : hasViolations
+                        ? `${r.cross_tenant_violations?.violations_found ?? 0} cross-tenant access attempts detected in the last ${r.cross_tenant_violations?.hours_checked ?? 24} hours. ICO fines in 2025 averaged £2.8M.`
+                        : `Tenant isolation coverage: ${ta.coverage_percent ?? '?'}%. ${ta.unguarded_routes ?? '?'} routes across ${ta.unguarded_files ?? '?'} files are unprotected.`
+                    }
                   </p>
                 </div>
               </div>
