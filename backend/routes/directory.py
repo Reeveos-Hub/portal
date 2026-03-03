@@ -1,11 +1,32 @@
 from fastapi import APIRouter, HTTPException, Query, Request
-from fastapi.encoders import jsonable_encoder
 from middleware.rate_limit import limiter
 from database import get_database
 from typing import Optional, List
 from models.business import BusinessCategory
+from bson import ObjectId
+from datetime import datetime
 
 router = APIRouter(prefix="/directory", tags=["directory"])
+
+
+def _ser_list(docs):
+    return [_ser(d) for d in docs]
+
+def _ser(doc):
+    """Convert MongoDB doc to JSON-safe dict."""
+    if doc is None:
+        return None
+    d = dict(doc)
+    for k, v in d.items():
+        if isinstance(v, ObjectId):
+            d[k] = str(v)
+        elif isinstance(v, datetime):
+            d[k] = v.isoformat()
+        elif isinstance(v, dict):
+            d[k] = _ser(v)
+        elif isinstance(v, list):
+            d[k] = [_ser(i) if isinstance(i, dict) else str(i) if isinstance(i, ObjectId) else i for i in v]
+    return d
 
 
 @router.get("/search")
@@ -58,7 +79,7 @@ async def search_businesses(
         "total": total,
         "limit": limit,
         "skip": skip,
-        "results": jsonable_encoder(businesses)
+        "results": _ser_list(businesses)
     }
 
 
@@ -79,7 +100,7 @@ async def get_category_businesses(
     
     businesses = await db.businesses.find(filters).limit(limit).to_list(length=None)
     
-    return jsonable_encoder(businesses)
+    return _ser_list(businesses)
 
 
 @router.get("/locations")
@@ -95,7 +116,7 @@ async def get_locations(
     
     locations = await db.locations.find(filters).limit(limit).to_list(length=None)
     
-    return jsonable_encoder(locations)
+    return _ser_list(locations)
 
 
 @router.get("/locations/{location_slug}")
@@ -109,7 +130,7 @@ async def get_location(location_slug: str):
             detail="Location not found"
         )
     
-    return jsonable_encoder(location)
+    return _ser(location)
 
 
 @router.get("/featured")
@@ -125,7 +146,7 @@ async def get_featured_businesses(
     
     businesses = await db.businesses.find(filters).limit(limit).to_list(length=None)
     
-    return jsonable_encoder(businesses)
+    return _ser_list(businesses)
 
 
 @router.post("/notify/{business_id}")
@@ -179,7 +200,7 @@ async def get_home_page():
     location_counts = await db.businesses.aggregate(loc_pipeline).to_list(length=None)
     
     return {
-        "trending": jsonable_encoder(trending),
+        "trending": _ser_list(trending),
         "categories": category_counts,
         "locations": location_counts
     }
