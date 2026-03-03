@@ -1,11 +1,11 @@
 import { useState, useEffect } from 'react'
-import { Outlet, useNavigate, useLocation, Navigate } from 'react-router-dom'
+import { Outlet, useNavigate, useLocation } from 'react-router-dom'
 import {
   LayoutDashboard, Send, Bot, Users, BarChart3, Activity,
   Globe, FileText, Settings, LogOut, ChevronLeft, ChevronRight,
-  Zap, Building2, CalendarCheck, MessageSquare, Star, AlertTriangle,
+  Building2, CalendarCheck, MessageSquare, Star, AlertTriangle,
   CreditCard, ScrollText, Bug, Megaphone, ShieldCheck, Linkedin,
-  Package, TrendingUp, Search, Crosshair, BookOpen, Wallet
+  TrendingUp, Search, Crosshair, BookOpen, Wallet, Sun, Moon
 } from 'lucide-react'
 
 const NAV_SECTIONS = [
@@ -61,12 +61,59 @@ const NAV_SECTIONS = [
   },
 ]
 
+/* ── Theme tokens ── */
+const LIGHT = {
+  bg: '#F8F7F4',
+  sidebar: '#FFFFFF',
+  sidebarBorder: '#E8E4DD',
+  sectionLabel: '#9A9790',
+  navText: '#7A776F',
+  navTextHover: '#2C2C2A',
+  navHoverBg: 'rgba(232,228,221,0.5)',
+  navActiveText: '#111111',
+  navActiveBg: 'rgba(17,17,17,0.06)',
+  navActiveIcon: '#111111',
+  navIcon: '#9A9790',
+  brandText: '#111111',
+  brandSub: '#9A9790',
+  userEmail: '#7A776F',
+  userRole: '#C9A84C',
+  logoutText: '#9A9790',
+  logoutHover: '#EF4444',
+  collapseIcon: '#9A9790',
+}
+
+const DARK = {
+  bg: '#0a0a0a',
+  sidebar: '#111111',
+  sidebarBorder: '#1f1f1f',
+  sectionLabel: '#555',
+  navText: '#888',
+  navTextHover: '#ccc',
+  navHoverBg: 'rgba(255,255,255,0.05)',
+  navActiveText: '#C9A84C',
+  navActiveBg: 'rgba(201,168,76,0.1)',
+  navActiveIcon: '#C9A84C',
+  navIcon: '#555',
+  brandText: '#FFFFFF',
+  brandSub: '#666',
+  userEmail: '#888',
+  userRole: '#C9A84C',
+  logoutText: '#666',
+  logoutHover: '#EF4444',
+  collapseIcon: '#555',
+}
+
 const ADMIN_API = import.meta.env.VITE_API_URL || ''
+const FIG = "'Figtree', system-ui, sans-serif"
 
 export default function AdminLayout() {
   const navigate = useNavigate()
   const location = useLocation()
   const [collapsed, setCollapsed] = useState(false)
+  const [dark, setDark] = useState(() => {
+    try { return localStorage.getItem('admin_theme') === 'dark' } catch { return false }
+  })
   const [authed, setAuthed] = useState(() => !!sessionStorage.getItem('rezvo_admin_token'))
   const [adminUser, setAdminUser] = useState(() => {
     try { return JSON.parse(sessionStorage.getItem('rezvo_admin_user') || 'null') } catch { return null }
@@ -75,6 +122,12 @@ export default function AdminLayout() {
   const [password, setPassword] = useState('')
   const [loginError, setLoginError] = useState('')
   const [loggingIn, setLoggingIn] = useState(false)
+
+  const t = dark ? DARK : LIGHT
+
+  useEffect(() => {
+    try { localStorage.setItem('admin_theme', dark ? 'dark' : 'light') } catch {}
+  }, [dark])
 
   const isActive = (path) => {
     if (path === '/admin') return location.pathname === '/admin'
@@ -116,103 +169,90 @@ export default function AdminLayout() {
     setPassword('')
   }
 
-  // ─── Login Gate ─── //
+  /* ─── Login Gate ─── */
   if (!authed) {
     return (
-      <div className="min-h-screen bg-gray-950 flex items-center justify-center">
-        <form onSubmit={handleLogin} className="w-full max-w-sm mx-4">
-          <div className="text-center mb-8">
-            <div className="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-4" style={{ background: 'linear-gradient(135deg, #C9A84C, #B8943F)' }}>
-              <span className="text-white text-xl font-black" style={{ fontFamily: "'Figtree', sans-serif" }}>R<span style={{fontSize:8}}>.</span></span>
+      <div style={{ minHeight: '100vh', background: '#111', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: FIG }}>
+        <form onSubmit={handleLogin} style={{ width: '100%', maxWidth: 380, padding: '0 16px' }}>
+          <div style={{ textAlign: 'center', marginBottom: 36 }}>
+            <div style={{ width: 56, height: 56, borderRadius: 16, background: '#222', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', marginBottom: 16 }}>
+              <span style={{ color: '#C9A84C', fontSize: 22, fontWeight: 900, fontFamily: FIG }}>R<span style={{ fontSize: 8 }}>.</span></span>
             </div>
-            <h1 className="text-2xl font-bold text-white" style={{ fontFamily: "'Figtree', sans-serif" }}>Reeve<span style={{color:'#C9A84C'}}>OS</span></h1>
-            <p className="text-sm text-gray-500 mt-1">Admin Panel</p>
+            <h1 style={{ fontSize: 24, fontWeight: 700, color: '#FFF', margin: '0 0 4px' }}>Reeve<span style={{ color: '#C9A84C' }}>OS</span></h1>
+            <p style={{ fontSize: 13, color: '#666', margin: 0 }}>Admin Panel</p>
           </div>
-          <div className="space-y-3">
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
             <div>
-              <label className="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1.5 ml-1">Email</label>
+              <label style={{ display: 'block', fontSize: 10, fontWeight: 700, color: '#888', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 6 }}>Email</label>
               <input
-                type="email"
-                value={email}
-                onChange={e => { setEmail(e.target.value); setLoginError('') }}
-                placeholder="admin@rezvo.co.uk"
-                autoFocus
-                autoComplete="email"
-                className="w-full bg-gray-900 border border-gray-700 rounded-xl px-4 py-3 text-white text-sm placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-amber-500/40 focus:border-amber-500"
-                style={{ fontFamily: "'Figtree', sans-serif" }}
+                type="email" value={email} onChange={e => { setEmail(e.target.value); setLoginError('') }}
+                placeholder="admin@rezvo.co.uk" autoFocus autoComplete="email"
+                style={{ width: '100%', padding: '12px 16px', borderRadius: 12, border: '1px solid #333', background: '#1a1a1a', color: '#FFF', fontSize: 14, fontFamily: FIG, outline: 'none', boxSizing: 'border-box' }}
+                onFocus={e => e.target.style.borderColor = '#C9A84C'} onBlur={e => e.target.style.borderColor = '#333'}
               />
             </div>
             <div>
-              <label className="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1.5 ml-1">Password</label>
+              <label style={{ display: 'block', fontSize: 10, fontWeight: 700, color: '#888', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 6 }}>Password</label>
               <input
-                type="password"
-                value={password}
-                onChange={e => { setPassword(e.target.value); setLoginError('') }}
-                placeholder="••••••••"
-                autoComplete="current-password"
-                className="w-full bg-gray-900 border border-gray-700 rounded-xl px-4 py-3 text-white text-sm placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-amber-500/40 focus:border-amber-500"
-                style={{ fontFamily: "'Figtree', sans-serif" }}
+                type="password" value={password} onChange={e => { setPassword(e.target.value); setLoginError('') }}
+                placeholder="••••••••" autoComplete="current-password"
+                style={{ width: '100%', padding: '12px 16px', borderRadius: 12, border: '1px solid #333', background: '#1a1a1a', color: '#FFF', fontSize: 14, fontFamily: FIG, outline: 'none', boxSizing: 'border-box' }}
+                onFocus={e => e.target.style.borderColor = '#C9A84C'} onBlur={e => e.target.style.borderColor = '#333'}
               />
             </div>
             {loginError && (
-              <div className="flex items-center gap-2 bg-red-500/10 border border-red-500/20 rounded-lg px-3 py-2">
-                <ShieldCheck size={14} className="text-red-400 shrink-0" />
-                <p className="text-red-400 text-xs">{loginError}</p>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 12px', borderRadius: 8, background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.2)' }}>
+                <ShieldCheck size={14} style={{ color: '#EF4444', flexShrink: 0 }} />
+                <span style={{ color: '#EF4444', fontSize: 12 }}>{loginError}</span>
               </div>
             )}
-            <button
-              type="submit"
-              disabled={loggingIn || !email || !password}
-              className="w-full py-3 rounded-xl font-bold transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-              style={{ fontFamily: "'Figtree', sans-serif", backgroundColor: '#C9A84C', color: '#111' }}
-            >
-              {loggingIn ? (
-                <>
-                  <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                  Signing in...
-                </>
-              ) : (
-                'Sign In'
-              )}
+            <button type="submit" disabled={loggingIn || !email || !password}
+              style={{ width: '100%', padding: '12px 0', borderRadius: 12, border: 'none', background: '#C9A84C', color: '#111', fontSize: 14, fontWeight: 700, fontFamily: FIG, cursor: loggingIn || !email || !password ? 'not-allowed' : 'pointer', opacity: loggingIn || !email || !password ? 0.5 : 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, transition: 'opacity 200ms' }}>
+              {loggingIn ? (<><span style={{ width: 16, height: 16, border: '2px solid rgba(255,255,255,0.3)', borderTopColor: '#FFF', borderRadius: '50%', animation: 'spin 0.6s linear infinite', display: 'inline-block' }} />Signing in...</>) : 'Sign In'}
             </button>
           </div>
-          <p className="text-center text-[10px] text-gray-600 mt-6">Authorized personnel only</p>
+          <p style={{ textAlign: 'center', fontSize: 10, color: '#555', marginTop: 24 }}>Authorized personnel only</p>
         </form>
+        <style>{`@keyframes spin { to { transform: rotate(360deg) } }`}</style>
       </div>
     )
   }
 
-  // ─── Admin Shell ─── //
+  /* ─── Admin Shell ─── */
   return (
-    <div className="admin-shell flex h-screen bg-gray-950 overflow-hidden">
+    <div style={{ display: 'flex', height: '100vh', overflow: 'hidden', fontFamily: FIG, background: t.bg, transition: 'background 300ms' }}>
       {/* Sidebar */}
-      <aside className={`${collapsed ? 'w-16' : 'w-56'} bg-gray-900 border-r border-gray-800 flex flex-col transition-all duration-200 shrink-0`}>
+      <aside style={{
+        width: collapsed ? 64 : 240, minWidth: collapsed ? 64 : 240,
+        background: t.sidebar, borderRight: `1px solid ${t.sidebarBorder}`,
+        display: 'flex', flexDirection: 'column', transition: 'all 300ms', flexShrink: 0,
+      }}>
         {/* Brand */}
-        <div className="h-14 flex items-center justify-between px-3 border-b border-gray-800">
-          <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0" style={{ background: 'linear-gradient(135deg, #C9A84C, #B8943F)' }}>
-              <span className="text-white text-xs font-black" style={{ fontFamily: "'Figtree', sans-serif" }}>R</span>
+        <div style={{ height: 56, display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 12px', borderBottom: `1px solid ${t.sidebarBorder}` }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <div style={{ width: 34, height: 34, borderRadius: 10, background: '#111', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+              <span style={{ color: '#C9A84C', fontSize: 14, fontWeight: 900, fontFamily: FIG }}>R<span style={{ fontSize: 6 }}>.</span></span>
             </div>
             {!collapsed && (
               <div>
-                <h1 className="text-xs font-bold text-white leading-tight" style={{ fontFamily: "'Figtree', sans-serif" }}>Reeve<span style={{color:'#C9A84C'}}>OS</span></h1>
-                <p className="text-[9px] text-gray-500">Admin Panel</p>
+                <div style={{ fontSize: 14, fontWeight: 700, color: t.brandText, lineHeight: 1.2 }}>Reeve<span style={{ color: '#C9A84C' }}>OS</span></div>
+                <div style={{ fontSize: 10, color: t.brandSub, letterSpacing: '0.05em' }}>ADMIN PANEL</div>
               </div>
             )}
           </div>
-          <button onClick={() => setCollapsed(!collapsed)} className="text-gray-500 hover:text-gray-300 transition-colors">
+          <button onClick={() => setCollapsed(!collapsed)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: t.collapseIcon, display: 'flex', alignItems: 'center', padding: 4 }}>
             {collapsed ? <ChevronRight size={14} /> : <ChevronLeft size={14} />}
           </button>
         </div>
 
         {/* Nav */}
-        <nav className="flex-1 py-2 overflow-y-auto scrollbar-thin">
+        <nav style={{ flex: 1, padding: '8px 0', overflowY: 'auto' }}>
           {NAV_SECTIONS.map((section, si) => (
-            <div key={si} className="mb-1">
+            <div key={si} style={{ marginBottom: 4 }}>
               {!collapsed && (
-                <p className="px-4 pt-3 pb-1 text-[9px] font-bold text-gray-600 uppercase tracking-widest">{section.label}</p>
+                <div style={{ padding: '12px 16px 4px', fontSize: 10, fontWeight: 700, color: t.sectionLabel, textTransform: 'uppercase', letterSpacing: '0.1em', userSelect: 'none' }}>{section.label}</div>
               )}
-              {collapsed && si > 0 && <div className="mx-3 my-1 border-t border-gray-800" />}
+              {collapsed && si > 0 && <div style={{ margin: '4px 12px', borderTop: `1px solid ${t.sidebarBorder}` }} />}
               {section.items.map(item => {
                 const Icon = item.icon
                 const active = isActive(item.path)
@@ -220,15 +260,25 @@ export default function AdminLayout() {
                   <button
                     key={item.id}
                     onClick={() => navigate(item.path)}
-                    className={`w-full flex items-center gap-2.5 px-3 py-2 text-xs font-medium transition-all ${
-                      active
-                        ? 'bg-amber-600/15 text-amber-400 border-r-2 border-amber-400'
-                        : 'text-gray-400 hover:text-gray-200 hover:bg-gray-800/60'
-                    }`}
                     title={collapsed ? item.label : undefined}
+                    style={{
+                      display: 'flex', alignItems: 'center', gap: 10,
+                      padding: collapsed ? '9px 0' : '9px 12px',
+                      justifyContent: collapsed ? 'center' : 'flex-start',
+                      marginLeft: collapsed ? 0 : 4, marginRight: collapsed ? 0 : 4,
+                      width: collapsed ? '100%' : 'calc(100% - 8px)',
+                      borderRadius: 10, border: 'none', cursor: 'pointer',
+                      fontSize: 13, fontWeight: active ? 600 : 500, fontFamily: FIG,
+                      color: active ? t.navActiveText : t.navText,
+                      background: active ? t.navActiveBg : 'transparent',
+                      transition: 'all 180ms', whiteSpace: 'nowrap', textAlign: 'left',
+                      borderLeft: active && !collapsed ? '3px solid #C9A84C' : '3px solid transparent',
+                    }}
+                    onMouseOver={e => { if (!active) { e.currentTarget.style.background = t.navHoverBg; e.currentTarget.style.color = t.navTextHover } }}
+                    onMouseOut={e => { if (!active) { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = t.navText } }}
                   >
-                    <Icon size={15} className={`shrink-0 ${active ? 'text-amber-400' : 'text-gray-500'}`} />
-                    {!collapsed && <span className="truncate">{item.label}</span>}
+                    <Icon size={16} strokeWidth={active ? 2.2 : 1.5} style={{ flexShrink: 0, color: active ? t.navActiveIcon : t.navIcon, transition: 'color 180ms' }} />
+                    {!collapsed && <span style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.label}</span>}
                   </button>
                 )
               })}
@@ -237,17 +287,58 @@ export default function AdminLayout() {
         </nav>
 
         {/* Bottom */}
-        <div className="p-2 border-t border-gray-800">
-          {!collapsed && adminUser && (
-            <div className="px-3 py-2 mb-1">
-              <p className="text-[10px] font-bold text-gray-500 truncate">{adminUser.email}</p>
-              <p className="text-[9px] text-amber-500 uppercase tracking-widest font-bold">Admin</p>
+        <div style={{ padding: 8, borderTop: `1px solid ${t.sidebarBorder}` }}>
+          {/* Theme toggle */}
+          {!collapsed && (
+            <div onClick={() => setDark(!dark)} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 12px', marginBottom: 4, borderRadius: 10, cursor: 'pointer', transition: 'background 150ms' }}
+              onMouseOver={e => e.currentTarget.style.background = t.navHoverBg}
+              onMouseOut={e => e.currentTarget.style.background = 'transparent'}
+            >
+              <div style={{
+                width: 36, height: 20, borderRadius: 10, position: 'relative', cursor: 'pointer',
+                background: dark ? '#C9A84C' : '#E8E4DD', transition: 'background 300ms',
+              }}>
+                <div style={{
+                  width: 16, height: 16, borderRadius: '50%', position: 'absolute', top: 2,
+                  left: dark ? 18 : 2, background: '#FFF', transition: 'left 300ms',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  boxShadow: '0 1px 3px rgba(0,0,0,0.15)',
+                }}>
+                  {dark ? <Moon size={8} style={{ color: '#C9A84C' }} /> : <Sun size={8} style={{ color: '#C9A84C' }} />}
+                </div>
+              </div>
+              <span style={{ fontSize: 12, fontWeight: 500, color: t.navText }}>{dark ? 'Dark' : 'Light'}</span>
             </div>
           )}
+          {collapsed && (
+            <button onClick={() => setDark(!dark)} title={dark ? 'Dark mode' : 'Light mode'}
+              style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '8px 0', background: 'none', border: 'none', cursor: 'pointer', color: t.navText }}>
+              {dark ? <Moon size={16} /> : <Sun size={16} />}
+            </button>
+          )}
+
+          {/* User info */}
+          {!collapsed && adminUser && (
+            <div style={{ padding: '8px 12px' }}>
+              <div style={{ fontSize: 11, fontWeight: 600, color: t.userEmail, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{adminUser.email}</div>
+              <div style={{ fontSize: 9, fontWeight: 700, color: t.userRole, textTransform: 'uppercase', letterSpacing: '0.1em' }}>Admin</div>
+            </div>
+          )}
+
+          {/* Logout */}
           <button
             onClick={handleLogout}
-            className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs text-gray-500 hover:text-red-400 hover:bg-gray-800/60 transition-all"
-            title={collapsed ? 'Logout' : undefined}
+            title={collapsed ? 'Sign Out' : undefined}
+            style={{
+              width: '100%', display: 'flex', alignItems: 'center', gap: 10,
+              padding: collapsed ? '8px 0' : '8px 12px',
+              justifyContent: collapsed ? 'center' : 'flex-start',
+              borderRadius: 10, border: 'none', cursor: 'pointer',
+              fontSize: 12, fontWeight: 500, fontFamily: FIG,
+              color: t.logoutText, background: 'transparent', transition: 'all 150ms',
+            }}
+            onMouseOver={e => { e.currentTarget.style.color = t.logoutHover; e.currentTarget.style.background = t.navHoverBg }}
+            onMouseOut={e => { e.currentTarget.style.color = t.logoutText; e.currentTarget.style.background = 'transparent' }}
           >
             <LogOut size={15} />
             {!collapsed && <span>Sign Out</span>}
@@ -256,8 +347,8 @@ export default function AdminLayout() {
       </aside>
 
       {/* Main */}
-      <main className="flex-1 overflow-y-auto bg-gray-950">
-        <Outlet />
+      <main style={{ flex: 1, overflowY: 'auto', background: t.bg, transition: 'background 300ms' }}>
+        <Outlet context={{ dark, theme: t }} />
       </main>
     </div>
   )
