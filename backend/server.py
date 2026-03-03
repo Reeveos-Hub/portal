@@ -105,6 +105,55 @@ setup_cors(app)
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
+# ── Audit logging middleware: log admin + write actions to audit_log ──
+from starlette.middleware.base import BaseHTTPMiddleware
+
+class AuditMiddleware(BaseHTTPMiddleware):
+    """Log admin and mutating (POST/PUT/PATCH/DELETE) requests to audit_log collection."""
+    SKIP_PATHS = {"/api/health", "/api/auth/refresh", "/api/admin/health/check", "/api/agent/"}
+
+    async def dispatch(self, request: Request, call_next):
+        response = await call_next(request)
+        # Only log admin routes and mutating requests (not GETs to regular routes)
+        path = request.url.path
+        method = request.method
+        should_log = (
+            "/admin/" in path or
+            (method in ("POST", "PUT", "PATCH", "DELETE") and not any(path.startswith(s) for s in self.SKIP_PATHS))
+        )
+        if should_log and response.status_code < 500:
+            try:
+                from middleware.audit import log_audit_event, AuditAction, get_client_ip
+                # Determine action from method
+                action_map = {"POST": AuditAction.CREATE, "PUT": AuditAction.UPDATE,
+                              "PATCH": AuditAction.UPDATE, "DELETE": AuditAction.DELETE, "GET": AuditAction.READ}
+                action = action_map.get(method, AuditAction.READ)
+                if "/admin/" in path:
+                    action = AuditAction.ADMIN_ACCESS
+                # Extract user info from auth header (non-blocking, best-effort)
+                user_id = ""
+                user_email = ""
+                try:
+                    auth = request.headers.get("authorization", "")
+                    if auth.startswith("Bearer "):
+                        import jwt
+                        token = auth.split(" ", 1)[1]
+                        payload = jwt.decode(token, options={"verify_signature": False})
+                        user_id = payload.get("sub", "")
+                        user_email = payload.get("email", "")
+                except Exception:
+                    pass
+                await log_audit_event(
+                    action=action, resource_type=path.split("/")[2] if len(path.split("/")) > 2 else "unknown",
+                    endpoint=path, method=method, ip_address=get_client_ip(request),
+                    user_id=user_id, user_email=user_email,
+                )
+            except Exception:
+                pass  # Never let audit logging break requests
+        return response
+
+app.add_middleware(AuditMiddleware)
+
 # ── Global exception handler: NEVER leak tenant data in errors ──
 _error_logger = logging.getLogger("error_handler")
 
@@ -114,13 +163,34 @@ async def safe_exception_handler(request: Request, exc: Exception):
     Catches ALL unhandled exceptions. Returns a safe, generic error
     with an opaque reference ID. NEVER includes stack traces, SQL errors,
     tenant data, or any internal details in the response.
+    Also writes to error_log collection for the Error Logs dashboard.
     """
+    import traceback
     error_ref = str(uuid.uuid4())[:8].upper()
     _error_logger.critical(
         f"Unhandled exception ref={error_ref}: {type(exc).__name__}: {exc}",
         exc_info=True,
         extra={"error_ref": error_ref, "path": str(request.url.path)}
     )
+    # Write to MongoDB error_log for the admin Error Logs dashboard
+    try:
+        from database import get_database
+        db = get_database()
+        if db is not None:
+            from datetime import datetime
+            severity = "critical" if "database" in str(exc).lower() or "mongo" in str(exc).lower() else "error"
+            await db.error_log.insert_one({
+                "reference": error_ref,
+                "severity": severity,
+                "type": type(exc).__name__,
+                "message": str(exc)[:500],
+                "path": str(request.url.path),
+                "method": request.method,
+                "traceback": traceback.format_exc()[-2000:],
+                "created_at": datetime.utcnow(),
+            })
+    except Exception:
+        pass  # Never let error logging break the error handler
     return JSONResponse(
         status_code=500,
         content={

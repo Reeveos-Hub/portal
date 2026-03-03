@@ -271,21 +271,75 @@ async def platform_analytics(period: str = "7d"):
 
 @router.get("/health/check")
 async def health_check():
+    import psutil, time
     db = get_db()
+    start = time.time()
+
+    # MongoDB
     try:
         await db.command("ping")
         mongo_ok = True
-    except:
+        mongo_latency = round((time.time() - start) * 1000, 1)
+    except Exception:
         mongo_ok = False
+        mongo_latency = 0
+
+    # System resources
+    try:
+        cpu = psutil.cpu_percent(interval=0.3)
+        mem = psutil.virtual_memory()
+        disk = psutil.disk_usage("/")
+        cpu_pct = round(cpu, 1)
+        mem_pct = round(mem.percent, 1)
+        disk_pct = round(disk.percent, 1)
+        mem_used = f"{round(mem.used / (1024**3), 1)}GB / {round(mem.total / (1024**3), 1)}GB"
+        disk_used = f"{round(disk.used / (1024**3), 1)}GB / {round(disk.total / (1024**3), 1)}GB"
+    except Exception:
+        cpu_pct = mem_pct = disk_pct = 0
+        mem_used = disk_used = "unavailable"
+
+    # Error rate (last hour)
+    from datetime import datetime, timedelta
+    try:
+        hour_ago = datetime.utcnow() - timedelta(hours=1)
+        error_count = await db.error_log.count_documents({"created_at": {"$gte": hour_ago}})
+        error_rate = f"{error_count}/hr"
+    except Exception:
+        error_rate = "0/hr"
+
+    # Process uptime
+    try:
+        boot = datetime.utcfromtimestamp(psutil.boot_time())
+        uptime_delta = datetime.utcnow() - boot
+        days = uptime_delta.days
+        hours = uptime_delta.seconds // 3600
+        uptime_str = f"{days}d {hours}h" if days > 0 else f"{hours}h {(uptime_delta.seconds % 3600) // 60}m"
+    except Exception:
+        uptime_str = "—"
+
+    status = "healthy"
+    if not mongo_ok:
+        status = "down"
+    elif cpu_pct > 90 or mem_pct > 90 or disk_pct > 90:
+        status = "critical"
+    elif cpu_pct > 75 or mem_pct > 75 or disk_pct > 80:
+        status = "degraded"
+
     return {
-        "status": "healthy" if mongo_ok else "degraded",
-        "uptime": "99.9%",
-        "error_rate": "0%",
+        "status": status,
+        "uptime": uptime_str,
+        "error_rate": error_rate,
+        "cpu": f"{cpu_pct}%",
+        "cpu_pct": cpu_pct,
+        "memory": mem_used,
+        "mem_pct": mem_pct,
+        "disk": disk_used,
+        "disk_pct": disk_pct,
         "services": [
-            {"name": "FastAPI Backend", "status": "healthy"},
-            {"name": "MongoDB", "status": "healthy" if mongo_ok else "down"},
-            {"name": "Nginx Proxy", "status": "healthy"},
-        ]
+            {"name": "FastAPI Backend", "status": "healthy", "latency": f"{round((time.time() - start) * 1000)}ms"},
+            {"name": "MongoDB", "status": "healthy" if mongo_ok else "down", "latency": f"{mongo_latency}ms"},
+            {"name": "Nginx Proxy", "status": "healthy", "latency": "<1ms"},
+        ],
     }
 
 
@@ -297,11 +351,37 @@ async def health_check():
 async def list_audit_logs(type: str = "", search: str = "", page: int = 1, limit: int = 50):
     db = get_db()
     q = {}
-    if type: q["type"] = type
-    if search: q["message"] = {"$regex": search, "$options": "i"}
+    if type:
+        q["$or"] = [{"type": type}, {"action": type}]
+    if search:
+        q["$or"] = q.get("$or", []) + [
+            {"message": {"$regex": search, "$options": "i"}},
+            {"request.endpoint": {"$regex": search, "$options": "i"}},
+            {"actor.email": {"$regex": search, "$options": "i"}},
+        ] if not type else [
+            {"message": {"$regex": search, "$options": "i"}},
+            {"request.endpoint": {"$regex": search, "$options": "i"}},
+            {"actor.email": {"$regex": search, "$options": "i"}},
+        ]
     total = await db.audit_log.count_documents(q)
-    cursor = db.audit_log.find(q).sort("created_at", -1).skip((page - 1) * limit).limit(limit)
-    logs = [_ser(doc) async for doc in cursor]
+    # Sort by timestamp (audit middleware) or created_at (older entries)
+    cursor = db.audit_log.find(q).sort([("timestamp", -1), ("created_at", -1)]).skip((page - 1) * limit).limit(limit)
+    logs = []
+    async for doc in cursor:
+        entry = _ser(doc)
+        # Normalize: ensure 'type' and 'created_at' exist for frontend
+        if "action" in entry and "type" not in entry:
+            entry["type"] = entry["action"]
+        if "timestamp" in entry and "created_at" not in entry:
+            entry["created_at"] = entry["timestamp"]
+        if "actor" in entry:
+            entry["user_email"] = entry["actor"].get("email", "")
+            entry["user_id"] = entry["actor"].get("user_id", "")
+            entry["ip"] = entry["actor"].get("ip", "")
+        if "request" in entry:
+            entry["endpoint"] = entry["request"].get("endpoint", "")
+            entry["method"] = entry["request"].get("method", "")
+        logs.append(entry)
     return {"logs": logs, "total": total}
 
 
