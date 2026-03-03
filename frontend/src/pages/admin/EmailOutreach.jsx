@@ -334,7 +334,7 @@ export default function EmailOutreach() {
             <MetricCard label="Warm Leads" value={stats?.warm_leads_this_week || 0} icon="fa-fire" color="#f97316" subtitle="This week" />
             <MetricCard label="Bounce Rate" value={`${((stats?.bounce_rate || 0) * 100).toFixed(1)}%`} icon="fa-exclamation"
               color={(stats?.bounce_rate || 0) > 0.02 ? '#dc2626' : '#22c55e'}
-              subtitle={(stats?.bounce_rate || 0) <= 0.02 ? '✓ Under 2% limit' : '⚠ Above threshold'}
+              subtitle={(stats?.bounce_rate || 0) <= 0.02 ? 'Under 2% limit' : 'Above threshold'}
             />
           </div>
 

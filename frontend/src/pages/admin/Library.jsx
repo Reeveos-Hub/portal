@@ -294,7 +294,7 @@ export default function Library() {
             }`}>
               {uploadResult.success ? (
                 <div>
-                  <p className="font-bold mb-1">✓ Imported {uploadResult.count} document{uploadResult.count > 1 ? 's' : ''}</p>
+                  <p className="font-bold mb-1">Imported {uploadResult.count} document{uploadResult.count > 1 ? 's' : ''}</p>
                   {uploadResult.docs?.map((d, i) => (
                     <div key={i} className="flex items-center gap-2 mt-1">
                       <span className="text-emerald-500">→</span>

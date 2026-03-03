@@ -16,11 +16,11 @@ const API = import.meta.env.VITE_API_URL || ''
 
 /* ─── Constants ─── */
 const STAGES = [
-  { id: 'backlog', label: 'Backlog', icon: '☐', color: '#6B7280' },
-  { id: 'in_dev', label: 'In Dev', icon: '⚡', color: '#C9A84C' },
-  { id: 'testing', label: 'Testing', icon: '🧪', color: '#F59E0B' },
-  { id: 'staging', label: 'Staging', icon: '📦', color: '#3B82F6' },
-  { id: 'live', label: 'Live', icon: '●', color: '#10B981' },
+  { id: 'backlog', label: 'Backlog', icon: '—', color: '#6B7280' },
+  { id: 'in_dev', label: 'In Dev', icon: '›', color: '#C9A84C' },
+  { id: 'testing', label: 'Testing', icon: '~', color: '#F59E0B' },
+  { id: 'staging', label: 'Staging', icon: '◇', color: '#3B82F6' },
+  { id: 'live', label: 'Live', icon: '•', color: '#10B981' },
 ]
 
 const PRIS = {
@@ -31,13 +31,13 @@ const PRIS = {
 }
 
 const CATS = {
-  'E-Commerce': { icon: '🛒', c: '#10B981' },
-  CRM: { icon: '👤', c: '#6366F1' },
-  Reviews: { icon: '⭐', c: '#F59E0B' },
-  SEO: { icon: '🔍', c: '#3B82F6' },
-  EPOS: { icon: '💻', c: '#EC4899' },
-  Payments: { icon: '💳', c: '#14B8A6' },
-  Platform: { icon: '🏗', c: '#8B5CF6' },
+  'E-Commerce': { icon: '○', c: '#10B981' },
+  CRM: { icon: '○', c: '#6366F1' },
+  Reviews: { icon: '○', c: '#F59E0B' },
+  SEO: { icon: '○', c: '#3B82F6' },
+  EPOS: { icon: '○', c: '#EC4899' },
+  Payments: { icon: '○', c: '#14B8A6' },
+  Platform: { icon: '○', c: '#8B5CF6' },
 }
 
 const EFF_C = { Low: '#10B981', Medium: '#F59E0B', High: '#EF4444' }
@@ -266,7 +266,7 @@ export default function CommandCentre() {
           <div className="flex items-center gap-2">
             {features.length === 0 && (
               <button onClick={handleSeed} disabled={seeding} className="px-4 py-2 rounded-lg bg-amber-500 text-black text-xs font-bold hover:bg-amber-400 transition-colors disabled:opacity-50 animate-pulse">
-                {seeding ? 'Seeding...' : '⚡ Seed 35 Features'}
+                {seeding ? 'Seeding...' : 'Seed 35 Features'}
               </button>
             )}
             <button onClick={() => setShowAdd(true)} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-500/15 text-emerald-400 text-xs font-semibold hover:bg-emerald-500/25 transition-colors">
@@ -440,7 +440,7 @@ function TreeView({ treeData, onSelect, selected }) {
   return (
     <div className="p-4 space-y-1">
       {Object.entries(treeData).sort(([a], [b]) => a.localeCompare(b)).map(([cat, items]) => {
-        const catMeta = CATS[cat] || { icon: '📁', c: '#6B7280' }
+        const catMeta = CATS[cat] || { icon: '○', c: '#6B7280' }
         const isOpen = expanded.includes(cat)
         const doneCount = items.reduce((sum, f) => sum + (f.checks?.filter(c => c.d).length || 0), 0)
         const totalCount = items.reduce((sum, f) => sum + (f.checks?.length || 0), 0)

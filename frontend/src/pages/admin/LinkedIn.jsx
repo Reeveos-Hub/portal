@@ -17,11 +17,11 @@ const FRAMEWORKS = {
 }
 
 const TONES = [
-  { value: 'default', label: 'Default', icon: '✍️' },
-  { value: 'bold', label: 'Bold', icon: '🔥' },
-  { value: 'vulnerable', label: 'Vulnerable', icon: '💭' },
-  { value: 'data-driven', label: 'Data-Driven', icon: '📊' },
-  { value: 'story-heavy', label: 'Story-Heavy', icon: '📖' },
+  { value: 'default', label: 'Default', icon: '—' },
+  { value: 'bold', label: 'Bold', icon: '—' },
+  { value: 'vulnerable', label: 'Vulnerable', icon: '—' },
+  { value: 'data-driven', label: 'Data-Driven', icon: '—' },
+  { value: 'story-heavy', label: 'Story-Heavy', icon: '—' },
 ]
 
 const TABS = [

@@ -2,22 +2,22 @@ import { useState } from "react"
 
 const TABS = [
   { id: "overview", label: "Overview", icon: "◻" },
-  { id: "products", label: "Products", icon: "🛍" },
-  { id: "courses", label: "Courses", icon: "🎓" },
-  { id: "discounts", label: "Discounts", icon: "🏷" },
-  { id: "loyalty", label: "Loyalty", icon: "⭐" },
-  { id: "vouchers", label: "Gift Vouchers", icon: "🎁" },
-  { id: "orders", label: "Orders", icon: "📦" },
-  { id: "storefront", label: "Storefront", icon: "🌐" },
+  { id: "products", label: "Products", icon: "○" },
+  { id: "courses", label: "Courses", icon: "○" },
+  { id: "discounts", label: "Discounts", icon: "○" },
+  { id: "loyalty", label: "Loyalty", icon: "○" },
+  { id: "vouchers", label: "Gift Vouchers", icon: "○" },
+  { id: "orders", label: "Orders", icon: "○" },
+  { id: "storefront", label: "Storefront", icon: "○" },
 ]
 
 /* ─── Mock Data ─── */
 const MOCK_PRODUCTS = [
-  { id: 1, name: "Dermalogica Daily Microfoliant", price: 49.50, stock: 24, category: "Skincare", image: "🧴", status: "active" },
-  { id: 2, name: "PreCleanse Balm", price: 38.00, stock: 12, category: "Skincare", image: "🫧", status: "active" },
-  { id: 3, name: "Active Moist Moisturizer", price: 52.00, stock: 0, category: "Skincare", image: "💧", status: "out_of_stock" },
-  { id: 4, name: "Skin Smoothing Cream", price: 55.00, stock: 8, category: "Skincare", image: "✨", status: "active" },
-  { id: 5, name: "Gift Set – Hydration Bundle", price: 89.99, stock: 15, category: "Gift Sets", image: "🎀", status: "active" },
+  { id: 1, name: "Dermalogica Daily Microfoliant", price: 49.50, stock: 24, category: "Skincare", image: "—", status: "active" },
+  { id: 2, name: "PreCleanse Balm", price: 38.00, stock: 12, category: "Skincare", image: "—", status: "active" },
+  { id: 3, name: "Active Moist Moisturizer", price: 52.00, stock: 0, category: "Skincare", image: "—", status: "out_of_stock" },
+  { id: 4, name: "Skin Smoothing Cream", price: 55.00, stock: 8, category: "Skincare", image: "—", status: "active" },
+  { id: 5, name: "Gift Set – Hydration Bundle", price: 89.99, stock: 15, category: "Gift Sets", image: "—", status: "active" },
 ]
 
 const MOCK_COURSES = [
@@ -82,12 +82,39 @@ function OverviewPanel() {
         <p className="text-xs text-gray-500">Everything about your online shop at a glance</p>
       </div>
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        <StatCard icon="💷" label="Revenue This Month" value="£0.00" sub="Shop not live yet" />
-        <StatCard icon="📦" label="Orders" value="0" />
-        <StatCard icon="🛍" label="Products" value={MOCK_PRODUCTS.length} sub={`${MOCK_PRODUCTS.filter(p=>p.stock>0).length} in stock`} />
-        <StatCard icon="👥" label="Loyalty Members" value="0" />
+        <StatCard icon="£" label="Revenue This Month" value="£0.00" sub="Shop not live yet" />
+        <StatCard icon="—" label="Orders" value="0" />
+        <StatCard icon="—" label="Products" value={MOCK_PRODUCTS.length} sub={`${MOCK_PRODUCTS.filter(p=>p.stock>0).length} in stock`} />
+        <StatCard icon="—" label="Loyalty Members" value="0" />
       </div>
 
       {/* Quick Setup Checklist */}
       <div className="bg-gray-900/80 border border-gray-800/60 rounded-2xl p-5">
-        <h3 className="text-sm font-bold text-white mb-4
+        <h3 className="text-sm font-bold text-white mb-4">Quick Setup</h3>
+        <p className="text-xs text-gray-500">Shop builder coming soon</p>
+      </div>
+    </div>
+  )
+}
+
+export default function ShopBuilderPrototype() {
+  const [tab, setTab] = useState("overview")
+  return (
+    <div className="p-6 max-w-7xl mx-auto">
+      <h1 className="text-lg font-bold text-white mb-1">Shop Builder</h1>
+      <p className="text-xs text-gray-500 mb-6">E-commerce for your business</p>
+      <div className="flex gap-1 mb-6 overflow-x-auto">
+        {TABS.map(t => (
+          <button key={t.id} onClick={() => setTab(t.id)}
+            className={`px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-colors ${tab === t.id ? 'bg-gray-800 text-white' : 'text-gray-500 hover:text-gray-300'}`}>
+            {t.label}
+          </button>
+        ))}
+      </div>
+      {tab === "overview" && <OverviewPanel />}
+      {tab !== "overview" && (
+        <EmptyState icon="—" title={`${TABS.find(t=>t.id===tab)?.label || 'Section'}`} desc="This section is under development" />
+      )}
+    </div>
+  )
+}

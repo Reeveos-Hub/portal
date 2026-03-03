@@ -190,7 +190,7 @@ export default function AIOps() {
             <StatCard label="Pending Approvals" value={stats?.pending_approvals || 0} icon="fa-shield-halved" color={stats?.pending_approvals > 0 ? '#dc2626' : '#6b7280'} />
             <StatCard label="Emails Sent (24h)" value={stats?.emails_sent_24h || 0} icon="fa-envelope" color="#0A66C2" />
             <StatCard label="Leads (7d)" value={stats?.leads_7d || 0} icon="fa-user-plus" color="#9333ea" />
-            <StatCard label="Health" value="✓" icon="fa-heart" color="#10b981" />
+            <StatCard label="Health" value="OK" icon="fa-heart" color="#10b981" />
           </div>
 
           {/* Task Breakdown */}
@@ -278,7 +278,7 @@ export default function AIOps() {
           {/* Task Result */}
           {taskResult && (
             <div className={`mt-6 rounded-2xl border p-6 ${taskResult.error ? 'bg-red-900/20 border-red-700' : 'bg-green-900/20 border-green-700'}`}>
-              <h3 className="font-bold mb-2">{taskResult.task} — {taskResult.error ? '❌ Error' : '✅ Complete'}</h3>
+              <h3 className="font-bold mb-2">{taskResult.task} — {taskResult.error ? 'Error' : 'Complete'}</h3>
               <pre className="text-sm whitespace-pre-wrap">{taskResult.error || JSON.stringify(taskResult.result, null, 2)}</pre>
             </div>
           )}
@@ -301,7 +301,7 @@ export default function AIOps() {
                   <div className="flex items-start justify-between">
                     <div>
                       <span className="inline-flex px-3 py-1 rounded-full text-xs font-bold bg-red-900/20 text-red-400 border border-red-700 mb-2">
-                        ⚠️ Requires Approval
+                        Requires Approval
                       </span>
                       <h4 className="font-bold text-white">{a.tool}</h4>
                       <p className="text-sm text-gray-500 mt-1">{a.task}</p>
@@ -312,13 +312,13 @@ export default function AIOps() {
                         onClick={() => handleApproval(a._id, 'approve')}
                         className="px-4 py-2 rounded-xl text-sm font-bold bg-green-600 text-white hover:bg-green-700"
                       >
-                        ✅ Approve
+                        Approve
                       </button>
                       <button
                         onClick={() => handleApproval(a._id, 'reject')}
                         className="px-4 py-2 rounded-xl text-sm font-bold bg-gray-800 text-gray-300 hover:bg-gray-700"
                       >
-                        ✕ Reject
+                        Reject
                       </button>
                     </div>
                   </div>
@@ -340,7 +340,7 @@ export default function AIOps() {
               disabled={runningTask === 'lead_discovery'}
               className="px-4 py-2 rounded-xl text-sm font-bold bg-emerald-700 text-white hover:bg-emerald-800"
             >
-              {runningTask === 'lead_discovery' ? '⏳ Discovering...' : '🔍 Discover Leads'}
+              {runningTask === 'lead_discovery' ? 'Discovering...' : 'Discover Leads'}
             </button>
           </div>
 
@@ -375,7 +375,7 @@ export default function AIOps() {
                     )}
                   </div>
                   <p className="text-xs text-gray-500 mt-1">{lead.address || lead.city}</p>
-                  {lead.rating && <span className="text-xs text-gray-400">⭐ {lead.rating} ({lead.review_count} reviews)</span>}
+                  {lead.rating && <span className="text-xs text-gray-400">★ {lead.rating} ({lead.review_count} reviews)</span>}
                 </div>
                 <div className="flex items-center gap-2 text-xs text-gray-400">
                   {lead.website && <a href={lead.website} target="_blank" rel="noreferrer" className="text-blue-500 hover:underline">Website</a>}
@@ -405,7 +405,7 @@ export default function AIOps() {
               disabled={runningTask === 'churn_scoring'}
               className="px-4 py-2 rounded-xl text-sm font-bold bg-emerald-700 text-white"
             >
-              {runningTask === 'churn_scoring' ? '⏳ Scoring...' : '🔄 Re-score All'}
+              {runningTask === 'churn_scoring' ? 'Scoring...' : 'Re-score All'}
             </button>
           </div>
 
@@ -458,7 +458,7 @@ export default function AIOps() {
               disabled={runningTask === 'seo_content'}
               className="px-4 py-2 rounded-xl text-sm font-bold bg-emerald-700 text-white"
             >
-              {runningTask === 'seo_content' ? '⏳ Generating...' : '✨ Generate Pages'}
+              {runningTask === 'seo_content' ? 'Generating...' : 'Generate Pages'}
             </button>
           </div>
 
