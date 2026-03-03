@@ -311,9 +311,9 @@ export default function RestaurantCalendar() {
   const nowPercent = useMemo(() => {
     if (!isToday) return null
     const nowMin = nowTime.getHours() * 60 + nowTime.getMinutes() + nowTime.getSeconds() / 60
-    // Only show line when current time is within the visible time range — never fake it
-    if (nowMin < timeRange.start || nowMin > timeRange.end) return null
-    return ((nowMin - timeRange.start) / (timeRange.end - timeRange.start)) * 100
+    // Always show the line on today — clamp to visible range
+    const clamped = Math.max(timeRange.start, Math.min(timeRange.end, nowMin))
+    return ((clamped - timeRange.start) / (timeRange.end - timeRange.start)) * 100
   }, [isToday, timeRange, nowTime])
 
   const nowTimeLabel = useMemo(() => {
