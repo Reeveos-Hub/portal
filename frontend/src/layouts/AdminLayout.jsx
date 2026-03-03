@@ -5,7 +5,7 @@ import {
   Globe, FileText, Settings, LogOut, ChevronLeft, ChevronRight,
   Building2, CalendarCheck, MessageSquare, Star, AlertTriangle,
   CreditCard, ScrollText, Bug, Megaphone, ShieldCheck, Linkedin,
-  TrendingUp, Search, Crosshair, BookOpen, Wallet, Sun, Moon
+  Search, Crosshair, BookOpen, Wallet, Sun, Moon
 } from 'lucide-react'
 
 const NAV_SECTIONS = [
@@ -16,8 +16,7 @@ const NAV_SECTIONS = [
       { id: 'command-centre', label: 'Command Centre', icon: Crosshair, path: '/admin/command-centre' },
       { id: 'ai-ops', label: 'AI Ops Centre', icon: Bot, path: '/admin/ai-ops' },
       { id: 'outreach', label: 'Email Outreach', icon: Send, path: '/admin/outreach' },
-      { id: 'pipeline', label: 'Sales Pipeline', icon: TrendingUp, path: '/admin/pipeline' },
-      { id: 'crm', label: 'Dojo CRM', icon: Wallet, path: '/admin/crm' },
+      { id: 'crm', label: 'CRM', icon: Wallet, path: '/admin/crm' },
       { id: 'library', label: 'Knowledge Library', icon: BookOpen, path: '/admin/library' },
     ],
   },

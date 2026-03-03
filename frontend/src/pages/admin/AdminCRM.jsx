@@ -1,5 +1,5 @@
 /**
- * AdminCRM.jsx — Multi-tenant Dojo CRM
+ * AdminCRM.jsx — Multi-tenant CRM
  * 
  * Two separate profiles: Ambassador + Grant Woods
  * Each has own pipeline, leads, tier settings, residuals
@@ -252,7 +252,7 @@ export default function AdminCRM() {
             </div>
             <div>
               <h1 className="text-lg font-bold text-white">{viewTitle}</h1>
-              <p className="text-[11px] text-gray-500">Dojo CRM — {profile.name}</p>
+              <p className="text-[11px] text-gray-500">CRM — {profile.name}</p>
             </div>
           </div>
           <div className="flex items-center gap-2">
