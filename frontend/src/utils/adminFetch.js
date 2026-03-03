@@ -18,9 +18,10 @@ export default async function adminFetch(url, options = {}) {
 
   const response = await fetch(url, { ...options, headers })
 
-  // If 401/403, redirect to admin login
-  if (response.status === 401 || response.status === 403) {
+  // If 401, session expired — clear and reload to show login
+  if (response.status === 401) {
     sessionStorage.removeItem('rezvo_admin_token')
+    sessionStorage.removeItem('rezvo_admin_user')
     window.location.reload()
     throw new Error('Session expired')
   }

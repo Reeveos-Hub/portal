@@ -7,8 +7,10 @@ from enum import Enum
 class UserRole(str, Enum):
     DINER = "diner"
     OWNER = "owner"
+    BUSINESS_OWNER = "business_owner"
     STAFF = "staff"
     ADMIN = "admin"
+    PLATFORM_ADMIN = "platform_admin"
 
 
 class UserBase(BaseModel):
