@@ -345,6 +345,7 @@ export default function ClientPortal() {
     const cs = myData?.consultation
     const hasForm = cs && cs.status !== 'expired'
     const upcoming = myData?.upcoming_bookings || []
+    const isSalon = biz?.type === 'salon' || biz?.type === 'local_service' || biz?.category === 'salon'
 
     return (
       <div style={shell}>
@@ -365,7 +366,8 @@ export default function ClientPortal() {
         </div>
 
         <div style={{ maxWidth: 400, margin: '0 auto', padding: '16px 16px 32px' }}>
-          {/* Consultation form status */}
+          {/* Consultation form status — salon/local services only */}
+          {isSalon && (
           <div style={{ ...card, marginBottom: 12, border: hasForm ? '1px solid #c6f6d5' : `1px solid ${accent}40`, background: hasForm ? '#f0fff4' : accent + '08' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
               <div style={{ width: 32, height: 32, borderRadius: '50%', background: hasForm ? '#22c55e' : accent, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -388,9 +390,10 @@ export default function ClientPortal() {
               </button>
             )}
           </div>
+          )}
 
           {/* Alerts from form */}
-          {cs?.alerts?.blocks?.length > 0 && (
+          {isSalon && cs?.alerts?.blocks?.length > 0 && (
             <div style={{ ...card, marginBottom: 12, background: '#fef2f2', border: '1px solid #fecaca' }}>
               <p style={{ fontSize: 11, fontWeight: 700, color: '#b91c1c', marginBottom: 4 }}>&#128683; Blocked Treatments</p>
               {cs.alerts.blocks.map((b, i) => <p key={i} style={{ fontSize: 10, color: '#dc2626', margin: '2px 0' }}>{b.label} — {b.condition}</p>)}
@@ -400,11 +403,11 @@ export default function ClientPortal() {
           {/* Quick actions */}
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 16 }}>
             {[
-              { icon: '&#128197;', label: 'Book Appointment', action: () => window.open(`/${slug}`, '_blank') },
-              { icon: '&#128203;', label: hasForm ? 'View Form' : 'Fill Form', action: () => { setStep(0); setView('form') } },
-              { icon: '&#128100;', label: 'My Profile', action: () => {} },
-              { icon: '&#128172;', label: 'Message Us', action: () => {} },
-            ].map((a, i) => (
+              { icon: '&#128197;', label: 'Book Appointment', action: () => window.open(`/${slug}`, '_blank'), show: true },
+              { icon: '&#128203;', label: hasForm ? 'View Form' : 'Fill Form', action: () => { setStep(0); setView('form') }, show: isSalon },
+              { icon: '&#128100;', label: 'My Profile', action: () => {}, show: true },
+              { icon: '&#128172;', label: 'Message Us', action: () => {}, show: true },
+            ].filter(a => a.show).map((a, i) => (
               <button key={i} onClick={a.action} style={{ ...card, cursor: 'pointer', textAlign: 'center', padding: 16, border: '1px solid #f0f0f0' }}>
                 <span style={{ fontSize: 20 }} dangerouslySetInnerHTML={{ __html: a.icon }} />
                 <p style={{ fontSize: 10, fontWeight: 600, color: '#374151', margin: '8px 0 0' }}>{a.label}</p>

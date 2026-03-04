@@ -14,7 +14,7 @@ import {
   LayoutGrid, Megaphone, Settings, HelpCircle,
   ChevronLeft, ChevronRight, ChevronDown, Lock,
   Send, Bot, Linkedin, Bell,
-  Package, Flame, Clock, Wallet
+  Package, Flame, Clock, Wallet, ClipboardCheck
 } from 'lucide-react'
 
 /* ── Color tokens ── */
@@ -54,6 +54,7 @@ const ICON_MAP = {
   'fa-fire-burner': Flame,
   'fa-clock': Clock,
   'fa-cash-register': Wallet,
+  'fa-file-medical': ClipboardCheck,
 }
 
 /* ── Build grouped sections from nav config ── */

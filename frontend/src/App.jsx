@@ -27,6 +27,7 @@ import BookingLink from './pages/dashboard/BookingLink'
 import OnlineBooking from './pages/dashboard/OnlineBooking'
 import Orders from './pages/dashboard/Orders'
 import Clients from './pages/dashboard/Clients'
+import ConsultationForms from './pages/dashboard/ConsultationForms'
 import Notifications from './pages/dashboard/Notifications'
 import Marketing from './pages/dashboard/Marketing'
 import Payments from './pages/dashboard/Payments'
@@ -182,6 +183,7 @@ const App = () => {
               <Route path="online-booking" element={<OnlineBooking />} />
               <Route path="orders" element={<Orders />} />
               <Route path="clients" element={<Clients />} />
+              <Route path="consultation-forms" element={<ConsultationForms />} />
               <Route path="reviews" element={<Reviews />} />
               <Route path="analytics" element={<Analytics />} />
               <Route path="payments" element={<Payments />} />

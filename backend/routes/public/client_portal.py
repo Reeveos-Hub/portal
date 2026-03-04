@@ -97,6 +97,7 @@ async def get_business_info(slug: str):
         "name": biz.get("name", ""),
         "slug": slug,
         "type": biz.get("type", ""),
+        "category": biz.get("category", ""),
         "address": biz.get("address", ""),
         "logo_url": branding.get("logo_url") or biz.get("logo_url", ""),
         "banner_url": branding.get("banner_url") or biz.get("banner_url", ""),
