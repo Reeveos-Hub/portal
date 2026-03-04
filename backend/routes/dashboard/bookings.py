@@ -95,7 +95,7 @@ async def get_reservation(
     
     if (reservation["user_id"] != str(current_user["_id"]) and 
         business.get("owner_id") != str(current_user["_id"]) and
-        current_user.get("role") not in ["staff", "admin"]):
+        current_user.get("role") not in ["staff", "business_owner", "platform_admin", "super_admin"]):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Not authorized to view this reservation"
@@ -139,7 +139,7 @@ async def update_reservation(
     
     if (reservation["user_id"] != str(current_user["_id"]) and 
         business.get("owner_id") != str(current_user["_id"]) and
-        current_user.get("role") not in ["staff", "admin"]):
+        current_user.get("role") not in ["staff", "business_owner", "platform_admin", "super_admin"]):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Not authorized to update this reservation"
@@ -495,7 +495,7 @@ async def get_business_calendar(
             detail="Business not found"
         )
     
-    if business.get("owner_id") != tenant.user_id and tenant.role != "admin":
+    if business.get("owner_id") != tenant.user_id and tenant.role not in ("platform_admin", "super_admin"):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Not authorized to view this calendar"

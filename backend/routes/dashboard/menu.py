@@ -25,7 +25,7 @@ async def _get_business(db, business_id: str, user: dict):
         raise HTTPException(404, "Business not found")
     owner = str(b.get("owner_id", ""))
     uid = str(user.get("_id", ""))
-    if owner and owner != uid and str(user.get("role", "")).lower() not in ("staff", "admin", "owner"):
+    if owner and owner != uid and str(user.get("role", "")).lower() not in ("staff", "business_owner", "platform_admin", "super_admin"):
         raise HTTPException(403, "Not authorized")
     return b
 

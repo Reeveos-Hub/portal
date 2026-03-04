@@ -58,7 +58,8 @@ async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(s
 
 
 async def get_current_owner(current_user: dict = Depends(get_current_user)):
-    if current_user["role"] not in [UserRole.OWNER.value, UserRole.BUSINESS_OWNER.value, UserRole.ADMIN.value, UserRole.PLATFORM_ADMIN.value, UserRole.SUPER_ADMIN.value]:
+    """Business owner or higher."""
+    if current_user["role"] not in ("business_owner", "platform_admin", "super_admin"):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Not enough permissions"
@@ -68,7 +69,7 @@ async def get_current_owner(current_user: dict = Depends(get_current_user)):
 
 async def get_current_admin(current_user: dict = Depends(get_current_user)):
     """Platform admin or super admin — not business owners."""
-    if current_user.get("role") not in ("admin", "platform_admin", "super_admin"):
+    if current_user.get("role") not in ("platform_admin", "super_admin"):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Admin access required"
@@ -87,7 +88,8 @@ async def get_current_super_admin(current_user: dict = Depends(get_current_user)
 
 
 async def get_current_staff(current_user: dict = Depends(get_current_user)):
-    if current_user["role"] not in [UserRole.STAFF.value, UserRole.OWNER.value, UserRole.BUSINESS_OWNER.value, UserRole.ADMIN.value, UserRole.PLATFORM_ADMIN.value, UserRole.SUPER_ADMIN.value]:
+    """Staff or higher."""
+    if current_user["role"] not in ("staff", "business_owner", "platform_admin", "super_admin"):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Not enough permissions"

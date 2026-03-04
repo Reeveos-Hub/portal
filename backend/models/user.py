@@ -6,12 +6,13 @@ from enum import Enum
 
 class UserRole(str, Enum):
     DINER = "diner"
-    OWNER = "owner"
     BUSINESS_OWNER = "business_owner"
     STAFF = "staff"
-    ADMIN = "admin"
     PLATFORM_ADMIN = "platform_admin"
     SUPER_ADMIN = "super_admin"
+    # Legacy — fix_everything.py migrates these on every deploy
+    OWNER = "owner"              # → business_owner
+    ADMIN = "admin"              # → platform_admin
 
 
 class UserBase(BaseModel):

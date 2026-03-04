@@ -14,7 +14,7 @@ const AppLayout = () => {
   useEffect(() => {
     if (!user) {
       navigate('/login')
-    } else if (!isRezvoApp() && !['owner', 'business_owner', 'staff', 'admin', 'platform_admin', 'super_admin'].includes(user.role)) {
+    } else if (!isRezvoApp() && !['business_owner', 'staff', 'platform_admin', 'super_admin'].includes(user.role)) {
       navigate('/') // rezvo.app: diners go to directory
     }
   }, [user, navigate])

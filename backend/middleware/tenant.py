@@ -66,7 +66,7 @@ async def verify_business_access(
     user_email = current_user.get("email", "")
     
     # Admin can access everything (platform admin, not business owner)
-    if user_role == "admin":
+    if user_role in ("platform_admin", "super_admin"):
         ctx = TenantContext(
             user_id=user_id,
             business_id=business_id,

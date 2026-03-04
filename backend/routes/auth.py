@@ -118,7 +118,7 @@ async def login(request: Request, login_data: LoginRequest):
         "email": user.get("email", ""),
         "name": user.get("name", ""),
         "phone": user.get("phone"),
-        "role": user.get("role", "owner"),
+        "role": user.get("role", "diner"),
         "avatar": user.get("avatar"),
         "saved_businesses": user.get("saved_businesses", []),
         "business_ids": [str(bid) for bid in user.get("business_ids", [])],
@@ -243,7 +243,7 @@ async def admin_login(request: Request, login_data: LoginRequest):
             detail="Incorrect email or password",
         )
 
-    if user.get("role", "").lower() not in ("admin", "platform_admin", "super_admin"):
+    if user.get("role", "").lower() not in ("platform_admin", "super_admin"):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Not authorized — admin access only",

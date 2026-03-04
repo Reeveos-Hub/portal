@@ -337,24 +337,28 @@ section("7. FIELD & ROLE CONSISTENCY")
 if tokens.get("grant"):
     status, resp = api_call("/admin/users", token=tokens["grant"])
     if status == 200:
-        valid_roles = {"diner", "owner", "business_owner", "staff", "admin", "platform_admin", "super_admin"}
+        valid_roles = {"diner", "business_owner", "staff", "platform_admin", "super_admin"}
+        invalid_found = False
         for u in resp.get("users", []):
             role = u.get("role", "MISSING")
             if role not in valid_roles:
-                fail(f"User {u.get('email')} role", f"'{role}' not in valid roles")
-        ok("All user roles valid")
+                fail(f"User {u.get('email')} role", f"'{role}' not valid (use business_owner not owner)")
+                invalid_found = True
+        if not invalid_found:
+            ok("All user roles valid (no legacy 'owner' or 'admin')")
     
     # Check all businesses have type field
     status, resp = api_call("/admin/businesses", token=tokens["grant"])
     if status == 200:
+        type_ok = True
         for b in resp.get("businesses", []):
             btype = b.get("type", "NOT SET")
             bcat = b.get("category", "NOT SET")
-            if btype == "NOT SET" and bcat == "NOT SET":
-                fail(f"Business '{b.get('name')}' type", "BOTH type and category missing!")
-            elif btype == "NOT SET":
-                # Warn but not fail if category exists
-                print(f"  ⚠️  {b.get('name')} — type not set (category={bcat})")
+            if btype == "NOT SET":
+                fail(f"Business '{b.get('name')}' type", f"type missing (category={bcat})")
+                type_ok = False
+        if type_ok:
+            ok(f"All {len(resp.get('businesses', []))} businesses have type set")
 
 
 # ═══════════════════════════════════════════════════

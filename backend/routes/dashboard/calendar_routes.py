@@ -33,7 +33,7 @@ async def get_calendar(
     if not business:
         raise HTTPException(404, "Business not found")
     owner_id = str(business.get("owner_id", ""))
-    if owner_id != str(current_user.get("_id", "")) and current_user.get("role") not in ["staff", "admin"]:
+    if owner_id != str(current_user.get("_id", "")) and current_user.get("role") not in ["staff", "business_owner", "platform_admin", "super_admin"]:
         raise HTTPException(403, "Not authorized")
 
     try:

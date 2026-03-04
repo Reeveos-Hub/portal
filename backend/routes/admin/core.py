@@ -184,7 +184,7 @@ async def admin_list_users(
         users.append(u)
     
     # Aggregate stats
-    total_owners = await db.users.count_documents({"role": "owner"})
+    total_owners = await db.users.count_documents({"role": "business_owner"})
     total_staff = await db.users.count_documents({"role": "staff"})
     total_diners = await db.users.count_documents({"role": {"$in": ["diner", "customer", None]}})
     
