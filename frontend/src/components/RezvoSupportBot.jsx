@@ -3,7 +3,7 @@ import { useBusiness } from "../contexts/BusinessContext";
 import { useAuth } from "../contexts/AuthContext";
 import api from "../utils/api";
 
-const API_BASE = import.meta.env.VITE_API_URL || "https://api.rezvo.app";
+const API_BASE = import.meta.env.VITE_API_URL || "https://webportal.reeveos.app/api";
 // AI calls routed through backend — never expose API keys client-side
 
 const REZVO_KNOWLEDGE = `You are Rezvo's AI support assistant. You help restaurant owners, salon owners, barbers, spa owners and their customers with questions about the Rezvo booking platform.
@@ -51,7 +51,7 @@ FEATURES:
 - API access for custom integrations (Unlimited plan)
 
 GETTING STARTED:
-1. Sign up free at rezvo.app — no credit card required
+1. Sign up free at reeveos.app — no credit card required
 2. Add your business details, services, and staff
 3. Connect your Stripe account for payments
 4. Share your booking link with customers
@@ -70,9 +70,9 @@ Q: Do you offer a free trial? A: The Starter plan is free forever. For Growth an
 Q: Can I use Rezvo for multiple locations? A: Yes, on the Unlimited plan (£59/month) you can manage multiple locations from one dashboard.
 
 SUPPORT ESCALATION:
-- If you cannot answer a question confidently, suggest the user emails support@rezvo.app
-- For account-specific issues (billing, passwords, bugs), always recommend emailing support@rezvo.app
-- For feature requests, encourage the user to email feedback@rezvo.app
+- If you cannot answer a question confidently, suggest the user emails support@reeveos.app
+- For account-specific issues (billing, passwords, bugs), always recommend emailing support@reeveos.app
+- For feature requests, encourage the user to email feedback@reeveos.app
 - Never make up features or pricing that isn't listed above
 - Be friendly, professional, and concise
 - Use British English spelling (colour, organisation, etc.)
@@ -324,7 +324,7 @@ Use this data to answer questions about today's bookings, covers, availability, 
       }));
 
       // Route through backend API (handles Anthropic key + CORS)
-      const API_URL = import.meta.env.VITE_API_URL || "https://api.rezvo.app";
+      const API_URL = import.meta.env.VITE_API_URL || "https://webportal.reeveos.app/api";
       const response = await fetch(`${API_URL}/chatbot/chat`, {
         method: "POST",
         headers: {
@@ -339,7 +339,7 @@ Use this data to answer questions about today's bookings, covers, availability, 
       });
 
       const data = await response.json();
-      const assistantText = data.reply || "Sorry, I couldn't process that. Please try again or email support@rezvo.app";
+      const assistantText = data.reply || "Sorry, I couldn't process that. Please try again or email support@reeveos.app";
 
       // Token counts not available through backend proxy
       const inputTokens = 0;
@@ -347,7 +347,7 @@ Use this data to answer questions about today's bookings, covers, availability, 
 
       // Check if bot escalated (mentions support email and suggests emailing)
       const isEscalation =
-        assistantText.toLowerCase().includes("support@rezvo.app") &&
+        assistantText.toLowerCase().includes("support@reeveos.app") &&
         (assistantText.toLowerCase().includes("email") ||
           assistantText.toLowerCase().includes("contact"));
 
@@ -361,7 +361,7 @@ Use this data to answer questions about today's bookings, covers, availability, 
     } catch (err) {
       console.error("Chat error:", err);
       const errorMessage =
-        "I'm having trouble connecting right now. Please try again in a moment, or email us at support@rezvo.app and we'll get back to you within 24 hours.";
+        "I'm having trouble connecting right now. Please try again in a moment, or email us at support@reeveos.app and we'll get back to you within 24 hours.";
 
       setMessages([...updatedMessages, { role: "assistant", content: errorMessage }]);
 
@@ -1021,8 +1021,8 @@ Use this data to answer questions about today's bookings, covers, availability, 
               }}
             >
               AI-powered · For account issues, email{" "}
-              <a href="mailto:support@rezvo.app" style={{ color: "#111111", textDecoration: "none", fontWeight: 600 }}>
-                support@rezvo.app
+              <a href="mailto:support@reeveos.app" style={{ color: "#111111", textDecoration: "none", fontWeight: 600 }}>
+                support@reeveos.app
               </a>
             </div>
           </div>

@@ -132,7 +132,7 @@ const BookingConfirmation = () => {
         </Link>
       </div>
 
-      <p className="text-center text-xs text-gray-400 mt-6">Powered by <a href="https://rezvo.app" target="_blank" rel="noopener noreferrer" className="font-semibold text-[#111111] hover:underline">Rezvo</a></p>
+      <p className="text-center text-xs text-gray-400 mt-6">Powered by <a href="https://reeveos.app" target="_blank" rel="noopener noreferrer" className="font-semibold text-[#111111] hover:underline">ReeveOS</a></p>
     </div>
     </div>
   )

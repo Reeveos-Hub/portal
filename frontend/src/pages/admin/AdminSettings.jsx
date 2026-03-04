@@ -29,7 +29,7 @@ const Toggle = ({ label, desc, value, onChange }) => (
 export default function AdminSettings() {
   const [settings, setSettings] = useState({
     platform_name:'Reeve',
-    support_email:'support@rezvo.app',
+    support_email:'support@reeveos.app',
     stripe_key:'',
     stripe_secret:'',
     resend_key:'',
@@ -103,7 +103,7 @@ export default function AdminSettings() {
 
         <Section title="Email — Resend" icon={Mail} color="pink">
           <Field label="Resend API Key" value={settings.resend_key} onChange={u('resend_key')} type="password" placeholder="re_..."/>
-          <Field label="Sending Domain" value={settings.resend_domain} onChange={u('resend_domain')} placeholder="mail.rezvo.app"/>
+          <Field label="Sending Domain" value={settings.resend_domain} onChange={u('resend_domain')} placeholder="mail.reeveos.app"/>
         </Section>
 
         <Section title="AI — Anthropic" icon={Shield} color="amber">

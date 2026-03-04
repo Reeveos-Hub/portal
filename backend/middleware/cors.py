@@ -17,9 +17,14 @@ def setup_cors(app: FastAPI):
         "https://rezvo.app",
         "https://www.rezvo.app",
         "https://portal.rezvo.app",
+        "https://portaladmin.rezvo.app",
+        "https://book.rezvo.app",
         "https://reeveos.app",
         "https://www.reeveos.app",
-        "https://portal.reeveos.app",
+        "https://webportal.reeveos.app",
+        "https://adminportal.reeveos.app",
+        "https://book.reeveos.app",
+        "https://staging.reeveos.app",
         # Dashboard (legacy)
         "https://dashboard.rezvo.co.uk",
     ]

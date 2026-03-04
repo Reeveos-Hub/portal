@@ -73,15 +73,15 @@ import BookingConfirmation from './pages/booking/BookingConfirmation'
 import BookingManage from './pages/booking/BookingManage'
 import { isBookingDomain, isAdminDomain, ADMIN_BASE } from './utils/domain'
 
-/** Redirect old portal.rezvo.app/book/ URLs → book.rezvo.app */
+/** Redirect old portal/book/ URLs → book.reeveos.app */
 const BookingRedirect = () => {
   const path = window.location.pathname.replace(/^\/book/, '')
-  window.location.replace(`https://book.rezvo.app${path}`)
+  window.location.replace(`https://book.reeveos.app${path}`)
   return null
 }
 
 const App = () => {
-  /* If we're on book.rezvo.app, render ONLY booking routes at root level */
+  /* If we're on book domain, render ONLY booking routes at root level */
   if (isBookingDomain()) {
     return (
       <Router>
@@ -92,7 +92,7 @@ const App = () => {
           <Route path="/:businessSlug/manage/:bookingId" element={<BookingManage />} />
           <Route path="/" element={
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', fontFamily: 'Figtree, sans-serif' }}>
-              <p style={{ color: '#888' }}>Enter a restaurant name to book — e.g. book.rezvo.app/restaurant-name</p>
+              <p style={{ color: '#888' }}>Enter a restaurant name to book — e.g. book.reeveos.app/restaurant-name</p>
             </div>
           } />
         </Routes>
@@ -100,7 +100,7 @@ const App = () => {
     )
   }
 
-  /* If we're on portaladmin.rezvo.app, render ONLY admin routes at root level */
+  /* If we're on admin domain, render ONLY admin routes at root level */
   if (isAdminDomain()) {
     return (
       <Router>
@@ -220,7 +220,7 @@ const App = () => {
               <Route path="library" element={<Library />} />
             </Route>
 
-            {/* Old /book/ routes → redirect to book.rezvo.app */}
+            {/* Old /book/ routes → redirect to book.reeveos.app */}
             <Route path="/book/*" element={<BookingRedirect />} />
 
             {/* Root → dashboard (marketing is served as static HTML by Nginx) */}

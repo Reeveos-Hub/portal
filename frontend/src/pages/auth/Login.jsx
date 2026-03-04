@@ -46,7 +46,7 @@ const Login = () => {
         </div>
 
         {/* Logo */}
-        <a href="https://rezvo.app" className="relative z-10 flex items-center gap-3 no-underline">
+        <a href="https://reeveos.app" className="relative z-10 flex items-center gap-3 no-underline">
           <div className="w-11 h-11 bg-[#D4A373] rounded-xl flex items-center justify-center shadow-md">
             <span className="text-[#111111] font-bold text-xl">R.</span>
           </div>

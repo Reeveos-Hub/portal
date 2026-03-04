@@ -13,13 +13,13 @@ const BusinessTypeSelector = () => {
     <div className="min-h-screen bg-[#FEFBF4] flex flex-col" style={{ fontFamily: "'Figtree', sans-serif" }}>
       {/* Top bar */}
       <div className="p-6 flex items-center justify-between">
-        <a href="https://rezvo.app" className="flex items-center gap-3 no-underline">
+        <a href="https://reeveos.app" className="flex items-center gap-3 no-underline">
           <div className="w-10 h-10 bg-[#D4A373] rounded-xl flex items-center justify-center shadow-md">
             <span className="text-[#111111] font-bold text-lg">R.</span>
           </div>
           <span className="font-extrabold text-xl tracking-tight text-[#111111]">Rezvo</span>
         </a>
-        <a href="https://rezvo.app" className="text-sm text-gray-500 hover:text-[#111111] flex items-center gap-2 transition-colors">
+        <a href="https://reeveos.app" className="text-sm text-gray-500 hover:text-[#111111] flex items-center gap-2 transition-colors">
           <ArrowLeft className="w-4 h-4" /> Back to website
         </a>
       </div>
