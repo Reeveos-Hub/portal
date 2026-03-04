@@ -45,6 +45,8 @@ class Settings(BaseSettings):
     frontend_url: str = "https://rezvo.app"
     backend_url: str = "https://rezvo.app/api"
     
+    encryption_key: Optional[str] = None   # Fernet key for PII at-rest encryption
+    
     environment: str = "production"
 
     class Config:
