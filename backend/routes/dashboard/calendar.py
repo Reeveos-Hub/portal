@@ -144,7 +144,7 @@ async def get_calendar(
             "isNewClient": b.get("is_new_client", False),
             "price": price,
             "notes": nb["notes"],
-            "channel": nb["source"],
+            "source": nb["source"],
         })
 
     bookings.sort(key=lambda x: x.get("time", ""))
@@ -282,7 +282,7 @@ async def get_calendar_restaurant(
             "duration": bl["duration"],
             "allergens": b.get("allergens", []),
             "deposit": b.get("deposit", {}),
-            "channel": b.get("channel", "online"),
+            "source": b.get("source", b.get("channel", "online")),
             "seatingPreference": b.get("seatingPreference"),
         })
 

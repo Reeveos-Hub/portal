@@ -63,7 +63,7 @@ async def main():
     bid = str(r.inserted_id)
     await db.users.update_one(
         {"_id": user["_id"]},
-        {"$set": {"business_ids": [bid], "role": "owner"}}
+        {"$set": {"business_ids": [bid], "role": "business_owner"}}
     )
     print(f"Created Coffee Haven ({bid}) - Enterprise tier. DONE.")
 

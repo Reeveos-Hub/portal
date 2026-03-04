@@ -32,6 +32,7 @@ VALID_ROLES = {"super_admin", "platform_admin", "business_owner", "staff", "dine
 ROLE_FIXES = {"owner": "business_owner", "admin": "platform_admin"}
 
 ORIGINAL_MICHO = "699bdb20a2ccbc6589c1d0f8"
+ORIGINAL_REJUVENATE = "699bdb20a2ccbc6589c1d0f7"
 
 
 async def main():
@@ -132,6 +133,61 @@ async def main():
             print(f"  ✅ Already linked to original Micho")
 
     # ═══════════════════════════════════════════════════════════════
+    # 3b. LEVELAMBASSADOR → ORIGINAL REJUVENATE
+    # ═══════════════════════════════════════════════════════════════
+    print("\n═══ 3b. FIX LEVELAMBASSADOR → ORIGINAL REJUVENATE ═══")
+    natalie = await db.users.find_one({"email": "levelambassador@gmail.com"})
+    if natalie:
+        nat_biz = natalie.get("business_ids", [])
+        nat_stale = natalie.get("business_id", "")
+        nat_update = {}
+        if ORIGINAL_REJUVENATE not in [str(b) for b in nat_biz]:
+            nat_update["business_ids"] = [ORIGINAL_REJUVENATE]
+        if str(nat_stale) != ORIGINAL_REJUVENATE:
+            nat_update["business_id"] = ORIGINAL_REJUVENATE
+        if nat_update:
+            await db.users.update_one({"_id": natalie["_id"]}, {"$set": nat_update})
+            print(f"  ✅ Relinked levelambassador → {ORIGINAL_REJUVENATE}")
+        else:
+            print(f"  ✅ Already linked to original Rejuvenate")
+
+    # ═══════════════════════════════════════════════════════════════
+    # 3c. DELETE DUPLICATE BUSINESSES
+    # ═══════════════════════════════════════════════════════════════
+    print("\n═══ 3c. DELETE DUPLICATE BUSINESSES ═══")
+    # Originals: Micho=699bdb20a2ccbc6589c1d0f8, Rejuvenate=699bdb20a2ccbc6589c1d0f7
+    # Find duplicates by name (same name, different ID from original)
+    for orig_id, orig_name in [(ORIGINAL_MICHO, "Micho"), (ORIGINAL_REJUVENATE, "Rejuvenate")]:
+        orig = await db.businesses.find_one({"_id": ObjectId(orig_id)})
+        if not orig:
+            continue
+        dupes = await db.businesses.find({
+            "name": orig["name"],
+            "_id": {"$ne": ObjectId(orig_id)}
+        }).to_list(None)
+        for dupe in dupes:
+            dupe_id = str(dupe["_id"])
+            # Reassign any users pointing to the dupe
+            await db.users.update_many(
+                {"business_ids": dupe_id},
+                {"$set": {"business_ids": [orig_id], "business_id": orig_id}}
+            )
+            # Reassign any bookings pointing to the dupe
+            await db.bookings.update_many(
+                {"businessId": dupe_id},
+                {"$set": {"businessId": orig_id}}
+            )
+            # Delete the duplicate
+            await db.businesses.delete_one({"_id": dupe["_id"]})
+            print(f"  ✅ Deleted duplicate {orig_name}: {dupe_id} (users/bookings reassigned → {orig_id})")
+    
+    # Verify remaining businesses
+    remaining = await db.businesses.find({}, {"name": 1, "type": 1, "category": 1}).to_list(None)
+    print(f"  📊 Remaining businesses: {len(remaining)}")
+    for b in remaining:
+        print(f"     {b['_id']}: {b.get('name')} — type={b.get('type')} category={b.get('category')}")
+
+    # ═══════════════════════════════════════════════════════════════
     # 4. BUSINESS TYPE CONSISTENCY — type must always be set
     # ═══════════════════════════════════════════════════════════════
     print("\n═══ 4. FIX BUSINESS TYPES (type must match category) ═══")
@@ -223,6 +279,64 @@ async def main():
             total_cleaned += result.modified_count
     if total_cleaned == 0:
         print("  ✅ No legacy fields found — already clean")
+
+    # ═══════════════════════════════════════════════════════════════
+    # 8. CLEAN ALL USERS — remove stale/null fields, sync business_id
+    # ═══════════════════════════════════════════════════════════════
+    print("\n═══ 8. CLEAN USER RECORDS ═══")
+    all_users = await db.users.find({}).to_list(None)
+    user_fixes = 0
+    for u in all_users:
+        updates = {}
+        unsets = {}
+        
+        # Remove businessId: None (useless field)
+        if u.get("businessId") is None and "businessId" in u:
+            unsets["businessId"] = ""
+        
+        # Sync business_id to match business_ids[0] if they differ
+        biz_ids = u.get("business_ids", [])
+        biz_id_single = u.get("business_id", "")
+        if biz_ids and len(biz_ids) > 0:
+            correct = str(biz_ids[0])
+            if str(biz_id_single) != correct:
+                updates["business_id"] = correct
+        elif not biz_ids and biz_id_single:
+            # Has business_id but no business_ids — clean it
+            unsets["business_id"] = ""
+        
+        ops = {}
+        if updates:
+            ops["$set"] = updates
+        if unsets:
+            ops["$unset"] = unsets
+        if ops:
+            await db.users.update_one({"_id": u["_id"]}, ops)
+            user_fixes += 1
+    
+    if user_fixes:
+        print(f"  ✅ Cleaned {user_fixes} user records")
+    else:
+        print("  ✅ All user records clean")
+
+    # ═══════════════════════════════════════════════════════════════
+    # FINAL AUDIT — print the state of the entire system
+    # ═══════════════════════════════════════════════════════════════
+    print("\n═══ FINAL AUDIT ═══")
+    biz_count = await db.businesses.count_documents({})
+    user_count = await db.users.count_documents({})
+    booking_count = await db.bookings.count_documents({})
+    legacy_check = 0
+    for lf in ["table_name", "channel", "party_size", "customerName", "client_name"]:
+        legacy_check += await db.bookings.count_documents({lf: {"$exists": True}})
+    owner_count = await db.users.count_documents({"role": "owner"})
+    admin_count = await db.users.count_documents({"role": "admin"})
+    print(f"  Businesses: {biz_count}")
+    print(f"  Users: {user_count}")
+    print(f"  Bookings: {booking_count}")
+    print(f"  Legacy booking fields remaining: {legacy_check} {'✅' if legacy_check == 0 else '❌'}")
+    print(f"  Legacy 'owner' roles remaining: {owner_count} {'✅' if owner_count == 0 else '❌'}")
+    print(f"  Legacy 'admin' roles remaining: {admin_count} {'✅' if admin_count == 0 else '❌'}")
 
     print("\n═══ DONE ═══")
     client.close()

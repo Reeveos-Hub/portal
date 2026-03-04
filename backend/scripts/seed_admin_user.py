@@ -31,12 +31,12 @@ async def main():
             await db.users.update_one(
                 {"_id": existing["_id"]},
                 {"$set": {
-                    "role": "admin",
+                    "role": "super_admin",
                     "password_hash": pwd_context.hash(ADMIN_PASSWORD),
                     "updated_at": datetime.utcnow(),
                 }},
             )
-            print(f"✅ Updated {ADMIN_EMAIL} → role: admin, password reset")
+            print(f"✅ Updated {ADMIN_EMAIL} → role: super_admin, password reset")
         else:
             # Just update password
             await db.users.update_one(
@@ -53,7 +53,7 @@ async def main():
             "email": ADMIN_EMAIL,
             "name": ADMIN_NAME,
             "phone": "",
-            "role": "admin",
+            "role": "super_admin",
             "password_hash": pwd_context.hash(ADMIN_PASSWORD),
             "avatar": None,
             "saved_businesses": [],

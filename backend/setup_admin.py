@@ -48,7 +48,7 @@ async def main():
             "name": ADMIN_NAME,
             "email": ADMIN_EMAIL,
             "password_hash": pwd_context.hash(ADMIN_PASSWORD),
-            "role": "owner",
+            "role": "business_owner",
             "account_type": "business_owner",
             "business_ids": [],
             "saved_businesses": [],
@@ -66,13 +66,13 @@ async def main():
         print(f"  ✅ Created user: {result.inserted_id}")
     else:
         print(f"  ✓ Admin user exists: {user['_id']}")
-        # Ensure role is owner
-        if user.get("role") != "owner":
+        # Ensure role is business_owner
+        if user.get("role") not in ("business_owner", "super_admin", "platform_admin"):
             await db.users.update_one(
                 {"_id": user["_id"]},
-                {"$set": {"role": "owner", "updated_at": datetime.utcnow()}}
+                {"$set": {"role": "business_owner", "updated_at": datetime.utcnow()}}
             )
-            print(f"  ✅ Updated role to owner")
+            print(f"  ✅ Updated role to business_owner")
 
     user_id = str(user["_id"])
 

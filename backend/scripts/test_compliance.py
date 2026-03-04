@@ -171,6 +171,16 @@ async def test_field_naming():
     no_type = await db.businesses.count_documents({"type": {"$exists": False}})
     log("All businesses have 'type' field", no_type == 0, f"{no_type} missing" if no_type > 0 else "clean")
 
+    # No duplicate businesses (same name, different ID)
+    all_biz = await db.businesses.find({}, {"name": 1}).to_list(None)
+    name_counts = {}
+    for b in all_biz:
+        n = b.get("name", "")
+        name_counts[n] = name_counts.get(n, 0) + 1
+    dupes = {n: c for n, c in name_counts.items() if c > 1}
+    log("No duplicate businesses", len(dupes) == 0,
+        f"duplicates: {dupes}" if dupes else "clean")
+
     client.close()
 
 
