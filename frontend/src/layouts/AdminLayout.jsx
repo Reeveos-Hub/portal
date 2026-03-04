@@ -455,8 +455,8 @@ export default function AdminLayout() {
         {/* Brand */}
         <div style={{ height: 56, display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 12px', borderBottom: `1px solid ${t.sidebarBorder}` }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <div style={{ width: 34, height: 34, borderRadius: 10, background: '#111', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-              <span style={{ color: '#C9A84C', fontSize: 14, fontWeight: 900, fontFamily: FIG }}>R<span style={{ fontSize: 6 }}>.</span></span>
+            <div style={{ width: 34, height: 34, borderRadius: 10, background: '#C9A84C', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+              <span style={{ color: '#FFFFFF', fontSize: 14, fontWeight: 900, fontFamily: FIG }}>R<span style={{ fontSize: 6 }}>.</span></span>
             </div>
             {!collapsed && (
               <div>
