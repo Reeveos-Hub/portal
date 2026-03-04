@@ -13,6 +13,7 @@ ACCOUNTS = [
     ("grantwoods@live.com", "Reeve@Grant2026"),
     ("ibbyonline@gmail.com", "Reeve@Micho2026"),
     ("mo.jalloh@me.com", "Reeve@Mo2026"),
+    ("levelambassador@gmail.com", "Reeve@Salon2026"),
 ]
 
 ORIGINAL_MICHO = "699bdb20a2ccbc6589c1d0f8"
