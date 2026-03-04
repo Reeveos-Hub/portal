@@ -421,8 +421,19 @@ async def test_gdpr_compliance():
 
     # 6.4 — Encryption key exists (application-level encryption)
     has_encryption_key = bool(os.environ.get("REZVO_MASTER_KEY") or os.environ.get("ENCRYPTION_KEY"))
+    # Also check .env file directly (script runs outside backend process)
+    if not has_encryption_key:
+        env_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), ".env")
+        if os.path.exists(env_path):
+            with open(env_path) as f:
+                for line in f:
+                    if line.strip().startswith("ENCRYPTION_KEY=") or line.strip().startswith("REZVO_MASTER_KEY="):
+                        val = line.strip().split("=", 1)[1]
+                        if val and len(val) > 8:
+                            has_encryption_key = True
+                            break
     log("Encryption key configured", has_encryption_key,
-        "REZVO_MASTER_KEY set" if has_encryption_key else "NO ENCRYPTION KEY — PII at rest not encrypted")
+        "key set" if has_encryption_key else "NO ENCRYPTION KEY — PII at rest not encrypted")
 
     # 6.5 — Audit logging exists
     audit_count = await db.audit_log.count_documents({})
@@ -504,10 +515,10 @@ def test_pii_exposure():
     # Check for hardcoded emails in non-seed/non-test files
     pii_leaks = []
     email_pattern = re.compile(r"[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+")
-    safe_domains = {"example.com", "test.com", "reeveos.app", "rezvo.app", "micho.co.uk",
-                    "reeveos-seeds.co.uk", "gmail.com", "outlook.com", "hotmail.co.uk",
-                    "hotmail.com", "live.com", "btinternet.com", "me.com", "yahoo.co.uk",
-                    "getrezvo.app", "coffeehaven.com"}
+    safe_domains = {"example.com", "test.com", "reeveos.app", "mail.reeveos.app", "rezvo.app",
+                    "micho.co.uk", "reeveos-seeds.co.uk", "gmail.com", "outlook.com",
+                    "hotmail.co.uk", "hotmail.com", "live.com", "btinternet.com", "me.com",
+                    "yahoo.co.uk", "getrezvo.app", "coffeehaven.com"}
 
     for py_file in glob.glob(os.path.join(backend_dir, "**/*.py"), recursive=True):
         if "__pycache__" in py_file or "test_" in py_file or "seed_" in py_file or "fix_" in py_file or "migrate_" in py_file or "setup_" in py_file:
