@@ -36,17 +36,17 @@ export default function AdminContent() {
       <div className="shrink-0 px-5 pt-5 pb-3 border-b border-gray-800">
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-indigo-500/15 flex items-center justify-center"><FileText size={18} className="text-indigo-400"/></div>
+            <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: 'rgba(201,168,76,0.1)' }}><FileText size={18} style={{ color: '#C9A84C' }}/></div>
             <div><h1 className="text-lg font-bold text-white">Content Engine</h1><p className="text-[11px] text-gray-500">{stats.total} posts · {stats.published} published · {stats.draft} drafts</p></div>
           </div>
           <div className="flex gap-2">
-            <button onClick={()=>setShowCreate(true)} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-indigo-500/15 text-indigo-400 text-xs font-semibold hover:bg-indigo-500/25"><Plus size={13}/>New Post</button>
+            <button onClick={()=>setShowCreate(true)} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold" style={{ background: 'rgba(201,168,76,0.12)', color: '#C9A84C' }}><Plus size={13}/>New Post</button>
             <button onClick={load} className="p-1.5 rounded-lg text-gray-500 hover:text-gray-300 hover:bg-gray-800"><RefreshCw size={14}/></button>
           </div>
         </div>
       </div>
       <div className="flex-1 overflow-y-auto p-4 space-y-3">
-        {posts.length===0&&<div className="text-center py-12"><div className="w-12 h-12 rounded-xl bg-indigo-500/10 flex items-center justify-center mx-auto mb-3"><Zap size={20} className="text-indigo-400"/></div><p className="text-sm text-gray-400 font-medium mb-1">No content yet</p><p className="text-xs text-gray-600">Create blog posts, guides, and marketing content to drive organic traffic.</p></div>}
+        {posts.length===0&&<div className="text-center py-12"><div className="w-12 h-12 rounded-xl flex items-center justify-center mx-auto mb-3" style={{ background: 'rgba(201,168,76,0.1)' }}><Zap size={20} style={{ color: '#C9A84C' }}/></div><p className="text-sm text-gray-400 font-medium mb-1">No content yet</p><p className="text-xs text-gray-600">Create blog posts, guides, and marketing content to drive organic traffic.</p></div>}
         {posts.map(p=>(
           <div key={p._id} className="p-4 rounded-xl border border-gray-800 bg-gray-900/60 flex items-start gap-4">
             <div className="flex-1">
@@ -71,7 +71,7 @@ export default function AdminContent() {
           <div><label className="text-[10px] text-gray-500 uppercase font-semibold">Category</label><select id="cp-cat" className="admin-select w-full mt-1 px-3 py-2 rounded-lg bg-gray-800 border border-gray-700 text-xs text-gray-200"><option>Restaurant Tips</option><option>Platform Updates</option><option>Industry Insights</option><option>Case Studies</option></select></div>
           <div><label className="text-[10px] text-gray-500 uppercase font-semibold">Content</label><textarea id="cp-body" rows={8} className="w-full mt-1 px-3 py-2 rounded-lg bg-gray-800 border border-gray-700 text-xs text-gray-200 focus:outline-none resize-none"/></div>
         </div>
-        <div className="flex justify-end gap-2 mt-4"><button onClick={()=>setShowCreate(false)} className="px-4 py-2 rounded-lg text-xs text-gray-400 bg-gray-800">Cancel</button><button onClick={()=>createPost({title:document.getElementById('cp-title').value,category:document.getElementById('cp-cat').value,body:document.getElementById('cp-body').value,status:'draft'})} className="px-4 py-2 rounded-lg text-xs font-semibold text-white bg-indigo-600">Create Draft</button></div>
+        <div className="flex justify-end gap-2 mt-4"><button onClick={()=>setShowCreate(false)} className="px-4 py-2 rounded-lg text-xs text-gray-400 bg-gray-800">Cancel</button><button onClick={()=>createPost({title:document.getElementById('cp-title').value,category:document.getElementById('cp-cat').value,body:document.getElementById('cp-body').value,status:'draft'})} className="px-4 py-2 rounded-lg text-xs font-semibold text-white" style={{ background: '#C9A84C' }}>Create Draft</button></div>
       </div></div>}
     </div>
   )

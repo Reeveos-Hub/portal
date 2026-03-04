@@ -241,8 +241,8 @@ export default function AIOps() {
                 <div key={task.id} className="bg-gray-900 rounded-2xl border border-gray-800 p-5">
                   <div className="flex items-start justify-between">
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-xl bg-emerald-900/20 flex items-center justify-center">
-                        <i className={`fas ${task.icon} text-emerald-400`} />
+                      <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: 'rgba(201,168,76,0.1)' }}>
+                        <i className={`fas ${task.icon}`} style={{ color: '#C9A84C' }} />
                       </div>
                       <div>
                         <h4 className="font-bold text-white text-sm">{task.label}</h4>

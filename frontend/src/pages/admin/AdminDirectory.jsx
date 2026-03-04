@@ -109,10 +109,8 @@ export default function AdminDirectory() {
             <div key={i} className="bg-gray-900 border border-gray-800 rounded-xl p-4 hover:border-gray-700 transition-all">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3 min-w-0">
-                  <div className={`w-10 h-10 rounded-lg flex items-center justify-center shrink-0 ${
-                    l.is_claimed ? 'bg-emerald-500/10' : 'bg-amber-500/10'
-                  }`}>
-                    {l.is_claimed ? <CheckCircle size={16} className="text-emerald-400" /> : <AlertCircle size={16} className="text-amber-400" />}
+                  <div className="w-10 h-10 rounded-lg flex items-center justify-center shrink-0" style={{ background: 'rgba(201,168,76,0.1)' }}>
+                    {l.is_claimed ? <CheckCircle size={16} style={{ color: '#C9A84C' }} /> : <AlertCircle size={16} style={{ color: '#C9A84C' }} />}
                   </div>
                   <div className="min-w-0">
                     <p className="text-sm font-medium text-white truncate">{l.name}</p>

@@ -29,30 +29,30 @@ export default function AdminEmailMarketing() {
       <div className="shrink-0 px-5 pt-5 pb-3 border-b border-gray-800">
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-purple-500/15 flex items-center justify-center"><Mail size={18} className="text-purple-400"/></div>
+            <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: 'rgba(201,168,76,0.1)' }}><Mail size={18} style={{ color: '#C9A84C' }}/></div>
             <div><h1 className="text-lg font-bold text-white">Email Marketing</h1><p className="text-[11px] text-gray-500">{subscribers.total} subscribers · {subscribers.active} active · {campaigns.length} campaigns</p></div>
           </div>
           <div className="flex gap-2">
-            <button onClick={()=>setShowCreate(true)} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-purple-500/15 text-purple-400 text-xs font-semibold hover:bg-purple-500/25"><Plus size={13}/>New Campaign</button>
+            <button onClick={()=>setShowCreate(true)} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold" style={{ background: 'rgba(201,168,76,0.12)', color: '#C9A84C' }}><Plus size={13}/>New Campaign</button>
             <button onClick={load} className="p-1.5 rounded-lg text-gray-500 hover:text-gray-300 hover:bg-gray-800"><RefreshCw size={14}/></button>
           </div>
         </div>
         <div className="grid grid-cols-4 gap-3">
           {[
-            {label:'Total Subscribers',value:subscribers.total,icon:Users,color:'purple'},
-            {label:'Active',value:subscribers.active,icon:CheckCircle2,color:'emerald'},
-            {label:'Avg Open Rate',value:campaigns.length?`${Math.round(campaigns.reduce((s,c)=>s+(c.open_rate||0),0)/campaigns.length*100)}%`:'—',icon:BarChart3,color:'blue'},
-            {label:'Campaigns Sent',value:campaigns.filter(c=>c.status==='sent').length,icon:Send,color:'amber'},
+            {label:'Total Subscribers',value:subscribers.total,icon:Users},
+            {label:'Active',value:subscribers.active,icon:CheckCircle2},
+            {label:'Avg Open Rate',value:campaigns.length?`${Math.round(campaigns.reduce((s,c)=>s+(c.open_rate||0),0)/campaigns.length*100)}%`:'—',icon:BarChart3},
+            {label:'Campaigns Sent',value:campaigns.filter(c=>c.status==='sent').length,icon:Send},
           ].map((s,i)=>(
             <div key={i} className="bg-gray-900 border border-gray-800 rounded-xl p-3">
-              <div className="flex items-center gap-2 mb-2"><s.icon size={14} className={`text-${s.color}-400`}/><span className="text-[10px] text-gray-500 uppercase font-semibold">{s.label}</span></div>
+              <div className="flex items-center gap-2 mb-2"><s.icon size={14} style={{ color: '#C9A84C' }}/><span className="text-[10px] text-gray-500 uppercase font-semibold">{s.label}</span></div>
               <p className="text-xl font-bold text-white">{s.value}</p>
             </div>
           ))}
         </div>
       </div>
       <div className="flex-1 overflow-y-auto p-4 space-y-3">
-        {campaigns.length===0&&<div className="text-center py-12"><div className="w-12 h-12 rounded-xl bg-purple-500/10 flex items-center justify-center mx-auto mb-3"><Mail size={20} className="text-purple-400"/></div><p className="text-sm text-gray-400 font-medium mb-1">No campaigns yet</p><p className="text-xs text-gray-600">Create your first email campaign to engage restaurant owners and diners.</p></div>}
+        {campaigns.length===0&&<div className="text-center py-12"><div className="w-12 h-12 rounded-xl flex items-center justify-center mx-auto mb-3" style={{ background: 'rgba(201,168,76,0.1)' }}><Mail size={20} style={{ color: '#C9A84C' }}/></div><p className="text-sm text-gray-400 font-medium mb-1">No campaigns yet</p><p className="text-xs text-gray-600">Create your first email campaign to engage restaurant owners and diners.</p></div>}
         {campaigns.map(c=>(
           <div key={c._id} className="p-4 rounded-xl border border-gray-800 bg-gray-900/60">
             <div className="flex items-center justify-between mb-2">
@@ -83,7 +83,7 @@ function CreateCampaignModal({onClose,onCreate}){
         <div><label className="text-[10px] text-gray-500 uppercase font-semibold">Type</label><select value={f.type} onChange={e=>setF(p=>({...p,type:e.target.value}))} className="admin-select w-full mt-1 px-3 py-2 rounded-lg bg-gray-800 border border-gray-700 text-xs text-gray-200"><option value="newsletter">Newsletter</option><option value="promo">Promotion</option><option value="winback">Win-back</option><option value="onboarding">Onboarding</option></select></div>
         <div><label className="text-[10px] text-gray-500 uppercase font-semibold">Audience</label><select value={f.audience} onChange={e=>setF(p=>({...p,audience:e.target.value}))} className="admin-select w-full mt-1 px-3 py-2 rounded-lg bg-gray-800 border border-gray-700 text-xs text-gray-200"><option value="all">All Subscribers</option><option value="owners">Restaurant Owners</option><option value="diners">Diners</option></select></div>
       </div>
-      <div className="flex justify-end gap-2 mt-4"><button onClick={onClose} className="px-4 py-2 rounded-lg text-xs text-gray-400 bg-gray-800">Cancel</button><button onClick={()=>onCreate(f)} className="px-4 py-2 rounded-lg text-xs font-semibold text-white bg-purple-600">Create Campaign</button></div>
+      <div className="flex justify-end gap-2 mt-4"><button onClick={onClose} className="px-4 py-2 rounded-lg text-xs text-gray-400 bg-gray-800">Cancel</button><button onClick={()=>onCreate(f)} className="px-4 py-2 rounded-lg text-xs font-semibold text-white" style={{ background: "#C9A84C" }}>Create Campaign</button></div>
     </div></div>
   )
 }

@@ -33,7 +33,7 @@ export default function AdminErrors() {
       <div className="shrink-0 px-5 pt-5 pb-3 border-b border-gray-800">
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-3">
-            <div className={`w-9 h-9 rounded-xl flex items-center justify-center ${stats.critical>0?'bg-red-500/15':'bg-emerald-500/15'}`}><Bug size={18} className={stats.critical>0?'text-red-400':'text-emerald-400'}/></div>
+            <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: 'rgba(201,168,76,0.1)' }}><Bug size={18} style={{ color: '#C9A84C' }}/></div>
             <div><h1 className="text-lg font-bold text-white">Error Logs</h1><p className="text-[11px] text-gray-500">{stats.total} errors · {stats.critical} critical · {stats.open} open</p></div>
           </div>
           <button onClick={load} className="p-1.5 rounded-lg text-gray-500 hover:text-gray-300 hover:bg-gray-800"><RefreshCw size={14}/></button>
@@ -44,7 +44,7 @@ export default function AdminErrors() {
         </div>
       </div>
       <div className="flex-1 overflow-y-auto p-4">
-        {errors.length===0&&<div className="text-center py-12"><div className="w-12 h-12 rounded-xl bg-emerald-500/10 flex items-center justify-center mx-auto mb-3"><CheckCircle2 size={20} className="text-emerald-400"/></div><p className="text-sm text-gray-400 font-medium mb-1">No errors</p><p className="text-xs text-gray-600">All systems running clean. Errors will appear here when they occur.</p></div>}
+        {errors.length===0&&<div className="text-center py-12"><div className="w-12 h-12 rounded-xl flex items-center justify-center mx-auto mb-3" style={{ background: 'rgba(201,168,76,0.1)' }}><CheckCircle2 size={20} style={{ color: '#C9A84C' }}/></div><p className="text-sm text-gray-400 font-medium mb-1">No errors</p><p className="text-xs text-gray-600">All systems running clean. Errors will appear here when they occur.</p></div>}
         <div className="space-y-2">
           {errors.map(e=>(
             <div key={e._id} className="p-4 rounded-xl border border-gray-800 bg-gray-900/60 cursor-pointer hover:border-gray-700" onClick={()=>setSelected(selected?._id===e._id?null:e)}>
@@ -61,7 +61,7 @@ export default function AdminErrors() {
                   {e.stack&&<pre className="text-[10px] text-gray-500 font-mono bg-gray-800 rounded-lg p-3 mb-3 overflow-x-auto whitespace-pre-wrap">{e.stack}</pre>}
                   <div className="flex gap-2">
                     <button onClick={(ev)=>{ev.stopPropagation();updateError(e._id,'investigating')}} className="px-2.5 py-1 rounded-lg bg-amber-500/10 text-amber-400 text-[10px] font-semibold">Investigating</button>
-                    <button onClick={(ev)=>{ev.stopPropagation();updateError(e._id,'resolved')}} className="px-2.5 py-1 rounded-lg bg-emerald-500/10 text-emerald-400 text-[10px] font-semibold">Resolve</button>
+                    <button onClick={(ev)=>{ev.stopPropagation();updateError(e._id,'resolved')}} className="px-2.5 py-1 rounded-lg   text-[10px] font-semibold">Resolve</button>
                     <button onClick={(ev)=>{ev.stopPropagation();updateError(e._id,'ignored')}} className="px-2.5 py-1 rounded-lg bg-gray-700/50 text-gray-400 text-[10px] font-semibold">Ignore</button>
                   </div>
                 </div>

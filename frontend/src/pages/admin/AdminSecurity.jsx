@@ -58,10 +58,8 @@ export default function AdminSecurity() {
       <div className="shrink-0 px-5 pt-5 pb-3 border-b border-gray-800">
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-3">
-            <div className={`w-9 h-9 rounded-xl flex items-center justify-center ${
-              severity === 'critical' ? 'bg-red-500/15' : severity === 'warning' ? 'bg-amber-500/15' : 'bg-emerald-500/15'
-            }`}>
-              <Shield size={18} className={severity === 'critical' ? 'text-red-400' : severity === 'warning' ? 'text-amber-400' : 'text-emerald-400'} />
+            <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: 'rgba(201,168,76,0.1)' }}>
+              <Shield size={18} style={{ color: '#C9A84C' }} />
             </div>
             <div>
               <h1 className="text-lg font-bold text-white">Security & Compliance</h1>
@@ -69,7 +67,7 @@ export default function AdminSecurity() {
             </div>
           </div>
           <div className="flex gap-2 items-center">
-            <button onClick={runScanNow} disabled={scanning} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-medium bg-blue-500/15 text-blue-400 hover:bg-blue-500/25 disabled:opacity-50">
+            <button onClick={runScanNow} disabled={scanning} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-medium disabled:opacity-50" style={{ background: 'rgba(201,168,76,0.12)', color: '#C9A84C' }}>
               <Scan size={12} className={scanning ? 'animate-spin' : ''} />{scanning ? 'Scanning...' : 'Scan Now'}
             </button>
             <button onClick={load} className="p-1.5 rounded-lg text-gray-500 hover:text-gray-300 hover:bg-gray-800"><RefreshCw size={14}/></button>

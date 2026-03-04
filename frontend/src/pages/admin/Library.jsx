@@ -219,8 +219,8 @@ export default function Library() {
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-500 to-amber-700 flex items-center justify-center">
-            <BookOpen size={18} className="text-white" />
+          <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: 'rgba(201,168,76,0.15)', color: '#C9A84C' }}>
+            <BookOpen size={18} style={{ color: '#C9A84C' }} />
           </div>
           <div>
             <h1 className="text-xl font-bold text-white">Knowledge Library</h1>

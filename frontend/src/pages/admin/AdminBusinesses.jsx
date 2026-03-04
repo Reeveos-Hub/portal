@@ -81,8 +81,8 @@ export default function AdminBusinesses() {
             >
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3 min-w-0">
-                  <div className="w-10 h-10 rounded-lg bg-emerald-500/10 flex items-center justify-center shrink-0">
-                    <Building2 size={16} className="text-emerald-400" />
+                  <div className="w-10 h-10 rounded-lg flex items-center justify-center shrink-0" style={{ background: 'rgba(201,168,76,0.1)' }}>
+                    <Building2 size={16} style={{ color: '#C9A84C' }} />
                   </div>
                   <div className="min-w-0">
                     <p className="text-sm font-medium text-white truncate">{b.name || 'Unnamed'}</p>

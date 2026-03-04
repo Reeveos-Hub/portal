@@ -22,7 +22,7 @@ const Field = ({ label, value, onChange, type = 'text', placeholder, desc }) => 
 const Toggle = ({ label, desc, value, onChange }) => (
   <div className="flex items-center justify-between">
     <div><p className="text-xs text-gray-300">{label}</p>{desc&&<p className="text-[10px] text-gray-600">{desc}</p>}</div>
-    <button onClick={()=>onChange(!value)} className={`relative w-9 h-5 rounded-full transition-colors ${value?'bg-emerald-500':'bg-gray-700'}`}><div className={`absolute top-0.5 w-4 h-4 bg-white rounded-full transition-transform ${value?'left-[18px]':'left-0.5'}`}/></button>
+    <button onClick={()=>onChange(!value)} className={`relative w-9 h-5 rounded-full transition-colors ${value?'bg-amber-500':'bg-gray-700'}`}><div className={`absolute top-0.5 w-4 h-4 bg-white rounded-full transition-transform ${value?'left-[18px]':'left-0.5'}`}/></button>
   </div>
 )
 

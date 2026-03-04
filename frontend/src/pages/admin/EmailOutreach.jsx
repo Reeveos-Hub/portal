@@ -281,7 +281,7 @@ export default function EmailOutreach() {
       <div className="flex items-center justify-between mb-6 flex-wrap gap-4">
         <div>
           <h1 className="text-2xl font-extrabold text-white flex items-center gap-3">
-            <span className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-800 to-emerald-600 flex items-center justify-center text-white">
+            <span className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: 'rgba(201,168,76,0.15)', color: '#C9A84C' }}>
               <i className="fas fa-paper-plane text-lg" />
             </span>
             Email Outreach Engine
@@ -363,7 +363,7 @@ export default function EmailOutreach() {
                     </div>
                     <div className="flex items-center gap-2">
                       <div className="flex-1 bg-gray-800 rounded-full h-1.5">
-                        <div className={`h-full rounded-full ${c.status === 'warming' ? 'bg-amber-400' : 'bg-green-500'}`}
+                        <div className={`h-full rounded-full ${c.status === 'warming' ? 'bg-amber-400' : 'bg-amber-400'}`}
                           style={{ width: `${c.total_leads > 0 ? Math.round((c.leads_contacted || 0) / c.total_leads * 100) : 0}%` }}
                         />
                       </div>
@@ -901,7 +901,7 @@ export default function EmailOutreach() {
                 </div>
                 <label className="relative inline-flex items-center cursor-pointer">
                   <input type="checkbox" checked={newCampaign.ai_personalisation} onChange={e => setNewCampaign({ ...newCampaign, ai_personalisation: e.target.checked })} className="sr-only peer" />
-                  <div className="w-9 h-5 bg-gray-700 peer-checked:bg-purple-500 rounded-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:after:translate-x-full" />
+                  <div className="w-9 h-5 bg-gray-700 peer-checked:bg-amber-500 rounded-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:after:translate-x-full" />
                 </label>
               </div>
             </div>
