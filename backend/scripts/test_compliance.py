@@ -304,6 +304,11 @@ def test_cross_tenant_api():
     # Get Peter's business ID
     code, me = api_get("/users/me", token=peter_token)
     peter_biz = me.get("business_id") or me.get("businessId") or ""
+    # Also check business_ids array (the actual field used in the platform)
+    if not peter_biz and me.get("business_ids"):
+        biz_ids = me["business_ids"]
+        if isinstance(biz_ids, list) and len(biz_ids) > 0:
+            peter_biz = str(biz_ids[0])
     log("Peter has business ID", bool(peter_biz), peter_biz[:12] if peter_biz else "MISSING")
 
     if not peter_biz:
