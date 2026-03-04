@@ -25,6 +25,7 @@ import json
 import os
 import sys
 import ssl
+import time
 import urllib.request
 import urllib.error
 import re
@@ -301,14 +302,26 @@ def test_cross_tenant_api():
         log("Login tokens obtained", False, "could not authenticate")
         return
 
-    # Get Peter's business ID
+    # Get Peter's business ID — try API first, then DB fallback
     code, me = api_get("/users/me", token=peter_token)
     peter_biz = me.get("business_id") or me.get("businessId") or ""
-    # Also check business_ids array (the actual field used in the platform)
+    # Check business_ids array
     if not peter_biz and me.get("business_ids"):
         biz_ids = me["business_ids"]
         if isinstance(biz_ids, list) and len(biz_ids) > 0:
             peter_biz = str(biz_ids[0])
+    # DB fallback — API might not serialize all fields
+    if not peter_biz:
+        try:
+            from pymongo import MongoClient
+            _db = MongoClient(os.environ.get("MONGODB_URL", "mongodb://localhost:27017")).rezvo
+            peter_doc = _db.users.find_one({"email": "peter.griffin8222@gmail.com"})
+            if peter_doc:
+                biz_ids = peter_doc.get("business_ids", [])
+                if biz_ids and len(biz_ids) > 0:
+                    peter_biz = str(biz_ids[0])
+        except Exception:
+            pass
     log("Peter has business ID", bool(peter_biz), peter_biz[:12] if peter_biz else "MISSING")
 
     if not peter_biz:

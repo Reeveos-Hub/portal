@@ -205,11 +205,15 @@ async def migrate():
     legacy_customer = await db.bookings.count_documents({"customerName": {"$exists": True}})
     legacy_party = await db.bookings.count_documents({"party_size": {"$exists": True}})
     legacy_client = await db.bookings.count_documents({"client_name": {"$exists": True}})
+    legacy_table = await db.bookings.count_documents({"table_name": {"$exists": True}})
+    legacy_channel = await db.bookings.count_documents({"channel": {"$exists": True}})
     has_customer_obj = await db.bookings.count_documents({"customer.name": {"$exists": True}})
     
     print(f"  Legacy 'customerName' remaining: {legacy_customer} {'✅' if legacy_customer == 0 else '⚠️'}")
     print(f"  Legacy 'party_size' remaining:   {legacy_party} {'✅' if legacy_party == 0 else '⚠️'}")
     print(f"  Legacy 'client_name' remaining:  {legacy_client} {'✅' if legacy_client == 0 else '⚠️'}")
+    print(f"  Legacy 'table_name' remaining:   {legacy_table} {'✅' if legacy_table == 0 else '⚠️'}")
+    print(f"  Legacy 'channel' remaining:      {legacy_channel} {'✅' if legacy_channel == 0 else '⚠️'}")
     print(f"  Documents with customer.name:    {has_customer_obj} {'✅' if has_customer_obj == total else '⚠️'}")
     print(f"{'═' * 60}\n")
     
