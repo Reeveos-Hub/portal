@@ -18,7 +18,7 @@ _scheduler_task = None
 
 async def _run_scheduler():
     """Main scheduler loop."""
-    from routes.marketing import process_drip_queue
+    from routes.dashboard.marketing import process_drip_queue
     from database import get_database
 
     logger.info("Email scheduler started")

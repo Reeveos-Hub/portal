@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { adminPath } from '../../utils/domain'
 import {
   Building2, Users, CalendarCheck, CreditCard, TrendingUp, TrendingDown,
   AlertTriangle, MessageSquare, Send, Bot, Activity, Globe,
@@ -165,7 +166,7 @@ export default function AdminOverview() {
             ))}
           </div>
           <button
-            onClick={() => navigate('/admin/health')}
+            onClick={() => navigate(adminPath('/health'))}
             className="mt-4 w-full py-2 text-xs text-emerald-400 bg-emerald-500/10 rounded-lg hover:bg-emerald-500/20 transition-colors"
           >
             View Full Health Report
@@ -177,12 +178,12 @@ export default function AdminOverview() {
       <div>
         <h2 className="text-sm font-bold text-white mb-3">Quick Actions</h2>
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-3">
-          <QAction icon={Send} label="Email Outreach" desc="Manage campaigns, warmup & inbox" onClick={() => navigate('/admin/outreach')} />
-          <QAction icon={Bot} label="AI Ops Centre" desc="Agent daemon, guardrails, tasks" onClick={() => navigate('/admin/ai-ops')} />
-          <QAction icon={TrendingUp} label="Sales Pipeline" desc="Leads, scoring & conversions" onClick={() => navigate('/admin/pipeline')} />
-          <QAction icon={Building2} label="Manage Businesses" desc="2 active businesses" onClick={() => navigate('/admin/businesses')} />
-          <QAction icon={Globe} label="SEO Pages" desc="Programmatic content & indexing" onClick={() => navigate('/admin/seo')} color="cyan" />
-          <QAction icon={Activity} label="Error Logs" desc="Monitor & triage errors" onClick={() => navigate('/admin/errors')} />
+          <QAction icon={Send} label="Email Outreach" desc="Manage campaigns, warmup & inbox" onClick={() => navigate(adminPath('/outreach'))} />
+          <QAction icon={Bot} label="AI Ops Centre" desc="Agent daemon, guardrails, tasks" onClick={() => navigate(adminPath('/ai-ops'))} />
+          <QAction icon={TrendingUp} label="Sales Pipeline" desc="Leads, scoring & conversions" onClick={() => navigate(adminPath('/pipeline'))} />
+          <QAction icon={Building2} label="Manage Businesses" desc="2 active businesses" onClick={() => navigate(adminPath('/businesses'))} />
+          <QAction icon={Globe} label="SEO Pages" desc="Programmatic content & indexing" onClick={() => navigate(adminPath('/seo'))} color="cyan" />
+          <QAction icon={Activity} label="Error Logs" desc="Monitor & triage errors" onClick={() => navigate(adminPath('/errors'))} />
         </div>
       </div>
 

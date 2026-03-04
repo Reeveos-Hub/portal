@@ -71,7 +71,7 @@ import Onboarding from './pages/onboarding/Onboarding'
 import BookingFlow from './pages/booking/BookingFlow'
 import BookingConfirmation from './pages/booking/BookingConfirmation'
 import BookingManage from './pages/booking/BookingManage'
-import { isBookingDomain } from './utils/domain'
+import { isBookingDomain, isAdminDomain, ADMIN_BASE } from './utils/domain'
 
 /** Redirect old portal.rezvo.app/book/ URLs → book.rezvo.app */
 const BookingRedirect = () => {
@@ -95,6 +95,47 @@ const App = () => {
               <p style={{ color: '#888' }}>Enter a restaurant name to book — e.g. book.rezvo.app/restaurant-name</p>
             </div>
           } />
+        </Routes>
+      </Router>
+    )
+  }
+
+  /* If we're on portaladmin.rezvo.app, render ONLY admin routes at root level */
+  if (isAdminDomain()) {
+    return (
+      <Router>
+        <ScrollToTop />
+        <Routes>
+          <Route path="/" element={<AdminLayout />}>
+            <Route index element={<AdminOverview />} />
+            <Route path="command-centre" element={<CommandCentre />} />
+            <Route path="ai-ops" element={<AdminAIOps />} />
+            <Route path="outreach" element={<AdminOutreach />} />
+            <Route path="linkedin" element={<AdminLinkedIn />} />
+            <Route path="pipeline" element={<Navigate to="/crm" replace />} />
+            <Route path="crm" element={<AdminCRM />} />
+            <Route path="businesses" element={<AdminBusinesses />} />
+            <Route path="bookings" element={<AdminBookings />} />
+            <Route path="users" element={<AdminUsers />} />
+            <Route path="subscriptions" element={<AdminSubscriptions />} />
+            <Route path="directory" element={<AdminDirectory />} />
+            <Route path="support" element={<AdminSupport />} />
+            <Route path="reviews" element={<AdminReviews />} />
+            <Route path="churn" element={<AdminChurn />} />
+            <Route path="email-marketing" element={<AdminEmailMarketing />} />
+            <Route path="seo" element={<AdminSEO />} />
+            <Route path="content" element={<AdminContent />} />
+            <Route path="analytics" element={<AdminAnalytics />} />
+            <Route path="health" element={<AdminHealth />} />
+            <Route path="audit" element={<AdminAudit />} />
+            <Route path="errors" element={<AdminErrors />} />
+            <Route path="settings" element={<AdminSettings />} />
+            <Route path="security" element={<AdminSecurity />} />
+            <Route path="library" element={<Library />} />
+          </Route>
+          {/* Catch /admin/* and redirect to root-level routes */}
+          <Route path="/admin" element={<Navigate to="/" replace />} />
+          <Route path="/admin/*" element={<Navigate to="/" replace />} />
         </Routes>
       </Router>
     )

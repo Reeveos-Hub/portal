@@ -7,55 +7,56 @@ import {
   CreditCard, ScrollText, Bug, Megaphone, ShieldCheck, Linkedin,
   Search, Crosshair, BookOpen, Wallet, Sun, Moon
 } from 'lucide-react'
+import { ADMIN_BASE, adminPath } from '../utils/domain'
 
 const NAV_SECTIONS = [
   {
     label: 'Operations',
     items: [
-      { id: 'overview', label: 'Overview', icon: LayoutDashboard, path: '/admin' },
-      { id: 'command-centre', label: 'Command Centre', icon: Crosshair, path: '/admin/command-centre' },
-      { id: 'ai-ops', label: 'AI Ops Centre', icon: Bot, path: '/admin/ai-ops' },
-      { id: 'outreach', label: 'Email Outreach', icon: Send, path: '/admin/outreach' },
-      { id: 'crm', label: 'CRM', icon: Wallet, path: '/admin/crm' },
-      { id: 'library', label: 'Knowledge Library', icon: BookOpen, path: '/admin/library' },
+      { id: 'overview', label: 'Overview', icon: LayoutDashboard, path: adminPath('/') },
+      { id: 'command-centre', label: 'Command Centre', icon: Crosshair, path: adminPath('/command-centre') },
+      { id: 'ai-ops', label: 'AI Ops Centre', icon: Bot, path: adminPath('/ai-ops') },
+      { id: 'outreach', label: 'Email Outreach', icon: Send, path: adminPath('/outreach') },
+      { id: 'crm', label: 'CRM', icon: Wallet, path: adminPath('/crm') },
+      { id: 'library', label: 'Knowledge Library', icon: BookOpen, path: adminPath('/library') },
     ],
   },
   {
     label: 'Platform',
     items: [
-      { id: 'businesses', label: 'Businesses', icon: Building2, path: '/admin/businesses' },
-      { id: 'bookings', label: 'All Bookings', icon: CalendarCheck, path: '/admin/bookings' },
-      { id: 'users', label: 'Users & Accounts', icon: Users, path: '/admin/users' },
-      { id: 'subscriptions', label: 'Subscriptions', icon: CreditCard, path: '/admin/subscriptions' },
-      { id: 'directory', label: 'Directory', icon: Search, path: '/admin/directory' },
+      { id: 'businesses', label: 'Businesses', icon: Building2, path: adminPath('/businesses') },
+      { id: 'bookings', label: 'All Bookings', icon: CalendarCheck, path: adminPath('/bookings') },
+      { id: 'users', label: 'Users & Accounts', icon: Users, path: adminPath('/users') },
+      { id: 'subscriptions', label: 'Subscriptions', icon: CreditCard, path: adminPath('/subscriptions') },
+      { id: 'directory', label: 'Directory', icon: Search, path: adminPath('/directory') },
     ],
   },
   {
     label: 'Engagement',
     items: [
-      { id: 'support', label: 'Support Tickets', icon: MessageSquare, path: '/admin/support' },
-      { id: 'reviews', label: 'Reviews & Mod', icon: Star, path: '/admin/reviews' },
-      { id: 'churn', label: 'Churn Risk', icon: AlertTriangle, path: '/admin/churn' },
-      { id: 'email-marketing', label: 'Email Marketing', icon: Megaphone, path: '/admin/email-marketing' },
-      { id: 'linkedin', label: 'LinkedIn AI', icon: Linkedin, path: '/admin/linkedin' },
+      { id: 'support', label: 'Support Tickets', icon: MessageSquare, path: adminPath('/support') },
+      { id: 'reviews', label: 'Reviews & Mod', icon: Star, path: adminPath('/reviews') },
+      { id: 'churn', label: 'Churn Risk', icon: AlertTriangle, path: adminPath('/churn') },
+      { id: 'email-marketing', label: 'Email Marketing', icon: Megaphone, path: adminPath('/email-marketing') },
+      { id: 'linkedin', label: 'LinkedIn AI', icon: Linkedin, path: adminPath('/linkedin') },
     ],
   },
   {
     label: 'Content & SEO',
     items: [
-      { id: 'seo', label: 'SEO Pages', icon: Globe, path: '/admin/seo' },
-      { id: 'content', label: 'Content Engine', icon: FileText, path: '/admin/content' },
+      { id: 'seo', label: 'SEO Pages', icon: Globe, path: adminPath('/seo') },
+      { id: 'content', label: 'Content Engine', icon: FileText, path: adminPath('/content') },
     ],
   },
   {
     label: 'System',
     items: [
-      { id: 'security', label: 'Security', icon: ShieldCheck, path: '/admin/security' },
-      { id: 'analytics', label: 'Platform Analytics', icon: BarChart3, path: '/admin/analytics' },
-      { id: 'health', label: 'System Health', icon: Activity, path: '/admin/health' },
-      { id: 'audit', label: 'Activity Log', icon: ScrollText, path: '/admin/audit' },
-      { id: 'errors', label: 'Error Logs', icon: Bug, path: '/admin/errors' },
-      { id: 'settings', label: 'Admin Settings', icon: Settings, path: '/admin/settings' },
+      { id: 'security', label: 'Security', icon: ShieldCheck, path: adminPath('/security') },
+      { id: 'analytics', label: 'Platform Analytics', icon: BarChart3, path: adminPath('/analytics') },
+      { id: 'health', label: 'System Health', icon: Activity, path: adminPath('/health') },
+      { id: 'audit', label: 'Activity Log', icon: ScrollText, path: adminPath('/audit') },
+      { id: 'errors', label: 'Error Logs', icon: Bug, path: adminPath('/errors') },
+      { id: 'settings', label: 'Admin Settings', icon: Settings, path: adminPath('/settings') },
     ],
   },
 ]
@@ -350,7 +351,8 @@ export default function AdminLayout() {
   }, [dark])
 
   const isActive = (path) => {
-    if (path === '/admin') return location.pathname === '/admin'
+    const overviewPath = adminPath('/')
+    if (path === overviewPath) return location.pathname === overviewPath
     return location.pathname.startsWith(path)
   }
 

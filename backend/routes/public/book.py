@@ -565,7 +565,7 @@ async def create_booking(request: Request, business_slug: str, payload: dict):
             deposit_total = round(deposit_amount, 2)
 
     # ── CRM: ensure client record ──
-    from routes.run7_clients import ensure_client_from_booking, refresh_client_stats
+    from routes.dashboard.clients import ensure_client_from_booking, refresh_client_stats
     client_id = await ensure_client_from_booking(db, biz_id, customer, "online", payload.get("date"))
 
     # ── Build booking document ──

@@ -168,7 +168,7 @@ async def customer_place_order(
     if open_order:
         # Add to existing order
         open_order["items"].extend(new_items)
-        from routes.orders import calc_order_totals
+        from routes.epos.orders import calc_order_totals
         totals = calc_order_totals(open_order)
 
         await db.orders.update_one(
@@ -180,7 +180,7 @@ async def customer_place_order(
         order_number = open_order.get("order_number", "")
     else:
         # Create new order
-        from routes.orders import _next_order_number, calc_order_totals
+        from routes.epos.orders import _next_order_number, calc_order_totals
         order_number = await _next_order_number(db, business_id)
 
         order = {
@@ -274,7 +274,7 @@ async def view_bill(token: str):
     if not order:
         return {"message": "No open order on this table", "items": [], "total": 0}
 
-    from routes.orders import calc_order_totals
+    from routes.epos.orders import calc_order_totals
     totals = calc_order_totals(order)
 
     items = [
@@ -337,7 +337,7 @@ async def customer_pay(
 
     order["payments"].append(payment)
 
-    from routes.orders import calc_order_totals
+    from routes.epos.orders import calc_order_totals
     totals = calc_order_totals(order)
 
     new_status = "partially_paid"

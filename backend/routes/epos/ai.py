@@ -597,7 +597,7 @@ async def kiosk_place_order(
     tenant: TenantContext = Depends(verify_business_access),
 ):
     """Place order from kiosk — creates order and fires to KDS."""
-    from routes.orders import create_order, fire_order, CreateOrder, OrderItem
+    from routes.epos.orders import create_order, fire_order, CreateOrder, OrderItem
 
     order_items = [
         OrderItem(

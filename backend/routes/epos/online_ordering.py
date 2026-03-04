@@ -112,7 +112,7 @@ async def qr_place_order(
 
     if existing:
         # Add to existing order
-        from routes.orders import calc_order_totals
+        from routes.epos.orders import calc_order_totals
         existing["items"].extend(order_items)
         totals = calc_order_totals(existing)
 
@@ -146,7 +146,7 @@ async def qr_place_order(
         }
     else:
         # Create new order
-        from routes.orders import create_order, fire_order, CreateOrder, OrderItem
+        from routes.epos.orders import create_order, fire_order, CreateOrder, OrderItem
 
         body = CreateOrder(
             business_id=business_id,
@@ -191,7 +191,7 @@ async def qr_order_status(business_id: str, table_number: str):
             "created_at": t["created_at"].strftime("%H:%M"),
         })
 
-    from routes.orders import calc_order_totals
+    from routes.epos.orders import calc_order_totals
     totals = calc_order_totals(order)
 
     return {
@@ -237,7 +237,7 @@ async def pay_at_table(
     if not order:
         raise HTTPException(404, "No open order for this table")
 
-    from routes.orders import calc_order_totals
+    from routes.epos.orders import calc_order_totals
     totals = calc_order_totals(order)
 
     if split_index is not None and order.get("splits"):
@@ -421,7 +421,7 @@ async def place_online_order(
             "source": "online",
         })
 
-    from routes.orders import _next_order_number, calc_order_totals
+    from routes.epos.orders import _next_order_number, calc_order_totals
 
     order = {
         "business_id": business_id,
@@ -600,7 +600,7 @@ async def send_digital_receipt(
         raise HTTPException(404, "Order not found")
 
     # Get receipt data
-    from routes.orders import calc_order_totals
+    from routes.epos.orders import calc_order_totals
     totals = calc_order_totals(order)
 
     biz = await db.businesses.find_one({"_id": ObjectId(order["business_id"])})
