@@ -71,6 +71,7 @@ import Onboarding from './pages/onboarding/Onboarding'
 import BookingFlow from './pages/booking/BookingFlow'
 import BookingConfirmation from './pages/booking/BookingConfirmation'
 import BookingManage from './pages/booking/BookingManage'
+import ClientPortal from './pages/ClientPortal'
 import { isBookingDomain, isAdminDomain, ADMIN_BASE } from './utils/domain'
 
 /** Redirect old portal/book/ URLs → book.reeveos.app */
@@ -158,6 +159,9 @@ const App = () => {
 
             {/* Onboarding */}
             <Route path="/onboarding" element={<Onboarding />} />
+
+            {/* Consumer portal — client-facing app per business */}
+            <Route path="/client/:slug/*" element={<ClientPortal />} />
 
             {/* Dashboard — owner portal */}
             <Route path="/dashboard" element={
