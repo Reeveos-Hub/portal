@@ -200,6 +200,30 @@ async def main():
     if fixed_admin.modified_count:
         print(f"  ✅ Fixed {fixed_admin.modified_count} users with legacy 'admin' role")
 
+    # ═══════════════════════════════════════════════════════════════
+    # 7. NUKE ALL REMAINING LEGACY BOOKING FIELDS
+    # ═══════════════════════════════════════════════════════════════
+    print("\n═══ 7. NUKE LEGACY BOOKING FIELDS ═══")
+    legacy_fields = [
+        "table_name", "channel", "table_id", "staff_id", "server_id",
+        "start_time", "end_time", "turn_time", "duration_minutes",
+        "party_size", "guests", "covers", "client_name", "guest_name",
+        "client_phone", "client_email", "customerName", "customerPhone",
+        "customerEmail", "is_vip", "is_new_client", "deposit_paid",
+        "created_at", "updated_at", "business_id",
+    ]
+    total_cleaned = 0
+    for field in legacy_fields:
+        result = await db.bookings.update_many(
+            {field: {"$exists": True}},
+            {"$unset": {field: ""}}
+        )
+        if result.modified_count:
+            print(f"  ✅ Removed '{field}' from {result.modified_count} bookings")
+            total_cleaned += result.modified_count
+    if total_cleaned == 0:
+        print("  ✅ No legacy fields found — already clean")
+
     print("\n═══ DONE ═══")
     client.close()
 
