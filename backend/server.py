@@ -250,9 +250,9 @@ app.include_router(allergen_management_router)
 app.include_router(tronc_router)
 
 # Static uploads for booking page logo/cover
-static_dir = Path(__file__).parent / "static" / "uploads"
+static_dir = Path("/tmp/rezvo-uploads")
 static_dir.mkdir(parents=True, exist_ok=True)
-app.mount("/static", StaticFiles(directory=str(static_dir.parent)), name="static")
+app.mount("/static", StaticFiles(directory=str(static_dir)), name="static")
 
 
 @app.get("/")

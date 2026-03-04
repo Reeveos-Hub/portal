@@ -43,8 +43,11 @@ DEFAULTS = {
     },
 }
 
-UPLOADS_DIR = Path(__file__).resolve().parent.parent / "static" / "uploads"
-UPLOADS_DIR.mkdir(parents=True, exist_ok=True)
+UPLOADS_DIR = Path("/tmp/rezvo-uploads/bookings")
+try:
+    UPLOADS_DIR.mkdir(parents=True, exist_ok=True)
+except OSError:
+    pass
 
 
 async def _get_business(db, business_id: str, user: dict):
@@ -138,7 +141,7 @@ def _save_upload(file: UploadFile, max_size: int, allowed: set, resize_size=None
             img.save(path, quality=90)
         except Exception:
             pass
-    return f"/static/uploads/{name}"
+    return f"/static/bookings/{name}"
 
 
 @router.post("/{business_id}/logo")

@@ -345,8 +345,12 @@ async def reinvite_staff(business_id: str, staff_id: str, tenant: TenantContext 
     return {"detail": "Invite resent", "staff": staff_list[idx]}
 
 
-UPLOADS_DIR = Path(__file__).resolve().parent.parent / "static" / "uploads"
-UPLOADS_DIR.mkdir(parents=True, exist_ok=True)
+UPLOADS_DIR = Path("/tmp/rezvo-uploads/staff")
+try:
+    UPLOADS_DIR.mkdir(parents=True, exist_ok=True)
+except OSError:
+    UPLOADS_DIR = Path("/tmp/rezvo-uploads/staff")
+    UPLOADS_DIR.mkdir(parents=True, exist_ok=True)
 
 
 @router.post("/business/{business_id}/{staff_id}/avatar")
@@ -391,7 +395,7 @@ async def upload_staff_avatar(
     path = UPLOADS_DIR / name
     path.write_bytes(data)
 
-    url = f"/api/static/uploads/{name}"
+    url = f"/api/static/staff/{name}"
 
     # Update staff avatar in business doc
     staff_list = business.get("staff", [])
