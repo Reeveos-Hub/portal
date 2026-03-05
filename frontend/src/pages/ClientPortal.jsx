@@ -70,7 +70,7 @@ const I = {
 
 // Design tokens — LIGHT MODE
 const T = {
-  bg: '#FAFAFA', card: '#FFFFFF', bdr: '#E5E7EB', bdrL: '#F3F4F6',
+  bg: '#F3F4F6', card: '#FFFFFF', bdr: '#E5E7EB', bdrL: '#F3F4F6',
   acc: '#C9A84C', accL: '#C9A84C18', accM: '#C9A84C30',
   txt: '#111111', txt2: '#374151', txtM: '#6B7280', txtL: '#9CA3AF',
   ok: '#22C55E', okBg: '#F0FDF4', okBdr: '#BBF7D0',
@@ -259,12 +259,12 @@ export default function ClientPortal() {
       <style>{`@keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}`}</style>
 
       {/* Header */}
-      <div style={{background:T.card,borderBottom:`1px solid ${T.bdr}`,padding:'14px 24px'}}>
+      <div style={{background:'#111111',padding:'14px 24px'}}>
         <div style={{maxWidth:1200,margin:'0 auto',display:'flex',alignItems:'center',gap:12}}>
-          <div style={{width:36,height:36,borderRadius:10,background:T.acc,display:'flex',alignItems:'center',justifyContent:'center',fontSize:16,fontWeight:800,color:'#fff'}}>{biz?.name?.charAt(0)||'R'}</div>
+          <div style={{width:36,height:36,borderRadius:10,background:T.acc,display:'flex',alignItems:'center',justifyContent:'center',fontSize:16,fontWeight:800,color:'#111'}}>{biz?.name?.charAt(0)||'R'}</div>
           <div>
-            <p style={{fontSize:15,fontWeight:700,color:T.txt,margin:0}}>{biz?.name}</p>
-            <p style={{fontSize:10,color:T.txtM,margin:0,textTransform:'uppercase',letterSpacing:'0.1em'}}>{biz?.subtitle||'SKIN EXPERTS'}</p>
+            <p style={{fontSize:15,fontWeight:700,color:'#fff',margin:0}}>{biz?.name}</p>
+            <p style={{fontSize:10,color:'#9CA3AF',margin:0,textTransform:'uppercase',letterSpacing:'0.1em'}}>{biz?.subtitle||'SKIN EXPERTS'}</p>
           </div>
         </div>
       </div>
@@ -337,22 +337,22 @@ export default function ClientPortal() {
         <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
         <style>{`@keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}`}</style>
 
-        {/* HEADER */}
-        <div style={{background:T.card,borderBottom:`1px solid ${T.bdr}`,padding:'12px 16px',position:'sticky',top:0,zIndex:20}}>
+        {/* HEADER — dark brand bar */}
+        <div style={{background:'#111111',padding:'12px 16px',position:'sticky',top:0,zIndex:20}}>
           <div style={{maxWidth:desk?1200:600,margin:'0 auto',display:'flex',alignItems:'center',justifyContent:'space-between'}}>
             <div style={{display:'flex',alignItems:'center',gap:12}}>
-              <div style={{width:40,height:40,borderRadius:'50%',background:T.acc,display:'flex',alignItems:'center',justifyContent:'center',fontSize:15,fontWeight:700,color:'#fff'}}>{(user?.name||'?').charAt(0)}</div>
+              <div style={{width:40,height:40,borderRadius:'50%',background:T.acc,display:'flex',alignItems:'center',justifyContent:'center',fontSize:15,fontWeight:700,color:'#111'}}>{(user?.name||'?').charAt(0)}</div>
               <div>
-                <p style={{fontSize:15,fontWeight:700,color:T.txt,margin:0}}>Hi {(user?.name||'').split(' ')[0]}</p>
-                <p style={{fontSize:11,color:T.txtM,margin:0}}>{biz?.name}</p>
+                <p style={{fontSize:15,fontWeight:700,color:T.acc,margin:0}}>Hi {(user?.name||'').split(' ')[0]}</p>
+                <p style={{fontSize:11,color:'#9CA3AF',margin:0}}>{biz?.name}</p>
               </div>
             </div>
             <div style={{display:'flex',alignItems:'center',gap:8}}>
               {desk&&<div style={{display:'flex',gap:20,marginRight:20}}>
-                {['Home','Services','Products','About'].map(l=><button key={l} style={{background:'none',border:'none',fontSize:13,fontWeight:500,color:T.txtM,cursor:'pointer',padding:0,fontFamily:T.f}}>{l}</button>)}
+                {['Home','Services','Products','About'].map(l=><button key={l} style={{background:'none',border:'none',fontSize:13,fontWeight:500,color:'#D1D5DB',cursor:'pointer',padding:0,fontFamily:T.f}}>{l}</button>)}
               </div>}
-              <button style={{width:36,height:36,borderRadius:'50%',background:T.bg,border:`1px solid ${T.bdr}`,display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer'}}>{I.bell(T.txtM)}</button>
-              {desk&&<button onClick={logout} style={{padding:'8px 16px',borderRadius:T.rs,background:T.bg,border:`1px solid ${T.bdr}`,fontSize:12,fontWeight:600,color:T.txtM,cursor:'pointer',fontFamily:T.f,display:'flex',alignItems:'center',gap:6}}>{I.out(T.txtM,14)} Sign out</button>}
+              <button style={{width:36,height:36,borderRadius:'50%',background:'#1F2937',border:'none',display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer'}}>{I.bell('#9CA3AF')}</button>
+              {desk&&<button onClick={logout} style={{padding:'8px 16px',borderRadius:T.rs,background:'#1F2937',border:'none',fontSize:12,fontWeight:600,color:'#D1D5DB',cursor:'pointer',fontFamily:T.f,display:'flex',alignItems:'center',gap:6}}>{I.out('#9CA3AF',14)} Sign out</button>}
             </div>
           </div>
         </div>
@@ -361,8 +361,8 @@ export default function ClientPortal() {
 
           {/* ALERT CARD */}
           {isSalon&&(
-            <div style={{background:hasForm?T.okBg:T.card,border:`1px solid ${hasForm?T.okBdr:T.acc+'40'}`,borderRadius:T.rl,padding:desk?'24px 28px':'18px 20px',marginBottom:20,
-              ...(desk&&!hasForm?{display:'flex',alignItems:'center',justifyContent:'space-between',gap:32}:{}),boxShadow:hasForm?'none':T.shM,animation:'fadeUp 0.3s ease-out'}}>
+            <div style={{background:hasForm?T.okBg:T.card,border:`1px solid ${hasForm?T.okBdr:T.bdr}`,borderLeft:hasForm?`4px solid ${T.ok}`:`4px solid ${T.acc}`,borderRadius:T.rl,padding:desk?'24px 28px':'18px 20px',marginBottom:20,
+              ...(desk&&!hasForm?{display:'flex',alignItems:'center',justifyContent:'space-between',gap:32}:{}),boxShadow:'0 4px 16px rgba(0,0,0,0.08)',animation:'fadeUp 0.3s ease-out'}}>
               <div style={{flex:1}}>
                 <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:6}}>
                   {hasForm?I.shield(T.ok,16):I.warn(T.acc,16)}
@@ -389,10 +389,10 @@ export default function ClientPortal() {
               <h3 style={{fontSize:desk?18:15,fontWeight:800,color:T.txt,margin:'0 0 12px'}}>Quick Actions</h3>
               <div style={{display:'grid',gridTemplateColumns:desk?`repeat(${qa.length},1fr)`:'1fr 1fr',gap:10,marginBottom:24}}>
                 {qa.map((a,i)=>(
-                  <button key={i} onClick={a.action} style={{background:T.card,border:`1px solid ${T.bdr}`,borderRadius:T.r,padding:desk?'18px 16px':'16px 14px',cursor:'pointer',textAlign:'left',transition:'all 0.2s',boxShadow:T.sh}}
-                    onMouseEnter={e=>{e.currentTarget.style.borderColor=T.acc+'60';e.currentTarget.style.boxShadow=T.shM}}
-                    onMouseLeave={e=>{e.currentTarget.style.borderColor=T.bdr;e.currentTarget.style.boxShadow=T.sh}}>
-                    <div style={{width:desk?44:36,height:desk?44:36,borderRadius:12,background:T.accL,display:'flex',alignItems:'center',justifyContent:'center',marginBottom:10}}>
+                  <button key={i} onClick={a.action} style={{background:T.card,border:`1px solid ${T.bdr}`,borderRadius:T.r,padding:desk?'18px 16px':'16px 14px',cursor:'pointer',textAlign:'left',transition:'all 0.2s',boxShadow:'0 2px 8px rgba(0,0,0,0.06)'}}
+                    onMouseEnter={e=>{e.currentTarget.style.borderColor=T.acc;e.currentTarget.style.boxShadow='0 6px 20px rgba(0,0,0,0.1)'}}
+                    onMouseLeave={e=>{e.currentTarget.style.borderColor=T.bdr;e.currentTarget.style.boxShadow='0 2px 8px rgba(0,0,0,0.06)'}}>
+                    <div style={{width:desk?44:36,height:desk?44:36,borderRadius:12,background:'#111111',display:'flex',alignItems:'center',justifyContent:'center',marginBottom:10}}>
                       {I[a.icon](T.acc,desk?20:16)}
                     </div>
                     <p style={{fontSize:desk?14:13,fontWeight:700,color:T.txt,margin:0}}>{a.label}</p>
@@ -408,12 +408,12 @@ export default function ClientPortal() {
               </div>
 
               {upcoming.length>0?upcoming.map((b,i)=>(
-                <div key={i} style={{background:T.card,border:`1px solid ${T.bdr}`,borderRadius:T.r,padding:18,marginBottom:10,boxShadow:T.sh}}>
+                <div key={i} style={{background:T.card,border:`1px solid ${T.bdr}`,borderRadius:T.r,padding:18,marginBottom:10,boxShadow:'0 2px 8px rgba(0,0,0,0.06)'}}>
                   <div style={{display:'flex',alignItems:'flex-start',justifyContent:'space-between'}}>
                     <div style={{display:'flex',gap:14}}>
-                      <div style={{width:56,height:56,borderRadius:T.r,background:T.accL,border:`1px solid ${T.acc}30`,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',flexShrink:0}}>
+                      <div style={{width:56,height:56,borderRadius:T.r,background:'#111111',display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',flexShrink:0}}>
                         <span style={{fontSize:10,fontWeight:700,color:T.acc,textTransform:'uppercase'}}>{b.month||'TBC'}</span>
-                        <span style={{fontSize:20,fontWeight:800,color:T.acc,lineHeight:1}}>{b.day||'—'}</span>
+                        <span style={{fontSize:20,fontWeight:800,color:'#fff',lineHeight:1}}>{b.day||'—'}</span>
                       </div>
                       <div>
                         <p style={{fontSize:15,fontWeight:700,color:T.txt,margin:0}}>{b.service}</p>
@@ -434,8 +434,10 @@ export default function ClientPortal() {
                   </div>
                 </div>
               )):(
-                <div style={{background:T.card,border:`1px solid ${T.bdr}`,borderRadius:T.r,padding:32,textAlign:'center',marginBottom:16}}>
-                  {I.cal(T.txtL,28)}
+                <div style={{background:T.card,border:`1px solid ${T.bdr}`,borderRadius:T.r,padding:40,textAlign:'center',marginBottom:16,boxShadow:'0 2px 8px rgba(0,0,0,0.06)'}}>
+                  <div style={{width:56,height:56,borderRadius:'50%',background:'#111111',display:'flex',alignItems:'center',justifyContent:'center',margin:'0 auto 12px'}}>
+                    {I.cal(T.acc,24)}
+                  </div>
                   <p style={{fontSize:14,fontWeight:600,color:T.txtM,marginTop:10}}>No upcoming appointments</p>
                   <p style={{fontSize:12,color:T.txtL,margin:'4px 0 14px'}}>Book your first treatment to get started</p>
                   <button onClick={()=>window.open(`/${slug}`,'_blank')} style={{padding:'8px 20px',borderRadius:T.rs,border:'none',background:T.acc,color:'#fff',fontSize:12,fontWeight:700,cursor:'pointer',fontFamily:T.f}}>Book Appointment</button>
@@ -465,34 +467,34 @@ export default function ClientPortal() {
             {/* RIGHT COL (desktop) */}
             {desk&&(
               <div>
-                <div style={{background:T.card,border:`1px solid ${T.bdr}`,borderRadius:T.rl,padding:24,marginBottom:16,boxShadow:T.sh}}>
-                  <div style={{display:'flex',alignItems:'center',gap:14,marginBottom:16,paddingBottom:16,borderBottom:`1px solid ${T.bdrL}`}}>
-                    <div style={{width:44,height:44,borderRadius:'50%',background:T.acc,display:'flex',alignItems:'center',justifyContent:'center',fontSize:16,fontWeight:700,color:'#fff'}}>{(user?.name||'?').charAt(0)}</div>
+                <div style={{background:'#111111',borderRadius:T.rl,padding:24,marginBottom:16,boxShadow:'0 4px 16px rgba(0,0,0,0.12)'}}>
+                  <div style={{display:'flex',alignItems:'center',gap:14,marginBottom:16,paddingBottom:16,borderBottom:'1px solid #2A2A2A'}}>
+                    <div style={{width:44,height:44,borderRadius:'50%',background:T.acc,display:'flex',alignItems:'center',justifyContent:'center',fontSize:16,fontWeight:700,color:'#111'}}>{(user?.name||'?').charAt(0)}</div>
                     <div>
-                      <p style={{fontSize:15,fontWeight:700,color:T.txt,margin:0}}>{(user?.name||'').split(' ')[0]}</p>
+                      <p style={{fontSize:15,fontWeight:700,color:'#fff',margin:0}}>{(user?.name||'').split(' ')[0]}</p>
                       <p style={{fontSize:12,color:T.acc,fontWeight:600,margin:0}}>Member</p>
                     </div>
                   </div>
                   <div style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}>
                     <div>
-                      <p style={{fontSize:11,color:T.txtM,margin:0,textTransform:'uppercase',letterSpacing:'0.05em'}}>Member since</p>
-                      <p style={{fontSize:18,fontWeight:800,color:T.txt,margin:'2px 0 0'}}>2024</p>
+                      <p style={{fontSize:11,color:'#9CA3AF',margin:0,textTransform:'uppercase',letterSpacing:'0.05em'}}>Member since</p>
+                      <p style={{fontSize:18,fontWeight:800,color:'#fff',margin:'2px 0 0'}}>2024</p>
                     </div>
-                    <button onClick={logout} style={{padding:'6px 16px',borderRadius:T.rs,border:`1px solid ${T.bdr}`,background:T.card,fontSize:11,fontWeight:600,color:T.txtM,cursor:'pointer',fontFamily:T.f}}>Sign out</button>
+                    <button onClick={logout} style={{padding:'6px 16px',borderRadius:T.rs,border:'1px solid #333',background:'#1F2937',fontSize:11,fontWeight:600,color:'#D1D5DB',cursor:'pointer',fontFamily:T.f}}>Sign out</button>
                   </div>
                 </div>
                 {myData?.past_bookings?.length>0&&(
-                  <div style={{background:T.card,border:`1px solid ${T.bdr}`,borderRadius:T.rl,padding:24,boxShadow:T.sh}}>
+                  <div style={{background:'#111111',borderRadius:T.rl,padding:24,boxShadow:'0 4px 16px rgba(0,0,0,0.12)'}}>
                     <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:14}}>
-                      <h3 style={{fontSize:16,fontWeight:700,color:T.txt,margin:0}}>Treatment History</h3>
+                      <h3 style={{fontSize:16,fontWeight:700,color:'#fff',margin:0}}>Treatment History</h3>
                       <button style={{background:'none',border:'none',color:T.acc,fontSize:12,fontWeight:600,cursor:'pointer',padding:0,fontFamily:T.f}}>View all</button>
                     </div>
                     {myData.past_bookings.slice(0,4).map((b,i)=>(
-                      <div key={i} style={{display:'flex',alignItems:'center',gap:12,padding:'10px 0',borderBottom:i<3?`1px solid ${T.bdrL}`:'none'}}>
-                        <div style={{width:40,height:40,borderRadius:10,background:T.bg,display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>{I.shield(T.txtL,18)}</div>
+                      <div key={i} style={{display:'flex',alignItems:'center',gap:12,padding:'10px 0',borderBottom:i<3?'1px solid #2A2A2A':'none'}}>
+                        <div style={{width:40,height:40,borderRadius:10,background:'#1F2937',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>{I.shield('#6B7280',18)}</div>
                         <div style={{flex:1}}>
-                          <p style={{fontSize:13,fontWeight:600,color:T.txt,margin:0}}>{b.service}</p>
-                          <p style={{fontSize:11,color:T.txtM,margin:'1px 0 0'}}>{b.date}{b.staff?` · ${b.staff}`:''}</p>
+                          <p style={{fontSize:13,fontWeight:600,color:'#E5E7EB',margin:0}}>{b.service}</p>
+                          <p style={{fontSize:11,color:'#6B7280',margin:'1px 0 0'}}>{b.date}{b.staff?` · ${b.staff}`:''}</p>
                         </div>
                       </div>
                     ))}
@@ -505,11 +507,11 @@ export default function ClientPortal() {
 
         {/* BOTTOM NAV (mobile) */}
         {!desk&&(
-          <div style={{position:'fixed',bottom:0,left:0,right:0,background:T.card,borderTop:`1px solid ${T.bdr}`,padding:'8px 0 12px',zIndex:30,display:'flex',justifyContent:'space-around'}}>
+          <div style={{position:'fixed',bottom:0,left:0,right:0,background:'#111111',borderTop:'1px solid #2A2A2A',padding:'8px 0 12px',zIndex:30,display:'flex',justifyContent:'space-around'}}>
             {tabs.map(t=>(
               <button key={t.id} onClick={()=>setActiveTab(t.id)} style={{background:'none',border:'none',cursor:'pointer',display:'flex',flexDirection:'column',alignItems:'center',gap:3,padding:'4px 8px'}}>
-                {I[t.icon](activeTab===t.id?T.acc:T.txtL,20)}
-                <span style={{fontSize:10,fontWeight:activeTab===t.id?700:500,color:activeTab===t.id?T.acc:T.txtL}}>{t.label}</span>
+                {I[t.icon](activeTab===t.id?T.acc:'#6B7280',20)}
+                <span style={{fontSize:10,fontWeight:activeTab===t.id?700:500,color:activeTab===t.id?T.acc:'#6B7280'}}>{t.label}</span>
               </button>
             ))}
           </div>
@@ -517,11 +519,11 @@ export default function ClientPortal() {
 
         {/* Desktop footer */}
         {desk&&(
-          <div style={{borderTop:`1px solid ${T.bdr}`,padding:'20px 24px',marginTop:32}}>
+          <div style={{background:'#111111',padding:'20px 24px',marginTop:32}}>
             <div style={{maxWidth:1200,margin:'0 auto',display:'flex',justifyContent:'space-between',alignItems:'center'}}>
-              <p style={{fontSize:12,color:T.txtL,margin:0}}>&copy; {new Date().getFullYear()} {biz?.name}. All rights reserved.</p>
+              <p style={{fontSize:12,color:'#6B7280',margin:0}}>&copy; {new Date().getFullYear()} {biz?.name}. All rights reserved.</p>
               <div style={{display:'flex',gap:24}}>
-                {['Privacy Policy','Terms of Service','Help Centre'].map(l=><button key={l} style={{background:'none',border:'none',fontSize:12,color:T.txtM,cursor:'pointer',fontFamily:T.f}}>{l}</button>)}
+                {['Privacy Policy','Terms of Service','Help Centre'].map(l=><button key={l} style={{background:'none',border:'none',fontSize:12,color:'#9CA3AF',cursor:'pointer',fontFamily:T.f}}>{l}</button>)}
               </div>
             </div>
           </div>
