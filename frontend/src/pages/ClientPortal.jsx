@@ -524,7 +524,7 @@ export default function ClientPortal(){
     for(let d=1;d<=daysInMonth;d++)calDays.push(d)
     const todayStr=today.toISOString().split('T')[0]
     const selDay=bookDate?parseInt(bookDate.split('-')[2]):null
-    const shiftMonth=(dir)=>{const nd=new Date(y,m+dir,1);setBookDate(nd.toISOString().split('T')[0].slice(0,8)+'01');setBookTime('');setSlots([])}
+    const shiftMonth=(dir)=>{const nd=new Date(y,m+dir,1);const ny=nd.getFullYear(),nm=nd.getMonth();setBookDate(`${ny}-${String(nm+1).padStart(2,'0')}-01`);setBookTime('');setSlots([])}
     const pickDay=(d)=>{const ds=`${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;setBookDate(ds);setBookTime('');if(bookSvc)loadSlots(bookSvc.id,ds)}
 
     return(
@@ -580,7 +580,7 @@ export default function ClientPortal(){
 
                 {/* Right: Calendar + Time slots */}
                 <div style={{flex:1,minWidth:0}}>
-                  <h3 style={{fontSize:desk?14:16,fontWeight:700,color:$.h,margin:'0 0 8px'}}>{bookSvc?'3. Pick Date & Time':'Select a treatment first'}</h3>
+                  <h3 style={{fontSize:desk?14:16,fontWeight:700,color:$.h,margin:'0 0 8px'}}>desk?'3. Pick Date & Time':'Pick a Date'</h3>
                   {/* Month nav */}
                   <div style={{background:$.card,border:`1px solid ${$.bdr}`,borderRadius:12,overflow:'hidden'}}>
                     <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:desk?'10px 14px':'12px 14px',borderBottom:`1px solid ${$.bdr}`}}>
@@ -600,11 +600,11 @@ export default function ClientPortal(){
                         const isPast=ds<todayStr
                         const isSel=selDay===d&&bookDate?.startsWith(`${y}-${String(m+1).padStart(2,'0')}`)
                         const isToday=ds===todayStr
-                        return<button key={i} disabled={isPast||!bookSvc} onClick={()=>pickDay(d)} style={{
+                        return<button key={i} disabled={isPast} onClick={()=>pickDay(d)} style={{
                           width:'100%',aspectRatio:'1',borderRadius:99,border:isSel?`2px solid ${$.acc}`:isToday?`1px solid ${$.acc}40`:'1px solid transparent',
                           background:isSel?$.acc:isToday?'rgba(200,163,76,0.06)':'transparent',
                           color:isSel?'#fff':isPast?$.txtL:$.h,fontSize:desk?12:14,fontWeight:isSel||isToday?700:500,
-                          cursor:isPast||!bookSvc?'default':'pointer',opacity:isPast?0.4:1,fontFamily:$.f,
+                          cursor:isPast?'default':'pointer',opacity:isPast?0.4:1,fontFamily:$.f,
                         }}>{d}</button>
                       })}
                     </div>
