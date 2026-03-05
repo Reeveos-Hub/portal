@@ -111,6 +111,39 @@ const Sidebar=({biz,user,activeTab,onNav,onLogout})=>{
   )
 }
 
+
+// ═══ TOPBAR (outside main component to prevent input remount) ═══
+const TopBar=({biz,user,desk})=>{
+  const ini=(user?.name||'?').split(' ').map(n=>n[0]).join('').toUpperCase().slice(0,2)
+  return(
+    <div style={{background:'#111111',padding:desk?'12px 24px':'12px 16px',display:'flex',alignItems:'center',justifyContent:'space-between',flexShrink:0}}>
+      <div style={{display:'flex',alignItems:'center',gap:10}}>
+        <div style={{width:34,height:34,borderRadius:10,background:$.acc,display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}><span style={{fontSize:13,fontWeight:800,color:'#111'}}>R.</span></div>
+        <div>
+          <p style={{fontSize:14,fontWeight:700,color:'#FAF7F2',margin:0}}>{desk?biz?.name||'Portal':`Hi ${(user?.name||'').split(' ')[0]}`}</p>
+          {!desk&&<p style={{fontSize:10,color:'rgba(250,247,242,0.5)',margin:0}}>{biz?.name}</p>}
+        </div>
+      </div>
+      <div style={{display:'flex',alignItems:'center',gap:8}}>
+        <button style={{width:36,height:36,borderRadius:99,background:'rgba(255,255,255,0.08)',border:'none',display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer',position:'relative',flexShrink:0}}>{I.bell('rgba(250,247,242,0.6)',16)}<div style={{position:'absolute',top:7,right:7,width:7,height:7,borderRadius:99,background:$.acc}}/></button>
+        <div style={{width:34,height:34,borderRadius:99,border:`2px solid ${$.acc}40`,background:'rgba(255,255,255,0.06)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:12,fontWeight:700,color:$.acc,flexShrink:0}}>{ini}</div>
+      </div>
+    </div>
+  )
+}
+
+// ═══ SHELL (outside main component to prevent input remount) ═══
+const Shell=({biz,user,desk,activeTab,onNav,onLogout,tab,children})=>(
+  <div style={{display:'flex',minHeight:'100vh',background:$.bg,fontFamily:$.f}}>
+    {FONT}
+    <Sidebar biz={biz} user={user} activeTab={tab||activeTab} onNav={onNav} onLogout={onLogout}/>
+    <div style={{flex:1,minWidth:0,display:'flex',flexDirection:'column'}}>{children}</div>
+    <div className="client-mobnav" style={{position:'fixed',bottom:0,left:0,right:0,background:'#111111',padding:'10px 0 20px',zIndex:30,display:'flex',justifyContent:'space-around',borderTop:'1px solid rgba(200,163,76,0.1)'}}>
+      {[{id:'home',icon:'home',label:'Home'},{id:'bookings',icon:'cal',label:'Bookings'},{id:'form',icon:'form',label:'Forms'},{id:'messages',icon:'msg',label:'Messages'},{id:'profile',icon:'user',label:'Profile'}].map(t=><button key={t.id} onClick={()=>onNav(t.id)} style={{background:'none',border:'none',cursor:'pointer',display:'flex',flexDirection:'column',alignItems:'center',gap:3,padding:'2px 6px'}}>{I[t.icon](activeTab===t.id?$.acc:'rgba(255,255,255,0.45)',22)}<span style={{fontSize:11,fontWeight:activeTab===t.id?700:500,color:activeTab===t.id?$.acc:'rgba(255,255,255,0.45)'}}>{t.label}</span></button>)}
+    </div>
+  </div>
+)
+
 // ═══ MAIN ═══
 export default function ClientPortal(){
   const{slug}=useParams()
@@ -151,35 +184,7 @@ export default function ClientPortal(){
   const pastBookings=myData?.past_bookings||[]
 
   // Shared: page shell for logged-in views (sidebar + main)
-  const Shell=({tab,children})=>(
-    <div style={{display:'flex',minHeight:'100vh',background:$.bg,fontFamily:$.f}}>
-      {FONT}
 
-      <Sidebar biz={biz} user={user} activeTab={tab||activeTab} onNav={navTo} onLogout={logout}/>
-      <div style={{flex:1,minWidth:0,display:'flex',flexDirection:'column'}}>{children}</div>
-      <div className="client-mobnav" style={{position:'fixed',bottom:0,left:0,right:0,background:'#111111',padding:'10px 0 20px',zIndex:30,display:'flex',justifyContent:'space-around',borderTop:'1px solid rgba(200,163,76,0.1)'}}>
-        {[{id:'home',icon:'home',label:'Home'},{id:'bookings',icon:'cal',label:'Bookings'},{id:'form',icon:'form',label:'Forms'},{id:'messages',icon:'msg',label:'Messages'},{id:'profile',icon:'user',label:'Profile'}].map(t=><button key={t.id} onClick={()=>navTo(t.id)} style={{background:'none',border:'none',cursor:'pointer',display:'flex',flexDirection:'column',alignItems:'center',gap:3,padding:'2px 6px'}}>{I[t.icon](activeTab===t.id?$.acc:'rgba(255,255,255,0.45)',22)}<span style={{fontSize:11,fontWeight:activeTab===t.id?700:500,color:activeTab===t.id?$.acc:'rgba(255,255,255,0.45)'}}>{t.label}</span></button>)}
-      </div>
-    </div>
-  )
-
-  // Shared: top bar for logged-in views
-  const ini=(user?.name||'?').split(' ').map(n=>n[0]).join('').toUpperCase().slice(0,2)
-  const TopBar=()=>(
-    <div style={{background:'#111111',padding:desk?'12px 24px':'12px 16px',display:'flex',alignItems:'center',justifyContent:'space-between',flexShrink:0}}>
-      <div style={{display:'flex',alignItems:'center',gap:10}}>
-        <div style={{width:34,height:34,borderRadius:10,background:$.acc,display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}><span style={{fontSize:13,fontWeight:800,color:'#111'}}>R.</span></div>
-        <div>
-          <p style={{fontSize:14,fontWeight:700,color:'#FAF7F2',margin:0}}>{desk?biz?.name||'Portal':`Hi ${(user?.name||'').split(' ')[0]}`}</p>
-          {!desk&&<p style={{fontSize:10,color:'rgba(250,247,242,0.5)',margin:0}}>{biz?.name}</p>}
-        </div>
-      </div>
-      <div style={{display:'flex',alignItems:'center',gap:8}}>
-        <button style={{width:36,height:36,borderRadius:99,background:'rgba(255,255,255,0.08)',border:'none',display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer',position:'relative',flexShrink:0}}>{I.bell('rgba(250,247,242,0.6)',16)}<div style={{position:'absolute',top:7,right:7,width:7,height:7,borderRadius:99,background:$.acc}}/></button>
-        <div style={{width:34,height:34,borderRadius:99,border:`2px solid ${$.acc}40`,background:'rgba(255,255,255,0.06)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:12,fontWeight:700,color:$.acc,flexShrink:0}}>{ini}</div>
-      </div>
-    </div>
-  )
 
   if(!biz)return<div style={{minHeight:'100vh',display:'flex',alignItems:'center',justifyContent:'center',background:$.bg,fontFamily:$.f}}>{FONT}<div style={{textAlign:'center'}}><div style={{width:28,height:28,border:`3px solid ${$.bdr}`,borderTopColor:$.acc,borderRadius:'50%',animation:'spin 0.8s linear infinite',margin:'0 auto 10px'}}/><p style={{fontSize:12,color:$.txtM}}>Loading...</p></div></div>
 
@@ -251,8 +256,8 @@ export default function ClientPortal(){
   if(view==='home'){
     const qa=[{icon:'cal',label:'Book Visit',sub:'Past & upcoming',action:()=>navTo('bookings'),show:true},{icon:'form',label:hasForm?'View Form':'Fill Form',sub:hasForm?'Review details':'Complete paperwork',action:()=>{setStep(0);setView('form')},show:isSalon},{icon:'user',label:'My Profile',sub:'History & settings',action:()=>navTo('profile'),show:true},{icon:'msg',label:'Message Us',sub:'Talk to experts',action:()=>navTo('messages'),show:true}].filter(a=>a.show)
     return(
-      <Shell tab="home">
-        <TopBar/>
+      <Shell biz={biz} user={user} desk={desk} activeTab={activeTab} onNav={navTo} onLogout={logout} tab="home">
+        <TopBar biz={biz} user={user} desk={desk}/>
         <div style={{flex:1,overflowY:'auto',paddingBottom:desk?0:100}}>
           <div style={{maxWidth:1000,margin:'0 auto',padding:desk?'24px 24px 32px':'16px 12px'}}>
             {hasForm&&<div style={{marginBottom:20}}><h1 style={{fontSize:desk?24:26,fontWeight:700,color:$.h,margin:0}}>Welcome back, {(user?.name||'').split(' ')[0]}!</h1><p style={{fontSize:desk?13:16,color:$.txtM,margin:'2px 0 0'}}>Your skin health journey is progressing perfectly.</p></div>}
@@ -332,7 +337,7 @@ export default function ClientPortal(){
   // SUBMITTED — sidebar
   // ═══════════════════════════════════════════════════════════════
   if(view==='submitted')return(
-    <Shell tab="form">
+    <Shell biz={biz} user={user} desk={desk} activeTab={activeTab} onNav={navTo} onLogout={logout} tab="form">
       <div style={{flex:1,display:'flex',alignItems:'center',justifyContent:'center',padding:16}}>
         <div style={{background:$.card,border:`1px solid ${$.bdr}`,borderRadius:12,maxWidth:400,width:'100%',textAlign:'center',padding:32}}>
           <div style={{width:48,height:48,borderRadius:99,background:'rgba(34,197,94,0.08)',border:'2px solid rgba(34,197,94,0.15)',display:'flex',alignItems:'center',justifyContent:'center',margin:'0 auto 20px'}}>{I.chk($.ok,24)}</div>
@@ -349,7 +354,7 @@ export default function ClientPortal(){
   // FORM (Figma 2:2, 2:206, 2:381, 2:540) — sidebar + progress + steps
   // ═══════════════════════════════════════════════════════════════
   if(view==='form')return(
-    <Shell tab="form">
+    <Shell biz={biz} user={user} desk={desk} activeTab={activeTab} onNav={navTo} onLogout={logout} tab="form">
       <div ref={topRef}/>
       {/* Mobile form header (Figma 1:163) */}
       {!desk&&<div style={{background:$.card,padding:'16px 16px 0',display:'flex',alignItems:'center'}}>
@@ -523,8 +528,8 @@ export default function ClientPortal(){
     const pickDay=(d)=>{const ds=`${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;setBookDate(ds);setBookTime('');if(bookSvc)loadSlots(bookSvc.id,ds)}
 
     return(
-      <Shell tab="bookings">
-        <TopBar/>
+      <Shell biz={biz} user={user} desk={desk} activeTab={activeTab} onNav={navTo} onLogout={logout} tab="bookings">
+        <TopBar biz={biz} user={user} desk={desk}/>
         <div style={{flex:1,overflowY:'auto',paddingBottom:desk?0:100}}>
           <div style={{maxWidth:1000,margin:'0 auto',padding:desk?'24px 24px 32px':'16px 12px'}}>
             <h1 style={{fontSize:desk?24:22,fontWeight:700,color:$.h,margin:'0 0 4px'}}>My Bookings</h1>
@@ -677,8 +682,8 @@ export default function ClientPortal(){
   // MESSAGES — ticketing + AI support
   // ═══════════════════════════════════════════════════════════════
   if(view==='messages')return(
-    <Shell tab="messages">
-      <TopBar/>
+    <Shell biz={biz} user={user} desk={desk} activeTab={activeTab} onNav={navTo} onLogout={logout} tab="messages">
+      <TopBar biz={biz} user={user} desk={desk}/>
       <div style={{flex:1,display:'flex',flexDirection:'column',paddingBottom:desk?0:100}}>
         {/* Tab bar: Chat / AI Support */}
         <div style={{display:'flex',borderBottom:`1px solid ${$.bdr}`,background:$.card,flexShrink:0}}>
@@ -736,8 +741,8 @@ export default function ClientPortal(){
   // PROFILE — history, spend, treatments, settings
   // ═══════════════════════════════════════════════════════════════
   if(view==='profile')return(
-    <Shell tab="profile">
-      <TopBar/>
+    <Shell biz={biz} user={user} desk={desk} activeTab={activeTab} onNav={navTo} onLogout={logout} tab="profile">
+      <TopBar biz={biz} user={user} desk={desk}/>
       <div style={{flex:1,overflowY:'auto',paddingBottom:desk?0:100}}>
         <div style={{maxWidth:800,margin:'0 auto',padding:desk?'24px 24px 32px':'16px 12px'}}>
           {/* Profile header */}
