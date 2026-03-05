@@ -148,11 +148,20 @@ export default function ClientPortal() {
   const [myData, setMyData] = useState(null)
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+  const [winW, setWinW] = useState(typeof window !== 'undefined' ? window.innerWidth : 390)
 
   // Form state
   const [step, setStep] = useState(0)
   const [fd, setFd] = useState({})
   const topRef = useRef(null)
+
+  const isDesktop = winW >= 768
+
+  useEffect(() => {
+    const onResize = () => setWinW(window.innerWidth)
+    window.addEventListener('resize', onResize)
+    return () => window.removeEventListener('resize', onResize)
+  }, [])
 
   const accent = biz?.accent_color || '#C9A84C'
   const bg = biz?.bg_color || '#111111'
@@ -307,34 +316,72 @@ export default function ClientPortal() {
   if (view === 'auth') return (
     <div style={shell}>
       <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-      <Header title={authMode === 'signup' ? 'Create Your Account' : 'Welcome Back'} />
-      <div style={{ maxWidth: 400, margin: '0 auto', padding: '16px 16px 32px' }}>
-        <div style={card}>
-          {authMode === 'signup' && (
-            <Input label="Full Name" name="authName" value={fd.authName} onChange={set} placeholder="Your name" />
-          )}
-          <Input label="Email" type="email" name="authEmail" value={fd.authEmail} onChange={set} placeholder="you@email.com" />
-          {authMode === 'signup' && (
-            <Input label="Phone" type="tel" name="authPhone" value={fd.authPhone} onChange={set} placeholder="07..." />
-          )}
-          <Input label="Password" type="password" name="authPassword" value={fd.authPassword} onChange={set} placeholder={authMode === 'signup' ? 'Min 8 characters' : 'Your password'} />
-
-          {error && <p style={{ fontSize: 11, color: '#dc2626', marginBottom: 12, padding: '8px 12px', background: '#fef2f2', borderRadius: 8 }}>{error}</p>}
-
-          <button onClick={handleAuth} disabled={loading} style={{ ...btn(true), opacity: loading ? 0.6 : 1, marginBottom: 12 }}>
-            {loading ? '...' : authMode === 'signup' ? 'Create Account' : 'Log In'}
-          </button>
-
-          <p style={{ fontSize: 11, color: '#9ca3af', textAlign: 'center' }}>
-            {authMode === 'signup' ? 'Already have an account? ' : "Don't have an account? "}
-            <button onClick={() => { setAuthMode(authMode === 'signup' ? 'login' : 'signup'); setError('') }}
-              style={{ background: 'none', border: 'none', color: accent, fontWeight: 600, cursor: 'pointer', fontSize: 11 }}>
-              {authMode === 'signup' ? 'Log in' : 'Sign up'}
-            </button>
-          </p>
+      {isDesktop ? (
+        /* ═══ DESKTOP: split layout ═══ */
+        <div style={{ display: 'flex', minHeight: '100vh' }}>
+          {/* Left — banner */}
+          <div style={{ width: '55%', position: 'relative', overflow: 'hidden', background: bg }}>
+            {biz?.banner_url && <img src={biz.banner_url} alt="" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }} />}
+            <div style={{ position: 'absolute', inset: 0, background: `linear-gradient(135deg, ${bg}CC 0%, ${bg}EE 50%, ${bg}DD 100%)` }} />
+            <div style={{ position: 'relative', height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: 48 }}>
+              <div style={{ width: 72, height: 72, borderRadius: 20, background: accent, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 28, fontWeight: 700, color: bg, boxShadow: `0 8px 32px ${accent}40`, marginBottom: 20 }}>
+                {biz?.name?.charAt(0) || 'R'}
+              </div>
+              <h1 style={{ fontSize: 36, fontWeight: 800, color: accent, letterSpacing: '-0.03em', margin: 0 }}>{biz?.name || ''}</h1>
+              {biz?.subtitle && <p style={{ fontSize: 13, color: '#888', letterSpacing: '0.2em', textTransform: 'uppercase', marginTop: 6 }}>{biz.subtitle}</p>}
+              {biz?.address && <p style={{ fontSize: 12, color: '#666', marginTop: 16 }}>{biz.address}</p>}
+            </div>
+          </div>
+          {/* Right — form */}
+          <div style={{ width: '45%', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 48, background: '#fff' }}>
+            <div style={{ maxWidth: 380, width: '100%' }}>
+              <h2 style={{ fontSize: 22, fontWeight: 700, color: bg, marginBottom: 4 }}>{authMode === 'signup' ? 'Create Your Account' : 'Welcome Back'}</h2>
+              <p style={{ fontSize: 12, color: '#9ca3af', marginBottom: 24 }}>{authMode === 'signup' ? `Join ${biz?.name || ''} to manage your bookings and treatments` : `Sign in to your ${biz?.name || ''} account`}</p>
+              {authMode === 'signup' && <Input label="Full Name" name="authName" value={fd.authName} onChange={set} placeholder="Your name" />}
+              <Input label="Email" type="email" name="authEmail" value={fd.authEmail} onChange={set} placeholder="you@email.com" />
+              {authMode === 'signup' && <Input label="Phone" type="tel" name="authPhone" value={fd.authPhone} onChange={set} placeholder="07..." />}
+              <Input label="Password" type="password" name="authPassword" value={fd.authPassword} onChange={set} placeholder={authMode === 'signup' ? 'Min 8 characters' : 'Your password'} />
+              {error && <p style={{ fontSize: 11, color: '#dc2626', marginBottom: 12, padding: '8px 12px', background: '#fef2f2', borderRadius: 8 }}>{error}</p>}
+              <button onClick={handleAuth} disabled={loading} style={{ ...btn(true), opacity: loading ? 0.6 : 1, marginBottom: 16 }}>
+                {loading ? '...' : authMode === 'signup' ? 'Create Account' : 'Log In'}
+              </button>
+              <p style={{ fontSize: 11, color: '#9ca3af', textAlign: 'center' }}>
+                {authMode === 'signup' ? 'Already have an account? ' : "Don't have an account? "}
+                <button onClick={() => { setAuthMode(authMode === 'signup' ? 'login' : 'signup'); setError('') }}
+                  style={{ background: 'none', border: 'none', color: accent, fontWeight: 600, cursor: 'pointer', fontSize: 11 }}>
+                  {authMode === 'signup' ? 'Log in' : 'Sign up'}
+                </button>
+              </p>
+              <p style={{ fontSize: 10, color: '#d1d5db', textAlign: 'center', marginTop: 32 }}>Powered by <span style={{ fontWeight: 700, color: accent }}>ReeveOS</span></p>
+            </div>
+          </div>
         </div>
-        <p style={{ textAlign: 'center', fontSize: 10, color: '#d1d5db', marginTop: 24 }}>Powered by <span style={{ fontWeight: 700, color: accent }}>ReeveOS</span></p>
-      </div>
+      ) : (
+        /* ═══ MOBILE: stacked layout ═══ */
+        <>
+        <Header title={authMode === 'signup' ? 'Create Your Account' : 'Welcome Back'} />
+        <div style={{ maxWidth: 400, margin: '0 auto', padding: '16px 16px 32px' }}>
+          <div style={card}>
+            {authMode === 'signup' && <Input label="Full Name" name="authName" value={fd.authName} onChange={set} placeholder="Your name" />}
+            <Input label="Email" type="email" name="authEmail" value={fd.authEmail} onChange={set} placeholder="you@email.com" />
+            {authMode === 'signup' && <Input label="Phone" type="tel" name="authPhone" value={fd.authPhone} onChange={set} placeholder="07..." />}
+            <Input label="Password" type="password" name="authPassword" value={fd.authPassword} onChange={set} placeholder={authMode === 'signup' ? 'Min 8 characters' : 'Your password'} />
+            {error && <p style={{ fontSize: 11, color: '#dc2626', marginBottom: 12, padding: '8px 12px', background: '#fef2f2', borderRadius: 8 }}>{error}</p>}
+            <button onClick={handleAuth} disabled={loading} style={{ ...btn(true), opacity: loading ? 0.6 : 1, marginBottom: 12 }}>
+              {loading ? '...' : authMode === 'signup' ? 'Create Account' : 'Log In'}
+            </button>
+            <p style={{ fontSize: 11, color: '#9ca3af', textAlign: 'center' }}>
+              {authMode === 'signup' ? 'Already have an account? ' : "Don't have an account? "}
+              <button onClick={() => { setAuthMode(authMode === 'signup' ? 'login' : 'signup'); setError('') }}
+                style={{ background: 'none', border: 'none', color: accent, fontWeight: 600, cursor: 'pointer', fontSize: 11 }}>
+                {authMode === 'signup' ? 'Log in' : 'Sign up'}
+              </button>
+            </p>
+          </div>
+          <p style={{ textAlign: 'center', fontSize: 10, color: '#d1d5db', marginTop: 24 }}>Powered by <span style={{ fontWeight: 700, color: accent }}>ReeveOS</span></p>
+        </div>
+        </>
+      )}
     </div>
   )
 
@@ -351,7 +398,7 @@ export default function ClientPortal() {
       <div style={shell}>
         <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
         <div style={{ background: bg, padding: '24px 16px 20px' }}>
-          <div style={{ maxWidth: 400, margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <div style={{ maxWidth: isDesktop ? 960 : 400, margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
               <div style={{ width: 40, height: 40, borderRadius: '50%', background: `linear-gradient(135deg, ${accent}, ${accent}CC)`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, fontWeight: 700, color: '#fff' }}>
                 {(user?.name || '?').charAt(0)}
@@ -365,7 +412,9 @@ export default function ClientPortal() {
           </div>
         </div>
 
-        <div style={{ maxWidth: 400, margin: '0 auto', padding: '16px 16px 32px' }}>
+        <div style={{ maxWidth: isDesktop ? 960 : 400, margin: '0 auto', padding: isDesktop ? '24px 24px 32px' : '16px 16px 32px' }}>
+          <div style={isDesktop ? { display: 'grid', gridTemplateColumns: '1.5fr 1fr', gap: 20 } : {}}>
+          <div>
           {/* Consultation form status — salon/local services only */}
           {isSalon && (
           <div style={{ ...card, marginBottom: 12, border: hasForm ? '1px solid #c6f6d5' : `1px solid ${accent}40`, background: hasForm ? '#f0fff4' : accent + '08' }}>
@@ -400,21 +449,6 @@ export default function ClientPortal() {
             </div>
           )}
 
-          {/* Quick actions */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 16 }}>
-            {[
-              { icon: '&#128197;', label: 'Book Appointment', action: () => window.open(`/${slug}`, '_blank'), show: true },
-              { icon: '&#128203;', label: hasForm ? 'View Form' : 'Fill Form', action: () => { setStep(0); setView('form') }, show: isSalon },
-              { icon: '&#128100;', label: 'My Profile', action: () => {}, show: true },
-              { icon: '&#128172;', label: 'Message Us', action: () => {}, show: true },
-            ].filter(a => a.show).map((a, i) => (
-              <button key={i} onClick={a.action} style={{ ...card, cursor: 'pointer', textAlign: 'center', padding: 16, border: '1px solid #f0f0f0' }}>
-                <span style={{ fontSize: 20 }} dangerouslySetInnerHTML={{ __html: a.icon }} />
-                <p style={{ fontSize: 10, fontWeight: 600, color: '#374151', margin: '8px 0 0' }}>{a.label}</p>
-              </button>
-            ))}
-          </div>
-
           {/* Upcoming bookings */}
           {upcoming.length > 0 && (
             <div style={{ marginBottom: 16 }}>
@@ -433,6 +467,23 @@ export default function ClientPortal() {
               ))}
             </div>
           )}
+          </div>{/* end left column */}
+
+          <div>{/* right column */}
+          {/* Quick actions */}
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 16 }}>
+            {[
+              { icon: '&#128197;', label: 'Book Appointment', action: () => window.open(`/${slug}`, '_blank'), show: true },
+              { icon: '&#128203;', label: hasForm ? 'View Form' : 'Fill Form', action: () => { setStep(0); setView('form') }, show: isSalon },
+              { icon: '&#128100;', label: 'My Profile', action: () => {}, show: true },
+              { icon: '&#128172;', label: 'Message Us', action: () => {}, show: true },
+            ].filter(a => a.show).map((a, i) => (
+              <button key={i} onClick={a.action} style={{ ...card, cursor: 'pointer', textAlign: 'center', padding: 16, border: '1px solid #f0f0f0' }}>
+                <span style={{ fontSize: 20 }} dangerouslySetInnerHTML={{ __html: a.icon }} />
+                <p style={{ fontSize: 10, fontWeight: 600, color: '#374151', margin: '8px 0 0' }}>{a.label}</p>
+              </button>
+            ))}
+          </div>
 
           {/* Past treatments */}
           {myData?.past_bookings?.length > 0 && (
@@ -448,7 +499,8 @@ export default function ClientPortal() {
               ))}
             </div>
           )}
-
+          </div>{/* end right column */}
+          </div>{/* end grid */}
           <p style={{ textAlign: 'center', fontSize: 10, color: '#d1d5db', marginTop: 24 }}>Powered by <span style={{ fontWeight: 700, color: accent }}>ReeveOS</span></p>
         </div>
       </div>
@@ -483,37 +535,61 @@ export default function ClientPortal() {
     <div style={shell}>
       <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
       <div ref={topRef} />
-      <Header title="Client Consultation Form" showBack onBack={() => setView('home')} />
+      {!isDesktop && <Header title="Client Consultation Form" showBack onBack={() => setView('home')} />}
+
+      {/* Desktop: compact branded strip */}
+      {isDesktop && (
+        <div style={{ background: bg, padding: '16px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <div style={{ width: 36, height: 36, borderRadius: 10, background: accent, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, fontWeight: 700, color: bg }}>{biz?.name?.charAt(0) || 'R'}</div>
+            <div>
+              <p style={{ fontSize: 14, fontWeight: 700, color: accent, margin: 0 }}>{biz?.name}</p>
+              {biz?.subtitle && <p style={{ fontSize: 9, color: '#888', margin: 0, letterSpacing: '0.1em', textTransform: 'uppercase' }}>{biz.subtitle}</p>}
+            </div>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <div style={{ padding: '5px 14px', borderRadius: 16, background: accent + '20' }}>
+              <span style={{ fontSize: 11, fontWeight: 600, color: accent }}>Client Consultation Form</span>
+            </div>
+            <button onClick={() => setView('home')} style={{ background: 'rgba(255,255,255,0.08)', border: 'none', borderRadius: 8, padding: '6px 14px', color: '#999', fontSize: 11, cursor: 'pointer' }}>← Back</button>
+          </div>
+        </div>
+      )}
 
       {/* Progress */}
       <div style={{ background: '#fff', borderBottom: '1px solid #f0f0f0', padding: '10px 16px', position: 'sticky', top: 0, zIndex: 10 }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', maxWidth: 400, margin: '0 auto' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', maxWidth: isDesktop ? 640 : 400, margin: '0 auto' }}>
           {STEPS.map((s, i) => (
             <div key={s} style={{ display: 'flex', alignItems: 'center' }}>
-              <div style={{
-                width: 24, height: 24, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                fontSize: 10, fontWeight: 700,
-                background: i < step ? '#22c55e' : i === step ? accent : '#f3f4f6',
-                color: i < step ? '#fff' : i === step ? bg : '#9ca3af',
-              }}>{i < step ? '✓' : i + 1}</div>
-              {i < STEPS.length - 1 && <div style={{ width: 12, height: 1, margin: '0 2px', background: i < step ? '#86efac' : '#e5e7eb' }} />}
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                <div style={{
+                  width: isDesktop ? 28 : 24, height: isDesktop ? 28 : 24, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  fontSize: isDesktop ? 11 : 10, fontWeight: 700,
+                  background: i < step ? '#22c55e' : i === step ? accent : '#f3f4f6',
+                  color: i < step ? '#fff' : i === step ? bg : '#9ca3af',
+                }}>{i < step ? '✓' : i + 1}</div>
+                {isDesktop && <span style={{ fontSize: 9, color: i === step ? accent : '#9ca3af', fontWeight: i === step ? 700 : 400, marginTop: 3 }}>{s}</span>}
+              </div>
+              {i < STEPS.length - 1 && <div style={{ width: isDesktop ? 32 : 12, height: 1, margin: `0 ${isDesktop ? 4 : 2}px`, background: i < step ? '#86efac' : '#e5e7eb' }} />}
             </div>
           ))}
         </div>
-        <p style={{ textAlign: 'center', fontSize: 10, color: '#9ca3af', marginTop: 4, fontWeight: 600 }}>Step {step + 1}: {STEPS[step]}</p>
+        {!isDesktop && <p style={{ textAlign: 'center', fontSize: 10, color: '#9ca3af', marginTop: 4, fontWeight: 600 }}>Step {step + 1}: {STEPS[step]}</p>}
       </div>
 
       {/* Form body */}
-      <div style={{ maxWidth: 400, margin: '0 auto', padding: '16px 16px 0' }}>
-        <div style={card}>
+      <div style={{ maxWidth: isDesktop ? 640 : 400, margin: '0 auto', padding: isDesktop ? '24px 16px 0' : '16px 16px 0' }}>
+        <div style={{ ...card, padding: isDesktop ? 24 : 16 }}>
 
           {/* Step 0: Personal */}
           {step === 0 && (<div>
             <h2 style={{ fontSize: 13, fontWeight: 700, color: bg, marginBottom: 2 }}>Personal Details</h2>
             <p style={{ fontSize: 10, color: '#9ca3af', marginBottom: 16 }}>Used for your treatment records</p>
             <Input label="Full Name *" name="fullName" value={fd.fullName} onChange={set} placeholder="Your full name" />
-            <Input label="Date of Birth *" type="date" name="dob" value={fd.dob} onChange={set} />
-            <Input label="Address" name="address" value={fd.address} onChange={set} placeholder="Full address" />
+            <div style={{ display: 'grid', gridTemplateColumns: isDesktop ? '1fr 1fr' : '1fr', gap: 8 }}>
+              <Input label="Date of Birth *" type="date" name="dob" value={fd.dob} onChange={set} />
+              <Input label="Address" name="address" value={fd.address} onChange={set} placeholder="Full address" />
+            </div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
               <Input label="Mobile *" type="tel" name="mobile" value={fd.mobile} onChange={set} placeholder="07..." />
               <Input label="Email *" type="email" name="email" value={fd.email} onChange={set} placeholder="you@email.com" />
@@ -591,8 +667,9 @@ export default function ClientPortal() {
                 ].map(t => (
                   <button key={t.v} type="button" onClick={() => set('fitzpatrick', t.v)}
                     style={{ padding: 6, borderRadius: 8, border: fd.fitzpatrick === t.v ? `2px solid ${accent}` : '2px solid #e5e7eb', background: '#fff', cursor: 'pointer', textAlign: 'center' }}>
-                    <div style={{ width: 24, height: 24, borderRadius: '50%', margin: '0 auto 4px', background: t.bg }} />
-                    <p style={{ fontSize: 10, fontWeight: 700, color: '#374151', margin: 0 }}>{t.v}</p>
+                    <div style={{ width: isDesktop ? 36 : 24, height: isDesktop ? 36 : 24, borderRadius: '50%', margin: '0 auto 4px', background: t.bg }} />
+                    <p style={{ fontSize: isDesktop ? 11 : 10, fontWeight: 700, color: '#374151', margin: 0 }}>{t.v}</p>
+                    {isDesktop && <p style={{ fontSize: 8, color: '#9ca3af', margin: '2px 0 0' }}>{t.x}</p>}
                   </button>
                 ))}
               </div>
@@ -631,7 +708,7 @@ export default function ClientPortal() {
             <h2 style={{ fontSize: 13, fontWeight: 700, color: bg, marginBottom: 2 }}>Consent & Signature</h2>
             <p style={{ fontSize: 10, color: '#9ca3af', marginBottom: 12 }}>Read each statement and tick to confirm</p>
             {alerts.blocks.length > 0 && <AlertBanner blocks={alerts.blocks} flags={alerts.flags} accent={accent} />}
-            <div style={{ background: '#f9fafb', borderRadius: 12, padding: 6, marginTop: 12 }}>
+            <div style={{ background: '#f9fafb', borderRadius: 12, padding: 6, marginTop: 12, ...(isDesktop ? { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 0 } : {}) }}>
               <Tick label="The information I've provided is accurate and complete." checked={fd.consent1} onChange={() => set('consent1', !fd.consent1)} accent={accent} />
               <Tick label="Withholding information may cause adverse reactions I accept liability for." checked={fd.consent2} onChange={() => set('consent2', !fd.consent2)} accent={accent} />
               <Tick label="I will inform my therapist if my medical circumstances change." checked={fd.consent3} onChange={() => set('consent3', !fd.consent3)} accent={accent} />
@@ -641,7 +718,7 @@ export default function ClientPortal() {
               <Tick label="I consent to my data being stored securely under UK GDPR." checked={fd.consent7} onChange={() => set('consent7', !fd.consent7)} accent={accent} />
               <Tick label="Results vary and no specific outcome is guaranteed." checked={fd.consent8} onChange={() => set('consent8', !fd.consent8)} accent={accent} />
             </div>
-            <div style={{ marginTop: 16 }}>
+            <div style={{ marginTop: 16, maxWidth: isDesktop ? 480 : '100%' }}>
               <label style={{ display: 'block', fontSize: 11, fontWeight: 600, color: '#374151', marginBottom: 6 }}>Your Signature *</label>
               <SignaturePad onSign={s => set('signed', s)} bg={bg} />
             </div>
@@ -650,7 +727,7 @@ export default function ClientPortal() {
         </div>
 
         {/* Navigation */}
-        <div style={{ display: 'flex', gap: 8, marginTop: 16, paddingBottom: 24 }}>
+        <div style={{ display: 'flex', gap: 8, marginTop: 16, paddingBottom: 24, maxWidth: isDesktop ? 300 : '100%', marginLeft: isDesktop ? 'auto' : 0 }}>
           {step > 0 && <button onClick={() => setStep(step - 1)} style={{ ...btn(false), flex: 1 }}>Back</button>}
           {step < STEPS.length - 1 ? (
             <button onClick={() => canProceed() && setStep(step + 1)} disabled={!canProceed()}
