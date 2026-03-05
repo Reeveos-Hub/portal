@@ -349,72 +349,68 @@ export default function ClientPortal() {
   // LOGIN (Figma: 2:115) — hero banner + two-col: welcome text / login card
   // ═══════════════════════════════════════════════════════════════
   if(view==='login') return (
-    <div style={{minHeight:'100vh',background:L.bg,fontFamily:L.f}}>
+    <div style={{display:'flex',minHeight:'100vh',background:L.bg,fontFamily:L.f}}>
       <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
-      <Header biz={biz} desk={desk}>
-        {desk&&['Treatments','Products','Locations'].map(l=><button key={l} style={{background:'none',border:'none',fontSize:14,fontWeight:500,color:L.txtM,cursor:'pointer',fontFamily:L.f,textTransform:'uppercase',letterSpacing:'0.5px'}}>{l}</button>)}
-      </Header>
-      {/* Hero banner (Figma: 2:134) */}
-      <div style={{maxWidth:1200,margin:'0 auto',padding:desk?'32px 40px':'16px 16px'}}>
-        <div style={{width:'100%',height:desk?400:200,borderRadius:12,background:'linear-gradient(135deg,#E2E8F0 0%,#CBD5E1 50%,#E2E8F0 100%)',display:'flex',alignItems:'flex-end',padding:48,boxSizing:'border-box',marginBottom:desk?0:24,position:'relative',overflow:'hidden'}}>
-          <p style={{fontSize:desk?40:24,fontWeight:300,color:L.txtM,margin:0,fontStyle:'italic'}}>Radiance redefined.</p>
+      {/* Sidebar — no user yet, just branding */}
+      {desk&&<div style={{display:'flex',height:'100vh',position:'sticky',top:0,flexShrink:0}}>
+        <div style={{width:RAIL,background:'#111111',display:'flex',flexDirection:'column',flexShrink:0}}>
+          <div style={{height:64,display:'flex',alignItems:'center',justifyContent:'center',borderBottom:'1px solid rgba(255,255,255,0.08)'}}>
+            <div style={{width:34,height:34,borderRadius:10,background:L.acc,display:'flex',alignItems:'center',justifyContent:'center'}}><span style={{color:'#111',fontWeight:700,fontSize:15}}>R.</span></div>
+          </div>
+          <div style={{flex:1}}/>
         </div>
-      </div>
-      {/* Two-col: welcome + login card (Figma: 2:140) */}
-      <div style={{maxWidth:1200,margin:'0 auto',padding:desk?'0 40px 40px':'0 16px 24px'}}>
-        <div style={desk?{display:'flex',gap:48,alignItems:'flex-start'}:{}}>
-          {/* Left: Welcome text (Figma: 2:141) */}
-          {desk&&<div style={{flex:1,paddingTop:40}}>
-            <h2 style={{fontSize:28,fontWeight:700,color:L.acc,margin:'0 0 24px'}}>Welcome Back</h2>
-            <p style={{fontSize:16,color:L.txtM,lineHeight:'26px',margin:'0 0 24px',maxWidth:450}}>Access your personalized skincare dashboard, manage appointments, and explore exclusive member treatments designed for your unique glow.</p>
-            <div style={{display:'flex',alignItems:'center',gap:12}}>
-              {I.shield(L.acc,20)}
-              <span style={{fontSize:14,fontWeight:700,color:L.acc,textTransform:'uppercase',letterSpacing:'0.5px'}}>Secure Luxury Gateway</span>
-            </div>
-          </div>}
-          {/* Right: Login card (Figma: 2:151) */}
-          <div style={{width:desk?480:'100%',flexShrink:0}}>
-            <div style={{background:L.card,borderRadius:12,border:`1px solid ${L.bdr}`,padding:28,boxShadow:'0 10px 40px rgba(0,0,0,0.06)'}}>
-              <h2 style={{fontSize:18,fontWeight:700,color:L.h,margin:'0 0 6px'}}>{authMode==='login'?'Member Login':'Create Account'}</h2>
-              <p style={{fontSize:14,color:L.txtM,margin:'0 0 28px'}}>{authMode==='login'?'Please enter your credentials to continue.':'Start your journey to radiant skin today.'}</p>
+        <div style={{width:PANEL,background:'#fff',borderRight:`1px solid ${L.bdr}`,display:'flex',flexDirection:'column'}}>
+          <div style={{height:64,display:'flex',alignItems:'center',padding:'0 16px',borderBottom:'1px solid #F0EDE7'}}>
+            <span style={{fontWeight:700,fontSize:15,color:'#111'}}>{biz?.name||'Portal'}</span>
+          </div>
+          <div style={{flex:1,padding:'24px 16px'}}>
+            <p style={{fontSize:13,color:L.txtM,lineHeight:1.6,margin:0}}>Access your personalised skincare dashboard, manage appointments, and explore treatments designed for you.</p>
+            <div style={{display:'flex',alignItems:'center',gap:8,marginTop:24}}>{I.shield(L.acc,16)}<span style={{fontSize:12,fontWeight:700,color:L.acc,textTransform:'uppercase',letterSpacing:'0.5px'}}>Secure Gateway</span></div>
+          </div>
+          <div style={{padding:16,borderTop:'1px solid #F0EDE7'}}>
+            <p style={{fontSize:11,color:L.txtL,margin:0}}>Powered by <b style={{color:L.acc}}>ReeveOS</b></p>
+          </div>
+        </div>
+      </div>}
 
-              {authMode==='signup'&&<Field label="Full Name" icon={I.user(L.txtL,14)} name="signupName" value={signupName} onChange={(_,v)=>setSignupName(v)} placeholder="Enter your full name"/>}
+      {/* Main content */}
+      <div style={{flex:1,display:'flex',alignItems:'center',justifyContent:'center',padding:desk?40:16}}>
+        <div style={{width:'100%',maxWidth:440}}>
+          <div style={{background:L.card,borderRadius:12,border:`1px solid ${L.bdr}`,padding:28,boxShadow:'0 10px 40px rgba(0,0,0,0.06)'}}>
+            <h2 style={{fontSize:18,fontWeight:700,color:L.h,margin:'0 0 6px'}}>{authMode==='login'?'Member Login':'Create Account'}</h2>
+            <p style={{fontSize:13,color:L.txtM,margin:'0 0 24px'}}>{authMode==='login'?'Please enter your credentials to continue.':'Start your journey to radiant skin today.'}</p>
 
-              <Field label="Email Address" icon={I.mail(L.txtL,14)} type="email" name="email" value={email} onChange={(_,v)=>setEmail(v)} placeholder="name@example.com"/>
+            {authMode==='signup'&&<Field label="Full Name" icon={I.user(L.txtL,14)} name="signupName" value={signupName} onChange={(_,v)=>setSignupName(v)} placeholder="Enter your full name"/>}
+            <Field label="Email Address" icon={I.mail(L.txtL,14)} type="email" name="email" value={email} onChange={(_,v)=>setEmail(v)} placeholder="name@example.com"/>
+            {authMode==='signup'&&<Field label="Phone Number" icon={I.phone(L.txtL,14)} type="tel" name="phone" value={signupPhone} onChange={(_,v)=>setSignupPhone(v)} placeholder="07..."/>}
 
-              {authMode==='signup'&&<Field label="Phone Number" icon={I.phone(L.txtL,14)} type="tel" name="phone" value={signupPhone} onChange={(_,v)=>setSignupPhone(v)} placeholder="+1 (555) 000-0000"/>}
-
-              <div style={{marginBottom:20}}>
-                <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:6}}>
-                  <div style={{display:'flex',alignItems:'center',gap:8}}>
-                    {I.lock(L.txtL,14)}<label style={{fontSize:14,fontWeight:600,color:L.h}}>Password</label>
-                  </div>
-                  {authMode==='login'&&<button style={{background:'none',border:'none',color:L.acc,fontSize:13,fontWeight:500,cursor:'pointer',fontFamily:L.f}}>Forgot password?</button>}
-                </div>
-                <div style={{position:'relative'}}>
-                  <input type={showPw?'text':'password'} value={password} onChange={e=>setPassword(e.target.value)} placeholder={authMode==='login'?'••••••••':'Create a strong password'}
-                    style={{width:'100%',padding:'10px 44px 10px 14px',borderRadius:10,border:`1px solid ${L.bdr}`,fontSize:14,outline:'none',background:L.card,color:L.h,boxSizing:'border-box',fontFamily:L.f}}/>
-                  <button type="button" onClick={()=>setShowPw(!showPw)} style={{position:'absolute',right:17,top:'50%',transform:'translateY(-50%)',background:'none',border:'none',cursor:'pointer'}}>{I.eye(L.txtL)}</button>
-                </div>
+            <div style={{marginBottom:16}}>
+              <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:5}}>
+                <div style={{display:'flex',alignItems:'center',gap:6}}>{I.lock(L.txtL,14)}<label style={{fontSize:13,fontWeight:600,color:L.txt}}>Password</label></div>
+                {authMode==='login'&&<button style={{background:'none',border:'none',color:L.acc,fontSize:12,fontWeight:500,cursor:'pointer',fontFamily:L.f}}>Forgot password?</button>}
               </div>
-
-              {err&&<p style={{fontSize:13,color:L.err,margin:'0 0 16px'}}>{err}</p>}
-
-              <button onClick={doAuth} disabled={loading} style={{width:'100%',padding:'12px 0',borderRadius:10,border:'none',background:L.acc,color:'#fff',fontSize:14,fontWeight:700,cursor:loading?'wait':'pointer',fontFamily:L.f,letterSpacing:'0.3px',opacity:loading?0.6:1,textTransform:'uppercase',marginBottom:20}}>
-                {loading?'Please wait...':authMode==='login'?'Log In':'Create Account'}
-              </button>
-
-              <p style={{textAlign:'center',fontSize:14,color:L.txtM}}>
-                {authMode==='login'?'Not a member yet? ':'Already have an account? '}
-                <button onClick={()=>{setAuthMode(authMode==='login'?'signup':'login');setErr('')}} style={{background:'none',border:'none',color:L.acc,fontWeight:600,cursor:'pointer',fontSize:14,fontFamily:L.f}}>
-                  {authMode==='login'?'Apply for Membership':'Sign In'}
-                </button>
-              </p>
+              <div style={{position:'relative'}}>
+                <input type={showPw?'text':'password'} value={password} onChange={e=>setPassword(e.target.value)} placeholder={authMode==='login'?'••••••••':'Create a strong password'}
+                  style={{width:'100%',padding:'10px 44px 10px 14px',borderRadius:10,border:`1px solid ${L.bdr}`,fontSize:13,outline:'none',background:L.card,color:L.h,boxSizing:'border-box',fontFamily:L.f}}/>
+                <button type="button" onClick={()=>setShowPw(!showPw)} style={{position:'absolute',right:14,top:'50%',transform:'translateY(-50%)',background:'none',border:'none',cursor:'pointer'}}>{I.eye(L.txtL)}</button>
+              </div>
             </div>
+
+            {err&&<p style={{fontSize:12,color:L.err,margin:'0 0 12px'}}>{err}</p>}
+
+            <button onClick={doAuth} disabled={loading} style={{width:'100%',padding:'10px 0',borderRadius:10,border:'none',background:L.acc,color:'#fff',fontSize:13,fontWeight:700,cursor:loading?'wait':'pointer',fontFamily:L.f,letterSpacing:'0.3px',opacity:loading?0.6:1,textTransform:'uppercase',marginBottom:16}}>
+              {loading?'Please wait...':authMode==='login'?'Log In':'Create Account'}
+            </button>
+
+            <p style={{textAlign:'center',fontSize:13,color:L.txtM}}>
+              {authMode==='login'?'Not a member yet? ':'Already have an account? '}
+              <button onClick={()=>{setAuthMode(authMode==='login'?'signup':'login');setErr('')}} style={{background:'none',border:'none',color:L.acc,fontWeight:600,cursor:'pointer',fontSize:13,fontFamily:L.f}}>
+                {authMode==='login'?'Sign up':'Sign In'}
+              </button>
+            </p>
           </div>
         </div>
       </div>
-      <Footer biz={biz} desk={desk}/>
     </div>
   )
 
