@@ -131,8 +131,17 @@ export default function ClientPortal(){
   const canProceed=()=>{if(step===0)return fd.fullName&&fd.dob&&fd.mobile&&fd.email&&fd.emergencyName&&fd.emergencyPhone&&fd.gpName;if(step===5)return fd.consent1&&fd.consent2&&fd.consent3&&fd.consent4&&fd.signed;return true}
   const goStep=n=>{setStep(n);topRef.current?.scrollIntoView({behavior:'smooth'})}
   const[msgTab,setMsgTab]=useState('chat'),[msgs,setMsgs]=useState([]),[msgText,setMsgText]=useState('')
-  const navTo=t=>{setActiveTab(t);if(t==='home')setView('home');else if(t==='form'){setStep(0);setView('form')}else setView(t)}
-  const sendMsg=()=>{if(!msgText.trim())return;setMsgs(p=>[...p,{from:'me',text:msgText,time:new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}]);setMsgText('')}
+  const[services,setServices]=useState([]),[slots,setSlots]=useState([]),[slotStaff,setSlotStaff]=useState([])
+  const[bookSvc,setBookSvc]=useState(null),[bookDate,setBookDate]=useState(''),[bookTime,setBookTime]=useState(''),[bookStaff,setBookStaff]=useState(''),[bookStep,setBookStep]=useState('list'),[bookLoading,setBookLoading]=useState(false)
+  const[notifPrefs,setNotifPrefs]=useState({appointment_reminders:true,aftercare:true,promotions:false,booking_confirmations:true})
+  const navTo=t=>{setActiveTab(t);if(t==='home')setView('home');else if(t==='form'){setStep(0);setView('form')}else{setView(t);if(t==='messages')loadMsgs();if(t==='bookings'){loadServices();setBookStep('list')}if(t==='profile')loadNotifPrefs()}}
+  const loadMsgs=async()=>{try{const d=await apiFetch(`/client/${slug}/messages`);setMsgs((d.messages||[]).map(m=>({from:m.from==='client'?'me':'them',text:m.text,time:m.created_at?new Date(m.created_at).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}):'',staff:m.staff_name})))}catch(e){}}
+  const sendMsg=async()=>{if(!msgText.trim())return;const text=msgText;setMsgText('');setMsgs(p=>[...p,{from:'me',text,time:new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}]);try{await apiFetch(`/client/${slug}/messages`,{method:'POST',body:JSON.stringify({text})})}catch(e){}}
+  const loadServices=async()=>{try{const d=await apiFetch(`/client/${slug}/services`);setServices(d.services||[])}catch(e){}}
+  const loadSlots=async(svcId,date)=>{try{const d=await apiFetch(`/client/${slug}/slots?service_id=${svcId}&date=${date}`);setSlots(d.slots||[]);setSlotStaff(d.staff||[])}catch(e){setSlots([])}}
+  const doBook=async()=>{if(!bookSvc||!bookDate||!bookTime)return;setBookLoading(true);try{await apiFetch(`/client/${slug}/book`,{method:'POST',body:JSON.stringify({service_id:bookSvc.id,date:bookDate,time:bookTime,staff_id:bookStaff||undefined})});setBookStep('done');await loadUser()}catch(e){setErr(e.message)}setBookLoading(false)}
+  const toggleNotif=async(key)=>{const nw={...notifPrefs,[key]:!notifPrefs[key]};setNotifPrefs(nw);try{await apiFetch('/client/auth/notifications',{method:'PUT',body:JSON.stringify({prefs:nw})})}catch(e){}}
+  const loadNotifPrefs=async()=>{try{const d=await apiFetch('/client/auth/notifications');if(d.prefs)setNotifPrefs(d.prefs)}catch(e){}}
   const pastBookings=myData?.past_bookings||[]
 
   // Shared: page shell for logged-in views (sidebar + main)
@@ -467,9 +476,64 @@ export default function ClientPortal(){
           )}
 
           {/* Book new */}
-          <div style={{marginTop:24,textAlign:'center'}}>
-            <button onClick={()=>{/* TODO: wire to booking flow */}} style={{padding:desk?'10px 28px':'12px 32px',borderRadius:99,border:'none',background:$.acc,color:'#fff',fontSize:desk?13:15,fontWeight:700,cursor:'pointer',fontFamily:$.f}}>Book New Appointment</button>
-          </div>
+          {bookStep==='list'&&<div style={{marginTop:24,textAlign:'center'}}>
+            <button onClick={()=>{loadServices();setBookStep('service')}} style={{padding:desk?'10px 28px':'12px 32px',borderRadius:99,border:'none',background:$.acc,color:'#fff',fontSize:desk?13:15,fontWeight:700,cursor:'pointer',fontFamily:$.f}}>Book New Appointment</button>
+          </div>}
+
+          {/* Step 1: pick service */}
+          {bookStep==='service'&&<div style={{marginTop:20}}>
+            <h3 style={{fontSize:desk?15:17,fontWeight:700,color:$.h,margin:'0 0 12px'}}>Choose a Treatment</h3>
+            {services.length===0?<p style={{fontSize:desk?13:15,color:$.txtM}}>No services available yet.</p>:services.map(s=>(
+              <button key={s.id} onClick={()=>{setBookSvc(s);setBookStep('date')}} style={{display:'block',width:'100%',textAlign:'left',background:$.card,border:`1px solid ${$.bdr}`,borderRadius:12,padding:desk?16:14,marginBottom:8,cursor:'pointer',fontFamily:$.f}}>
+                <p style={{fontSize:desk?14:16,fontWeight:600,color:$.h,margin:0}}>{s.name}</p>
+                <div style={{display:'flex',gap:12,marginTop:2}}><span style={{fontSize:desk?12:13,color:$.txtM}}>{s.duration} min</span><span style={{fontSize:desk?12:13,fontWeight:600,color:$.acc}}>£{s.price}</span></div>
+                {s.description&&<p style={{fontSize:desk?11:13,color:$.txtL,margin:'4px 0 0'}}>{s.description}</p>}
+              </button>
+            ))}
+            <button onClick={()=>setBookStep('list')} style={{marginTop:8,background:'none',border:'none',color:$.txtM,fontSize:desk?12:14,cursor:'pointer',fontFamily:$.f}}>{I.back($.txtM,12)} Back</button>
+          </div>}
+
+          {/* Step 2: pick date */}
+          {bookStep==='date'&&<div style={{marginTop:20}}>
+            <h3 style={{fontSize:desk?15:17,fontWeight:700,color:$.h,margin:'0 0 4px'}}>Pick a Date</h3>
+            <p style={{fontSize:desk?12:14,color:$.txtM,margin:'0 0 12px'}}>{bookSvc?.name} — {bookSvc?.duration} min — £{bookSvc?.price}</p>
+            <input type="date" value={bookDate} onChange={e=>{setBookDate(e.target.value);setBookTime('');if(e.target.value)loadSlots(bookSvc.id,e.target.value)}} min={new Date().toISOString().split('T')[0]} style={{width:'100%',padding:desk?'9px 12px':'14px 16px',borderRadius:desk?8:12,border:`1px solid ${$.bdr}`,fontSize:desk?12:16,height:desk?'auto':48,background:$.card,color:$.h,boxSizing:'border-box',fontFamily:$.f,WebkitAppearance:'none'}}/>
+            {bookDate&&<div style={{marginTop:12}}>
+              <p style={{fontSize:desk?13:15,fontWeight:600,color:$.h,margin:'0 0 8px'}}>Available times:</p>
+              {slots.length===0?<p style={{fontSize:desk?12:14,color:$.txtM}}>No slots available on this date.</p>:
+              <div style={{display:'flex',flexWrap:'wrap',gap:8}}>
+                {slots.map(s=><button key={s} onClick={()=>{setBookTime(s);setBookStep('confirm')}} style={{padding:desk?'8px 16px':'10px 20px',borderRadius:99,border:bookTime===s?`2px solid ${$.acc}`:`1px solid ${$.bdr}`,background:bookTime===s?'rgba(200,163,76,0.08)':$.card,color:bookTime===s?$.acc:$.h,fontSize:desk?12:14,fontWeight:600,cursor:'pointer',fontFamily:$.f}}>{s}</button>)}
+              </div>}
+            </div>}
+            <button onClick={()=>setBookStep('service')} style={{marginTop:12,background:'none',border:'none',color:$.txtM,fontSize:desk?12:14,cursor:'pointer',fontFamily:$.f}}>{I.back($.txtM,12)} Back</button>
+          </div>}
+
+          {/* Step 3: confirm */}
+          {bookStep==='confirm'&&<div style={{marginTop:20}}>
+            <h3 style={{fontSize:desk?15:17,fontWeight:700,color:$.h,margin:'0 0 12px'}}>Confirm Booking</h3>
+            <div style={{background:$.card,border:`1px solid ${$.bdr}`,borderRadius:12,padding:desk?20:16}}>
+              <div style={{display:'grid',gap:12}}>
+                <div><p style={{fontSize:11,color:$.txtM,margin:'0 0 2px'}}>Treatment</p><p style={{fontSize:desk?14:16,fontWeight:600,color:$.h,margin:0}}>{bookSvc?.name}</p></div>
+                <div><p style={{fontSize:11,color:$.txtM,margin:'0 0 2px'}}>Date & Time</p><p style={{fontSize:desk?14:16,fontWeight:600,color:$.h,margin:0}}>{bookDate} at {bookTime}</p></div>
+                <div><p style={{fontSize:11,color:$.txtM,margin:'0 0 2px'}}>Duration</p><p style={{fontSize:desk?14:16,fontWeight:600,color:$.h,margin:0}}>{bookSvc?.duration} minutes</p></div>
+                <div><p style={{fontSize:11,color:$.txtM,margin:'0 0 2px'}}>Price</p><p style={{fontSize:desk?14:16,fontWeight:600,color:$.h,margin:0}}>£{bookSvc?.price}</p></div>
+                {slotStaff.length>0&&<div><p style={{fontSize:11,color:$.txtM,margin:'0 0 4px'}}>Practitioner (optional)</p><select value={bookStaff} onChange={e=>setBookStaff(e.target.value)} style={{width:'100%',padding:desk?'8px 12px':'12px 16px',borderRadius:desk?8:12,border:`1px solid ${$.bdr}`,fontSize:desk?12:15,background:$.card,color:$.h,fontFamily:$.f}}><option value="">Any available</option>{slotStaff.map(s=><option key={s.id} value={s.id}>{s.name}</option>)}</select></div>}
+              </div>
+            </div>
+            {err&&<p style={{fontSize:12,color:$.err,marginTop:8}}>{err}</p>}
+            <div style={{display:'flex',gap:8,marginTop:16}}>
+              <button onClick={()=>setBookStep('date')} style={{padding:desk?'8px 20px':'12px 24px',borderRadius:99,border:`1px solid ${$.bdr}`,background:$.card,fontSize:desk?12:14,fontWeight:600,color:$.txtM,cursor:'pointer',fontFamily:$.f}}>Back</button>
+              <button onClick={doBook} disabled={bookLoading} style={{flex:1,padding:desk?'10px 0':'14px 0',borderRadius:99,border:'none',background:$.acc,color:'#fff',fontSize:desk?13:15,fontWeight:700,cursor:bookLoading?'wait':'pointer',fontFamily:$.f,opacity:bookLoading?0.6:1}}>{bookLoading?'Booking...':'Confirm Booking'}</button>
+            </div>
+          </div>}
+
+          {/* Step 4: success */}
+          {bookStep==='done'&&<div style={{marginTop:20,textAlign:'center',padding:32}}>
+            <div style={{width:48,height:48,borderRadius:99,background:'rgba(34,197,94,0.08)',border:'2px solid rgba(34,197,94,0.2)',display:'flex',alignItems:'center',justifyContent:'center',margin:'0 auto 16px'}}>{I.chk($.ok,24)}</div>
+            <h3 style={{fontSize:desk?18:20,fontWeight:700,color:$.h,margin:'0 0 6px'}}>Booking Confirmed!</h3>
+            <p style={{fontSize:desk?13:15,color:$.txtM,margin:'0 0 20px'}}>Your appointment for {bookSvc?.name} on {bookDate} at {bookTime} has been confirmed.</p>
+            <button onClick={()=>{setBookStep('list');setBookSvc(null);setBookDate('');setBookTime('')}} style={{padding:desk?'8px 24px':'12px 28px',borderRadius:99,border:'none',background:$.acc,color:'#fff',fontSize:desk?13:15,fontWeight:700,cursor:'pointer',fontFamily:$.f}}>Done</button>
+          </div>}
         </div>
       </div>
     </Shell>
@@ -600,10 +664,10 @@ export default function ClientPortal(){
           {/* Notification settings */}
           <h3 style={{fontSize:desk?15:17,fontWeight:700,color:$.h,margin:'24px 0 12px'}}>Notification Settings</h3>
           <div style={{background:$.card,border:`1px solid ${$.bdr}`,borderRadius:12}}>
-            {['Appointment reminders','Treatment aftercare','Promotional offers','Booking confirmations'].map((n,i)=>(
+            {[{k:'appointment_reminders',label:'Appointment reminders'},{k:'aftercare',label:'Treatment aftercare'},{k:'promotions',label:'Promotional offers'},{k:'booking_confirmations',label:'Booking confirmations'}].map((n,i)=>(
               <div key={i} style={{padding:'12px 16px',borderBottom:i<3?`1px solid ${$.bdr}`:'none',display:'flex',alignItems:'center',justifyContent:'space-between'}}>
-                <span style={{fontSize:desk?13:15,color:$.h}}>{n}</span>
-                <Toggle value={i<2?'yes':'no'} onChange={()=>{}} d={desk}/>
+                <span style={{fontSize:desk?13:15,color:$.h}}>{n.label}</span>
+                <Toggle value={notifPrefs[n.k]?'yes':'no'} onChange={()=>toggleNotif(n.k)} d={desk}/>
               </div>
             ))}
           </div>
