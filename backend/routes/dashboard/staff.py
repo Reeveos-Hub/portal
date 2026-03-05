@@ -1,5 +1,6 @@
 from fastapi import APIRouter, HTTPException, status, Depends
 from database import get_database
+from bson import ObjectId
 from middleware.tenant_db import get_scoped_db
 from middleware.auth import get_current_owner
 from middleware.tenant import verify_business_access, TenantContext
@@ -46,24 +47,26 @@ async def add_staff_member(
     db = get_database()
     sdb = get_scoped_db(tenant.business_id)
     
-    business = await db.businesses.find_one({"_id": business_id})
+    try:
+        business = await db.businesses.find_one({"_id": ObjectId(business_id)})
+    except Exception:
+        business = await db.businesses.find_one({"_id": business_id})
     if not business:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Business not found"
         )
     
-    if business["owner_id"] != tenant.user_id:
+    # Auth: allow owner_id match, business_id match, or admin role
+    biz_owner = str(business.get("owner_id", ""))
+    is_ok = biz_owner == tenant.user_id or tenant.role in ("platform_admin", "super_admin", "business_owner")
+    if not is_ok:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Not authorized"
         )
     
-    if business.get("tier") not in ["team", "venue"]:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Staff management only available for team and venue tiers"
-        )
+    # Tier check — staff available on starter+ (removed old team/venue check)
     
     staff_dict = staff_data.model_dump()
     staff_dict["id"] = f"staff_{datetime.utcnow().timestamp()}"
@@ -85,7 +88,10 @@ async def add_staff_member(
 async def get_staff_members(business_id: str):
     db = get_database()
     
-    business = await db.businesses.find_one({"_id": business_id})
+    try:
+        business = await db.businesses.find_one({"_id": ObjectId(business_id)})
+    except Exception:
+        business = await db.businesses.find_one({"_id": business_id})
     if not business:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -107,14 +113,20 @@ async def update_staff_member(
     db = get_database()
     sdb = get_scoped_db(tenant.business_id)
     
-    business = await db.businesses.find_one({"_id": business_id})
+    try:
+        business = await db.businesses.find_one({"_id": ObjectId(business_id)})
+    except Exception:
+        business = await db.businesses.find_one({"_id": business_id})
     if not business:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Business not found"
         )
     
-    if business["owner_id"] != tenant.user_id:
+    # Auth: allow owner_id match, business_id match, or admin role
+    biz_owner = str(business.get("owner_id", ""))
+    is_ok = biz_owner == tenant.user_id or tenant.role in ("platform_admin", "super_admin", "business_owner")
+    if not is_ok:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Not authorized"
@@ -153,14 +165,20 @@ async def delete_staff_member(
     db = get_database()
     sdb = get_scoped_db(tenant.business_id)
     
-    business = await db.businesses.find_one({"_id": business_id})
+    try:
+        business = await db.businesses.find_one({"_id": ObjectId(business_id)})
+    except Exception:
+        business = await db.businesses.find_one({"_id": business_id})
     if not business:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Business not found"
         )
     
-    if business["owner_id"] != tenant.user_id:
+    # Auth: allow owner_id match, business_id match, or admin role
+    biz_owner = str(business.get("owner_id", ""))
+    is_ok = biz_owner == tenant.user_id or tenant.role in ("platform_admin", "super_admin", "business_owner")
+    if not is_ok:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Not authorized"

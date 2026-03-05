@@ -29,9 +29,27 @@ async def _get_business(db, business_id: str, user: dict):
         raise HTTPException(404, "Business not found")
     owner_id = str(b.get("owner_id", ""))
     uid = str(user.get("_id", ""))
-    if owner_id and owner_id != uid and str(user.get("role", "")).lower() not in ("platform_admin", "super_admin"):
-        raise HTTPException(403, "Not authorized")
-    return b
+    role = str(user.get("role", "")).lower()
+    # Admin roles always pass
+    if role in ("platform_admin", "super_admin", "business_owner"):
+        return b
+    # Owner match
+    if owner_id and owner_id == uid:
+        return b
+    # If user has business_id/business_ids fields, check those
+    user_biz = str(user.get("business_id", ""))
+    user_biz_list = [str(x) for x in user.get("business_ids", [])]
+    if user_biz == business_id or business_id in user_biz_list:
+        return b
+    # If called from tenant context (only _id and role), look up user's business_id
+    if uid:
+        real_user = await db.users.find_one({"_id": ObjectId(uid)}) if len(uid) == 24 else None
+        if real_user:
+            ru_biz = str(real_user.get("business_id", ""))
+            ru_biz_list = [str(x) for x in real_user.get("business_ids", [])]
+            if ru_biz == business_id or business_id in ru_biz_list:
+                return b
+    raise HTTPException(403, "Not authorized")
 
 
 def _staff_limit(tier):
