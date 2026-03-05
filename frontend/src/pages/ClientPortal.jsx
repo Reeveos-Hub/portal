@@ -197,7 +197,7 @@ export default function ClientPortal() {
 
   useEffect(()=>{
     if(!slug) return
-    apiFetch(`/public/client-portal/${slug}/info`).then(d=>{
+    apiFetch(`/client/${slug}/info`).then(d=>{
       setBiz(d.business||d)
       if(sessionStorage.getItem('client_token')) loadUser()
     }).catch(()=>{})
@@ -205,17 +205,19 @@ export default function ClientPortal() {
 
   const loadUser = async()=>{
     try{
-      const d=await apiFetch(`/public/client-portal/${slug}/me`)
-      setUser(d.user||d); setCs(d.consultation_status||null); setMyData(d); setView('home')
+      const profile=await apiFetch(`/client/auth/me`)
+      const data=await apiFetch(`/client/${slug}/my-data`)
+      setUser(profile.user||profile); setCs(data.consultation||null); setMyData(data); setView('home')
     }catch(e){sessionStorage.removeItem('client_token')}
   }
 
   const doAuth = async()=>{
     setLoading(true);setErr('')
     try{
-      const ep=authMode==='login'?'login':'signup'
-      const body=authMode==='login'?{email,password}:{name:signupName,email,phone:signupPhone,password}
-      const d=await apiFetch(`/public/client-portal/${slug}/${ep}`,{method:'POST',body:JSON.stringify(body)})
+      const body=authMode==='login'
+        ? {email,password}
+        : {name:signupName,email,phone:signupPhone,password,business_id:biz?.business_id||''}
+      const d=await apiFetch(`/client/auth/${authMode==='login'?'login':'signup'}`,{method:'POST',body:JSON.stringify(body)})
       sessionStorage.setItem('client_token',d.token); await loadUser()
     }catch(e){setErr(e.message)}
     setLoading(false)
@@ -226,7 +228,7 @@ export default function ClientPortal() {
   const submitForm = async()=>{
     setLoading(true)
     try{
-      await apiFetch(`/public/client-portal/${slug}/consultation`,{method:'POST',body:JSON.stringify({form_data:fd,alerts})})
+      await apiFetch(`/consultation/public/${slug}/submit`,{method:'POST',body:JSON.stringify({form_data:fd,alerts})})
       setCs({status:'submitted'}); setView('submitted')
     }catch(e){setErr(e.message)}
     setLoading(false)
