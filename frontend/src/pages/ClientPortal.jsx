@@ -68,13 +68,11 @@ const SigPad=({onSign})=>{const ref=useRef(null),dr=useRef(false);const s=useCal
 
 // ═══ SIDEBAR (logged-in pages only) ═══
 const RAIL=56,PANEL=192
-const Sidebar=({biz,user,activeTab,onNav,desk,onLogout})=>{
-  if(!desk)return null
+const Sidebar=({biz,user,activeTab,onNav,onLogout})=>{
   const tabs=[{id:'home',label:'Home',icon:'home'},{id:'bookings',label:'Bookings',icon:'cal'},{id:'form',label:'Consultation',icon:'form'},{id:'messages',label:'Messages',icon:'msg'},{id:'profile',label:'My Profile',icon:'user'}]
   const ini=(user?.name||'?').split(' ').map(n=>n[0]).join('').toUpperCase().slice(0,2)
   return(
-    <div className="client-sidebar" style={{display:'flex',height:'100vh',position:'sticky',top:0,flexShrink:0,fontFamily:$.f}}>
-      <style>{`@media(max-width:767px){.client-sidebar{display:none!important}}`}</style>
+    <div className="client-sidebar" style={{height:'100vh',position:'sticky',top:0,flexShrink:0,fontFamily:$.f}}>
       <div style={{width:RAIL,background:'#111',display:'flex',flexDirection:'column',flexShrink:0}}>
         <div style={{height:56,display:'flex',alignItems:'center',justifyContent:'center',borderBottom:'1px solid rgba(255,255,255,0.08)'}}><div style={{width:30,height:30,borderRadius:8,background:$.acc,display:'flex',alignItems:'center',justifyContent:'center'}}><span style={{color:'#111',fontWeight:700,fontSize:13}}>R.</span></div></div>
         <div style={{flex:1,display:'flex',flexDirection:'column',alignItems:'center',paddingTop:12,gap:2}}>
@@ -134,15 +132,12 @@ export default function ClientPortal(){
       <style>{`
 .client-sidebar{display:flex}
 .client-mobnav{display:none}
-@media(max-width:767px){
-  .client-sidebar{display:none!important}
+@media screen and (max-width:767px){
+  .client-sidebar{display:none!important;width:0!important;overflow:hidden!important;position:absolute!important;left:-9999px!important}
   .client-mobnav{display:flex!important}
 }
-@media(min-width:768px){
-  .client-mobnav{display:none!important}
-}
 `}</style>
-      <Sidebar biz={biz} user={user} activeTab={tab||activeTab} onNav={navTo} desk={desk} onLogout={logout}/>
+      <Sidebar biz={biz} user={user} activeTab={tab||activeTab} onNav={navTo} onLogout={logout}/>
       <div style={{flex:1,minWidth:0,display:'flex',flexDirection:'column'}}>{children}</div>
       <div className="client-mobnav" style={{position:'fixed',bottom:0,left:0,right:0,background:$.card,borderTop:`1px solid ${$.bdr}`,padding:'6px 0 10px',zIndex:30,justifyContent:'space-around'}}>
         {[{id:'home',icon:'home',label:'Home'},{id:'bookings',icon:'cal',label:'Bookings'},{id:'form',icon:'form',label:'Forms'},{id:'messages',icon:'msg',label:'Messages'},{id:'profile',icon:'user',label:'Profile'}].map(t=><button key={t.id} onClick={()=>navTo(t.id)} style={{background:'none',border:'none',cursor:'pointer',display:'flex',flexDirection:'column',alignItems:'center',gap:2,padding:'2px 6px'}}>{I[t.icon](activeTab===t.id?$.acc:$.txtL,18)}<span style={{fontSize:9,fontWeight:activeTab===t.id?700:500,color:activeTab===t.id?$.acc:$.txtL}}>{t.label}</span></button>)}
