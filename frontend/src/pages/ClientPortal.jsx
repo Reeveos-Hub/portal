@@ -74,7 +74,7 @@ const Sidebar=({biz,user,activeTab,onNav,desk,onLogout})=>{
   const ini=(user?.name||'?').split(' ').map(n=>n[0]).join('').toUpperCase().slice(0,2)
   return(
     <div className="client-sidebar" style={{display:'flex',height:'100vh',position:'sticky',top:0,flexShrink:0,fontFamily:$.f}}>
-      <style>{`.client-sidebar{display:flex!important}@media(max-width:767px){.client-sidebar{display:none!important}}`}</style>
+      <style>{`@media(max-width:767px){.client-sidebar{display:none!important}}`}</style>
       <div style={{width:RAIL,background:'#111',display:'flex',flexDirection:'column',flexShrink:0}}>
         <div style={{height:56,display:'flex',alignItems:'center',justifyContent:'center',borderBottom:'1px solid rgba(255,255,255,0.08)'}}><div style={{width:30,height:30,borderRadius:8,background:$.acc,display:'flex',alignItems:'center',justifyContent:'center'}}><span style={{color:'#111',fontWeight:700,fontSize:13}}>R.</span></div></div>
         <div style={{flex:1,display:'flex',flexDirection:'column',alignItems:'center',paddingTop:12,gap:2}}>
@@ -113,8 +113,8 @@ export default function ClientPortal(){
   const isSalon=biz?.type==='salon'||biz?.type==='local_services'||biz?.category==='salon'
   const hasForm=cs?.status==='complete'||cs?.status==='submitted'
   const alerts=getAlerts(fd)
-  const[desk,setDesk]=useState(typeof window!=='undefined'&&window.innerWidth>=768)
-  useEffect(()=>{const h=()=>setDesk(window.innerWidth>=768);window.addEventListener('resize',h);return()=>window.removeEventListener('resize',h)},[])
+  const[desk,setDesk]=useState(false)
+  useEffect(()=>{const h=()=>setDesk(window.innerWidth>=768);h();window.addEventListener('resize',h);return()=>window.removeEventListener('resize',h)},[])
   const set=useCallback((k,v)=>setFd(p=>({...p,[k]:v})),[])
   const upcoming=myData?.upcoming_bookings||[]
 
@@ -131,11 +131,22 @@ export default function ClientPortal(){
   const Shell=({tab,children})=>(
     <div style={{display:'flex',minHeight:'100vh',background:$.bg,fontFamily:$.f}}>
       {FONT}
+      <style>{`
+.client-sidebar{display:flex}
+.client-mobnav{display:none}
+@media(max-width:767px){
+  .client-sidebar{display:none!important}
+  .client-mobnav{display:flex!important}
+}
+@media(min-width:768px){
+  .client-mobnav{display:none!important}
+}
+`}</style>
       <Sidebar biz={biz} user={user} activeTab={tab||activeTab} onNav={navTo} desk={desk} onLogout={logout}/>
       <div style={{flex:1,minWidth:0,display:'flex',flexDirection:'column'}}>{children}</div>
-      {!desk&&<div style={{position:'fixed',bottom:0,left:0,right:0,background:$.card,borderTop:`1px solid ${$.bdr}`,padding:'6px 0 10px',zIndex:30,display:'flex',justifyContent:'space-around'}}>
+      <div className="client-mobnav" style={{position:'fixed',bottom:0,left:0,right:0,background:$.card,borderTop:`1px solid ${$.bdr}`,padding:'6px 0 10px',zIndex:30,justifyContent:'space-around'}}>
         {[{id:'home',icon:'home',label:'Home'},{id:'bookings',icon:'cal',label:'Bookings'},{id:'form',icon:'form',label:'Forms'},{id:'messages',icon:'msg',label:'Messages'},{id:'profile',icon:'user',label:'Profile'}].map(t=><button key={t.id} onClick={()=>navTo(t.id)} style={{background:'none',border:'none',cursor:'pointer',display:'flex',flexDirection:'column',alignItems:'center',gap:2,padding:'2px 6px'}}>{I[t.icon](activeTab===t.id?$.acc:$.txtL,18)}<span style={{fontSize:9,fontWeight:activeTab===t.id?700:500,color:activeTab===t.id?$.acc:$.txtL}}>{t.label}</span></button>)}
-      </div>}
+      </div>
     </div>
   )
 
