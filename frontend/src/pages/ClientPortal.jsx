@@ -192,7 +192,7 @@ export default function ClientPortal(){
   // LOGIN (Figma 2:115) — NO sidebar, full-width header+hero+two-col
   // ═══════════════════════════════════════════════════════════════
   if(view==='login')return(
-    <div style={{minHeight:'100vh',background:$.bg,fontFamily:$.f}}>
+    <div style={{minHeight:'100vh',background:$.bg,fontFamily:$.f,overflowY:'auto'}}>
       {FONT}
       {/* Desktop header */}
       {desk&&<div style={{background:$.card,borderBottom:`1px solid ${$.bdr}`,padding:'10px 32px'}}>
@@ -202,13 +202,13 @@ export default function ClientPortal(){
         </div>
       </div>}
       {/* Hero — mobile: full image with gradient + centered branding; desktop: banner */}
-      {!desk?<div style={{position:'relative',width:'100%',height:340,overflow:'hidden'}}>
+      {!desk?<div style={{position:'relative',width:'100%',height:260,overflow:'hidden'}}>
         <img src={IMG.login} alt="" style={{width:'100%',height:'100%',objectFit:'cover'}}/>
         <div style={{position:'absolute',inset:0,background:'linear-gradient(to bottom,rgba(244,245,247,0) 20%,rgba(244,245,247,0.6) 60%,#F4F5F7 100%)'}}/>
-        <div style={{position:'absolute',bottom:40,left:0,right:0,textAlign:'center'}}>
-          <div style={{width:64,height:64,borderRadius:99,border:`2px solid ${$.acc}40`,background:'rgba(255,255,255,0.9)',display:'inline-flex',alignItems:'center',justifyContent:'center',marginBottom:8}}><span style={{fontSize:30,fontWeight:700,color:$.acc}}>R</span></div>
-          <p style={{fontSize:28,fontWeight:700,color:$.acc,margin:'0 0 2px',letterSpacing:'-0.5px'}}>{biz?.name?.split(' ')[0]||'Rejuvenate'}</p>
-          <p style={{fontSize:10,fontWeight:600,color:$.txtM,textTransform:'uppercase',letterSpacing:2,margin:0}}>{biz?.name?.includes(' ')?biz.name.split(' ').slice(1).join(' '):'Skin Experts'}</p>
+        <div style={{position:'absolute',bottom:24,left:0,right:0,textAlign:'center'}}>
+          <div style={{width:52,height:52,borderRadius:99,border:`2px solid ${$.acc}40`,background:'rgba(255,255,255,0.9)',display:'inline-flex',alignItems:'center',justifyContent:'center',marginBottom:6}}><span style={{fontSize:24,fontWeight:700,color:$.acc}}>R</span></div>
+          <p style={{fontSize:24,fontWeight:700,color:$.acc,margin:'0 0 1px',letterSpacing:'-0.5px'}}>{biz?.name?.split(' ')[0]||'Rejuvenate'}</p>
+          <p style={{fontSize:9,fontWeight:600,color:$.txtM,textTransform:'uppercase',letterSpacing:2,margin:0}}>{biz?.name?.includes(' ')?biz.name.split(' ').slice(1).join(' '):'Skin Experts'}</p>
         </div>
       </div>:<div style={{maxWidth:1100,margin:'0 auto',padding:'20px 32px'}}>
         <div style={{width:'100%',height:320,borderRadius:12,overflow:'hidden',position:'relative'}}>
