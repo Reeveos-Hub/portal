@@ -14,7 +14,7 @@ import {
   LayoutGrid, Megaphone, Settings, HelpCircle,
   ChevronLeft, ChevronRight, ChevronDown, Lock,
   Send, Bot, Linkedin, Bell,
-  Package, Flame, Clock, Wallet, ClipboardCheck
+  Package, Flame, Clock, Wallet, ClipboardCheck, MessageSquare
 } from 'lucide-react'
 
 /* ── Color tokens ── */
@@ -55,6 +55,7 @@ const ICON_MAP = {
   'fa-clock': Clock,
   'fa-cash-register': Wallet,
   'fa-file-medical': ClipboardCheck,
+  'fa-comments': MessageSquare,
 }
 
 /* ── Build grouped sections from nav config ── */
@@ -140,7 +141,7 @@ function buildSections(navItems, tier, businessType) {
         ...(navItems.management || []).filter(i => i.id === 'staff').map(i => ({
           id: i.id, label: i.label, path: i.path, Icon: iconFor(i), locked: locked(i),
         })),
-        ...(navItems.business || []).filter(i => ['clients', 'reviews'].includes(i.id)).map(i => ({
+        ...(navItems.business || []).filter(i => ['clients', 'reviews', 'consultation-forms', 'client-messages'].includes(i.id)).map(i => ({
           id: i.id, label: i.label, path: i.path, Icon: iconFor(i), locked: locked(i),
         })),
       ].filter(Boolean) },

@@ -655,3 +655,114 @@ async def update_notification_prefs(data: dict = Body(...), user=Depends(_get_co
         {"$set": {"notification_prefs": clean, "updated_at": datetime.utcnow()}},
     )
     return {"updated": True, "prefs": clean}
+
+
+# ═══════════════════════════════════════════════════════════════
+# BUSINESS-SIDE: Messages management (for dashboard)
+# ═══════════════════════════════════════════════════════════════
+
+@router.get("/business/{business_id}/messages")
+async def get_business_messages(business_id: str, authorization: str = Header(None)):
+    """Business owner reads all client message threads."""
+    if not authorization or not authorization.startswith("Bearer "):
+        raise HTTPException(401, "Authentication required")
+    token = authorization.split(" ", 1)[1]
+    payload = _decode_token(token)
+
+    db = get_database()
+
+    # Get unique consumer threads
+    pipeline = [
+        {"$match": {"business_id": business_id}},
+        {"$sort": {"created_at": -1}},
+        {"$group": {
+            "_id": "$consumer_id",
+            "consumer_name": {"$first": "$consumer_name"},
+            "consumer_email": {"$first": "$consumer_email"},
+            "last_message": {"$first": "$text"},
+            "last_from": {"$first": "$from"},
+            "last_at": {"$first": "$created_at"},
+            "unread": {"$sum": {"$cond": [{"$and": [{"$eq": ["$from", "client"]}, {"$eq": ["$read", False]}]}, 1, 0]}},
+            "total": {"$sum": 1},
+        }},
+        {"$sort": {"last_at": -1}},
+    ]
+    threads = []
+    async for t in db.client_messages.aggregate(pipeline):
+        threads.append({
+            "consumer_id": t["_id"],
+            "consumer_name": t.get("consumer_name", ""),
+            "consumer_email": t.get("consumer_email", ""),
+            "last_message": t.get("last_message", ""),
+            "last_from": t.get("last_from", ""),
+            "last_at": t.get("last_at", "").isoformat() if t.get("last_at") else "",
+            "unread": t.get("unread", 0),
+            "total": t.get("total", 0),
+        })
+
+    return {"threads": threads}
+
+
+@router.get("/business/{business_id}/messages/{consumer_id}")
+async def get_thread_messages(business_id: str, consumer_id: str, authorization: str = Header(None)):
+    """Business reads a specific message thread."""
+    if not authorization or not authorization.startswith("Bearer "):
+        raise HTTPException(401, "Authentication required")
+
+    db = get_database()
+    messages = []
+    cursor = db.client_messages.find({
+        "business_id": business_id,
+        "consumer_id": consumer_id,
+    }).sort("created_at", 1).limit(100)
+    async for msg in cursor:
+        messages.append({
+            "id": str(msg["_id"]),
+            "from": msg.get("from", "client"),
+            "text": msg.get("text", ""),
+            "staff_name": msg.get("staff_name"),
+            "created_at": msg.get("created_at", "").isoformat() if msg.get("created_at") else "",
+        })
+
+    # Mark client messages as read
+    await db.client_messages.update_many(
+        {"business_id": business_id, "consumer_id": consumer_id, "from": "client", "read": False},
+        {"$set": {"read": True, "read_at": datetime.utcnow()}},
+    )
+
+    return {"messages": messages}
+
+
+@router.post("/business/{business_id}/messages/{consumer_id}")
+async def business_reply(business_id: str, consumer_id: str, data: dict = Body(...), authorization: str = Header(None)):
+    """Business sends a reply to a client."""
+    if not authorization or not authorization.startswith("Bearer "):
+        raise HTTPException(401, "Authentication required")
+    token = authorization.split(" ", 1)[1]
+    payload = _decode_token(token)
+
+    db = get_database()
+    text = (data.get("text") or "").strip()
+    staff_name = data.get("staff_name", "")
+    if not text:
+        raise HTTPException(400, "Message text required")
+
+    now = datetime.utcnow()
+    msg = {
+        "business_id": business_id,
+        "consumer_id": consumer_id,
+        "from": "business",
+        "text": text,
+        "staff_name": staff_name,
+        "read": False,
+        "created_at": now,
+    }
+    result = await db.client_messages.insert_one(msg)
+
+    return {
+        "id": str(result.inserted_id),
+        "from": "business",
+        "text": text,
+        "staff_name": staff_name,
+        "created_at": now.isoformat(),
+    }

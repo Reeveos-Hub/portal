@@ -27,7 +27,7 @@ export const getNavItems = (businessType) => {
     ] : [],
     business: [
       ...(isRestaurant ? [{ id: 'orders', label: 'Orders', icon: 'fa-bag-shopping', path: '/dashboard/orders', minTier: 'growth' }] : []),
-      ...(!isRestaurant ? [{ id: 'consultation-forms', label: 'Consultation Forms', icon: 'fa-file-medical', path: '/dashboard/consultation-forms', minTier: 'free' }] : []),
+      ...(!isRestaurant ? [{ id: 'consultation-forms', label: 'Consultation Forms', icon: 'fa-file-medical', path: '/dashboard/consultation-forms', minTier: 'free' }, { id: 'client-messages', label: 'Client Messages', icon: 'fa-comments', path: '/dashboard/client-messages', minTier: 'free' }] : []),
       { id: 'clients', label: isRestaurant ? 'Guest CRM' : 'Clients', icon: 'fa-address-book', path: '/dashboard/clients', minTier: 'growth' },
       { id: 'reviews', label: 'Reviews', icon: 'fa-star', path: '/dashboard/reviews', minTier: 'growth' },
       { id: 'analytics', label: 'Analytics', icon: 'fa-chart-line', path: '/dashboard/analytics', minTier: 'growth' },
