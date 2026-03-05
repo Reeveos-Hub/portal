@@ -254,17 +254,17 @@ export default function ClientPortal() {
   // LOGIN
   // ═══════════════════════════════════════════════════════════════
   if(view==='login') return (
-    <div style={{minHeight:'100vh',background:T.bg,fontFamily:T.f}}>
+    <div style={{minHeight:'100vh',background:'#F1F5F9',fontFamily:T.f}}>
       <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
       <style>{`@keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}`}</style>
 
       {/* Header */}
-      <div style={{background:'#111111',padding:'14px 24px'}}>
+      <div style={{background:'#FFFFFF',borderBottom:'1px solid #E2E8F0',padding:'14px 24px'}}>
         <div style={{maxWidth:1200,margin:'0 auto',display:'flex',alignItems:'center',gap:12}}>
-          <div style={{width:36,height:36,borderRadius:10,background:T.acc,display:'flex',alignItems:'center',justifyContent:'center',fontSize:16,fontWeight:800,color:'#111'}}>{biz?.name?.charAt(0)||'R'}</div>
+          <div style={{width:36,height:36,borderRadius:10,background:T.acc,display:'flex',alignItems:'center',justifyContent:'center',fontSize:16,fontWeight:800,color:'#fff'}}>{biz?.name?.charAt(0)||'R'}</div>
           <div>
-            <p style={{fontSize:15,fontWeight:700,color:'#fff',margin:0}}>{biz?.name}</p>
-            <p style={{fontSize:10,color:'#9CA3AF',margin:0,textTransform:'uppercase',letterSpacing:'0.1em'}}>{biz?.subtitle||'SKIN EXPERTS'}</p>
+            <p style={{fontSize:15,fontWeight:700,color:'#111111',margin:0}}>{biz?.name}</p>
+            <p style={{fontSize:10,color:'#64748B',margin:0,textTransform:'uppercase',letterSpacing:'0.1em'}}>{biz?.subtitle||'SKIN EXPERTS'}</p>
           </div>
         </div>
       </div>
@@ -322,6 +322,9 @@ export default function ClientPortal() {
   // ═══════════════════════════════════════════════════════════════
   // HOME
   // ═══════════════════════════════════════════════════════════════
+  // ═══════════════════════════════════════════════════════════════
+  // HOME — exact Figma structure (2:849), light palette
+  // ═══════════════════════════════════════════════════════════════
   if(view==='home') {
     const qa = [
       {icon:'cal',label:'Book Visit',sub:'Schedule appointment',action:()=>window.open(`/${slug}`,'_blank'),show:true},
@@ -329,57 +332,50 @@ export default function ClientPortal() {
       {icon:'user',label:'My Profile',sub:'History & settings',action:()=>{},show:true},
       {icon:'msg',label:'Message Us',sub:'Talk to experts',action:()=>{},show:true},
     ].filter(a=>a.show)
-
-    const tabs = [{icon:'home',label:'Home',id:'home'},{icon:'cal',label:'Bookings',id:'bookings'},{icon:'msg',label:'Messages',id:'messages'},{icon:'user',label:'Profile',id:'profile'}]
-
-    // Colors for dark sections
-    const D = {bg:'#0F172A',bdr:'#1E293B',bdr2:'#334155',txt:'#F1F5F9',txtM:'#94A3B8',txtD:'#64748B'}
+    const tabs=[{icon:'home',label:'Home',id:'home'},{icon:'cal',label:'Bookings',id:'bookings'},{icon:'msg',label:'Messages',id:'messages'},{icon:'user',label:'Profile',id:'profile'}]
+    // Light palette mapped from Figma dark tokens
+    const L={bg:'#F1F5F9',card:'#FFFFFF',bdr:'#E2E8F0',bdr2:'#CBD5E1',h:'#111111',txt:'#334155',txtM:'#64748B',txtL:'#94A3B8'}
 
     return (
-      <div style={{minHeight:'100vh',background:T.bg,fontFamily:T.f,paddingBottom:desk?0:72}}>
+      <div style={{minHeight:'100vh',background:L.bg,fontFamily:T.f,paddingBottom:desk?0:72}}>
         <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
 
-        {/* ═══ HEADER — dark navy bar (from Figma) ═══ */}
-        <div style={{background:'#020617',borderBottom:`1px solid ${D.bdr}`,padding:'12px 40px',position:'sticky',top:0,zIndex:20}}>
+        {/* ═══ HEADER (Figma: 2:852) — light version ═══ */}
+        <div style={{background:L.card,borderBottom:`1px solid ${L.bdr}`,padding:desk?'12px 40px':'12px 16px',position:'sticky',top:0,zIndex:20}}>
           <div style={{maxWidth:1200,margin:'0 auto',display:'flex',alignItems:'center',justifyContent:'space-between'}}>
-            {/* Left: Logo + Name */}
             <div style={{display:'flex',alignItems:'center',gap:16}}>
-              <div style={{width:32,height:32,borderRadius:8,background:T.acc,display:'flex',alignItems:'center',justifyContent:'center',fontSize:14,fontWeight:800,color:'#020617'}}>R</div>
-              <span style={{fontSize:18,fontWeight:700,color:'#fff',letterSpacing:'-0.27px'}}>{biz?.name||'Rejuvenate Skin Experts'}</span>
+              <div style={{width:32,height:32,borderRadius:8,background:T.acc,display:'flex',alignItems:'center',justifyContent:'center',fontSize:14,fontWeight:800,color:'#fff'}}>R</div>
+              <span style={{fontSize:18,fontWeight:700,color:L.h,letterSpacing:'-0.27px'}}>{biz?.name||'Rejuvenate Skin Experts'}</span>
             </div>
-            {/* Right: Nav + Bell + Hi Name + Avatar */}
             <div style={{display:'flex',alignItems:'center',gap:16}}>
               {desk&&<div style={{display:'flex',gap:36,marginRight:16}}>
-                {['Home','Services','Products','About'].map(l=><button key={l} style={{background:'none',border:'none',fontSize:14,fontWeight:500,color:'#CBD5E1',cursor:'pointer',padding:0,fontFamily:T.f}}>{l}</button>)}
+                {['Home','Services','Products','About'].map(l=><button key={l} style={{background:'none',border:'none',fontSize:14,fontWeight:500,color:'#475569',cursor:'pointer',padding:0,fontFamily:T.f}}>{l}</button>)}
               </div>}
-              {/* Bell with gold dot */}
-              <button style={{width:40,height:40,borderRadius:24,background:D.bdr,border:'none',display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer',position:'relative'}}>
-                {I.bell('#9CA3AF')}
+              <button style={{width:40,height:40,borderRadius:24,background:L.bg,border:`1px solid ${L.bdr}`,display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer',position:'relative'}}>
+                {I.bell(L.txtM)}
                 <div style={{position:'absolute',top:8,right:8,width:8,height:8,borderRadius:99,background:T.acc}}/>
               </button>
-              {/* Gold pill "Hi Name" */}
-              <button style={{background:T.acc,border:'none',borderRadius:24,padding:'8px 20px',cursor:'pointer',display:'flex',alignItems:'center'}}>
-                <span style={{fontSize:14,fontWeight:700,color:'#020617'}}>{`Hi ${(user?.name||'').split(' ')[0]}`}</span>
+              <button style={{background:T.acc,border:'none',borderRadius:24,padding:'8px 20px',cursor:'pointer'}}>
+                <span style={{fontSize:14,fontWeight:700,color:'#fff'}}>{`Hi ${(user?.name||'').split(' ')[0]}`}</span>
               </button>
-              {/* Avatar with gold ring */}
-              <div style={{width:40,height:40,borderRadius:99,border:`2px solid ${T.acc}`,background:D.bdr,display:'flex',alignItems:'center',justifyContent:'center',fontSize:14,fontWeight:700,color:'#fff'}}>
+              <div style={{width:40,height:40,borderRadius:99,border:`2px solid ${T.acc}`,background:L.bg,display:'flex',alignItems:'center',justifyContent:'center',fontSize:14,fontWeight:700,color:T.acc}}>
                 {(user?.name||'?').charAt(0)}
               </div>
             </div>
           </div>
         </div>
 
-        {/* ═══ MAIN CONTENT ═══ */}
+        {/* ═══ MAIN (Figma: 2:880) ═══ */}
         <div style={{maxWidth:1200,margin:'0 auto',padding:desk?'32px 24px 40px':'16px 16px 24px'}}>
 
-          {/* ═══ ALERT CARD — with image (from Figma) ═══ */}
+          {/* ═══ ALERT CARD (Figma: 2:882) ═══ */}
           {isSalon&&(
             <div style={{
-              background:hasForm?'#F0FDF4':`rgba(200,163,76,0.1)`,
-              border:hasForm?'2px solid #BBF7D0':'2px solid rgba(200,163,76,0.4)',
+              background:hasForm?'rgba(34,197,94,0.06)':'rgba(200,163,76,0.06)',
+              border:hasForm?'2px solid rgba(34,197,94,0.3)':'2px solid rgba(200,163,76,0.3)',
               borderRadius:24,padding:26,marginBottom:32,
               display:'flex',alignItems:'flex-start',justifyContent:'space-between',gap:32,
-              boxShadow:'0 10px 15px -3px rgba(0,0,0,0.08)'
+              boxShadow:'0 10px 15px -3px rgba(0,0,0,0.04),0 4px 6px -4px rgba(0,0,0,0.04)'
             }}>
               <div style={{flex:1}}>
                 <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:4}}>
@@ -388,115 +384,109 @@ export default function ClientPortal() {
                     {hasForm?'Form Complete':'Action Required'}
                   </span>
                 </div>
-                <h3 style={{fontSize:24,fontWeight:700,color:T.txt,margin:'0 0 8px'}}>
+                <h3 style={{fontSize:24,fontWeight:700,color:L.h,margin:'0 0 8px'}}>
                   {hasForm?'Consultation Form Complete':'Consultation Form Needed'}
                 </h3>
-                <p style={{fontSize:16,color:T.txtM,margin:0,lineHeight:'24px',maxWidth:600}}>
-                  {hasForm
-                    ?`Your therapist has reviewed your details. Valid until ${cs?.expires_at?new Date(cs.expires_at).toLocaleDateString('en-GB',{day:'numeric',month:'long',year:'numeric'}):'—'}.`
-                    :'Please complete your comprehensive skin assessment form before your next visit to ensure the best results.'}
+                <p style={{fontSize:16,color:L.txtM,margin:0,lineHeight:'24px',maxWidth:600}}>
+                  {hasForm?`Your therapist has reviewed your details. Valid until ${cs?.expires_at?new Date(cs.expires_at).toLocaleDateString('en-GB',{day:'numeric',month:'long',year:'numeric'}):'—'}.`
+                  :'Please complete your comprehensive skin assessment form before your next visit to ensure the best results.'}
                 </p>
-                <button onClick={()=>{setStep(0);setView('form')}}
-                  style={{marginTop:16,padding:'14px 32px',borderRadius:16,border:'none',background:T.acc,color:'#020617',fontSize:14,fontWeight:700,cursor:'pointer',fontFamily:T.f,letterSpacing:'0.35px',minWidth:160}}>
+                <button onClick={()=>{setStep(0);setView('form')}} style={{marginTop:16,padding:'14px 32px',borderRadius:16,border:'none',background:T.acc,color:'#fff',fontSize:14,fontWeight:700,cursor:'pointer',fontFamily:T.f,letterSpacing:'0.35px',minWidth:160}}>
                   {hasForm?'View Form':'Fill Form Now'}
                 </button>
               </div>
-              {/* Image placeholder (from Figma — rounded image on right) */}
-              {desk&&<div style={{width:300,height:180,borderRadius:24,background:'linear-gradient(135deg,#E5E7EB,#D1D5DB)',border:'1px solid rgba(200,163,76,0.2)',flexShrink:0,display:'flex',alignItems:'center',justifyContent:'center',overflow:'hidden'}}>
-                <div style={{textAlign:'center',color:T.txtL}}>
-                  {I.form(T.txtL,40)}
+              {desk&&<div style={{width:300,height:180,borderRadius:24,background:L.bg,border:`1px solid ${hasForm?'rgba(34,197,94,0.15)':'rgba(200,163,76,0.15)'}`,flexShrink:0,display:'flex',alignItems:'center',justifyContent:'center',overflow:'hidden',boxShadow:'0 4px 6px -1px rgba(0,0,0,0.04)'}}>
+                <div style={{textAlign:'center',color:L.txtL}}>
+                  {I.form(L.bdr2,40)}
                   <p style={{fontSize:11,marginTop:8}}>Consultation Preview</p>
                 </div>
               </div>}
             </div>
           )}
 
-          {/* ═══ TWO-COLUMN LAYOUT ═══ */}
+          {/* ═══ TWO-COLUMN (Figma: 2:898) ═══ */}
           <div style={desk?{display:'flex',gap:32,alignItems:'flex-start'}:{}}>
 
-            {/* LEFT COLUMN — Quick Actions + Upcoming */}
+            {/* LEFT COLUMN (Figma: 2:899) */}
             <div style={{flex:1,minWidth:0}}>
 
-              {/* Quick Actions heading */}
-              <h3 style={{fontSize:22,fontWeight:700,color:T.txt,margin:'0 0 16px'}}>Quick Actions</h3>
+              {/* Quick Actions heading (Figma: 2:901) */}
+              <h3 style={{fontSize:22,fontWeight:700,color:L.h,margin:'0 0 16px'}}>Quick Actions</h3>
 
-              {/* Quick Action Cards — 4 across (dark cards from Figma) */}
+              {/* Quick Action Cards (Figma: 2:903) — 4x row */}
               <div style={{display:'grid',gridTemplateColumns:desk?`repeat(${qa.length},1fr)`:'1fr 1fr',gap:16,marginBottom:32}}>
                 {qa.map((a,i)=>(
                   <button key={i} onClick={a.action}
-                    style={{background:D.bg,border:`1px solid ${D.bdr}`,borderRadius:24,padding:17,cursor:'pointer',textAlign:'left',transition:'all 0.2s',boxShadow:'0 1px 2px rgba(0,0,0,0.05)'}}
-                    onMouseEnter={e=>{e.currentTarget.style.borderColor=T.acc+'60'}}
-                    onMouseLeave={e=>{e.currentTarget.style.borderColor=D.bdr}}>
-                    <div style={{width:48,height:48,borderRadius:16,background:'rgba(200,163,76,0.1)',display:'flex',alignItems:'center',justifyContent:'center',marginBottom:12}}>
+                    style={{background:L.card,border:`1px solid ${L.bdr}`,borderRadius:24,padding:17,cursor:'pointer',textAlign:'left',transition:'border-color 0.2s',boxShadow:'0 1px 2px rgba(0,0,0,0.04)'}}
+                    onMouseEnter={e=>e.currentTarget.style.borderColor=T.acc+'60'}
+                    onMouseLeave={e=>e.currentTarget.style.borderColor=L.bdr}>
+                    <div style={{width:48,height:48,borderRadius:16,background:'rgba(200,163,76,0.08)',display:'flex',alignItems:'center',justifyContent:'center',marginBottom:12}}>
                       {I[a.icon](T.acc,20)}
                     </div>
-                    <p style={{fontSize:14,fontWeight:700,color:'#fff',margin:0}}>{a.label}</p>
-                    <p style={{fontSize:12,color:D.txtM,margin:'2px 0 0'}}>{a.sub}</p>
+                    <p style={{fontSize:14,fontWeight:700,color:L.h,margin:0}}>{a.label}</p>
+                    <p style={{fontSize:12,color:L.txtM,margin:'2px 0 0'}}>{a.sub}</p>
                   </button>
                 ))}
               </div>
 
-              {/* Upcoming Appointments heading */}
+              {/* Upcoming heading (Figma: 2:941) */}
               <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:16}}>
-                <h3 style={{fontSize:22,fontWeight:700,color:T.txt,margin:0}}>Upcoming Appointments</h3>
+                <h3 style={{fontSize:22,fontWeight:700,color:L.h,margin:0}}>Upcoming Appointments</h3>
                 {upcoming.length>0&&<button style={{background:'none',border:'none',color:T.acc,fontSize:14,fontWeight:500,cursor:'pointer',padding:0,fontFamily:T.f}}>View All</button>}
               </div>
 
-              {/* Booking Cards (dark, from Figma) */}
+              {/* Booking Cards (Figma: 2:947, 2:974) */}
               {upcoming.length>0?upcoming.map((b,i)=>(
-                <div key={i} style={{background:D.bg,border:`1px solid ${D.bdr}`,borderRadius:24,padding:21,marginBottom:12,boxShadow:'0 1px 2px rgba(0,0,0,0.05)',display:'flex',alignItems:'center',justifyContent:'space-between'}}>
+                <div key={i} style={{background:L.card,border:`1px solid ${L.bdr}`,borderRadius:24,padding:21,marginBottom:12,boxShadow:'0 1px 2px rgba(0,0,0,0.04)',display:'flex',alignItems:'center',justifyContent:'space-between'}}>
                   <div style={{display:'flex',gap:20,alignItems:'center'}}>
-                    {/* Date block */}
-                    <div style={{width:64,height:64,borderRadius:24,background:D.bdr,border:`1px solid ${D.bdr2}`,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',flexShrink:0}}>
-                      <span style={{fontSize:12,fontWeight:700,color:D.txtM,textTransform:'uppercase'}}>{b.month||'TBC'}</span>
-                      <span style={{fontSize:20,fontWeight:700,color:'#fff',lineHeight:1}}>{b.day||'—'}</span>
+                    <div style={{width:64,height:64,borderRadius:24,background:L.bg,border:`1px solid ${L.bdr}`,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',flexShrink:0}}>
+                      <span style={{fontSize:12,fontWeight:700,color:L.txtM,textTransform:'uppercase'}}>{b.month||'TBC'}</span>
+                      <span style={{fontSize:20,fontWeight:700,color:L.h,lineHeight:1}}>{b.day||'—'}</span>
                     </div>
                     <div>
-                      <p style={{fontSize:18,fontWeight:700,color:'#fff',margin:0}}>{b.service}</p>
+                      <p style={{fontSize:18,fontWeight:700,color:L.h,margin:0}}>{b.service}</p>
                       <div style={{display:'flex',gap:16,marginTop:4}}>
-                        <span style={{display:'flex',alignItems:'center',gap:4,fontSize:14,color:D.txtM}}>{I.clock(D.txtM,13)} {b.time}</span>
-                        {b.staff&&<span style={{display:'flex',alignItems:'center',gap:4,fontSize:14,color:D.txtM}}>{I.user(D.txtM,11)} {b.staff}</span>}
+                        <span style={{display:'flex',alignItems:'center',gap:4,fontSize:14,color:L.txtM}}>{I.clock(L.txtM,13)} {b.time}</span>
+                        {b.staff&&<span style={{display:'flex',alignItems:'center',gap:4,fontSize:14,color:L.txtM}}>{I.user(L.txtM,11)} {b.staff}</span>}
                       </div>
                     </div>
                   </div>
                   <div style={{display:'flex',flexDirection:'column',alignItems:'flex-end',gap:8}}>
-                    {/* Status badge */}
                     <span style={{padding:'5px 13px',borderRadius:99,fontSize:12,fontWeight:700,
-                      background:hasForm?'rgba(16,185,129,0.1)':'rgba(245,158,11,0.1)',
+                      background:hasForm?'rgba(16,185,129,0.08)':'rgba(245,158,11,0.08)',
                       color:hasForm?'#10B981':'#F59E0B',
                       border:`1px solid ${hasForm?'rgba(16,185,129,0.2)':'rgba(245,158,11,0.2)'}`}}>
                       {hasForm?'All set':'Form needed'}
                     </span>
-                    {/* Three-dot menu */}
                     <button style={{background:'none',border:'none',cursor:'pointer',padding:4,display:'flex',flexDirection:'column',gap:2}}>
-                      <div style={{width:4,height:4,borderRadius:2,background:D.txtM}}/><div style={{width:4,height:4,borderRadius:2,background:D.txtM}}/><div style={{width:4,height:4,borderRadius:2,background:D.txtM}}/>
+                      <div style={{width:4,height:4,borderRadius:2,background:L.txtL}}/><div style={{width:4,height:4,borderRadius:2,background:L.txtL}}/><div style={{width:4,height:4,borderRadius:2,background:L.txtL}}/>
                     </button>
                   </div>
                 </div>
               )):(
-                <div style={{background:D.bg,border:`1px solid ${D.bdr}`,borderRadius:24,padding:40,textAlign:'center',marginBottom:16}}>
-                  <div style={{width:56,height:56,borderRadius:16,background:'rgba(200,163,76,0.1)',display:'flex',alignItems:'center',justifyContent:'center',margin:'0 auto 12px'}}>
+                <div style={{background:L.card,border:`1px solid ${L.bdr}`,borderRadius:24,padding:40,textAlign:'center'}}>
+                  <div style={{width:56,height:56,borderRadius:16,background:'rgba(200,163,76,0.08)',display:'flex',alignItems:'center',justifyContent:'center',margin:'0 auto 12px'}}>
                     {I.cal(T.acc,24)}
                   </div>
-                  <p style={{fontSize:14,fontWeight:600,color:'#fff',margin:'0 0 4px'}}>No upcoming appointments</p>
-                  <p style={{fontSize:14,color:D.txtM,margin:'0 0 16px'}}>Book your first treatment to get started</p>
-                  <button onClick={()=>window.open(`/${slug}`,'_blank')} style={{padding:'10px 24px',borderRadius:16,border:'none',background:T.acc,color:'#020617',fontSize:14,fontWeight:700,cursor:'pointer',fontFamily:T.f}}>Book Appointment</button>
+                  <p style={{fontSize:14,fontWeight:600,color:L.h,margin:'0 0 4px'}}>No upcoming appointments</p>
+                  <p style={{fontSize:14,color:L.txtM,margin:'0 0 16px'}}>Book your first treatment to get started</p>
+                  <button onClick={()=>window.open(`/${slug}`,'_blank')} style={{padding:'10px 24px',borderRadius:16,border:'none',background:T.acc,color:'#fff',fontSize:14,fontWeight:700,cursor:'pointer',fontFamily:T.f}}>Book Appointment</button>
                 </div>
               )}
 
-              {/* Treatment History (mobile only) */}
+              {/* Treatment History mobile */}
               {myData?.past_bookings?.length>0&&!desk&&(
                 <div style={{marginTop:16}}>
                   <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:12}}>
-                    <h3 style={{fontSize:18,fontWeight:700,color:T.txt,margin:0}}>Treatment History</h3>
+                    <h3 style={{fontSize:18,fontWeight:700,color:L.h,margin:0}}>Treatment History</h3>
                     <button style={{background:'none',border:'none',color:T.acc,fontSize:13,fontWeight:600,cursor:'pointer',padding:0,fontFamily:T.f}}>View all</button>
                   </div>
                   {myData.past_bookings.slice(0,3).map((b,i)=>(
-                    <div key={i} style={{background:D.bg,border:`1px solid ${D.bdr}`,borderRadius:16,padding:'14px 16px',marginBottom:8,display:'flex',alignItems:'center',gap:14}}>
-                      <div style={{width:44,height:44,borderRadius:12,background:D.bdr,display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>{I.shield(D.txtM,20)}</div>
+                    <div key={i} style={{background:L.card,border:`1px solid ${L.bdr}`,borderRadius:16,padding:'14px 16px',marginBottom:8,display:'flex',alignItems:'center',gap:14}}>
+                      <div style={{width:44,height:44,borderRadius:12,background:L.bg,display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>{I.shield(L.txtL,20)}</div>
                       <div style={{flex:1}}>
-                        <p style={{fontSize:13,fontWeight:600,color:'#E5E7EB',margin:0}}>{b.service}</p>
-                        <p style={{fontSize:11,color:D.txtM,margin:'2px 0 0'}}>{b.date}{b.staff?` · ${b.staff}`:''}</p>
+                        <p style={{fontSize:13,fontWeight:600,color:L.h,margin:0}}>{b.service}</p>
+                        <p style={{fontSize:11,color:L.txtM,margin:'2px 0 0'}}>{b.date}{b.staff?` · ${b.staff}`:''}</p>
                       </div>
                     </div>
                   ))}
@@ -504,65 +494,62 @@ export default function ClientPortal() {
               )}
             </div>
 
-            {/* RIGHT COLUMN — Membership + Skin Tip (desktop, from Figma) */}
+            {/* RIGHT COLUMN (Figma: 2:1001) — desktop only */}
             {desk&&(
               <div style={{width:363,flexShrink:0,display:'flex',flexDirection:'column',gap:32}}>
 
-                {/* Membership Card */}
-                <div style={{background:D.bg,border:`1px solid ${D.bdr}`,borderRadius:24,padding:25,position:'relative',overflow:'hidden'}}>
-                  {/* Gold glow blur (from Figma) */}
-                  <div style={{position:'absolute',top:-16,right:-16,width:96,height:96,borderRadius:99,background:'rgba(200,163,76,0.2)',filter:'blur(32px)',pointerEvents:'none'}}/>
+                {/* Membership Card (Figma: 2:1002) */}
+                <div style={{background:L.card,border:`1px solid ${L.bdr}`,borderRadius:24,padding:25,position:'relative',overflow:'hidden'}}>
+                  <div style={{position:'absolute',top:-16,right:-16,width:96,height:96,borderRadius:99,background:'rgba(200,163,76,0.12)',filter:'blur(32px)',pointerEvents:'none'}}/>
                   <div style={{position:'relative'}}>
                     <div style={{display:'flex',alignItems:'center',gap:12,marginBottom:16}}>
-                      <div style={{width:48,height:48,borderRadius:99,border:`2px solid ${T.acc}`,background:D.bdr,display:'flex',alignItems:'center',justifyContent:'center',fontSize:16,fontWeight:700,color:'#fff'}}>{(user?.name||'?').charAt(0)}</div>
+                      <div style={{width:48,height:48,borderRadius:99,border:`2px solid ${T.acc}`,background:L.bg,display:'flex',alignItems:'center',justifyContent:'center',fontSize:16,fontWeight:700,color:T.acc}}>{(user?.name||'?').charAt(0)}</div>
                       <div>
-                        <p style={{fontSize:16,fontWeight:700,color:'#fff',margin:0}}>{(user?.name||'').split(' ')[0]}</p>
+                        <p style={{fontSize:16,fontWeight:700,color:L.h,margin:0}}>{(user?.name||'').split(' ')[0]}</p>
                         <p style={{fontSize:14,fontWeight:500,color:T.acc,margin:0}}>Premium Member</p>
                       </div>
                     </div>
-                    <div style={{height:1,background:D.bdr,marginBottom:16}}/>
+                    <div style={{height:1,background:L.bdr,marginBottom:16}}/>
                     <div style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}>
                       <div>
-                        <p style={{fontSize:12,fontWeight:700,color:D.txtM,textTransform:'uppercase',letterSpacing:'-0.3px',margin:0}}>Reward Points</p>
-                        <p style={{fontSize:24,fontWeight:700,color:'#fff',margin:'2px 0 0'}}>2,450</p>
+                        <p style={{fontSize:12,fontWeight:700,color:L.txtM,textTransform:'uppercase',letterSpacing:'-0.3px',margin:0}}>Reward Points</p>
+                        <p style={{fontSize:24,fontWeight:700,color:L.h,margin:'2px 0 0'}}>2,450</p>
                       </div>
-                      <button style={{background:'rgba(200,163,76,0.1)',border:'1px solid rgba(200,163,76,0.2)',borderRadius:16,padding:'7px 17px',cursor:'pointer'}}>
+                      <button style={{background:'rgba(200,163,76,0.08)',border:'1px solid rgba(200,163,76,0.2)',borderRadius:16,padding:'7px 17px',cursor:'pointer'}}>
                         <span style={{fontSize:12,fontWeight:700,color:T.acc}}>Redeem</span>
                       </button>
                     </div>
                   </div>
                 </div>
 
-                {/* Skin Tip of the Week */}
-                <div style={{background:D.bg,border:`1px solid ${D.bdr}`,borderRadius:24,padding:25,boxShadow:'0 1px 2px rgba(0,0,0,0.05)'}}>
+                {/* Skin Tip (Figma: 2:1021) */}
+                <div style={{background:L.card,border:`1px solid ${L.bdr}`,borderRadius:24,padding:25,boxShadow:'0 1px 2px rgba(0,0,0,0.04)'}}>
                   <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:12}}>
-                    <span style={{fontSize:16}}>💡</span>
-                    <p style={{fontSize:16,fontWeight:700,color:'#fff',margin:0}}>Skin Tip of the Week</p>
+                    {I.shield(T.acc,16)}
+                    <p style={{fontSize:16,fontWeight:700,color:L.h,margin:0}}>Skin Tip of the Week</p>
                   </div>
-                  <div style={{width:'100%',aspectRatio:'16/9',borderRadius:16,background:'linear-gradient(135deg,#1E293B,#334155)',marginBottom:12,display:'flex',alignItems:'center',justifyContent:'center',overflow:'hidden'}}>
-                    <div style={{textAlign:'center',color:D.txtM}}>
-                      {I.shield(D.txtM,32)}
-                    </div>
+                  <div style={{width:'100%',aspectRatio:'16/9',borderRadius:16,background:'linear-gradient(135deg,#E2E8F0,#CBD5E1)',marginBottom:12,display:'flex',alignItems:'center',justifyContent:'center'}}>
+                    <div style={{textAlign:'center',color:L.txtL}}>{I.shield(L.bdr2,32)}</div>
                   </div>
-                  <p style={{fontSize:14,color:D.txtM,lineHeight:'20px',margin:'0 0 12px'}}>"Consistency is key! Hydrate daily and never skip your SPF, even on cloudy days."</p>
-                  <button style={{width:'100%',padding:'9px 0',borderRadius:16,border:`1px solid ${D.bdr}`,background:'transparent',cursor:'pointer'}}>
-                    <span style={{fontSize:12,fontWeight:700,color:D.txtM}}>More Tips</span>
+                  <p style={{fontSize:14,color:L.txtM,lineHeight:'20px',margin:'0 0 12px'}}>"Consistency is key! Hydrate daily and never skip your SPF, even on cloudy days."</p>
+                  <button style={{width:'100%',padding:'9px 0',borderRadius:16,border:`1px solid ${L.bdr}`,background:'transparent',cursor:'pointer'}}>
+                    <span style={{fontSize:12,fontWeight:700,color:L.txtM}}>More Tips</span>
                   </button>
                 </div>
 
-                {/* Treatment History (desktop) */}
+                {/* Treatment History desktop */}
                 {myData?.past_bookings?.length>0&&(
-                  <div style={{background:D.bg,border:`1px solid ${D.bdr}`,borderRadius:24,padding:25}}>
+                  <div style={{background:L.card,border:`1px solid ${L.bdr}`,borderRadius:24,padding:25}}>
                     <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:14}}>
-                      <h3 style={{fontSize:16,fontWeight:700,color:'#fff',margin:0}}>Treatment History</h3>
+                      <h3 style={{fontSize:16,fontWeight:700,color:L.h,margin:0}}>Treatment History</h3>
                       <button style={{background:'none',border:'none',color:T.acc,fontSize:12,fontWeight:600,cursor:'pointer',padding:0,fontFamily:T.f}}>View all</button>
                     </div>
                     {myData.past_bookings.slice(0,4).map((b,i)=>(
-                      <div key={i} style={{display:'flex',alignItems:'center',gap:12,padding:'10px 0',borderBottom:i<3?`1px solid ${D.bdr}`:'none'}}>
-                        <div style={{width:40,height:40,borderRadius:10,background:D.bdr,display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>{I.shield(D.txtM,18)}</div>
+                      <div key={i} style={{display:'flex',alignItems:'center',gap:12,padding:'10px 0',borderBottom:i<3?`1px solid ${L.bdr}`:'none'}}>
+                        <div style={{width:40,height:40,borderRadius:10,background:L.bg,display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>{I.shield(L.txtL,18)}</div>
                         <div style={{flex:1}}>
-                          <p style={{fontSize:13,fontWeight:600,color:'#E5E7EB',margin:0}}>{b.service}</p>
-                          <p style={{fontSize:11,color:D.txtM,margin:'1px 0 0'}}>{b.date}{b.staff?` · ${b.staff}`:''}</p>
+                          <p style={{fontSize:13,fontWeight:600,color:L.h,margin:0}}>{b.service}</p>
+                          <p style={{fontSize:11,color:L.txtM,margin:'1px 0 0'}}>{b.date}{b.staff?` · ${b.staff}`:''}</p>
                         </div>
                       </div>
                     ))}
@@ -573,30 +560,28 @@ export default function ClientPortal() {
           </div>
         </div>
 
-        {/* ═══ BOTTOM NAV — mobile (dark, from Figma) ═══ */}
+        {/* ═══ BOTTOM NAV mobile (Figma: 2:491 equivalent) ═══ */}
         {!desk&&(
-          <div style={{position:'fixed',bottom:0,left:0,right:0,background:'#020617',borderTop:`1px solid ${D.bdr}`,padding:'8px 0 12px',zIndex:30,display:'flex',justifyContent:'space-around'}}>
+          <div style={{position:'fixed',bottom:0,left:0,right:0,background:L.card,borderTop:`1px solid ${L.bdr}`,padding:'8px 0 12px',zIndex:30,display:'flex',justifyContent:'space-around'}}>
             {tabs.map(t=>(
               <button key={t.id} onClick={()=>setActiveTab(t.id)} style={{background:'none',border:'none',cursor:'pointer',display:'flex',flexDirection:'column',alignItems:'center',gap:3,padding:'4px 8px'}}>
-                {I[t.icon](activeTab===t.id?T.acc:'#6B7280',20)}
-                <span style={{fontSize:10,fontWeight:activeTab===t.id?700:500,color:activeTab===t.id?T.acc:'#6B7280'}}>{t.label}</span>
+                {I[t.icon](activeTab===t.id?T.acc:L.txtL,20)}
+                <span style={{fontSize:10,fontWeight:activeTab===t.id?700:500,color:activeTab===t.id?T.acc:L.txtL}}>{t.label}</span>
               </button>
             ))}
           </div>
         )}
 
-        {/* ═══ FOOTER — desktop (dark, from Figma) ═══ */}
+        {/* ═══ FOOTER desktop (Figma: 2:1031) ═══ */}
         {desk&&(
-          <div style={{borderTop:`1px solid ${D.bdr}`,padding:'41px 40px 40px',marginTop:16}}>
+          <div style={{borderTop:`1px solid ${L.bdr}`,padding:'41px 40px 40px',marginTop:16}}>
             <div style={{maxWidth:1200,margin:'0 auto',display:'flex',justifyContent:'space-between',alignItems:'center'}}>
               <div style={{display:'flex',alignItems:'center',gap:12}}>
-                <div style={{width:22,height:21,display:'flex',alignItems:'center',justifyContent:'center'}}>
-                  <div style={{width:16,height:16,borderRadius:4,background:T.acc,display:'flex',alignItems:'center',justifyContent:'center',fontSize:8,fontWeight:800,color:'#020617'}}>R</div>
-                </div>
-                <p style={{fontSize:14,fontWeight:500,color:D.txtM,margin:0}}>&copy; {new Date().getFullYear()} {biz?.name}. All rights reserved.</p>
+                <div style={{width:16,height:16,borderRadius:4,background:T.acc,display:'flex',alignItems:'center',justifyContent:'center',fontSize:8,fontWeight:800,color:'#fff'}}>R</div>
+                <p style={{fontSize:14,fontWeight:500,color:L.txtM,margin:0}}>&copy; {new Date().getFullYear()} {biz?.name}. All rights reserved.</p>
               </div>
               <div style={{display:'flex',gap:24}}>
-                {['Privacy Policy','Terms of Service','Help Center'].map(l=><button key={l} style={{background:'none',border:'none',fontSize:14,color:D.txtD,cursor:'pointer',fontFamily:T.f,padding:0}}>{l}</button>)}
+                {['Privacy Policy','Terms of Service','Help Center'].map(l=><button key={l} style={{background:'none',border:'none',fontSize:14,color:L.txtL,cursor:'pointer',fontFamily:T.f,padding:0}}>{l}</button>)}
               </div>
             </div>
           </div>
@@ -624,7 +609,7 @@ export default function ClientPortal() {
   // CONSULTATION FORM
   // ═══════════════════════════════════════════════════════════════
   if(view==='form') return (
-    <div style={{minHeight:'100vh',background:T.bg,fontFamily:T.f}}>
+    <div style={{minHeight:'100vh',background:'#F1F5F9',fontFamily:T.f}}>
       <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
       <div ref={topRef}/>
 
