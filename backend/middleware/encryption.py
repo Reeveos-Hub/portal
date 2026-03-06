@@ -36,9 +36,23 @@ from cryptography.fernet import Fernet
 logger = logging.getLogger("encryption")
 
 # ─── Master Key ───
-# In production: set REEVEOS_MASTER_KEY as a 32-byte base64 string
+# In production: set REEVEOS_MASTER_KEY in .env as a Fernet key (44 chars base64)
 # Generate with: python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"
-_MASTER_KEY = os.getenv("REEVEOS_MASTER_KEY", "")
+
+# Load .env if available (ensures key is in os.environ even without systemd EnvFile)
+try:
+    from dotenv import load_dotenv as _load_env
+    import pathlib
+    _env_path = pathlib.Path(__file__).resolve().parent.parent / ".env"
+    if _env_path.exists():
+        _load_env(_env_path)
+except ImportError:
+    pass
+
+
+def _get_master_key_raw() -> str:
+    return os.getenv("REEVEOS_MASTER_KEY", "")
+
 
 # Prefix for encrypted values — lets us know a field is encrypted
 ENCRYPTED_PREFIX = "ENC::"
@@ -47,12 +61,13 @@ DETERMINISTIC_PREFIX = "DET::"
 
 def _get_master_key() -> bytes:
     """Get the master encryption key. Raises if not configured."""
-    if not _MASTER_KEY:
+    raw = _get_master_key_raw()
+    if not raw:
         raise RuntimeError(
             "REEVEOS_MASTER_KEY not set. Generate with: "
             "python -c \"from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())\""
         )
-    return base64.urlsafe_b64decode(_MASTER_KEY)
+    return base64.urlsafe_b64decode(raw)
 
 
 def _derive_tenant_key(tenant_id: str) -> bytes:
@@ -103,11 +118,10 @@ class TenantEncryption:
         self._tenant_id = tenant_id
         self._fernet = None
         self._det_key = None
-        self._enabled = bool(_MASTER_KEY)
     
     @property
     def enabled(self) -> bool:
-        return self._enabled
+        return bool(_get_master_key_raw())
     
     def _get_fernet(self) -> Fernet:
         if self._fernet is None:
@@ -123,7 +137,7 @@ class TenantEncryption:
     
     def encrypt(self, plaintext: str) -> str:
         """Encrypt a field value. Returns prefixed ciphertext."""
-        if not self._enabled or not plaintext:
+        if not self.enabled or not plaintext:
             return plaintext
         if isinstance(plaintext, str) and plaintext.startswith((ENCRYPTED_PREFIX, DETERMINISTIC_PREFIX)):
             return plaintext  # Already encrypted
@@ -141,7 +155,7 @@ class TenantEncryption:
             return ciphertext
         
         if isinstance(ciphertext, str) and ciphertext.startswith(ENCRYPTED_PREFIX):
-            if not self._enabled:
+            if not self.enabled:
                 logger.warning("Encrypted data found but REEVEOS_MASTER_KEY not set")
                 return "[ENCRYPTED]"
             try:
@@ -152,7 +166,7 @@ class TenantEncryption:
                 return "[DECRYPTION ERROR]"
         
         if isinstance(ciphertext, str) and ciphertext.startswith(DETERMINISTIC_PREFIX):
-            if not self._enabled:
+            if not self.enabled:
                 return "[ENCRYPTED]"
             try:
                 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
@@ -183,7 +197,7 @@ class TenantEncryption:
         Uses AES-CBC with IV derived from HMAC(key, plaintext) for determinism.
         Use ONLY for fields that need exact-match queries (email).
         """
-        if not self._enabled or not plaintext:
+        if not self.enabled or not plaintext:
             return plaintext
         if isinstance(plaintext, str) and plaintext.startswith((ENCRYPTED_PREFIX, DETERMINISTIC_PREFIX)):
             return plaintext
@@ -211,7 +225,7 @@ class TenantEncryption:
     
     def encrypt_customer(self, customer: dict) -> dict:
         """Encrypt PII fields in a customer subdocument."""
-        if not self._enabled or not customer:
+        if not self.enabled or not customer:
             return customer
         
         c = dict(customer)
@@ -239,7 +253,7 @@ class TenantEncryption:
     
     def encrypt_booking(self, booking: dict) -> dict:
         """Encrypt PII in a booking document."""
-        if not self._enabled or not booking:
+        if not self.enabled or not booking:
             return booking
         
         b = dict(booking)
@@ -281,4 +295,4 @@ class TenantEncryption:
 
 def is_encryption_enabled() -> bool:
     """Check if encryption is configured."""
-    return bool(_MASTER_KEY)
+    return bool(_get_master_key_raw())
