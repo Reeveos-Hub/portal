@@ -309,3 +309,98 @@ async def get_calendar_restaurant(
 
 
 # debug-bookings endpoint REMOVED — security audit VULN-010
+
+
+# ═══════════════════════════════════════════════════════════════
+# STAFF ADD BOOKING — from calendar modal
+# ═══════════════════════════════════════════════════════════════
+
+from fastapi import Body
+
+def _mins_to_end(start_time: str, duration: int) -> str:
+    """Calculate end time from start time + duration in minutes."""
+    h, m = map(int, start_time.split(":"))
+    total = h * 60 + m + duration
+    return f"{(total // 60) % 24:02d}:{total % 60:02d}"
+
+
+@router.post("/business/{business_id}/booking")
+async def staff_create_booking(
+    business_id: str,
+    payload: dict = Body(...),
+    tenant: TenantContext = Depends(verify_business_access),
+):
+    """Staff creates a booking from the calendar. Minimal required fields."""
+    db = get_database()
+    business = await db.businesses.find_one({"_id": business_id})
+    if not business:
+        try:
+            business = await db.businesses.find_one({"_id": ObjectId(business_id)})
+        except Exception:
+            pass
+    if not business:
+        raise HTTPException(404, "Business not found")
+
+    biz_id = str(business["_id"])
+
+    # Required fields
+    customer_name = (payload.get("customerName") or "").strip()
+    customer_phone = (payload.get("customerPhone") or "").strip()
+    customer_email = (payload.get("customerEmail") or "").strip()
+    booking_date = payload.get("date")
+    booking_time = payload.get("time")
+    staff_id = payload.get("staffId")
+    service = payload.get("service")  # {id, name, duration, price}
+    notes = (payload.get("notes") or "").strip()
+
+    if not customer_name or not booking_date or not booking_time:
+        raise HTTPException(400, "Customer name, date, and time are required")
+
+    duration = 60
+    service_doc = None
+    if service:
+        duration = service.get("duration", 60)
+        service_doc = {
+            "id": service.get("id"),
+            "name": service.get("name", "Treatment"),
+            "duration": duration,
+            "price": service.get("price", 0),
+        }
+
+    end_time = _mins_to_end(booking_time, duration)
+
+    # Generate reference
+    import random, string
+    ref = "".join(random.choices(string.ascii_uppercase + string.digits, k=6))
+
+    doc = {
+        "_id": f"bkg_{datetime.utcnow().strftime('%Y%m%d%H%M%S')}_{biz_id[:8]}",
+        "reference": ref,
+        "businessId": biz_id,
+        "type": "services",
+        "status": "confirmed",
+        "service": service_doc,
+        "staffId": staff_id,
+        "date": booking_date,
+        "time": booking_time,
+        "duration": duration,
+        "endTime": end_time,
+        "customer": {
+            "name": customer_name,
+            "phone": customer_phone,
+            "email": customer_email,
+        },
+        "notes": notes[:500] if notes else "",
+        "source": "staff",
+        "createdAt": datetime.utcnow(),
+        "updatedAt": datetime.utcnow(),
+    }
+
+    await db.bookings.insert_one(doc)
+
+    return {
+        "id": doc["_id"],
+        "reference": ref,
+        "status": "confirmed",
+        "message": "Booking created",
+    }
