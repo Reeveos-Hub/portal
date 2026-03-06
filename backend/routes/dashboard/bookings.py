@@ -194,7 +194,7 @@ async def cancel_reservation(
             detail="Reservation not found"
         )
     
-    if reservation["user_id"] != str(current_user["_id"]):
+    if reservation.get("user_id") != str(current_user["_id"]) and current_user.get("role") not in ("business_owner", "platform_admin", "super_admin"):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Not authorized to cancel this reservation"

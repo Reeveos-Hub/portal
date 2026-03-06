@@ -129,7 +129,7 @@ async def update_review(
             detail="Review not found"
         )
     
-    if review["user_id"] != str(current_user["_id"]):
+    if review.get("user_id") != str(current_user["_id"]) and current_user.get("role") not in ("business_owner", "platform_admin", "super_admin"):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Not authorized to update this review"
@@ -189,7 +189,7 @@ async def delete_review(
             detail="Review not found"
         )
     
-    if review["user_id"] != str(current_user["_id"]):
+    if review.get("user_id") != str(current_user["_id"]) and current_user.get("role") not in ("business_owner", "platform_admin", "super_admin"):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Not authorized to delete this review"

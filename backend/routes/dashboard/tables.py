@@ -9,7 +9,7 @@ from datetime import datetime
 from bson import ObjectId
 
 
-async def find_business(db, business_id: str, owner_id: str):
+async def find_business(db, business_id: str, owner_id: str, role: str = ""):
     """Find business by ID (handles both string and ObjectId), verify ownership."""
     biz = await db.businesses.find_one({"_id": business_id})
     if not biz:
@@ -19,6 +19,8 @@ async def find_business(db, business_id: str, owner_id: str):
             pass
     if not biz:
         raise HTTPException(status_code=404, detail="Business not found")
+    if role in ("business_owner", "platform_admin", "super_admin"):
+        return biz
     if biz.get("owner_id") != owner_id and str(biz.get("owner_id")) != owner_id:
         raise HTTPException(status_code=403, detail="Not authorized")
     return biz
@@ -77,7 +79,7 @@ async def get_floor_plan(
 ):
     db = get_database()
     sdb = get_scoped_db(tenant.business_id)
-    business = await find_business(db, business_id, tenant.user_id)
+    business = await find_business(db, business_id, tenant.user_id, tenant.role)
 
     fp = business.get("floor_plan") or {}
     room_config = fp.get("room_config")
@@ -111,7 +113,7 @@ async def update_floor_plan(
 ):
     db = get_database()
     sdb = get_scoped_db(tenant.business_id)
-    business = await find_business(db, business_id, tenant.user_id)
+    business = await find_business(db, business_id, tenant.user_id, tenant.role)
 
     data = floor_plan_data.model_dump(exclude_none=True)
 
@@ -157,7 +159,7 @@ async def generate_preset_layout(
     """Generate a fresh layout from a room preset. Wipes old data and starts clean."""
     db = get_database()
     sdb = get_scoped_db(tenant.business_id)
-    business = await find_business(db, business_id, tenant.user_id)
+    business = await find_business(db, business_id, tenant.user_id, tenant.role)
 
     from services.floor_plan_presets import get_preset_layout
 
@@ -194,7 +196,7 @@ async def update_room_config(
     """Save room dimensions and rescale existing elements to fit."""
     db = get_database()
     sdb = get_scoped_db(tenant.business_id)
-    business = await find_business(db, business_id, tenant.user_id)
+    business = await find_business(db, business_id, tenant.user_id, tenant.role)
 
     rc = room_config.model_dump()
     # Compute canvas pixels (1m = 100px, capped at 2000px)
@@ -233,7 +235,7 @@ async def delete_table(
 ):
     db = get_database()
     sdb = get_scoped_db(tenant.business_id)
-    business = await find_business(db, business_id, tenant.user_id)
+    business = await find_business(db, business_id, tenant.user_id, tenant.role)
 
     fp = business.get("floor_plan") or {}
     if "elements" in fp:
@@ -266,7 +268,7 @@ async def auto_arrange_floor_plan(
     """
     db = get_database()
     sdb = get_scoped_db(tenant.business_id)
-    business = await find_business(db, business_id, tenant.user_id)
+    business = await find_business(db, business_id, tenant.user_id, tenant.role)
 
     # Load room config if available (real-world dimensions help AI reason spatially)
     fp = business.get("floor_plan") or {}
@@ -335,7 +337,7 @@ async def validate_floor_plan(
     """
     db = get_database()
     sdb = get_scoped_db(tenant.business_id)
-    business = await find_business(db, business_id, tenant.user_id)
+    business = await find_business(db, business_id, tenant.user_id, tenant.role)
 
     result = validate_layout(
         request.elements,
@@ -366,7 +368,7 @@ async def generate_floor_plan(
     """
     db = get_database()
     sdb = get_scoped_db(tenant.business_id)
-    business = await find_business(db, business_id, tenant.user_id)
+    business = await find_business(db, business_id, tenant.user_id, tenant.role)
 
     elements = generate_from_description(
         request.description,
