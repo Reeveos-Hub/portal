@@ -1,7 +1,7 @@
-# Rezvo (rezvo.app)
+# ReeveOS (reeveos.app)
 > Zero-commission booking, ordering, and business management platform for UK restaurants, salons, barbers, and service businesses.
 
-Rezvo is a "Save the High Street" platform that replaces high-commission platforms like Deliveroo (up to 35%), UberEats (30%), and OpenTable (£2.50/cover). Businesses keep 100% of their revenue with Rezvo's flat monthly pricing.
+ReeveOS is a "Save the High Street" platform that replaces high-commission platforms like Deliveroo (up to 35%), UberEats (30%), and OpenTable (£2.50/cover). Businesses keep 100% of their revenue with Rezvo's flat monthly pricing.
 
 ## For Businesses
 - Online booking with real-time availability
@@ -19,7 +19,7 @@ Rezvo is a "Save the High Street" platform that replaces high-commission platfor
 - Enterprise: Custom pricing
 
 ## Links
-- Business Platform: https://rezvo.app
-- Consumer Directory: https://rezvo.app
-- Features: https://rezvo.app/features/
-- Industries: https://rezvo.app/industries/
+- Business Platform: https://reeveos.app
+- Consumer Directory: https://reeveos.app
+- Features: https://reeveos.app/features/
+- Industries: https://reeveos.app/industries/

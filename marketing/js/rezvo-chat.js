@@ -21,12 +21,12 @@
     {k:['delivery','uber','deliveroo','just eat','ordering','takeaway'],a:"**Zero-commission delivery via Uber Direct.** Customers order from YOUR branded page. Payments go to YOUR Stripe. No 25-35% marketplace commission."},
     {k:['booking','calendar','appointment','reserve'],a:"**Smart booking:** Online 24/7, drag-and-drop calendar, deposits, SMS/email reminders, walk-in management, multi-staff columns."},
     {k:['stripe','payment','pay','card','deposit','refund'],a:"**Stripe Connect:** Each business connects their own Stripe. Payments go directly to the business. Rezvo never holds your money. Apple Pay, Google Pay supported."},
-    {k:['start','get started','sign up','trial','register'],a:"**Getting started:** Sign up free at rezvo.app (no card needed), set up your profile, go live. 30-day free trial on all plans!"},
-    {k:['contact','support','help','email','speak','human'],a:"**Contact us:** Email hello@rezvo.app or visit rezvo.app/contact.html. We typically reply within a few hours. UK-based team."},
+    {k:['start','get started','sign up','trial','register'],a:"**Getting started:** Sign up free at reeveos.app (no card needed), set up your profile, go live. 30-day free trial on all plans!"},
+    {k:['contact','support','help','email','speak','human'],a:"**Contact us:** Email hello@reeveos.app or visit reeveos.app/contact.html. We typically reply within a few hours. UK-based team."},
     {k:['launch','when','live','ready','available'],a:"We're building toward launch starting with **Nottingham**! No confirmed date yet, but sign up and you'll be first to know. We're working hard on it! 🚀"},
     {k:['opentable','resdiary','thefork','competitor','compare','vs','switch'],a:"**vs OpenTable:** £1-3 per diner + monthly fees. Rezvo: flat fee, zero per-cover.\n**vs Deliveroo:** 25-35% commission. Rezvo + Uber Direct: fraction of the cost.\n**vs ResDiary:** No ordering or delivery. Rezvo includes both."},
     {k:['salon','barber','spa','hair','beauty','trainer','tattoo'],a:"Rezvo works for salons, barbers, spas, personal trainers, tattoo studios, physios, dog groomers, music teachers, and more. Tailored booking flows for each."},
-    {k:['directory','find','search','browse','diner'],a:"**rezvo.app** — browse and book local businesses. Even unregistered restaurants appear. Request notifications when your favourite spot joins!"},
+    {k:['directory','find','search','browse','diner'],a:"**reevenow.com** — browse and book local businesses. Even unregistered restaurants appear. Request notifications when your favourite spot joins!"},
     {k:['feature','what can','what do','include','offer'],a:"Online booking, drag-and-drop calendar, floor plans, Stripe payments, CRM, analytics, SMS/email reminders, staff management, online ordering, Uber Direct delivery, white-label branding."},
     {k:['hello','hi','hey','yo','sup','morning','afternoon'],a:"Hey! 👋 I'm the Rezvo AI — the smart one! Ask me anything about the platform, pricing, features, how it works, or anything else. I'm all yours."},
     {k:['who are you','what are you','bot','robot','ai'],a:"I'm Rezvo's AI assistant — I know pretty much everything about the platform. Ask me about pricing, features, how delivery works, competitor comparisons, getting started — whatever's on your mind! 🧠"},
@@ -45,13 +45,13 @@
       }
       if (score > bestScore) { bestScore = score; best = FALLBACK_KB[i]; }
     }
-    return best ? best.a : "I'd love to help with that! For the best answer, drop us a line at **hello@rezvo.app** — the team will get back to you quickly. Or ask me about pricing, features, delivery, or getting started! 😊";
+    return best ? best.a : "I'd love to help with that! For the best answer, drop us a line at **hello@reeveos.app** — the team will get back to you quickly. Or ask me about pricing, features, delivery, or getting started! 😊";
   }
 
   /* ─── Quick Buttons ─── */
   var QUICK = [
     {e:'💰',l:'Pricing',q:'What are your pricing plans and what do I get on each tier?'},
-    {e:'🍽️',l:'Restaurants',q:'What restaurant-specific features does Rezvo offer?'},
+    {e:'🍽️',l:'Restaurants',q:'What restaurant-specific features does ReeveOS offer?'},
     {e:'🚚',l:'Delivery',q:'How does zero-commission delivery work with Uber Direct?'},
     {e:'🚀',l:'Get Started',q:'How do I get started with Rezvo?'},
     {e:'⚔️',l:'vs Competitors',q:'How does Rezvo compare to OpenTable, Deliveroo, and ResDiary?'},
@@ -146,7 +146,7 @@
     return '<button class="rc-quick" data-q="' + b.q + '">' + b.e + ' ' + b.l + '</button>';
   }).join('');
 
-  panel.innerHTML = '<div class="rc-header"><div class="rc-header-avatar">R</div><div class="rc-header-info"><h3>Rezvo AI</h3><p>● Online — powered by AI</p></div><button class="rc-header-clear" id="rc-clear" title="Start new chat">🗑️ New</button></div><div class="rc-messages" id="rc-messages"></div><div class="rc-quick-btns" id="rc-quick-btns">' + quickHTML + '</div><div class="rc-input-area"><input class="rc-input" id="rc-input" placeholder="Ask me anything about Rezvo..." autocomplete="off"><button class="rc-send" id="rc-send"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg></button></div><div class="rc-powered">Powered by Rezvo AI ✨</div>';
+  panel.innerHTML = '<div class="rc-header"><div class="rc-header-avatar">R</div><div class="rc-header-info"><h3>ReeveOS AI</h3><p>● Online — powered by AI</p></div><button class="rc-header-clear" id="rc-clear" title="Start new chat">🗑️ New</button></div><div class="rc-messages" id="rc-messages"></div><div class="rc-quick-btns" id="rc-quick-btns">' + quickHTML + '</div><div class="rc-input-area"><input class="rc-input" id="rc-input" placeholder="Ask me anything about Rezvo..." autocomplete="off"><button class="rc-send" id="rc-send"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg></button></div><div class="rc-powered">Powered by ReeveOS AI ✨</div>';
   document.body.appendChild(panel);
 
   /* ─── State ─── */
@@ -159,7 +159,7 @@
   var badge = document.getElementById('rezvo-chat-badge');
   var clearBtn = document.getElementById('rc-clear');
 
-  var GREETING = "Hey! 👋 I'm the Rezvo AI — I know pretty much everything about the platform. Ask me about pricing, features, how delivery works, competitor comparisons, getting started, or literally anything else. Fire away!";
+  var GREETING = "Hey! 👋 I'm the ReeveOS AI — I know pretty much everything about the platform. Ask me about pricing, features, how delivery works, competitor comparisons, getting started, or literally anything else. Fire away!";
 
   function addMsg(text, role, doSave) {
     if (doSave !== false) {
