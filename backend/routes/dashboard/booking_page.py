@@ -186,7 +186,7 @@ async def get_qr_code(business_id: str, tenant: TenantContext = Depends(verify_b
     sdb = get_scoped_db(tenant.business_id)
     business = await _get_business(db, business_id, {"_id": tenant.user_id, "role": tenant.role})
     slug = business.get("slug", "your-business")
-    url = f"https://portal.rezvo.app/book/{slug}"
+    url = f"https://book.rezvo.app/{slug}"
     try:
         import qrcode
         qr = qrcode.QRCode(version=1, box_size=10, border=2)
@@ -209,7 +209,7 @@ async def get_embed_code(business_id: str, tenant: TenantContext = Depends(verif
     sdb = get_scoped_db(tenant.business_id)
     business = await _get_business(db, business_id, {"_id": tenant.user_id, "role": tenant.role})
     slug = business.get("slug", "your-business")
-    url = f"https://portal.rezvo.app/book/{slug}"
+    url = f"https://book.rezvo.app/{slug}"
     accent = (business.get("bookingPage") or {}).get("branding") or {}
     accent = accent.get("accentColour", "#1B4332")
     iframe = f'<iframe src="{url}" width="100%" height="600" frameborder="0"></iframe>'

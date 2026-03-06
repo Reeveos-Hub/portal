@@ -128,7 +128,7 @@ export default function AdminDirectory() {
                     {l.is_claimed ? 'Claimed' : 'Unclaimed'}
                   </span>
                   {l.slug && (
-                    <a href={`https://portal.rezvo.app/book/${l.slug}`} target="_blank" rel="noopener" className="text-gray-600 hover:text-gray-400">
+                    <a href={`https://book.rezvo.app/${l.slug}`} target="_blank" rel="noopener" className="text-gray-600 hover:text-gray-400">
                       <ExternalLink size={14} />
                     </a>
                   )}

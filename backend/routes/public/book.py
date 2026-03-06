@@ -629,6 +629,25 @@ async def create_booking(request: Request, business_slug: str, payload: dict):
     except Exception as notify_err:
         logger.warning(f"Notification dispatch failed (booking still created): {notify_err}")
 
+    # ── SMS confirmation ──
+    try:
+        cust_phone = (doc.get("customer") or {}).get("phone", "")
+        cust_name_sms = (doc.get("customer") or {}).get("name", "there")
+        if cust_phone:
+            from helpers.sms import send_sms, booking_confirmation_sms
+            import asyncio
+            sms_body = booking_confirmation_sms(
+                client_name=cust_name_sms.split()[0] if cust_name_sms else "there",
+                business_name=business.get("name", ""),
+                booking_date=doc.get("date", ""),
+                booking_time=booking_time,
+                party_size=party_size if biz_type == "restaurant" else 0,
+                reference=doc.get("reference", ""),
+            )
+            asyncio.ensure_future(send_sms(cust_phone, sms_body))
+    except Exception as sms_err:
+        logger.warning(f"SMS dispatch failed (booking still created): {sms_err}")
+
     # ── Activity log ──
     cust_name = (doc.get("customer") or {}).get("name", "Customer")
     table_info = f", table {table_name}" if table_name else ""
@@ -840,6 +859,32 @@ async def cancel_booking(business_slug: str, booking_id: str, email: str = Query
     if not booking_email or email.lower().strip() != booking_email:
         raise HTTPException(404, "Booking not found or email does not match")
 
+    # ── Cancellation policy enforcement ──
+    bp_settings = (business.get("bookingPage") or {}).get("settings") or {}
+    cancel_hours = bp_settings.get("cancellationNoticeHours") or business.get("settings", {}).get("cancellation_hours", 24)
+    try:
+        cancel_hours = int(cancel_hours)
+    except (ValueError, TypeError):
+        cancel_hours = 24
+
+    booking_date = bkg.get("date", "")
+    booking_time = bkg.get("time", "00:00")
+    try:
+        booking_dt = datetime.strptime(f"{booking_date} {booking_time}", "%Y-%m-%d %H:%M")
+        now = datetime.utcnow()
+        hours_until = (booking_dt - now).total_seconds() / 3600
+        if hours_until < cancel_hours and hours_until > -1:
+            raise HTTPException(
+                400,
+                f"Cancellations require {cancel_hours} hours' notice. "
+                f"Your appointment is in less than {cancel_hours} hours. "
+                f"Your booking fee is non-refundable. Please contact the business directly if you need to reschedule."
+            )
+    except HTTPException:
+        raise
+    except Exception as dt_err:
+        logger.warning(f"Could not parse booking datetime for cancellation check: {dt_err}")
+
     await db.bookings.update_one(
         {"_id": booking_id},
         {"$set": {"status": "cancelled", "cancelledAt": datetime.utcnow(), "updatedAt": datetime.utcnow()}},
@@ -852,6 +897,22 @@ async def cancel_booking(business_slug: str, booking_id: str, email: str = Query
         asyncio.ensure_future(notify_booking_cancelled(bkg, business, cancelled_by="customer"))
     except Exception as notify_err:
         logger.warning(f"Cancel notification failed: {notify_err}")
+
+    # SMS cancellation confirmation
+    try:
+        cust_phone = (bkg.get("customer") or {}).get("phone", "")
+        if cust_phone:
+            from helpers.sms import send_sms, booking_cancelled_sms
+            import asyncio
+            sms_body = booking_cancelled_sms(
+                client_name=(bkg.get("customer") or {}).get("name", "").split()[0] or "there",
+                business_name=business.get("name", ""),
+                booking_date=bkg.get("date", ""),
+                booking_time=bkg.get("time", ""),
+            )
+            asyncio.ensure_future(send_sms(cust_phone, sms_body))
+    except Exception as sms_err:
+        logger.warning(f"Cancel SMS failed: {sms_err}")
 
     return {"detail": "Booking cancelled"}
 

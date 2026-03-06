@@ -388,7 +388,7 @@ Use this data to answer questions about today's bookings, covers, availability, 
           position: fixed;
           bottom: 20px;
           right: 20px;
-          z-index: 9999;
+          z-index: 50;
           width: 52px;
           height: 52px;
           border-radius: 50%;
@@ -489,8 +489,8 @@ Use this data to answer questions about today's bookings, covers, availability, 
       {/* Fan-out Menu Pills */}
       {fabOpen && !isOpen && !activePanel && (
         <>
-          <div onClick={() => setFabOpen(false)} style={{ position:'fixed', inset:0, zIndex:9990 }} />
-          <div style={{ position:'fixed', bottom:84, right:20, zIndex:9998, display:'flex', flexDirection:'column', gap:8, alignItems:'flex-end' }}>
+          <div onClick={() => setFabOpen(false)} style={{ position:'fixed', inset:0, zIndex:51 }} />
+          <div style={{ position:'fixed', bottom:84, right:20, zIndex:52, display:'flex', flexDirection:'column', gap:8, alignItems:'flex-end' }}>
             {[
               { label: 'New Booking', icon: 'M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z', action: () => { setActivePanel('booking'); setFabOpen(false); } },
               { label: 'Walk-in', icon: 'M13 10V3L4 14h7v7l9-11h-7z', action: () => { setActivePanel('walkin'); setFabOpen(false); } },

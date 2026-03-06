@@ -51,4 +51,4 @@ export const getDomainConfig = () => ({
 })
 
 /** Build the public booking URL for a business slug */
-export const getBookingUrl = (slug) => `https://portal.rezvo.app/book/${slug}`
+export const getBookingUrl = (slug) => `https://book.rezvo.app/${slug}`

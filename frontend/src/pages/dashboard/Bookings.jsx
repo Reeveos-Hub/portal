@@ -56,7 +56,8 @@ const formatTime = (timeStr) => {
 }
 
 const Bookings = () => {
-  const { business, loading: bizLoading } = useBusiness()
+  const { business, businessType, loading: bizLoading } = useBusiness()
+  const isRestaurant = businessType === 'restaurant'
   const [searchParams, setSearchParams] = useSearchParams()
   const [bookings, setBookings] = useState([])
   const [pagination, setPagination] = useState({})
@@ -143,12 +144,20 @@ const Bookings = () => {
 
   const displayBookings = bookings
 
+  const STATUS_LABELS = {
+    checked_in: isRestaurant ? 'Seated' : 'In Treatment',
+    seat_action: isRestaurant ? 'Seat' : 'Check In',
+    checkout_action: isRestaurant ? 'Checkout' : 'Complete',
+    guest_label: isRestaurant ? 'Guests' : 'Client',
+    table_label: isRestaurant ? 'Table' : 'Therapist',
+  }
+
   const getPrimaryAction = (b) => {
     const s = b.status
-    if (s === 'confirmed' || s === 'late') return { label: 'Seat', action: () => updateStatus(b.id, 'checked_in') }
+    if (s === 'confirmed' || s === 'late') return { label: STATUS_LABELS.seat_action, action: () => updateStatus(b.id, 'checked_in') }
     if (s === 'pending') return { label: 'Confirm', action: () => updateStatus(b.id, 'confirmed') }
     if (s === 'waitlist') return { label: 'Notify', action: null, outline: true }
-    if (s === 'checked_in') return { label: 'Checkout', action: () => updateStatus(b.id, 'completed') }
+    if (s === 'checked_in') return { label: STATUS_LABELS.checkout_action, action: () => updateStatus(b.id, 'completed') }
     return null
   }
 
@@ -159,7 +168,7 @@ const Bookings = () => {
         <div className="relative max-w-2xl flex gap-2">
           <div className="relative flex-1">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-            <input type="text" placeholder="Search by guest name, phone..." value={search} onChange={e => setSearch(e.target.value)}
+            <input type="text" placeholder={isRestaurant ? "Search by guest name, phone..." : "Search by client name, phone..."} value={search} onChange={e => setSearch(e.target.value)}
               className="w-full pl-11 pr-4 py-3 bg-white border border-gray-200 rounded-full shadow-sm focus:outline-none focus:ring-2 focus:ring-[#111111]/15 focus:border-[#111111]/30 text-sm font-medium transition-all"
               style={{ fontFamily: "'Figtree', sans-serif" }} />
           </div>
@@ -205,6 +214,7 @@ const Bookings = () => {
           <div className="space-y-4">
             {displayBookings.map(b => {
               const sc = STATUS_CONFIG[b.status] || STATUS_CONFIG.confirmed
+              const statusLabel = b.status === 'checked_in' ? STATUS_LABELS.checked_in : sc.label
               const av = getAvatarColor(b.customerName)
               const primary = getPrimaryAction(b)
               const guests = b.guests || b.partySize || parseInt(b.service?.match(/\d+/)?.[0]) || 2
@@ -221,7 +231,7 @@ const Bookings = () => {
                   <div className="flex flex-row md:flex-col items-center md:items-start gap-3 md:gap-1 min-w-[100px] pl-2">
                     <span className="text-xl font-bold text-gray-900">{time}</span>
                     <span className={`px-2.5 py-1 rounded-full text-xs font-bold ${sc.bg} ${sc.text} border ${sc.border}`}>
-                      {b.lateMinutes ? `Late (${b.lateMinutes}m)` : sc.label}
+                      {b.lateMinutes ? `Late (${b.lateMinutes}m)` : statusLabel}
                     </span>
                   </div>
 
@@ -243,14 +253,29 @@ const Bookings = () => {
                   </div>
 
                   <div className="flex flex-wrap gap-4 md:gap-6 items-center text-sm text-gray-600">
-                    <div className="flex items-center gap-2" title="Party Size">
-                      <div className="w-8 h-8 rounded-lg bg-gray-50 flex items-center justify-center text-gray-700 border border-gray-100"><Users className="w-4 h-4" /></div>
-                      <span className="font-semibold">{guests} Guest{guests !== 1 ? 's' : ''}</span>
-                    </div>
-                    <div className="flex items-center gap-2" title="Table">
-                      <div className={`w-8 h-8 rounded-lg bg-gray-50 flex items-center justify-center border border-gray-100 ${table ? 'text-gray-700' : 'text-gray-400'}`}><Armchair className="w-4 h-4" /></div>
-                      {table ? <span className="font-semibold">{table}</span> : <span className="font-medium text-gray-400 italic">Unassigned</span>}
-                    </div>
+                    {isRestaurant ? (
+                      <>
+                        <div className="flex items-center gap-2" title="Party Size">
+                          <div className="w-8 h-8 rounded-lg bg-gray-50 flex items-center justify-center text-gray-700 border border-gray-100"><Users className="w-4 h-4" /></div>
+                          <span className="font-semibold">{guests} Guest{guests !== 1 ? 's' : ''}</span>
+                        </div>
+                        <div className="flex items-center gap-2" title="Table">
+                          <div className={`w-8 h-8 rounded-lg bg-gray-50 flex items-center justify-center border border-gray-100 ${table ? 'text-gray-700' : 'text-gray-400'}`}><Armchair className="w-4 h-4" /></div>
+                          {table ? <span className="font-semibold">{table}</span> : <span className="font-medium text-gray-400 italic">Unassigned</span>}
+                        </div>
+                      </>
+                    ) : (
+                      <>
+                        <div className="flex items-center gap-2" title="Service">
+                          <div className="w-8 h-8 rounded-lg bg-gray-50 flex items-center justify-center text-gray-700 border border-gray-100"><Clock className="w-4 h-4" /></div>
+                          <span className="font-semibold">{b.service || b.serviceName || 'Treatment'}</span>
+                        </div>
+                        <div className="flex items-center gap-2" title="Therapist">
+                          <div className={`w-8 h-8 rounded-lg bg-gray-50 flex items-center justify-center border border-gray-100 ${b.staffName ? 'text-gray-700' : 'text-gray-400'}`}><Users className="w-4 h-4" /></div>
+                          {b.staffName ? <span className="font-semibold">{b.staffName}</span> : <span className="font-medium text-gray-400 italic">Any available</span>}
+                        </div>
+                      </>
+                    )}
                   </div>
 
                   <div className="flex items-center gap-2 ml-auto mt-2 md:mt-0" onClick={e => e.stopPropagation()}>
@@ -288,7 +313,7 @@ const Bookings = () => {
           <>
             <div className="h-16 border-b border-gray-200 flex items-center justify-between px-6 bg-gray-50 shrink-0">
               <div className="flex items-center gap-2">
-                {(() => { const sc = STATUS_CONFIG[detail.status] || STATUS_CONFIG.confirmed; return <span className={`px-2.5 py-1 rounded-full ${sc.bg} ${sc.text} text-xs font-bold border ${sc.border}`}>{sc.label}</span> })()}
+                {(() => { const sc = STATUS_CONFIG[detail.status] || STATUS_CONFIG.confirmed; const label = detail.status === 'checked_in' ? STATUS_LABELS.checked_in : sc.label; return <span className={`px-2.5 py-1 rounded-full ${sc.bg} ${sc.text} text-xs font-bold border ${sc.border}`}>{label}</span> })()}
                 <span className="text-xs text-gray-400 font-mono">{detail.reference}</span>
               </div>
               <button className="w-8 h-8 rounded hover:bg-gray-200 flex items-center justify-center text-gray-400" onClick={closeDetail}><X className="w-4 h-4" /></button>
@@ -304,7 +329,10 @@ const Bookings = () => {
                     </div>
                   </div>
                   <div className="grid grid-cols-2 gap-4">
-                    {[{l:'Date',v:detail.date},{l:'Time',v:formatTime(detail.time)},{l:'Guests',v:detail.guests||detail.partySize||'—'},{l:'Table',v:detail.table||detail.tableName||'Unassigned'}].map(d => (
+                    {(isRestaurant
+                      ? [{l:'Date',v:detail.date},{l:'Time',v:formatTime(detail.time)},{l:'Guests',v:detail.guests||detail.partySize||'—'},{l:'Table',v:detail.table||detail.tableName||'Unassigned'}]
+                      : [{l:'Date',v:detail.date},{l:'Time',v:formatTime(detail.time)},{l:'Service',v:detail.service||detail.serviceName||'—'},{l:'Therapist',v:detail.staffName||'Any available'}]
+                    ).map(d => (
                       <div key={d.l} className="bg-gray-50 p-3 rounded-lg border border-gray-200">
                         <p className="text-[10px] font-bold text-gray-400 uppercase">{d.l}</p>
                         <p className="text-sm font-bold text-primary mt-1">{d.v}</p>
@@ -315,8 +343,8 @@ const Bookings = () => {
                 </div>
                 <div className="p-4 border-t border-gray-200 bg-gray-50 flex gap-3 shrink-0">
                   <button className="flex-1 bg-white border border-gray-200 text-primary font-bold py-2.5 rounded-lg hover:bg-gray-100 transition-colors text-sm">Reschedule</button>
-                  {detail.status === 'confirmed' && <button onClick={() => updateStatus(detail.id, 'checked_in')} disabled={updating} className="flex-1 bg-primary text-white font-bold py-2.5 rounded-lg hover:bg-primary-hover transition-colors shadow-lg flex items-center justify-center gap-2 text-sm"><span>Seat</span><ChevronRight className="w-4 h-4" /></button>}
-                  {detail.status === 'checked_in' && <button onClick={() => updateStatus(detail.id, 'completed')} disabled={updating} className="flex-1 bg-primary text-white font-bold py-2.5 rounded-lg hover:bg-primary-hover transition-colors shadow-lg flex items-center justify-center gap-2 text-sm"><span>Checkout</span><ChevronRight className="w-4 h-4" /></button>}
+                  {detail.status === 'confirmed' && <button onClick={() => updateStatus(detail.id, 'checked_in')} disabled={updating} className="flex-1 bg-primary text-white font-bold py-2.5 rounded-lg hover:bg-primary-hover transition-colors shadow-lg flex items-center justify-center gap-2 text-sm"><span>{STATUS_LABELS.seat_action}</span><ChevronRight className="w-4 h-4" /></button>}
+                  {detail.status === 'checked_in' && <button onClick={() => updateStatus(detail.id, 'completed')} disabled={updating} className="flex-1 bg-primary text-white font-bold py-2.5 rounded-lg hover:bg-primary-hover transition-colors shadow-lg flex items-center justify-center gap-2 text-sm"><span>{STATUS_LABELS.checkout_action}</span><ChevronRight className="w-4 h-4" /></button>}
                   {detail.status === 'pending' && <button onClick={() => updateStatus(detail.id, 'confirmed')} disabled={updating} className="flex-1 bg-primary text-white font-bold py-2.5 rounded-lg hover:bg-primary-hover transition-colors shadow-lg flex items-center justify-center gap-2 text-sm"><span>Confirm</span><Check className="w-4 h-4" /></button>}
                 </div>
               </>
