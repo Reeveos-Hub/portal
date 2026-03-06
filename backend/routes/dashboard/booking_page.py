@@ -57,7 +57,7 @@ async def _get_business(db, business_id: str, user: dict):
         b = await db.businesses.find_one({"_id": business_id})
     if not b:
         raise HTTPException(404, "Business not found")
-    if str(b.get("owner_id", "")) != str(user.get("_id", "")):
+    if not (str(b.get("owner_id","")) == str(user.get("_id","")) or str(user.get("role","")).lower() in ("business_owner","platform_admin","super_admin")):
         raise HTTPException(403, "Not authorized")
     return b
 

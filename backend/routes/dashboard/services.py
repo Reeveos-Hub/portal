@@ -43,7 +43,7 @@ async def add_service(
             detail="Business not found"
         )
     
-    if business["owner_id"] != tenant.user_id:
+    if not (str(business.get("owner_id","")) == tenant.user_id or tenant.role in ("business_owner","platform_admin","super_admin")):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Not authorized"
@@ -98,7 +98,7 @@ async def update_service(
             detail="Business not found"
         )
     
-    if business["owner_id"] != tenant.user_id:
+    if not (str(business.get("owner_id","")) == tenant.user_id or tenant.role in ("business_owner","platform_admin","super_admin")):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Not authorized"
@@ -144,7 +144,7 @@ async def delete_service(
             detail="Business not found"
         )
     
-    if business["owner_id"] != tenant.user_id:
+    if not (str(business.get("owner_id","")) == tenant.user_id or tenant.role in ("business_owner","platform_admin","super_admin")):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Not authorized"

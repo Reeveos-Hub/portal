@@ -196,7 +196,7 @@ async def update_business(
             detail="Business not found"
         )
     
-    if business["owner_id"] != str(current_user["_id"]):
+    if not (str(business.get("owner_id","")) == str(current_user["_id"]) or current_user.get("role") in ("business_owner","platform_admin","super_admin")):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Not authorized to update this business"
@@ -255,7 +255,7 @@ async def delete_business(
             detail="Business not found"
         )
     
-    if business["owner_id"] != str(current_user["_id"]):
+    if not (str(business.get("owner_id","")) == str(current_user["_id"]) or current_user.get("role") in ("business_owner","platform_admin","super_admin")):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Not authorized to delete this business"

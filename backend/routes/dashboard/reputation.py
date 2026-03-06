@@ -22,7 +22,7 @@ async def get_review_stats(
             detail="Business not found"
         )
     
-    if business["owner_id"] != tenant.user_id:
+    if not (str(business.get("owner_id","")) == tenant.user_id or tenant.role in ("business_owner","platform_admin","super_admin")):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Not authorized"
@@ -73,7 +73,7 @@ async def get_sentiment_analysis(
             detail="Business not found"
         )
     
-    if business["owner_id"] != tenant.user_id:
+    if not (str(business.get("owner_id","")) == tenant.user_id or tenant.role in ("business_owner","platform_admin","super_admin")):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Not authorized"
@@ -108,7 +108,7 @@ async def trigger_google_review_booster(
             detail="Business not found"
         )
     
-    if business["owner_id"] != tenant.user_id:
+    if not (str(business.get("owner_id","")) == tenant.user_id or tenant.role in ("business_owner","platform_admin","super_admin")):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Not authorized"

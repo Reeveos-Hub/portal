@@ -415,7 +415,7 @@ async def get_business_calendar(
             detail="Business not found"
         )
     
-    if business.get("owner_id") != tenant.user_id and tenant.role not in ("platform_admin", "super_admin"):
+    if business.get("owner_id") != tenant.user_id and tenant.role not in ("business_owner", "platform_admin", "super_admin"):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Not authorized to view this calendar"
