@@ -891,35 +891,40 @@ const Calendar = () => {
         </div>
       )}
 
-      {/* ═══ ADD BOOKING MODAL ═══ */}
-      {showBook && (
-        <>
-          <div onClick={() => setShowBook(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.3)', zIndex: 200 }} />
-          <div style={{ position: 'fixed', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', width: 420, maxWidth: '92vw', maxHeight: '90vh', overflowY: 'auto', background: '#fff', borderRadius: 16, boxShadow: '0 24px 60px rgba(0,0,0,0.2)', zIndex: 201, fontFamily: "'Figtree', sans-serif" }}>
-            <div style={{ padding: '20px 24px 0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <h3 style={{ fontSize: 18, fontWeight: 700, margin: 0, color: '#111' }}>New Appointment</h3>
-              <button onClick={() => setShowBook(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 4, color: '#999' }}><XIcon /></button>
+      {/* ═══ ADD BOOKING — SIDE PANEL ═══ */}
+      {showBook && <div onClick={() => setShowBook(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.2)', zIndex: 200 }} />}
+      <div style={{
+        position: 'fixed', top: 0, right: 0, bottom: 0, width: 400, maxWidth: '90vw',
+        background: '#fff', zIndex: 201, boxShadow: showBook ? '0 8px 40px rgba(0,0,0,0.15)' : 'none',
+        transform: showBook ? 'translateX(0)' : 'translateX(100%)',
+        transition: 'transform 0.3s cubic-bezier(0.22,1,0.36,1)',
+        display: 'flex', flexDirection: 'column', fontFamily: "'Figtree', sans-serif",
+        borderLeft: '1px solid #EBEBEB',
+      }}>
+        <div style={{ height: 60, borderBottom: '1px solid #EBEBEB', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 20px', background: '#FAFAFA', flexShrink: 0 }}>
+          <h3 style={{ fontSize: 16, fontWeight: 700, margin: 0, color: '#111' }}>New Appointment</h3>
+          <button onClick={() => setShowBook(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 4, color: '#999' }}><XIcon /></button>
+        </div>
+        <div style={{ flex: 1, overflowY: 'auto', padding: '20px 20px 24px', display: 'flex', flexDirection: 'column', gap: 14 }}>
+          {/* Client Name */}
+          <div>
+            <label style={{ fontSize: 11, fontWeight: 700, color: '#888', textTransform: 'uppercase', letterSpacing: 0.5 }}>Client Name *</label>
+            <input value={bookForm.customerName} onChange={e => setBookForm(f => ({ ...f, customerName: e.target.value }))} placeholder="Full name"
+              style={{ width: '100%', padding: '10px 12px', border: '1px solid #E0E0E0', borderRadius: 10, fontSize: 14, fontFamily: "'Figtree', sans-serif", marginTop: 4, outline: 'none', boxSizing: 'border-box' }} />
+          </div>
+          {/* Phone + Email row */}
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+            <div>
+              <label style={{ fontSize: 11, fontWeight: 700, color: '#888', textTransform: 'uppercase', letterSpacing: 0.5 }}>Phone</label>
+              <input value={bookForm.customerPhone} onChange={e => setBookForm(f => ({ ...f, customerPhone: e.target.value }))} placeholder="07..."
+                style={{ width: '100%', padding: '10px 12px', border: '1px solid #E0E0E0', borderRadius: 10, fontSize: 14, fontFamily: "'Figtree', sans-serif", marginTop: 4, outline: 'none', boxSizing: 'border-box' }} />
             </div>
-            <div style={{ padding: '16px 24px 24px', display: 'flex', flexDirection: 'column', gap: 14 }}>
-              {/* Client Name */}
-              <div>
-                <label style={{ fontSize: 11, fontWeight: 700, color: '#888', textTransform: 'uppercase', letterSpacing: 0.5 }}>Client Name *</label>
-                <input value={bookForm.customerName} onChange={e => setBookForm(f => ({ ...f, customerName: e.target.value }))} placeholder="Full name"
-                  style={{ width: '100%', padding: '10px 12px', border: '1px solid #E0E0E0', borderRadius: 10, fontSize: 14, fontFamily: "'Figtree', sans-serif", marginTop: 4, outline: 'none', boxSizing: 'border-box' }} />
-              </div>
-              {/* Phone + Email row */}
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-                <div>
-                  <label style={{ fontSize: 11, fontWeight: 700, color: '#888', textTransform: 'uppercase', letterSpacing: 0.5 }}>Phone</label>
-                  <input value={bookForm.customerPhone} onChange={e => setBookForm(f => ({ ...f, customerPhone: e.target.value }))} placeholder="07..."
-                    style={{ width: '100%', padding: '10px 12px', border: '1px solid #E0E0E0', borderRadius: 10, fontSize: 14, fontFamily: "'Figtree', sans-serif", marginTop: 4, outline: 'none', boxSizing: 'border-box' }} />
-                </div>
-                <div>
-                  <label style={{ fontSize: 11, fontWeight: 700, color: '#888', textTransform: 'uppercase', letterSpacing: 0.5 }}>Email</label>
-                  <input value={bookForm.customerEmail} onChange={e => setBookForm(f => ({ ...f, customerEmail: e.target.value }))} placeholder="client@email.com"
-                    style={{ width: '100%', padding: '10px 12px', border: '1px solid #E0E0E0', borderRadius: 10, fontSize: 14, fontFamily: "'Figtree', sans-serif", marginTop: 4, outline: 'none', boxSizing: 'border-box' }} />
-                </div>
-              </div>
+            <div>
+              <label style={{ fontSize: 11, fontWeight: 700, color: '#888', textTransform: 'uppercase', letterSpacing: 0.5 }}>Email</label>
+              <input value={bookForm.customerEmail} onChange={e => setBookForm(f => ({ ...f, customerEmail: e.target.value }))} placeholder="client@email.com"
+                style={{ width: '100%', padding: '10px 12px', border: '1px solid #E0E0E0', borderRadius: 10, fontSize: 14, fontFamily: "'Figtree', sans-serif", marginTop: 4, outline: 'none', boxSizing: 'border-box' }} />
+            </div>
+          </div>
               {/* Service */}
               <div>
                 <label style={{ fontSize: 11, fontWeight: 700, color: '#888', textTransform: 'uppercase', letterSpacing: 0.5 }}>Treatment</label>
@@ -961,40 +966,25 @@ const Calendar = () => {
                 <textarea value={bookForm.notes} onChange={e => setBookForm(f => ({ ...f, notes: e.target.value }))} rows={2} placeholder="Optional notes..."
                   style={{ width: '100%', padding: '10px 12px', border: '1px solid #E0E0E0', borderRadius: 10, fontSize: 14, fontFamily: "'Figtree', sans-serif", marginTop: 4, resize: 'vertical', outline: 'none', boxSizing: 'border-box' }} />
               </div>
-              {/* Error */}
-              {bookError && <p style={{ color: '#DC2626', fontSize: 13, fontWeight: 600, margin: 0 }}>{bookError}</p>}
-              {/* Submit */}
-              <button onClick={submitBooking} disabled={bookSaving}
-                style={{ width: '100%', padding: '12px 0', background: '#111', color: '#fff', border: 'none', borderRadius: 10, fontSize: 14, fontWeight: 700, cursor: bookSaving ? 'wait' : 'pointer', fontFamily: "'Figtree', sans-serif", opacity: bookSaving ? 0.6 : 1 }}>
-                {bookSaving ? 'Creating...' : 'Create Appointment'}
-              </button>
-            </div>
           </div>
-        </>
-      )}
+          {/* Error */}
+          {bookError && <p style={{ color: '#DC2626', fontSize: 13, fontWeight: 600, margin: 0, padding: '0 20px' }}>{bookError}</p>}
+          {/* Submit */}
+          <div style={{ padding: '12px 20px 20px', borderTop: '1px solid #EBEBEB', flexShrink: 0, background: '#FAFAFA' }}>
+            <button onClick={submitBooking} disabled={bookSaving}
+              style={{ width: '100%', padding: '12px 0', background: '#111', color: '#fff', border: 'none', borderRadius: 10, fontSize: 14, fontWeight: 700, cursor: bookSaving ? 'wait' : 'pointer', fontFamily: "'Figtree', sans-serif", opacity: bookSaving ? 0.6 : 1 }}>
+              {bookSaving ? 'Creating...' : 'Create Appointment'}
+            </button>
+          </div>
+        </div>
+      </div>
 
-      {/* ═══ FAB ═══ */}
+      {/* ═══ FAB — single button, no menu ═══ */}
       <div data-fab="1" style={{ position: 'fixed', bottom: 24, right: 24, zIndex: 60 }}>
-        {fabOpen && (
-          <div style={{ position: 'absolute', bottom: 64, right: 0, width: 220, background: '#fff', borderRadius: 16, border: '1px solid #EBEBEB', boxShadow: '0 16px 48px rgba(0,0,0,0.16)', padding: 6 }}>
-            {[
-              { icon: <CalIcon />, label: 'New Appointment', color: '#111111' },
-              { icon: <ClockIcon />, label: 'Add Time Reservation', color: '#6BA3C7' },
-              { icon: <XIcon />, label: 'Add Time Off', color: '#EF4444' },
-            ].map((item, i) => (
-              <button key={i} onClick={() => { if (i === 0) openBookModal(); setFabOpen(false) }} style={{
-                display: 'flex', alignItems: 'center', gap: 10, width: '100%', padding: '12px 14px', borderRadius: 10, border: 'none', background: 'transparent', cursor: 'pointer', fontSize: 13, fontWeight: 600, color: '#111111', textAlign: 'left',
-              }}>
-                <div style={{ width: 36, height: 36, borderRadius: 10, background: item.color + '12', display: 'flex', alignItems: 'center', justifyContent: 'center', color: item.color }}>{item.icon}</div>
-                {item.label}
-              </button>
-            ))}
-          </div>
-        )}
-        <button onClick={e => { e.stopPropagation(); setFabOpen(!fabOpen) }} style={{
+        <button onClick={e => { e.stopPropagation(); openBookModal() }} style={{
           width: 56, height: 56, borderRadius: '50%', border: 'none', background: '#111111', color: '#fff', cursor: 'pointer',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
-          boxShadow: '0 6px 20px rgba(17,17,17,0.35)', transition: 'all 0.2s', transform: fabOpen ? 'rotate(45deg)' : 'none',
+          boxShadow: '0 6px 20px rgba(17,17,17,0.35)', transition: 'all 0.2s',
         }}><PlusIcon /></button>
       </div>
     </div>
