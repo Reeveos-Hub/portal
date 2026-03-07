@@ -21,7 +21,7 @@ from helpers.timeline import (
     CRM_PIPELINE_STAGES, EVENT_TYPES
 )
 
-router = APIRouter(prefix="/api/crm", tags=["CRM"])
+router = APIRouter(prefix="/crm", tags=["CRM"])
 
 
 # ═══════════════════════════════════════════════════════════════
