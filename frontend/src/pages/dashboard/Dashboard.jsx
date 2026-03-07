@@ -8,7 +8,7 @@ import AppLoader from "../../components/shared/AppLoader"
  */
 import { useState, useEffect, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Users, CalendarCheck, Clock, PoundSterling, Armchair, CalendarPlus, Ban, FileText, ArrowRight, Filter, Search, Download, MoreVertical, TrendingUp, TrendingDown, RefreshCw } from 'lucide-react'
+import { Users, CalendarCheck, Clock, PoundSterling, Armchair, CalendarPlus, Ban, FileText, ClipboardList, ArrowRight, Filter, Search, Download, MoreVertical, TrendingUp, TrendingDown, RefreshCw } from 'lucide-react'
 import { useBusiness } from '../../contexts/BusinessContext'
 import api from '../../utils/api'
 
@@ -194,8 +194,9 @@ const FloorStatusWidget = ({ navigate }) => {
 
 const Dashboard = () => {
   const navigate = useNavigate()
-  const { business } = useBusiness()
+  const { business, businessType } = useBusiness()
   const bid = business?.id ?? business?._id
+  const isRestaurant = businessType === 'restaurant'
   const [summary, setSummary] = useState(null)
   const [todayBookings, setTodayBookings] = useState([])
   const [activity, setActivity] = useState([])
@@ -295,30 +296,30 @@ const Dashboard = () => {
 
   const statCards = [
     {
-      label: 'Total Covers Today', value: totalCovers,
+      label: isRestaurant ? 'Total Covers Today' : 'Appointments Today', value: totalCovers,
       icon: <Users className="w-5 h-5" />, iconBg: 'text-primary',
       trend: summary?.period?.bookingsChange ? `${Math.abs(summary.period.bookingsChange)}%` : null,
       trendUp: (summary?.period?.bookingsChange || 0) >= 0,
       sub: 'vs last week',
     },
     {
-      label: 'Upcoming Reservations', value: upcomingCount,
+      label: isRestaurant ? 'Upcoming Reservations' : 'Upcoming Appointments', value: upcomingCount,
       icon: <CalendarCheck className="w-5 h-5" />, iconBg: 'text-primary',
-      sub: nextBkg ? `Next: ${nextBkg.time || ''} (Party of ${nextBkg.guests || '?'})` : 'No upcoming',
+      sub: nextBkg ? (isRestaurant ? `Next: ${nextBkg.time || ''} (Party of ${nextBkg.guests || '?'})` : `Next: ${nextBkg.time || ''} — ${nextBkg.customerName || 'Client'}`) : 'No upcoming',
     },
     {
-      label: 'Waitlist', value: waitlistCount,
+      label: isRestaurant ? 'Waitlist' : 'Cancellation Waitlist', value: waitlistCount,
       icon: <Clock className="w-5 h-5" />, iconBg: 'text-[#D4A373]',
-      sub: waitlistCount > 0 ? `~${waitlistCount * 8} min avg. wait` : 'No waitlist active',
+      sub: waitlistCount > 0 ? (isRestaurant ? `~${waitlistCount * 8} min avg. wait` : `${waitlistCount} clients waiting`) : isRestaurant ? 'No waitlist active' : 'No waitlist active',
       hoverColor: 'group-hover:text-[#D4A373]',
     },
     {
-      label: 'Revenue Estimate',
+      label: 'Revenue Today',
       value: `£${revenue.toLocaleString()}`,
       icon: <PoundSterling className="w-5 h-5" />, iconBg: 'text-emerald-500',
       trend: summary?.period?.revenueChange ? `${Math.abs(summary.period.revenueChange)}%` : null,
       trendUp: (summary?.period?.revenueChange || 0) >= 0,
-      sub: apiRevenue > 0 ? 'vs yesterday' : totalCovers > 0 ? 'est. ~£30/cover' : 'vs yesterday',
+      sub: apiRevenue > 0 ? 'vs yesterday' : totalCovers > 0 ? (isRestaurant ? 'est. ~£30/cover' : 'est. from bookings') : 'vs yesterday',
       hoverColor: 'group-hover:text-emerald-500',
     },
   ]
@@ -337,15 +338,17 @@ const Dashboard = () => {
     .map(b => ({
       id: b.id,
       time: b.time || '',
-      name: b.customerName || 'Guest',
+      name: b.customerName || (isRestaurant ? 'Guest' : 'Client'),
       phone: b.phone || '',
-      guests: b.guests || b.partySize || 2,
+      guests: b.guests || b.partySize || (isRestaurant ? 2 : 1),
       table: b.table || b.tableName || null,
+      service: typeof b.service === 'object' ? b.service?.name : b.service,
+      staffName: b.staffName || '',
       status: b.status,
-      statusLabel: b.status === 'confirmed' ? 'Confirmed' : b.status === 'pending' ? 'Pending' : b.status === 'checked_in' ? 'Seated' : b.status,
+      statusLabel: b.status === 'confirmed' ? 'Confirmed' : b.status === 'pending' ? 'Pending' : b.status === 'checked_in' ? (isRestaurant ? 'Seated' : 'In Treatment') : b.status,
       statusBg: b.status === 'confirmed' ? 'bg-blue-50 text-blue-600 border-blue-100' : b.status === 'pending' ? 'bg-amber-50 text-amber-600 border-amber-100' : b.status === 'checked_in' ? 'bg-green-50 text-green-600 border-green-100' : 'bg-gray-50 text-gray-600 border-gray-100',
       notes: b.notes || '—',
-      action: b.status === 'confirmed' ? 'Seat' : b.status === 'pending' ? 'Confirm' : 'View',
+      action: b.status === 'confirmed' ? (isRestaurant ? 'Seat' : 'Check In') : b.status === 'pending' ? 'Confirm' : 'View',
       vip: b.isVip,
     }))
 
@@ -353,10 +356,11 @@ const Dashboard = () => {
 
   const handleQuickAction = (action) => {
     switch (action) {
-      case 'Walk-In': navigate('/dashboard/calendar'); break
-      case 'Reserve': navigate('/dashboard/calendar'); break
+      case 'Walk-In': case 'Walk-in Client': navigate('/dashboard/calendar'); break
+      case 'Reserve': case 'New Appointment': navigate('/dashboard/calendar'); break
       case 'Block Tbl': navigate('/dashboard/floor-plan'); break
-      case 'Run Sheet': navigate('/dashboard/bookings'); break
+      case 'Run Sheet': case 'Today\'s Schedule': navigate('/dashboard/bookings'); break
+      case 'Consultation Forms': navigate('/dashboard/consultation-forms'); break
       default: break
     }
   }
@@ -381,7 +385,7 @@ const Dashboard = () => {
                 type="text"
                 value={searchFilter}
                 onChange={e => setSearchFilter(e.target.value)}
-                placeholder="Search guests, bookings..."
+                placeholder={isRestaurant ? "Search guests, bookings..." : "Search clients, appointments..."}
                 className="pl-9 pr-4 py-2 w-56 lg:w-72 bg-gray-50 border border-gray-200 rounded-xl text-sm font-medium text-gray-700 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary focus:bg-white transition-all"
               />
             </div>
@@ -424,8 +428,8 @@ const Dashboard = () => {
             <div className="bg-white rounded-2xl border border-gray-100 shadow-[0_2px_10px_rgba(0,0,0,0.03)] p-6">
               <div className="flex justify-between items-center mb-6">
                 <div>
-                  <h2 className="text-lg font-extrabold text-gray-900">Occupancy Trends</h2>
-                  <p className="text-xs text-gray-400 font-medium mt-0.5">Live seating vs capacity over time</p>
+                  <h2 className="text-lg font-extrabold text-gray-900">{isRestaurant ? 'Occupancy Trends' : 'Appointment Trends'}</h2>
+                  <p className="text-xs text-gray-400 font-medium mt-0.5">{isRestaurant ? 'Live seating vs capacity over time' : 'Bookings and availability over time'}</p>
                 </div>
                 <div className="flex gap-1.5">
                   {['Today', 'Week', 'Month'].map((label, i) => (
@@ -454,8 +458,8 @@ const Dashboard = () => {
               </div>
             </div>
 
-            {/* Floor Status — LIVE from API */}
-            <FloorStatusWidget tables={tables} navigate={navigate} />
+            {/* Floor Status — restaurants only */}
+            {isRestaurant && <FloorStatusWidget tables={tables} navigate={navigate} />}
           </div>
 
           {/* Right Column */}
@@ -466,12 +470,17 @@ const Dashboard = () => {
               <div className="absolute bottom-0 left-0 w-24 h-24 bg-emerald-400 opacity-10 rounded-full -ml-10 -mb-10 blur-xl" />
               <h2 className="text-lg font-bold mb-4 relative z-10">Quick Actions</h2>
               <div className="grid grid-cols-2 gap-3 relative z-10">
-                {[
+                {(isRestaurant ? [
                   { icon: <Armchair className="w-5 h-5 text-emerald-400" />, label: 'Walk-In' },
                   { icon: <CalendarPlus className="w-5 h-5 text-[#D4A373]" />, label: 'Reserve' },
                   { icon: <Ban className="w-5 h-5 text-red-300" />, label: 'Block Tbl' },
                   { icon: <FileText className="w-5 h-5 text-blue-300" />, label: 'Run Sheet' },
-                ].map(a => (
+                ] : [
+                  { icon: <CalendarPlus className="w-5 h-5 text-[#C9A84C]" />, label: 'New Appointment' },
+                  { icon: <Armchair className="w-5 h-5 text-emerald-400" />, label: 'Walk-in Client' },
+                  { icon: <FileText className="w-5 h-5 text-blue-300" />, label: "Today's Schedule" },
+                  { icon: <ClipboardList className="w-5 h-5 text-purple-300" />, label: 'Consultation Forms' },
+                ]).map(a => (
                   <button key={a.label} onClick={() => handleQuickAction(a.label)} className="bg-white/10 hover:bg-white/20 border border-white/10 rounded-xl p-3 flex flex-col items-center justify-center gap-2 transition-all group">
                     <span className="group-hover:scale-110 transition-transform">{a.icon}</span>
                     <span className="text-xs font-semibold">{a.label}</span>
@@ -513,13 +522,13 @@ const Dashboard = () => {
         <section className="bg-white rounded-2xl border border-gray-100 shadow-[0_2px_10px_rgba(0,0,0,0.03)] overflow-hidden">
           <div className="p-6 border-b border-gray-100 flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div>
-              <h2 className="text-lg font-bold text-gray-900">Upcoming Arrivals</h2>
-              <p className="text-sm text-gray-500">{arrivals.length > 0 ? `${arrivals.length} reservations` : 'Next 2 hours'}</p>
+              <h2 className="text-lg font-bold text-gray-900">{isRestaurant ? 'Upcoming Arrivals' : 'Upcoming Appointments'}</h2>
+              <p className="text-sm text-gray-500">{arrivals.length > 0 ? `${arrivals.length} ${isRestaurant ? 'reservations' : 'appointments'}` : 'Next 2 hours'}</p>
             </div>
             <div className="flex items-center gap-3">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400" />
-                <input type="text" placeholder="Filter guests..." value={searchFilter} onChange={e => setSearchFilter(e.target.value)} className="pl-8 pr-4 py-2 bg-white border border-gray-200 rounded-full text-xs font-medium focus:outline-none focus:ring-2 focus:ring-[#111111]/15 focus:border-[#111111]/30 shadow-sm w-48 transition-all" style={{ fontFamily: "'Figtree', sans-serif" }} />
+                <input type="text" placeholder={isRestaurant ? "Filter guests..." : "Filter clients..."} value={searchFilter} onChange={e => setSearchFilter(e.target.value)} className="pl-8 pr-4 py-2 bg-white border border-gray-200 rounded-full text-xs font-medium focus:outline-none focus:ring-2 focus:ring-[#111111]/15 focus:border-[#111111]/30 shadow-sm w-48 transition-all" style={{ fontFamily: "'Figtree', sans-serif" }} />
               </div>
               <button className="bg-gray-50 hover:bg-gray-100 text-gray-600 px-3 py-2 rounded-lg border border-gray-200 text-sm font-medium transition-colors flex items-center gap-1">
                 <Download className="w-3.5 h-3.5" /> Export
@@ -531,9 +540,9 @@ const Dashboard = () => {
               <thead>
                 <tr className="bg-gray-50 border-b border-gray-200 text-xs font-bold text-gray-500 uppercase tracking-wider">
                   <th className="px-6 py-4">Time</th>
-                  <th className="px-6 py-4">Guest</th>
-                  <th className="px-6 py-4">Size</th>
-                  <th className="px-6 py-4">Table</th>
+                  <th className="px-6 py-4">{isRestaurant ? 'Guest' : 'Client'}</th>
+                  <th className="px-6 py-4">{isRestaurant ? 'Size' : 'Service'}</th>
+                  <th className="px-6 py-4">{isRestaurant ? 'Table' : 'Therapist'}</th>
                   <th className="px-6 py-4">Status</th>
                   <th className="px-6 py-4">Notes</th>
                   <th className="px-6 py-4 text-right">Actions</th>
@@ -555,8 +564,15 @@ const Dashboard = () => {
                         </div>
                       </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600"><div className="flex items-center gap-2"><Users className="w-3.5 h-3.5 text-gray-400" /> {a.guests}</div></td>
-                    <td className={`px-6 py-4 whitespace-nowrap text-sm font-medium ${a.table ? 'text-gray-600' : 'text-gray-400 italic'}`}>{a.table || 'Unassigned'}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                      {isRestaurant
+                        ? <div className="flex items-center gap-2"><Users className="w-3.5 h-3.5 text-gray-400" /> {a.guests}</div>
+                        : <span className="text-gray-700 font-medium">{a.service || '—'}</span>
+                      }
+                    </td>
+                    <td className={`px-6 py-4 whitespace-nowrap text-sm font-medium ${(isRestaurant ? a.table : a.staffName) ? 'text-gray-600' : 'text-gray-400 italic'}`}>
+                      {isRestaurant ? (a.table || 'Unassigned') : (a.staffName || 'Any available')}
+                    </td>
                     <td className="px-6 py-4 whitespace-nowrap"><span className={`px-2.5 py-1 rounded-full text-xs font-bold border ${a.statusBg}`}>{a.statusLabel}</span></td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 truncate max-w-[150px]">{a.notes}</td>
                     <td className="px-6 py-4 whitespace-nowrap text-right">
@@ -565,7 +581,7 @@ const Dashboard = () => {
                     </td>
                   </tr>
                 )) : (
-                  <tr><td colSpan={7} className="px-6 py-12 text-center text-sm text-gray-400">No upcoming arrivals. Bookings will appear here as they come in.</td></tr>
+                  <tr><td colSpan={7} className="px-6 py-12 text-center text-sm text-gray-400">{isRestaurant ? 'No upcoming arrivals. Bookings will appear here as they come in.' : 'No upcoming appointments. Bookings will appear here as they come in.'}</td></tr>
                 )}
               </tbody>
             </table>
