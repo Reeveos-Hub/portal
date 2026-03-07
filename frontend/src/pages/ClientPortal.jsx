@@ -396,7 +396,7 @@ export default function ClientPortal(){
         </div>
       </div>
       {/* Steps */}
-      <div style={{flex:1,overflowY:'auto',paddingBottom:desk?0:20}}>
+      <div style={{flex:1,overflowY:'auto',paddingBottom:desk?80:120}}>
         <div style={{maxWidth:680,margin:'0 auto',padding:desk?'24px 20px 0':'16px 12px 0'}}>
 
           {step===0&&<div>
@@ -753,28 +753,29 @@ export default function ClientPortal(){
           </div>
         </div>
         {/* Product grid */}
-        <div style={{padding:desk?'16px 24px':'12px',display:'grid',gridTemplateColumns:desk?'repeat(auto-fill,minmax(220px,1fr))':'repeat(2,1fr)',gap:desk?14:10}}>
+        <div style={{padding:desk?'16px 24px':'12px',display:'grid',gridTemplateColumns:desk?'repeat(auto-fill,minmax(260px,1fr))':'repeat(2,1fr)',gap:desk?16:10}}>
           {filtered.map(p=>{
             const inCart=shopCart.find(i=>i.product_id===p.id)
             return(
-            <div key={p.id} style={{background:$.card,borderRadius:14,border:`1px solid ${$.bdr}`,overflow:'hidden',display:'flex',flexDirection:'column'}}>
-              {/* Image placeholder */}
-              <div style={{height:desk?140:100,background:'#F5F5F3',display:'flex',alignItems:'center',justifyContent:'center'}}>
+            <div key={p.id} style={{background:$.card,borderRadius:14,border:`1px solid ${$.bdr}`,overflow:'hidden',display:'flex',flexDirection:'column',transition:'box-shadow 0.2s'}} onMouseEnter={e=>e.currentTarget.style.boxShadow='0 4px 20px rgba(0,0,0,0.08)'} onMouseLeave={e=>e.currentTarget.style.boxShadow='none'}>
+              <div style={{height:desk?180:120,background:'#F5F5F3',display:'flex',alignItems:'center',justifyContent:'center',position:'relative'}}>
                 {p.images&&p.images[0]?<img src={p.images[0]} alt={p.name} style={{width:'100%',height:'100%',objectFit:'cover'}}/>:<span style={{fontSize:28,color:'#DDD'}}>{I.shop('#DDD',32)}</span>}
+                {p.compare_at_price>0&&<div style={{position:'absolute',top:8,right:8,background:'#EF4444',color:'#fff',fontSize:9,fontWeight:800,padding:'2px 8px',borderRadius:99}}>SALE</div>}
               </div>
-              <div style={{padding:desk?'12px 14px':'10px 12px',flex:1,display:'flex',flexDirection:'column'}}>
-                <div style={{fontSize:desk?13:11,fontWeight:700,color:$.h,marginBottom:2,lineHeight:1.3}}>{p.name}</div>
-                <div style={{fontSize:10,color:$.txtM,marginBottom:6}}>{p.category}</div>
-                <div style={{marginTop:'auto',display:'flex',alignItems:'center',justifyContent:'space-between'}}>
-                  <span style={{fontSize:desk?18:16,fontWeight:800,color:$.h}}>£{(p.price||0).toFixed(2)}</span>
-                  {p.compare_at_price>0&&<span style={{fontSize:11,color:$.txtL,textDecoration:'line-through'}}>£{p.compare_at_price.toFixed(2)}</span>}
+              <div style={{padding:desk?'14px 16px':'10px 12px',flex:1,display:'flex',flexDirection:'column'}}>
+                <div style={{fontSize:desk?14:12,fontWeight:700,color:$.h,marginBottom:2,lineHeight:1.3}}>{p.name}</div>
+                <div style={{fontSize:10,color:$.txtM,marginBottom:8}}>{p.category}</div>
+                <div style={{marginTop:'auto',display:'flex',alignItems:'center',gap:8,marginBottom:8}}>
+                  <span style={{fontSize:desk?20:16,fontWeight:800,color:$.h}}>£{(p.price||0).toFixed(2)}</span>
+                  {p.compare_at_price>0&&<span style={{fontSize:12,color:$.txtL,textDecoration:'line-through'}}>£{p.compare_at_price.toFixed(2)}</span>}
                 </div>
-                <button onClick={()=>addToCart(p)} style={{marginTop:8,padding:desk?'8px 0':'6px 0',borderRadius:99,border:'none',background:inCart?'#10B981':$.acc,color:inCart?'#fff':'#111',fontSize:11,fontWeight:700,cursor:'pointer',fontFamily:$.f,width:'100%'}}>
+                <button onClick={(e)=>{e.stopPropagation();addToCart(p)}} style={{padding:desk?'10px 0':'8px 0',borderRadius:99,border:'none',background:inCart?'#10B981':$.acc,color:inCart?'#fff':'#111',fontSize:12,fontWeight:700,cursor:'pointer',fontFamily:$.f,width:'100%'}}>
                   {inCart?`In Basket (${inCart.quantity})`:'Add to Basket'}
                 </button>
               </div>
             </div>
           )})}
+        </div>
         </div>
         {filtered.length===0&&<div style={{padding:40,textAlign:'center',color:$.txtM,fontSize:13}}>No products available in this category.</div>}
 
