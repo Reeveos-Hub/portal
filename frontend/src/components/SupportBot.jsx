@@ -182,6 +182,7 @@ This is a local services business (salon/clinic/spa), NOT a restaurant. Use "app
   const [pulseCount, setPulseCount] = useState(0);
   const [conversationId, setConversationId] = useState(null);
   const messagesEndRef = useRef(null);
+  const chatEndRef = useRef(null);
   const lastBotRef = useRef(null);
   const inputRef = useRef(null);
 
@@ -273,13 +274,9 @@ This is a local services business (salon/clinic/spa), NOT a restaurant. Use "app
   };
 
   useEffect(() => {
-    if (messages.length > 0 && messages[messages.length - 1].role === "assistant") {
-      setTimeout(() => {
-        lastBotRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
-      }, 50);
-    } else {
-      messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-    }
+    setTimeout(() => {
+      chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    }, 50);
   }, [messages, isLoading]);
 
   useEffect(() => {
@@ -347,7 +344,7 @@ This is a local services business (salon/clinic/spa), NOT a restaurant. Use "app
   async function sendMessage(text) {
     if (!text.trim()) return;
 
-    const userMessage = { role: "user", content: text.trim() };
+    const userMessage = { role: "user", content: text.trim(), time: new Date() };
     const updatedMessages = [...messages, userMessage];
     setMessages(updatedMessages);
     setInput("");
@@ -402,13 +399,13 @@ This is a local services business (salon/clinic/spa), NOT a restaurant. Use "app
       // Log assistant response
       logMessage(convId, "assistant", assistantText, 0, outputTokens, isEscalation);
 
-      setMessages([...updatedMessages, { role: "assistant", content: assistantText }]);
+      setMessages([...updatedMessages, { role: "assistant", content: assistantText, time: new Date() }]);
     } catch (err) {
       console.error("Chat error:", err);
       const errorMessage =
         "I'm having trouble connecting right now. Please try again in a moment, or email us at support@reeveos.app and we'll get back to you within 24 hours.";
 
-      setMessages([...updatedMessages, { role: "assistant", content: errorMessage }]);
+      setMessages([...updatedMessages, { role: "assistant", content: errorMessage, time: new Date() }]);
 
       // Log error as assistant message
       logMessage(convId, "assistant", errorMessage, 0, 0, true);
@@ -970,9 +967,13 @@ This is a local services business (salon/clinic/spa), NOT a restaurant. Use "app
                   }}
                 >
                   {msg.content}
+                  {msg.time && <div style={{ fontSize: 10, color: msg.role === 'user' ? 'rgba(255,255,255,0.5)' : '#999', marginTop: 4, textAlign: msg.role === 'user' ? 'right' : 'left' }}>{new Date(msg.time).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}</div>}
                 </div>
               </div>
             ))}
+
+            {/* Auto-scroll anchor */}
+            <div ref={chatEndRef} />
 
             {/* Typing Indicator */}
             {isLoading && (

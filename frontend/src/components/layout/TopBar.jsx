@@ -2,10 +2,12 @@
  * Run 1: Top bar — page title, date, notifications, avatar, dev toggle, hamburger
  */
 
+import { useState, useEffect } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../contexts/AuthContext'
 import { useBusiness } from '../../contexts/BusinessContext'
 import { getNavItems } from '../../config/navigation'
+import api from '../../utils/api'
 
 const PAGE_TITLES = {
   '/dashboard': 'Dashboard',
@@ -28,9 +30,24 @@ const PAGE_TITLES = {
 
 const TopBar = ({ onMenuClick, sidebarOpen }) => {
   const { user, logout } = useAuth()
-  const { businessType, tier, setBusinessType, cycleTier } = useBusiness()
+  const { business, businessType, tier, setBusinessType, cycleTier } = useBusiness()
   const location = useLocation()
   const navigate = useNavigate()
+  const [unreadCount, setUnreadCount] = useState(0)
+  const bid = business?.id ?? business?._id
+
+  // Fetch unread notification count every 30 seconds
+  useEffect(() => {
+    if (!bid) return
+    const fetchUnread = () => {
+      api.get(`/notifications/business/${bid}?unread_only=true`).then(r => {
+        setUnreadCount(r.unread_count || (r.notifications || []).filter(n => !n.read).length || 0)
+      }).catch(() => {})
+    }
+    fetchUnread()
+    const interval = setInterval(fetchUnread, 30000)
+    return () => clearInterval(interval)
+  }, [bid])
 
   const baseTitles = { ...PAGE_TITLES }
   if (businessType === 'restaurant') {
@@ -93,7 +110,7 @@ const TopBar = ({ onMenuClick, sidebarOpen }) => {
           onClick={() => navigate('/dashboard/notifications')}
         >
           <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>
-          <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-error" aria-hidden="true" />
+          {unreadCount > 0 && <span style={{ position: 'absolute', top: 4, right: 4, minWidth: 16, height: 16, borderRadius: 8, background: '#EF4444', color: '#fff', fontSize: 9, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 4px', fontFamily: "'Figtree', sans-serif" }}>{unreadCount > 99 ? '99+' : unreadCount}</span>}
         </button>
 
         <div className="relative flex items-center gap-3 pl-2 border-l border-border">
