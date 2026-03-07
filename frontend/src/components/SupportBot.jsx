@@ -463,7 +463,7 @@ This is a local services business (salon/clinic/spa), NOT a restaurant. Use "app
           position: absolute;
           inset: 0;
           border-radius: 50%;
-          border: 2px solid #52B788;
+          border: 2px solid #C9A84C;
           animation: pulse-ring 2s ease-out infinite;
         }
         
@@ -827,7 +827,7 @@ This is a local services business (salon/clinic/spa), NOT a restaurant. Use "app
           {/* Header */}
           <div
             style={{
-              background: "linear-gradient(135deg, #0a0a0a, #111111)",
+              background: "#111111",
               padding: "20px 20px 16px",
               flexShrink: 0,
             }}
@@ -839,11 +839,11 @@ This is a local services business (salon/clinic/spa), NOT a restaurant. Use "app
                   height: 42,
                   borderRadius: 12,
                   background: "#111111",
-                  border: "2px solid #52B788",
+                  border: "2px solid #C9A84C",
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
-                  color: "#FAFAF7",
+                  color: "#C9A84C",
                   fontFamily: '"Figtree", sans-serif',
                   fontWeight: 800,
                   fontSize: 20,
@@ -869,12 +869,12 @@ This is a local services business (salon/clinic/spa), NOT a restaurant. Use "app
                       width: 7,
                       height: 7,
                       borderRadius: "50%",
-                      background: "#52B788",
-                      boxShadow: "0 0 8px rgba(82,183,136,0.5)",
+                      background: "#C9A84C",
+                      boxShadow: "0 0 8px rgba(201,168,76,0.5)",
                     }}
                   />
-                  <span style={{ color: "#74C69D", fontSize: 12, fontWeight: 500 }}>
-                    {isRestaurant ? 'Your restaurant assistant' : 'Your clinic assistant'}
+                  <span style={{ color: "#C9A84C", fontSize: 12, fontWeight: 500 }}>
+                    {business?.category || (isRestaurant ? 'Restaurant' : 'Business')} assistant
                   </span>
                 </div>
               </div>
@@ -909,7 +909,7 @@ This is a local services business (salon/clinic/spa), NOT a restaurant. Use "app
                   }}
                 >
                   <span style={{ fontSize: 20, display: "block", marginBottom: 6 }}>👋</span>
-                  <strong style={{ color: "#111111" }}>Hey! I'm your ReeveOS assistant.</strong>
+                  <strong style={{ color: "#111111" }}>Hey! I'm your {business?.name || 'ReeveOS'} assistant.</strong>
                   <br />
                   I can help with {isRestaurant ? "tonight's bookings, table availability, covers, and managing your restaurant" : "today's appointments, availability, client info, and managing your schedule"}. What do you need?
                 </div>
