@@ -6,9 +6,31 @@ from enum import Enum
 
 class BusinessCategory(str, Enum):
     RESTAURANT = "restaurant"
+    CAFE = "cafe"
+    BAR = "bar"
+    PUB = "pub"
+    TAKEAWAY = "takeaway"
     BARBER = "barber"
     SALON = "salon"
+    BEAUTY = "beauty"
+    AESTHETICS = "aesthetics"
     SPA = "spa"
+    NAILS = "nails"
+    TATTOO = "tattoo"
+    PIERCING = "piercing"
+    MASSAGE = "massage"
+    PHYSIOTHERAPY = "physiotherapy"
+    DENTAL = "dental"
+    OPTICIAN = "optician"
+    VET = "vet"
+    PERSONAL_TRAINER = "personal_trainer"
+    GYM = "gym"
+    YOGA = "yoga"
+    PILATES = "pilates"
+    PHOTOGRAPHY = "photography"
+    TUTORING = "tutoring"
+    CLEANING = "cleaning"
+    OTHER = "other"
 
 
 class PlatformTier(str, Enum):
@@ -47,7 +69,7 @@ class BookingSettings(BaseModel):
 
 class BusinessBase(BaseModel):
     name: str
-    category: BusinessCategory
+    category: str  # Any business type — see BusinessCategory for known values
     address: str
     phone: Optional[str] = None
     website: Optional[HttpUrl] = None

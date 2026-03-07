@@ -9,16 +9,42 @@ import api from '../../utils/api'
 import {
   UtensilsCrossed, Scissors, Sparkles, Heart,
   ArrowRight, ArrowLeft, Check, MapPin, Phone, Mail,
-  Clock, Building2, Rocket, ChevronRight
+  Clock, Building2, Rocket, ChevronRight,
+  Coffee, Beer, Pizza, Stethoscope, Eye, Dog, Dumbbell,
+  Camera, Paintbrush, Music, Wrench, Flower2, Baby, GraduationCap
 } from 'lucide-react'
 
 const STEPS = ['Business Type', 'Details', 'Hours', 'Plan', 'Launch']
 
 const BUSINESS_TYPES = [
-  { value: 'restaurant', label: 'Restaurant', desc: 'Restaurants, cafés, bars & pubs', Icon: UtensilsCrossed, color: 'bg-orange-50 text-orange-600' },
-  { value: 'salon', label: 'Hair Salon', desc: 'Hair styling, colouring, treatments', Icon: Scissors, color: 'bg-pink-50 text-pink-600' },
-  { value: 'barber', label: 'Barber Shop', desc: 'Men\'s grooming & barber services', Icon: Scissors, color: 'bg-blue-50 text-blue-600' },
-  { value: 'spa', label: 'Spa & Wellness', desc: 'Massage, facials, holistic treatments', Icon: Sparkles, color: 'bg-purple-50 text-purple-600' },
+  // Food & Drink
+  { value: 'restaurant', label: 'Restaurant', desc: 'Fine dining, casual, family restaurants', Icon: UtensilsCrossed, color: 'bg-orange-50 text-orange-600', group: 'Food & Drink' },
+  { value: 'cafe', label: 'Café / Coffee Shop', desc: 'Cafés, coffee shops, bakeries', Icon: Coffee, color: 'bg-amber-50 text-amber-700', group: 'Food & Drink' },
+  { value: 'bar', label: 'Bar / Pub', desc: 'Bars, pubs, cocktail lounges', Icon: Beer, color: 'bg-yellow-50 text-yellow-700', group: 'Food & Drink' },
+  { value: 'takeaway', label: 'Takeaway / Fast Food', desc: 'Takeaways, fast food, delivery', Icon: Pizza, color: 'bg-red-50 text-red-600', group: 'Food & Drink' },
+  // Hair & Grooming
+  { value: 'salon', label: 'Hair Salon', desc: 'Hair styling, colouring, treatments', Icon: Scissors, color: 'bg-pink-50 text-pink-600', group: 'Hair & Grooming' },
+  { value: 'barber', label: 'Barber Shop', desc: "Men's grooming & barber services", Icon: Scissors, color: 'bg-blue-50 text-blue-600', group: 'Hair & Grooming' },
+  // Beauty & Aesthetics
+  { value: 'beauty', label: 'Beauty Salon', desc: 'Makeup, lashes, brows, tanning', Icon: Sparkles, color: 'bg-pink-50 text-pink-500', group: 'Beauty & Aesthetics' },
+  { value: 'aesthetics', label: 'Aesthetics Clinic', desc: 'Skin treatments, injectables, peels', Icon: Heart, color: 'bg-rose-50 text-rose-600', group: 'Beauty & Aesthetics' },
+  { value: 'nails', label: 'Nail Salon', desc: 'Manicures, pedicures, nail art', Icon: Paintbrush, color: 'bg-fuchsia-50 text-fuchsia-600', group: 'Beauty & Aesthetics' },
+  { value: 'tattoo', label: 'Tattoo & Piercing', desc: 'Tattoo studios, piercings', Icon: Paintbrush, color: 'bg-gray-100 text-gray-700', group: 'Beauty & Aesthetics' },
+  // Wellness & Fitness
+  { value: 'spa', label: 'Spa & Wellness', desc: 'Massage, facials, holistic treatments', Icon: Sparkles, color: 'bg-purple-50 text-purple-600', group: 'Wellness & Fitness' },
+  { value: 'massage', label: 'Massage Therapy', desc: 'Sports, deep tissue, relaxation', Icon: Heart, color: 'bg-teal-50 text-teal-600', group: 'Wellness & Fitness' },
+  { value: 'personal_trainer', label: 'Personal Trainer', desc: 'PT sessions, fitness coaching', Icon: Dumbbell, color: 'bg-green-50 text-green-600', group: 'Wellness & Fitness' },
+  { value: 'yoga', label: 'Yoga / Pilates', desc: 'Yoga, pilates, meditation classes', Icon: Flower2, color: 'bg-indigo-50 text-indigo-500', group: 'Wellness & Fitness' },
+  { value: 'gym', label: 'Gym / Fitness Studio', desc: 'Gyms, CrossFit, spin studios', Icon: Dumbbell, color: 'bg-slate-100 text-slate-700', group: 'Wellness & Fitness' },
+  // Health
+  { value: 'physiotherapy', label: 'Physiotherapy', desc: 'Physio, chiropractic, osteopathy', Icon: Stethoscope, color: 'bg-cyan-50 text-cyan-600', group: 'Health' },
+  { value: 'dental', label: 'Dental Practice', desc: 'Dentists, hygienists, orthodontics', Icon: Stethoscope, color: 'bg-sky-50 text-sky-600', group: 'Health' },
+  { value: 'optician', label: 'Optician', desc: 'Eye tests, glasses, contact lenses', Icon: Eye, color: 'bg-blue-50 text-blue-500', group: 'Health' },
+  { value: 'vet', label: 'Veterinary', desc: 'Vets, pet grooming, animal care', Icon: Dog, color: 'bg-emerald-50 text-emerald-600', group: 'Health' },
+  // Other Services
+  { value: 'photography', label: 'Photography', desc: 'Studios, weddings, events', Icon: Camera, color: 'bg-violet-50 text-violet-600', group: 'Other Services' },
+  { value: 'tutoring', label: 'Tutoring / Classes', desc: 'Music lessons, tutoring, workshops', Icon: GraduationCap, color: 'bg-amber-50 text-amber-600', group: 'Other Services' },
+  { value: 'other', label: 'Other', desc: 'Any service-based business', Icon: Building2, color: 'bg-gray-50 text-gray-600', group: 'Other Services' },
 ]
 
 const PLANS = [
@@ -171,32 +197,39 @@ export default function Onboarding() {
                 <p className="text-gray-500 font-body">We'll customise your setup based on this</p>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {BUSINESS_TYPES.map((bt) => {
-                  const isSelected = form.category === bt.value
-                  return (
-                    <button
-                      key={bt.value}
-                      onClick={() => update('category', bt.value)}
-                      className={`relative p-6 rounded-2xl border-2 text-left transition-all duration-200 group hover:shadow-md ${
-                        isSelected
-                          ? 'border-primary bg-primary/[0.04] shadow-md'
-                          : 'border-border bg-white hover:border-primary/30'
-                      }`}
-                    >
-                      {isSelected && (
-                        <div className="absolute top-4 right-4 w-6 h-6 rounded-full bg-primary flex items-center justify-center">
-                          <Check size={14} className="text-white" />
-                        </div>
-                      )}
-                      <div className={`w-12 h-12 rounded-xl ${bt.color} flex items-center justify-center mb-3`}>
-                        <bt.Icon size={22} />
-                      </div>
-                      <h3 className="font-heading font-bold text-primary text-lg">{bt.label}</h3>
-                      <p className="text-gray-500 text-sm mt-1 font-body">{bt.desc}</p>
-                    </button>
-                  )
-                })}
+              <div className="max-h-[60vh] overflow-y-auto pr-2" style={{scrollbarWidth:'thin'}}>
+                {[...new Set(BUSINESS_TYPES.map(b=>b.group))].map(group=>(
+                  <div key={group} className="mb-6">
+                    <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3 px-1">{group}</p>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                      {BUSINESS_TYPES.filter(b=>b.group===group).map((bt) => {
+                        const isSelected = form.category === bt.value
+                        return (
+                          <button
+                            key={bt.value}
+                            onClick={() => update('category', bt.value)}
+                            className={`relative p-4 rounded-xl border-2 text-left transition-all duration-200 group hover:shadow-md ${
+                              isSelected
+                                ? 'border-primary bg-primary/[0.04] shadow-md'
+                                : 'border-border bg-white hover:border-primary/30'
+                            }`}
+                          >
+                            {isSelected && (
+                              <div className="absolute top-3 right-3 w-5 h-5 rounded-full bg-primary flex items-center justify-center">
+                                <Check size={12} className="text-white" />
+                              </div>
+                            )}
+                            <div className={`w-10 h-10 rounded-lg ${bt.color} flex items-center justify-center mb-2`}>
+                              <bt.Icon size={18} />
+                            </div>
+                            <h3 className="font-heading font-bold text-primary text-sm">{bt.label}</h3>
+                            <p className="text-gray-400 text-xs mt-0.5 font-body leading-tight">{bt.desc}</p>
+                          </button>
+                        )
+                      })}
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
           )}
