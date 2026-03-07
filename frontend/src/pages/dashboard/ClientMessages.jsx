@@ -82,7 +82,7 @@ export default function ClientMessages() {
   if (!bizId) return <div style={{ padding: 40, textAlign: 'center', color: '#6B7280' }}>Loading business...</div>
 
   return (
-    <div style={{ display: 'flex', height: 'calc(100vh - 4rem)', fontFamily: "'Figtree',-apple-system,sans-serif", margin: '-1.5rem -1.5rem 0' }}>
+    <div style={{ display: 'flex', height: '100%', fontFamily: "'Figtree',-apple-system,sans-serif" }}>
       {/* Thread list */}
       <div style={{
         width: 340,

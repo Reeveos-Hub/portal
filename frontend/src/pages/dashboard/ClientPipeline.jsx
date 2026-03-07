@@ -79,7 +79,7 @@ export default function ClientPipeline() {
   const stages = [...(displayData.stages || []), { id: 'unassigned', label: 'Unassigned', color: '#9CA3AF' }]
 
   return (
-    <div style={{ fontFamily: "'Figtree', sans-serif", height: 'calc(100vh - 4rem)', display: 'flex', flexDirection: 'column', margin: '-1.5rem -1.5rem 0', background: '#FAFAF8' }}>
+    <div style={{ fontFamily: "'Figtree', sans-serif", height: '100%', display: 'flex', flexDirection: 'column', background: '#FAFAF8' }}>
       {/* Header */}
       <div style={{ padding: '20px 24px', borderBottom: '1px solid #EBEBEB', background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0 }}>
         <div>

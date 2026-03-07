@@ -57,7 +57,7 @@ const DashboardLayout = () => {
           sidebarOpen={sidebarOpen}
         />
         <main className="flex-1 overflow-hidden">
-          {(location.pathname === '/dashboard/calendar' || location.pathname === '/dashboard/floor-plan') ? (
+          {['/dashboard/calendar', '/dashboard/floor-plan', '/dashboard/client-messages', '/dashboard/pipeline'].includes(location.pathname) ? (
             <Outlet />
           ) : (
             <div className="h-full overflow-y-auto">
