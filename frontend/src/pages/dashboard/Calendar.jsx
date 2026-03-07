@@ -907,80 +907,58 @@ const Calendar = () => {
           <button onClick={() => setShowBook(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 4, color: '#999' }}><XIcon /></button>
         </div>
         <div style={{ flex: 1, overflowY: 'auto', padding: '20px 20px 24px', display: 'flex', flexDirection: 'column', gap: 14 }}>
-          {/* Client Name */}
           <div>
             <label style={{ fontSize: 11, fontWeight: 700, color: '#888', textTransform: 'uppercase', letterSpacing: 0.5 }}>Client Name *</label>
-            <input value={bookForm.customerName} onChange={e => setBookForm(f => ({ ...f, customerName: e.target.value }))} placeholder="Full name"
-              style={{ width: '100%', padding: '10px 12px', border: '1px solid #E0E0E0', borderRadius: 10, fontSize: 14, fontFamily: "'Figtree', sans-serif", marginTop: 4, outline: 'none', boxSizing: 'border-box' }} />
+            <input value={bookForm.customerName} onChange={e => setBookForm(f => ({ ...f, customerName: e.target.value }))} placeholder="Full name" style={{ width: '100%', padding: '10px 12px', border: '1px solid #E0E0E0', borderRadius: 10, fontSize: 14, fontFamily: "'Figtree', sans-serif", marginTop: 4, outline: 'none', boxSizing: 'border-box' }} />
           </div>
-          {/* Phone + Email row */}
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
             <div>
               <label style={{ fontSize: 11, fontWeight: 700, color: '#888', textTransform: 'uppercase', letterSpacing: 0.5 }}>Phone</label>
-              <input value={bookForm.customerPhone} onChange={e => setBookForm(f => ({ ...f, customerPhone: e.target.value }))} placeholder="07..."
-                style={{ width: '100%', padding: '10px 12px', border: '1px solid #E0E0E0', borderRadius: 10, fontSize: 14, fontFamily: "'Figtree', sans-serif", marginTop: 4, outline: 'none', boxSizing: 'border-box' }} />
+              <input value={bookForm.customerPhone} onChange={e => setBookForm(f => ({ ...f, customerPhone: e.target.value }))} placeholder="07..." style={{ width: '100%', padding: '10px 12px', border: '1px solid #E0E0E0', borderRadius: 10, fontSize: 14, fontFamily: "'Figtree', sans-serif", marginTop: 4, outline: 'none', boxSizing: 'border-box' }} />
             </div>
             <div>
               <label style={{ fontSize: 11, fontWeight: 700, color: '#888', textTransform: 'uppercase', letterSpacing: 0.5 }}>Email</label>
-              <input value={bookForm.customerEmail} onChange={e => setBookForm(f => ({ ...f, customerEmail: e.target.value }))} placeholder="client@email.com"
-                style={{ width: '100%', padding: '10px 12px', border: '1px solid #E0E0E0', borderRadius: 10, fontSize: 14, fontFamily: "'Figtree', sans-serif", marginTop: 4, outline: 'none', boxSizing: 'border-box' }} />
+              <input value={bookForm.customerEmail} onChange={e => setBookForm(f => ({ ...f, customerEmail: e.target.value }))} placeholder="client@email.com" style={{ width: '100%', padding: '10px 12px', border: '1px solid #E0E0E0', borderRadius: 10, fontSize: 14, fontFamily: "'Figtree', sans-serif", marginTop: 4, outline: 'none', boxSizing: 'border-box' }} />
             </div>
           </div>
-              {/* Service */}
-              <div>
-                <label style={{ fontSize: 11, fontWeight: 700, color: '#888', textTransform: 'uppercase', letterSpacing: 0.5 }}>Treatment</label>
-                <select value={bookForm.serviceId} onChange={e => setBookForm(f => ({ ...f, serviceId: e.target.value }))}
-                  style={{ width: '100%', padding: '10px 12px', border: '1px solid #E0E0E0', borderRadius: 10, fontSize: 14, fontFamily: "'Figtree', sans-serif", marginTop: 4, background: '#fff', outline: 'none', boxSizing: 'border-box', appearance: 'none', WebkitAppearance: 'none' }}>
-                  <option value="">Select treatment...</option>
-                  {bookServices.map(s => (
-                    <option key={s.id || s._id} value={s.id || s._id}>{s.name} — £{s.price || 0} ({s.duration || 60}min)</option>
-                  ))}
-                </select>
-              </div>
-              {/* Staff */}
-              <div>
-                <label style={{ fontSize: 11, fontWeight: 700, color: '#888', textTransform: 'uppercase', letterSpacing: 0.5 }}>Therapist</label>
-                <select value={bookForm.staffId} onChange={e => setBookForm(f => ({ ...f, staffId: e.target.value }))}
-                  style={{ width: '100%', padding: '10px 12px', border: '1px solid #E0E0E0', borderRadius: 10, fontSize: 14, fontFamily: "'Figtree', sans-serif", marginTop: 4, background: '#fff', outline: 'none', boxSizing: 'border-box', appearance: 'none', WebkitAppearance: 'none' }}>
-                  <option value="">Any available</option>
-                  {(data?.staff || []).map(s => (
-                    <option key={s.id} value={s.id}>{s.full || s.name}</option>
-                  ))}
-                </select>
-              </div>
-              {/* Date + Time row */}
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-                <div>
-                  <label style={{ fontSize: 11, fontWeight: 700, color: '#888', textTransform: 'uppercase', letterSpacing: 0.5 }}>Date *</label>
-                  <input type="date" value={bookForm.date} onChange={e => setBookForm(f => ({ ...f, date: e.target.value }))}
-                    style={{ width: '100%', padding: '10px 12px', border: '1px solid #E0E0E0', borderRadius: 10, fontSize: 14, fontFamily: "'Figtree', sans-serif", marginTop: 4, outline: 'none', boxSizing: 'border-box' }} />
-                </div>
-                <div>
-                  <label style={{ fontSize: 11, fontWeight: 700, color: '#888', textTransform: 'uppercase', letterSpacing: 0.5 }}>Time *</label>
-                  <input type="time" value={bookForm.time} onChange={e => setBookForm(f => ({ ...f, time: e.target.value }))}
-                    style={{ width: '100%', padding: '10px 12px', border: '1px solid #E0E0E0', borderRadius: 10, fontSize: 14, fontFamily: "'Figtree', sans-serif", marginTop: 4, outline: 'none', boxSizing: 'border-box' }} />
-                </div>
-              </div>
-              {/* Notes */}
-              <div>
-                <label style={{ fontSize: 11, fontWeight: 700, color: '#888', textTransform: 'uppercase', letterSpacing: 0.5 }}>Notes</label>
-                <textarea value={bookForm.notes} onChange={e => setBookForm(f => ({ ...f, notes: e.target.value }))} rows={2} placeholder="Optional notes..."
-                  style={{ width: '100%', padding: '10px 12px', border: '1px solid #E0E0E0', borderRadius: 10, fontSize: 14, fontFamily: "'Figtree', sans-serif", marginTop: 4, resize: 'vertical', outline: 'none', boxSizing: 'border-box' }} />
-              </div>
+          <div>
+            <label style={{ fontSize: 11, fontWeight: 700, color: '#888', textTransform: 'uppercase', letterSpacing: 0.5 }}>Treatment</label>
+            <select value={bookForm.serviceId} onChange={e => setBookForm(f => ({ ...f, serviceId: e.target.value }))} style={{ width: '100%', padding: '10px 12px', border: '1px solid #E0E0E0', borderRadius: 10, fontSize: 14, fontFamily: "'Figtree', sans-serif", marginTop: 4, background: '#fff', outline: 'none', boxSizing: 'border-box' }}>
+              <option value="">Select treatment...</option>
+              {bookServices.map(s => <option key={s.id || s._id} value={s.id || s._id}>{s.name} — £{s.price || 0} ({s.duration || 60}min)</option>)}
+            </select>
           </div>
-          {/* Error */}
-          {bookError && <p style={{ color: '#DC2626', fontSize: 13, fontWeight: 600, margin: 0, padding: '0 20px' }}>{bookError}</p>}
-          {/* Submit */}
-          <div style={{ padding: '12px 20px 20px', borderTop: '1px solid #EBEBEB', flexShrink: 0, background: '#FAFAFA' }}>
-            <button onClick={submitBooking} disabled={bookSaving}
-              style={{ width: '100%', padding: '12px 0', background: '#111', color: '#fff', border: 'none', borderRadius: 10, fontSize: 14, fontWeight: 700, cursor: bookSaving ? 'wait' : 'pointer', fontFamily: "'Figtree', sans-serif", opacity: bookSaving ? 0.6 : 1 }}>
-              {bookSaving ? 'Creating...' : 'Create Appointment'}
-            </button>
+          <div>
+            <label style={{ fontSize: 11, fontWeight: 700, color: '#888', textTransform: 'uppercase', letterSpacing: 0.5 }}>Therapist</label>
+            <select value={bookForm.staffId} onChange={e => setBookForm(f => ({ ...f, staffId: e.target.value }))} style={{ width: '100%', padding: '10px 12px', border: '1px solid #E0E0E0', borderRadius: 10, fontSize: 14, fontFamily: "'Figtree', sans-serif", marginTop: 4, background: '#fff', outline: 'none', boxSizing: 'border-box' }}>
+              <option value="">Any available</option>
+              {(data?.staff || []).map(s => <option key={s.id} value={s.id}>{s.full || s.name}</option>)}
+            </select>
           </div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+            <div>
+              <label style={{ fontSize: 11, fontWeight: 700, color: '#888', textTransform: 'uppercase', letterSpacing: 0.5 }}>Date *</label>
+              <input type="date" value={bookForm.date} onChange={e => setBookForm(f => ({ ...f, date: e.target.value }))} style={{ width: '100%', padding: '10px 12px', border: '1px solid #E0E0E0', borderRadius: 10, fontSize: 14, fontFamily: "'Figtree', sans-serif", marginTop: 4, outline: 'none', boxSizing: 'border-box' }} />
+            </div>
+            <div>
+              <label style={{ fontSize: 11, fontWeight: 700, color: '#888', textTransform: 'uppercase', letterSpacing: 0.5 }}>Time *</label>
+              <input type="time" value={bookForm.time} onChange={e => setBookForm(f => ({ ...f, time: e.target.value }))} style={{ width: '100%', padding: '10px 12px', border: '1px solid #E0E0E0', borderRadius: 10, fontSize: 14, fontFamily: "'Figtree', sans-serif", marginTop: 4, outline: 'none', boxSizing: 'border-box' }} />
+            </div>
+          </div>
+          <div>
+            <label style={{ fontSize: 11, fontWeight: 700, color: '#888', textTransform: 'uppercase', letterSpacing: 0.5 }}>Notes</label>
+            <textarea value={bookForm.notes} onChange={e => setBookForm(f => ({ ...f, notes: e.target.value }))} rows={2} placeholder="Optional notes..." style={{ width: '100%', padding: '10px 12px', border: '1px solid #E0E0E0', borderRadius: 10, fontSize: 14, fontFamily: "'Figtree', sans-serif", marginTop: 4, resize: 'vertical', outline: 'none', boxSizing: 'border-box' }} />
+          </div>
+        </div>
+        {bookError && <p style={{ color: '#DC2626', fontSize: 13, fontWeight: 600, margin: 0, padding: '0 20px 8px' }}>{bookError}</p>}
+        <div style={{ padding: '12px 20px 20px', borderTop: '1px solid #EBEBEB', flexShrink: 0, background: '#FAFAFA' }}>
+          <button onClick={submitBooking} disabled={bookSaving} style={{ width: '100%', padding: '12px 0', background: '#111', color: '#fff', border: 'none', borderRadius: 10, fontSize: 14, fontWeight: 700, cursor: bookSaving ? 'wait' : 'pointer', fontFamily: "'Figtree', sans-serif", opacity: bookSaving ? 0.6 : 1 }}>
+            {bookSaving ? 'Creating...' : 'Create Appointment'}
+          </button>
         </div>
       </div>
 
-      {/* ═══ FAB — single button, no menu ═══ */}
+      {/* ═══ FAB ═══ */}
       <div data-fab="1" style={{ position: 'fixed', bottom: 24, right: 24, zIndex: 60 }}>
         <button onClick={e => { e.stopPropagation(); openBookModal() }} style={{
           width: 56, height: 56, borderRadius: '50%', border: 'none', background: '#111111', color: '#fff', cursor: 'pointer',
