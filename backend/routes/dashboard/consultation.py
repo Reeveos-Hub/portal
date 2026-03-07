@@ -508,15 +508,43 @@ async def check_client_form_status(
         )
 
     if not latest:
-        return {"has_valid_form": False, "status": None, "expires_at": None}
+        # Check if there's an EXPIRED form
+        expired = await db.consultation_submissions.find_one(
+            {"business_id": business_id, "client_email": {"$in": [search_email, email]}, "expires_at": {"$lt": now}},
+            sort=[("submitted_at", -1)],
+        )
+        if expired:
+            return {
+                "has_valid_form": False,
+                "form_status": "red",
+                "status": "expired",
+                "expires_at": expired["expires_at"].isoformat(),
+                "submitted_at": expired["submitted_at"].isoformat(),
+                "message": "Consultation form has expired. Client must complete a new form before booking.",
+                "has_unreviewed_update": expired.get("has_unreviewed_update", False),
+            }
+        return {"has_valid_form": False, "form_status": "none", "status": None, "expires_at": None, "message": "No consultation form on file."}
+
+    # Calculate green / amber / red
+    expires_at = latest["expires_at"]
+    days_until_expiry = (expires_at - now).days
+    if days_until_expiry <= 0:
+        form_status = "red"
+    elif days_until_expiry <= 30:
+        form_status = "amber"
+    else:
+        form_status = "green"
 
     return {
         "has_valid_form": True,
+        "form_status": form_status,
+        "days_until_expiry": days_until_expiry,
         "status": latest.get("status", "clear"),
         "submitted_at": latest["submitted_at"].isoformat(),
-        "expires_at": latest["expires_at"].isoformat(),
+        "expires_at": expires_at.isoformat(),
         "alerts": latest.get("alerts", {"blocks": [], "flags": []}),
         "submission_id": str(latest["_id"]),
+        "has_unreviewed_update": latest.get("has_unreviewed_update", False),
     }
 
 
@@ -721,4 +749,250 @@ async def public_medical_quick_update(slug: str, data: dict = Body(...)):
         "has_changes": has_changes,
         "alerts": alerts,
         "blocks_detected": len(alerts.get("blocks", [])),
+    }
+
+
+# ═══════════════════════════════════════════════════════════════
+# TREATMENT CONSENT FORMS (2A-2D)
+# Per-treatment consent — signed before each new treatment/course
+# ═══════════════════════════════════════════════════════════════
+
+DEFAULT_CONSENT_TEMPLATES = {
+    "microneedling": {
+        "id": "2A", "name": "Microneedling Consent",
+        "covers": ["Microneedling Facial", "Microneedling Hands", "RF Microneedling"],
+        "fields": [
+            {"id": "areas", "label": "Treatment area(s)", "type": "multi_checkbox", "options": ["Face", "Neck", "Décolletage", "Hands", "Body"], "required": True},
+            {"id": "needle_depth", "label": "Needle depth explained and acknowledged", "type": "checkbox", "required": True},
+            {"id": "patch_test", "label": "Patch test completed?", "type": "yes_no_date", "required": True, "block_if_no": True},
+            {"id": "side_effects", "label": "Expected side effects acknowledged (redness 24-48hrs, mild swelling, pinpoint bleeding, skin tightness, peeling days 3-5)", "type": "checkbox", "required": True},
+            {"id": "complications", "label": "Rare complications acknowledged (infection, prolonged redness, hyperpigmentation, scarring, cold sore reactivation)", "type": "checkbox", "required": True},
+            {"id": "pre_care", "label": "Pre-care confirmed (no retinoids 7 days, no sun 2 weeks, no blood thinners, clean skin)", "type": "checkbox", "required": True},
+            {"id": "post_care", "label": "Post-care understood (no makeup 48hrs, SPF 50, no actives 7 days, no picking)", "type": "checkbox", "required": True},
+            {"id": "sessions", "label": "Number of sessions in course", "type": "dropdown", "options": ["Single", "3", "6", "8"], "required": False},
+            {"id": "interval", "label": "Treatment interval acknowledged (min 2 weeks, typically 4-6 weeks)", "type": "checkbox", "required": False},
+        ],
+    },
+    "peel": {
+        "id": "2B", "name": "Chemical Peel Consent",
+        "covers": ["BioRePeelCI3", "Pro Power Peel", "Power Eye Peel", "MelanoPro Peel"],
+        "fields": [
+            {"id": "peel_type", "label": "Peel type", "type": "dropdown", "options": ["BioRePeelCI3", "Pro Power Peel", "Power Eye Peel", "MelanoPro Peel"], "required": True},
+            {"id": "fitzpatrick", "label": "Fitzpatrick skin type confirmed", "type": "display", "required": True},
+            {"id": "patch_test", "label": "Patch test completed?", "type": "yes_no_date", "required": True, "block_if_no": True},
+            {"id": "reactions", "label": "Expected reactions acknowledged (tingling, redness 1-3 days, peeling 3-7 days, sensitivity)", "type": "checkbox", "required": True},
+            {"id": "complications", "label": "Rare complications acknowledged (blistering, burns, hyperpigmentation, scarring)", "type": "checkbox", "required": True},
+            {"id": "pre_care", "label": "Pre-care confirmed (no retinoids 5-7 days, no waxing 7 days, no peels 2 weeks, no laser 3 months)", "type": "checkbox", "required": True},
+            {"id": "post_care", "label": "Post-care understood (no makeup same day, SPF 50 daily, no exfoliating 2 weeks, avoid heat 24-48hrs)", "type": "checkbox", "required": True},
+        ],
+    },
+    "rf": {
+        "id": "2C", "name": "RF Needling Consent",
+        "covers": ["RF Microneedling Body", "RF Microneedling Neck"],
+        "fields": [
+            {"id": "areas", "label": "Treatment area", "type": "multi_checkbox", "options": ["Neck", "Jawline", "Body"], "required": True},
+            {"id": "pacemaker_no", "label": "Confirmed NO pacemaker/electronic implant", "type": "checkbox", "required": True, "block_if_unchecked": True},
+            {"id": "metal_no", "label": "Confirmed NO metal in treatment area", "type": "checkbox", "required": True, "block_if_unchecked": True},
+            {"id": "fillers", "label": "Fillers in last 6 months?", "type": "yes_no_date", "required": True},
+            {"id": "side_effects", "label": "Expected side effects acknowledged (redness, warmth, mild swelling 24-48hrs, grid marks)", "type": "checkbox", "required": True},
+            {"id": "complications", "label": "Rare complications acknowledged (burns, blistering, nerve damage, fat atrophy, scarring)", "type": "checkbox", "required": True},
+            {"id": "post_care", "label": "Post-care understood (keep hydrated, no hot baths 48hrs, SPF 50, no makeup 24hrs)", "type": "checkbox", "required": True},
+        ],
+    },
+    "polynucleotides": {
+        "id": "2D", "name": "Polynucleotide Consent",
+        "covers": ["Full face skin booster injections"],
+        "fields": [
+            {"id": "fish_allergy", "label": "Allergy to fish/salmon products?", "type": "yes_no", "required": True, "block_if_yes": True},
+            {"id": "areas", "label": "Treatment area", "type": "multi_checkbox", "options": ["Under-eye", "Full face", "Neck"], "required": True},
+            {"id": "filler_reactions", "label": "Previous filler/injectable reactions?", "type": "yes_no_detail", "required": True},
+            {"id": "blood_thinners", "label": "Blood thinners confirmed? (from consultation)", "type": "display", "required": True},
+            {"id": "side_effects", "label": "Expected side effects acknowledged (redness, swelling, bruising, tenderness 24-72hrs)", "type": "checkbox", "required": True},
+            {"id": "post_care", "label": "Post-care understood (no makeup 12hrs, no exercise 24hrs, no alcohol 24hrs, no saunas 48hrs)", "type": "checkbox", "required": True},
+        ],
+    },
+}
+
+
+@router.get("/business/{business_id}/consent-templates")
+async def get_consent_templates(
+    business_id: str,
+    tenant: TenantContext = Depends(verify_business_access),
+):
+    """Get consent form templates — default + any business customisations."""
+    db = get_database()
+    custom = await db.consent_templates.find_one({"business_id": business_id})
+    templates = dict(DEFAULT_CONSENT_TEMPLATES)
+    if custom and custom.get("overrides"):
+        templates.update(custom["overrides"])
+    return {"templates": templates}
+
+
+@router.post("/business/{business_id}/consent/submit")
+async def submit_consent_form(
+    business_id: str,
+    data: dict = Body(...),
+    tenant: TenantContext = Depends(verify_business_access),
+):
+    """Staff submits a treatment consent form for a client."""
+    db = get_database()
+    now = datetime.utcnow()
+
+    treatment_type = data.get("treatment_type")  # microneedling, peel, rf, polynucleotides
+    client_id = data.get("client_id")
+    client_email = data.get("client_email")
+    client_phone = data.get("client_phone")
+    client_name = data.get("client_name", "")
+    responses = data.get("responses", {})  # {field_id: value}
+    signature = data.get("signature")  # base64 or null
+    booking_id = data.get("booking_id")  # link to specific booking
+
+    if not treatment_type:
+        raise HTTPException(400, "Treatment type required")
+    if not client_email and not client_phone and not client_id:
+        raise HTTPException(400, "Client identifier required")
+
+    # Check for blocking fields
+    template = DEFAULT_CONSENT_TEMPLATES.get(treatment_type, {})
+    blocks = []
+    for field in template.get("fields", []):
+        fid = field["id"]
+        val = responses.get(fid)
+        if field.get("block_if_yes") and val == True:
+            blocks.append({"field": fid, "label": field["label"], "reason": "Cannot proceed — contraindication"})
+        if field.get("block_if_no") and val == False:
+            blocks.append({"field": fid, "label": field["label"], "reason": "Required before treatment"})
+        if field.get("block_if_unchecked") and not val:
+            blocks.append({"field": fid, "label": field["label"], "reason": "Must be confirmed before treatment"})
+
+    doc = {
+        "business_id": business_id,
+        "treatment_type": treatment_type,
+        "template_id": template.get("id", treatment_type),
+        "client_id": client_id,
+        "client_email": client_email,
+        "client_phone": client_phone,
+        "client_name": client_name,
+        "responses": responses,
+        "signature": True if signature else False,
+        "booking_id": booking_id,
+        "blocks": blocks,
+        "status": "blocked" if blocks else "signed",
+        "submitted_at": now,
+        "submitted_by": tenant.user_email or tenant.user_id,
+    }
+
+    result = await db.consent_submissions.insert_one(doc)
+
+    # If linked to a booking, flag it
+    if booking_id and not blocks:
+        await db.bookings.update_one(
+            {"_id": booking_id},
+            {"$set": {f"consent_{treatment_type}": True, "consent_signed_at": now}}
+        )
+
+    return {
+        "id": str(result.inserted_id),
+        "status": doc["status"],
+        "blocks": blocks,
+        "message": f"Consent form {'blocked — cannot proceed' if blocks else 'signed successfully'}",
+    }
+
+
+@router.get("/business/{business_id}/consent/client")
+async def get_client_consents(
+    business_id: str,
+    client_id: str = None,
+    email: str = None,
+    phone: str = None,
+    tenant: TenantContext = Depends(verify_business_access),
+):
+    """Get all consent forms for a client."""
+    db = get_database()
+    query = {"business_id": business_id}
+    if client_id:
+        query["client_id"] = client_id
+    elif email:
+        query["client_email"] = email
+    elif phone:
+        query["client_phone"] = phone
+    else:
+        raise HTTPException(400, "Client identifier required")
+
+    docs = await db.consent_submissions.find(query).sort("submitted_at", -1).to_list(50)
+
+    return {"consents": [{
+        "id": str(d["_id"]),
+        "treatment_type": d.get("treatment_type"),
+        "template_id": d.get("template_id"),
+        "status": d.get("status"),
+        "submitted_at": d["submitted_at"].isoformat(),
+        "submitted_by": d.get("submitted_by"),
+        "blocks": d.get("blocks", []),
+        "booking_id": d.get("booking_id"),
+    } for d in docs]}
+
+
+@router.post("/public/{slug}/consent/submit")
+async def public_submit_consent(slug: str, data: dict = Body(...)):
+    """Public endpoint — client signs consent form via booking flow."""
+    db = get_database()
+    biz = await db.businesses.find_one({"slug": slug})
+    if not biz:
+        raise HTTPException(404, "Business not found")
+
+    business_id = str(biz["_id"])
+    now = datetime.utcnow()
+
+    treatment_type = data.get("treatment_type")
+    client_email = data.get("email")
+    client_phone = data.get("phone")
+    client_name = data.get("name", "")
+    responses = data.get("responses", {})
+    signature = data.get("signature")
+    booking_id = data.get("booking_id")
+
+    if not treatment_type:
+        raise HTTPException(400, "Treatment type required")
+
+    template = DEFAULT_CONSENT_TEMPLATES.get(treatment_type, {})
+    blocks = []
+    for field in template.get("fields", []):
+        fid = field["id"]
+        val = responses.get(fid)
+        if field.get("block_if_yes") and val == True:
+            blocks.append({"field": fid, "label": field["label"]})
+        if field.get("block_if_no") and val == False:
+            blocks.append({"field": fid, "label": field["label"]})
+        if field.get("block_if_unchecked") and not val:
+            blocks.append({"field": fid, "label": field["label"]})
+
+    doc = {
+        "business_id": business_id,
+        "treatment_type": treatment_type,
+        "template_id": template.get("id", treatment_type),
+        "client_email": client_email,
+        "client_phone": client_phone,
+        "client_name": client_name,
+        "responses": responses,
+        "signature": True if signature else False,
+        "booking_id": booking_id,
+        "blocks": blocks,
+        "status": "blocked" if blocks else "signed",
+        "submitted_at": now,
+        "submitted_by": "client",
+    }
+
+    await db.consent_submissions.insert_one(doc)
+
+    if booking_id and not blocks:
+        await db.bookings.update_one(
+            {"_id": booking_id},
+            {"$set": {f"consent_{treatment_type}": True, "consent_signed_at": now}}
+        )
+
+    return {
+        "status": doc["status"],
+        "blocks": blocks,
+        "treatment": template.get("name", treatment_type),
     }

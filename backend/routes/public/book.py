@@ -498,6 +498,29 @@ async def create_booking(request: Request, business_slug: str, payload: dict):
     if not cust_name:
         raise HTTPException(400, "Customer name is required")
 
+    # ── Consultation form check (services businesses only) ──
+    if biz_type == "services" and bs.get("require_consultation_form", True):
+        if cust_email or cust_phone:
+            now = datetime.utcnow()
+            form_query = {"business_id": biz_id}
+            if cust_email:
+                form_query["client_email"] = cust_email
+            elif cust_phone:
+                form_query["client_phone"] = cust_phone
+            latest_form = await db.consultation_submissions.find_one(
+                {**form_query, "expires_at": {"$gte": now}},
+                sort=[("submitted_at", -1)],
+            )
+            if not latest_form:
+                # Check if there's an expired one
+                expired_form = await db.consultation_submissions.find_one(
+                    form_query, sort=[("submitted_at", -1)]
+                )
+                if expired_form:
+                    raise HTTPException(400, "Your consultation form has expired. Please complete a new form before booking.")
+                else:
+                    raise HTTPException(400, "Please complete your consultation form before booking. This is required for your safety.")
+
     # ── Duration (restaurants) ──
     turn_time = bp_s.get("turnTimeMinutes") or bs.get("turn_time_minutes") or DEFAULT_TURN_TIME
     duration = payload.get("duration") or turn_time
