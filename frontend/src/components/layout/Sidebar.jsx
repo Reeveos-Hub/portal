@@ -14,7 +14,7 @@ import {
   LayoutGrid, Megaphone, Settings, HelpCircle,
   ChevronLeft, ChevronRight, ChevronDown, Lock,
   Send, Bot, Linkedin, Bell,
-  Package, Flame, Clock, Wallet, ClipboardCheck, MessageSquare, Monitor
+  Package, Flame, Clock, Wallet, ClipboardCheck, MessageSquare, Monitor, Target
 } from 'lucide-react'
 
 /* ── Color tokens ── */
@@ -140,6 +140,7 @@ function buildSections(navItems, tier, businessType) {
     ...(!isRestaurant ? [{ label: 'CLIENT PORTAL', items: [
       { id: 'client-portal-mgmt', Icon: Monitor, label: 'Client Portal', children: [
         { id: 'portal-clients', label: 'Clients', path: '/dashboard/portal-clients', Icon: BookUser, locked: false },
+        { id: 'sales-pipeline', label: 'Sales Pipeline', path: '/dashboard/pipeline', Icon: Target, locked: false },
         { id: 'consultation-forms', label: 'Consultation Forms', path: '/dashboard/consultation-forms', Icon: ClipboardCheck, locked: false },
         { id: 'client-messages', label: 'Messages', path: '/dashboard/client-messages', Icon: MessageSquare, locked: false },
         { id: 'client-emails', label: 'Email Management', path: '/dashboard/client-emails', Icon: Send, locked: false },

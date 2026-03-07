@@ -614,3 +614,146 @@ async def refresh_client_stats(db, biz_id: str, client_id: str):
         {"_id": c["_id"]},
         {"$set": {"stats": stats, "updatedAt": datetime.utcnow()}},
     )
+
+
+# ═══════════════════════════════════════════════════════════════
+# CLIENT SALES PIPELINE — salon owner CRM
+# ═══════════════════════════════════════════════════════════════
+
+DEFAULT_PIPELINE_STAGES = [
+    {"id": "new_lead", "label": "New Lead", "color": "#6B7280"},
+    {"id": "consultation_booked", "label": "Consultation Booked", "color": "#3B82F6"},
+    {"id": "first_appointment", "label": "First Appointment", "color": "#F59E0B"},
+    {"id": "package_sold", "label": "Package Sold", "color": "#8B5CF6"},
+    {"id": "active_client", "label": "Active Client", "color": "#10B981"},
+    {"id": "at_risk", "label": "At Risk", "color": "#EF4444"},
+    {"id": "win_back", "label": "Win Back", "color": "#EC4899"},
+]
+
+
+@router.get("/business/{business_id}/pipeline")
+async def get_client_pipeline(
+    business_id: str,
+    tenant: TenantContext = Depends(verify_business_access),
+):
+    """Get all clients grouped by pipeline stage — salon owner's sales CRM."""
+    db = get_database()
+    sdb = get_scoped_db(tenant.business_id)
+    biz_id = tenant.business_id
+
+    # Get pipeline config (custom stages or default)
+    config = await db.pipeline_config.find_one({"business_id": biz_id})
+    stages = (config or {}).get("stages") or DEFAULT_PIPELINE_STAGES
+
+    # Get all clients with pipeline stage
+    clients_raw = await sdb.clients.find({}).to_list(1000)
+
+    pipeline = {s["id"]: [] for s in stages}
+    pipeline["unassigned"] = []
+
+    for c in clients_raw:
+        stage = c.get("pipeline_stage", "unassigned")
+        svc = c.get("service") or {}
+        entry = {
+            "id": str(c.get("_id", "")),
+            "name": c.get("name", ""),
+            "email": c.get("email", ""),
+            "phone": c.get("phone", ""),
+            "stage": stage,
+            "value": c.get("pipeline_value", 0),
+            "tags": c.get("tags", []),
+            "last_visit": c.get("lastVisit") or c.get("last_visit", ""),
+            "total_spend": (c.get("stats") or {}).get("spend", 0),
+            "total_visits": (c.get("stats") or {}).get("visits", 0),
+            "package": c.get("active_package"),
+            "notes": c.get("pipeline_notes", ""),
+            "created_at": (c.get("createdAt") or c.get("since", "")).isoformat() if hasattr(c.get("createdAt") or c.get("since", ""), "isoformat") else str(c.get("createdAt") or c.get("since", "")),
+        }
+        if stage in pipeline:
+            pipeline[stage].append(entry)
+        else:
+            pipeline["unassigned"].append(entry)
+
+    return {
+        "stages": stages,
+        "pipeline": pipeline,
+        "total_clients": len(clients_raw),
+        "total_value": sum(c.get("pipeline_value", 0) for c in clients_raw),
+    }
+
+
+@router.patch("/business/{business_id}/pipeline/{client_id}/move")
+async def move_client_pipeline(
+    business_id: str,
+    client_id: str,
+    payload: dict = Body(...),
+    tenant: TenantContext = Depends(verify_business_access),
+):
+    """Move a client to a different pipeline stage."""
+    db = get_database()
+    sdb = get_scoped_db(tenant.business_id)
+    from bson import ObjectId
+
+    new_stage = payload.get("stage")
+    value = payload.get("value")
+    notes = payload.get("notes")
+
+    if not new_stage:
+        raise HTTPException(400, "Stage required")
+
+    update = {"pipeline_stage": new_stage, "updatedAt": datetime.utcnow()}
+    if value is not None:
+        update["pipeline_value"] = float(value)
+    if notes is not None:
+        update["pipeline_notes"] = notes
+
+    # Try string ID first, then ObjectId
+    result = await sdb.clients.update_one({"_id": client_id}, {"$set": update})
+    if result.matched_count == 0:
+        try:
+            result = await sdb.clients.update_one({"_id": ObjectId(client_id)}, {"$set": update})
+        except Exception:
+            pass
+    if result.matched_count == 0:
+        raise HTTPException(404, "Client not found")
+
+    # Audit
+    await sdb.booking_audit.insert_one({
+        "type": "pipeline_move",
+        "client_id": client_id,
+        "new_stage": new_stage,
+        "changed_by": tenant.user_email or tenant.user_id,
+        "timestamp": datetime.utcnow(),
+        "immutable": True,
+    })
+
+    return {"status": "moved", "stage": new_stage}
+
+
+@router.patch("/business/{business_id}/pipeline/{client_id}/value")
+async def update_client_pipeline_value(
+    business_id: str,
+    client_id: str,
+    payload: dict = Body(...),
+    tenant: TenantContext = Depends(verify_business_access),
+):
+    """Update pipeline value and notes for a client."""
+    sdb = get_scoped_db(tenant.business_id)
+    from bson import ObjectId
+
+    update = {"updatedAt": datetime.utcnow()}
+    if "value" in payload:
+        update["pipeline_value"] = float(payload["value"])
+    if "notes" in payload:
+        update["pipeline_notes"] = payload["notes"]
+    if "tags" in payload:
+        update["tags"] = payload["tags"]
+
+    result = await sdb.clients.update_one({"_id": client_id}, {"$set": update})
+    if result.matched_count == 0:
+        try:
+            await sdb.clients.update_one({"_id": ObjectId(client_id)}, {"$set": update})
+        except Exception:
+            pass
+
+    return {"status": "updated"}
