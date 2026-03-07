@@ -110,6 +110,7 @@ const Calendar = () => {
   const [viewMode, setViewMode] = useState('Day')
   const [cm, setCm] = useState('service')
   const [showBook, setShowBook] = useState(false)
+  const [cancelConfirm, setCancelConfirm] = useState(null) // booking id to cancel
   const [hovA, setHovA] = useState(null)
   const [hovSlot, setHovSlot] = useState(null)
   const [selA, setSelA] = useState(null)
@@ -559,10 +560,7 @@ const Calendar = () => {
               <CheckIcon /> {a.status === 'checked_in' ? 'Complete' : 'Check In'}
             </button>
             <button onClick={() => {
-              if (!confirm('Cancel this appointment?')) return
-              api.patch(`/bookings/business/${bid}/detail/${a.id}/status`, { status: 'cancelled' }).then(() => {
-                fetchCalendarData(false); setSelA(null)
-              }).catch(err => console.error('Cancel failed:', err))
+              setCancelConfirm(a.id)
             }} style={{ width: 42, display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: 10, border: '1px solid #EF444420', background: '#FEF2F2', color: '#EF4444', cursor: 'pointer' }}><TrashIcon /></button>
           </div>
           {a.notes && <div style={{ marginTop: 8, padding: '8px 10px', background: '#FFFBEB', borderRadius: 8, border: '1px solid #FDE68A', fontSize: 11, color: '#92400E', lineHeight: '16px' }}>{a.notes}</div>}
@@ -999,6 +997,32 @@ const Calendar = () => {
           </button>
         </div>
       </div>
+
+      {/* ═══ CANCEL CONFIRMATION MODAL ═══ */}
+      {cancelConfirm && (
+        <>
+          <div onClick={() => setCancelConfirm(null)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(4px)', zIndex: 9998 }} />
+          <div style={{ position: 'fixed', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', zIndex: 9999, background: '#fff', borderRadius: 20, padding: '32px 28px 24px', width: 380, maxWidth: '90vw', boxShadow: '0 20px 60px rgba(0,0,0,0.2)', fontFamily: "'Figtree', sans-serif" }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 20 }}>
+              <div style={{ width: 48, height: 48, borderRadius: '50%', background: '#FEF2F2', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                <svg width={22} height={22} viewBox="0 0 24 24" fill="none" stroke="#EF4444" strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+              </div>
+              <div>
+                <div style={{ fontSize: 18, fontWeight: 700, color: '#111' }}>Cancel appointment?</div>
+                <div style={{ fontSize: 13, color: '#666', marginTop: 4, lineHeight: '18px' }}>This will cancel the appointment and notify the client. This action is logged and cannot be undone.</div>
+              </div>
+            </div>
+            <div style={{ display: 'flex', gap: 10 }}>
+              <button onClick={() => setCancelConfirm(null)} style={{ flex: 1, padding: '12px 0', borderRadius: 12, border: '1px solid #EBEBEB', background: '#fff', fontSize: 14, fontWeight: 600, color: '#111', cursor: 'pointer', fontFamily: "'Figtree', sans-serif" }}>Keep appointment</button>
+              <button onClick={() => {
+                api.patch(`/bookings/business/${bid}/detail/${cancelConfirm}/status`, { status: 'cancelled' }).then(() => {
+                  fetchCalendarData(false); setSelA(null); setCancelConfirm(null)
+                }).catch(err => { console.error('Cancel failed:', err); setCancelConfirm(null) })
+              }} style={{ flex: 1, padding: '12px 0', borderRadius: 12, border: 'none', background: '#EF4444', fontSize: 14, fontWeight: 600, color: '#fff', cursor: 'pointer', fontFamily: "'Figtree', sans-serif", boxShadow: '0 2px 8px rgba(239,68,68,0.3)' }}>Cancel appointment</button>
+            </div>
+          </div>
+        </>
+      )}
 
       {/* FAB handled by SupportBot — includes New Appointment, Walk-in, Chat Support */}
     </div>
