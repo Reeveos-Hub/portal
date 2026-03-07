@@ -413,6 +413,7 @@ async def get_pipeline(
     tenant: TenantContext = Depends(verify_business_access),
 ):
     """Get all clients grouped by pipeline stage."""
+    db = get_database()
     sdb = get_scoped_db(tenant.business_id)
     biz_id = tenant.business_id
 
@@ -475,6 +476,7 @@ async def move_pipeline(
     tenant: TenantContext = Depends(verify_business_access),
 ):
     """Move a client to a different pipeline stage (manual override)."""
+    db = get_database()
     sdb = get_scoped_db(tenant.business_id)
     from bson import ObjectId
 
@@ -652,6 +654,7 @@ async def update_preferences(
     tenant: TenantContext = Depends(verify_business_access),
 ):
     """Update structured client preferences (therapist, comms, time slots, sensitivities)."""
+    db = get_database()
     sdb = get_scoped_db(tenant.business_id)
     from bson import ObjectId
 
@@ -691,6 +694,7 @@ async def update_source(
     tenant: TenantContext = Depends(verify_business_access),
 ):
     """Update how a client was acquired (source, medium, campaign, referrer)."""
+    db = get_database()
     sdb = get_scoped_db(tenant.business_id)
     from bson import ObjectId
 
@@ -826,6 +830,7 @@ async def recalculate_health_scores(
     tenant: TenantContext = Depends(verify_business_access),
 ):
     """Recalculate health scores and pipeline stages for all clients."""
+    db = get_database()
     sdb = get_scoped_db(tenant.business_id)
     biz_id = tenant.business_id
 
