@@ -776,7 +776,6 @@ export default function ClientPortal(){
             </div>
           )})}
         </div>
-        </div>
         {filtered.length===0&&<div style={{padding:40,textAlign:'center',color:$.txtM,fontSize:13}}>No products available in this category.</div>}
 
         {/* Services section */}
