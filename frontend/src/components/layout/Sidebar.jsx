@@ -14,7 +14,7 @@ import {
   LayoutGrid, Megaphone, Settings, HelpCircle,
   ChevronLeft, ChevronRight, ChevronDown, Lock,
   Send, Bot, Linkedin, Bell,
-  Package, Flame, Clock, Wallet, ClipboardCheck, MessageSquare, Monitor, Target
+  Package, Flame, Clock, Wallet, ClipboardCheck, MessageSquare, Monitor, Target, Columns3
 } from 'lucide-react'
 
 /* ── Color tokens ── */
@@ -140,7 +140,10 @@ function buildSections(navItems, tier, businessType) {
     ...(!isRestaurant ? [
     { label: 'CRM', items: [
       { id: 'crm-section', Icon: Target, label: 'CRM', children: [
-        { id: 'crm-main', label: 'CRM Dashboard', path: '/dashboard/crm', Icon: Target, locked: false },
+        { id: 'crm-dashboard', label: 'Dashboard', path: '/dashboard/crm?view=dashboard', Icon: LayoutDashboard, locked: false },
+        { id: 'crm-pipeline', label: 'Pipeline', path: '/dashboard/crm?view=pipeline', Icon: Columns3, locked: false },
+        { id: 'crm-clients', label: 'Clients', path: '/dashboard/crm?view=clients', Icon: BookUser, locked: false },
+        { id: 'crm-analytics', label: 'Analytics', path: '/dashboard/crm?view=analytics', Icon: BarChart3, locked: false },
       ]},
     ]},
     { label: 'CLIENT PORTAL', items: [
@@ -358,7 +361,7 @@ const Sidebar = ({ open, onNavigate: closeMobile }) => {
   const [panelH, setPanelH] = useState(800)
   const cascadeCounter = useRef(0)
 
-  const activePath = location.pathname
+  const activePath = location.pathname + location.search
 
   useEffect(() => {
     if (panelRef.current) setPanelH(panelRef.current.offsetHeight)

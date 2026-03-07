@@ -4,6 +4,7 @@
  * Click any client → Detail panel slides in from right
  */
 import { useState, useEffect, useCallback, useRef } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { useBusiness } from '../../contexts/BusinessContext'
 import api from '../../utils/api'
 import AppLoader from '../../components/shared/AppLoader'
@@ -54,7 +55,9 @@ const fmtCurrency = (v) => `£${(v || 0).toLocaleString('en-GB', { minimumFracti
 export default function CRM() {
   const { business } = useBusiness()
   const bid = business?.id ?? business?._id
-  const [view, setView] = useState('dashboard')
+  const [searchParams, setSearchParams] = useSearchParams()
+  const [view, setViewState] = useState(searchParams.get('view') || 'dashboard')
+  const setView = (v) => { setViewState(v); setSearchParams({ view: v }) }
   const [loading, setLoading] = useState(true)
   const [dashboard, setDashboard] = useState(null)
   const [pipelineData, setPipelineData] = useState(null)
@@ -83,7 +86,7 @@ export default function CRM() {
   const loadClients = useCallback(async () => {
     if (!bid) return
     try {
-      const r = await api.get(`/clients/business/${bid}?limit=200`)
+      const r = await api.get(`/clients-v2/business/${bid}?limit=200`)
       setClients(r.clients || [])
     } catch (e) { console.error(e) }
     setLoading(false)
