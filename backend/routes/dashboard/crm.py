@@ -21,6 +21,11 @@ from helpers.timeline import (
     CRM_PIPELINE_STAGES, EVENT_TYPES
 )
 
+
+# Helper: clients use EITHER businessId or business_id depending on how they were created
+def _biz_match(biz_id):
+    return {"$or": [{"businessId": biz_id}, {"business_id": biz_id}]}
+
 router = APIRouter(prefix="/crm", tags=["CRM"])
 
 
@@ -42,11 +47,11 @@ async def get_crm_dashboard(
     seven_days_ago = now - timedelta(days=7)
 
     # Total clients (use raw db — scoped db causes filter conflicts)
-    total_clients = await db.clients.count_documents({"businessId": biz_id, "active": {"$ne": False}})
+    total_clients = await db.clients.count_documents({**_biz_match(biz_id), "active": {"$ne": False}})
 
     # New clients this week
     new_this_week = await db.clients.count_documents({
-        "businessId": biz_id, "active": {"$ne": False},
+        **_biz_match(biz_id), "active": {"$ne": False},
         "createdAt": {"$gte": seven_days_ago}
     })
 
@@ -62,7 +67,7 @@ async def get_crm_dashboard(
     pipeline_counts = {}
     for stage in CRM_PIPELINE_STAGES:
         cnt = await db.clients.count_documents({
-            "businessId": biz_id, "active": {"$ne": False},
+            **_biz_match(biz_id), "active": {"$ne": False},
             "pipeline_stage": stage["id"]
         })
         pipeline_counts[stage["id"]] = cnt
@@ -78,7 +83,7 @@ async def get_crm_dashboard(
 
     # Health score distribution
     all_clients = await db.clients.find(
-        {"businessId": biz_id, "active": {"$ne": False}},
+        {**_biz_match(biz_id), "active": {"$ne": False}},
         {"stats": 1, "tags": 1, "vip": 1, "active_package": 1, "consultation_form_status": 1,
          "lastVisit": 1, "last_visit": 1, "pipeline_stage": 1, "health_score": 1}
     ).to_list(5000)
@@ -116,7 +121,7 @@ async def get_crm_dashboard(
 
     # Source breakdown (top acquisition channels)
     source_pipeline = [
-        {"$match": {"businessId": biz_id, "active": {"$ne": False}, "source": {"$exists": True, "$ne": ""}}},
+        {"$match": {**_biz_match(biz_id), "active": {"$ne": False}, "source": {"$exists": True, "$ne": ""}}},
         {"$group": {"_id": "$source", "count": {"$sum": 1}}},
         {"$sort": {"count": -1}},
         {"$limit": 10},
@@ -217,7 +222,7 @@ async def log_interaction(
         raise HTTPException(400, "Summary required")
 
     # Get client name
-    client = await db.clients.find_one({"businessId": tenant.business_id, "id": client_id})
+    client = await db.clients.find_one({**_biz_match(tenant.business_id), "id": client_id})
     if not client:
         from bson import ObjectId
         try:
@@ -412,7 +417,7 @@ async def get_pipeline(
     biz_id = tenant.business_id
 
     clients_raw = await db.clients.find(
-        {"businessId": biz_id, "active": {"$ne": False}}
+        {**_biz_match(biz_id), "active": {"$ne": False}}
     ).to_list(2000)
 
     pipeline = {s["id"]: [] for s in CRM_PIPELINE_STAGES}
@@ -481,14 +486,14 @@ async def move_pipeline(
     if "value" in payload:
         update["pipeline_value"] = float(payload["value"])
 
-    result = await db.clients.update_one({"id": client_id, "businessId": tenant.business_id}, {"$set": update})
+    result = await db.clients.update_one({"id": client_id, **_biz_match(tenant.business_id)}, {"$set": update})
     if result.matched_count == 0:
         try:
-            await db.clients.update_one({"_id": ObjectId(client_id), "businessId": tenant.business_id}, {"$set": update})
+            await db.clients.update_one({"_id": ObjectId(client_id), **_biz_match(tenant.business_id)}, {"$set": update})
         except Exception:
             pass
 
-    client = await db.clients.find_one({"$or": [{"id": client_id}, {"_id": client_id}], "businessId": tenant.business_id})
+    client = await db.clients.find_one({"$or": [{"id": client_id}, {"_id": client_id}], **_biz_match(tenant.business_id)})
     client_name = client.get("name", "") if client else ""
 
     await log_event(
@@ -519,11 +524,11 @@ async def get_client_crm_detail(
     biz_id = tenant.business_id
 
     # Find client
-    client = await db.clients.find_one({"businessId": biz_id, "id": client_id, "active": {"$ne": False}})
+    client = await db.clients.find_one({**_biz_match(biz_id), "id": client_id, "active": {"$ne": False}})
     if not client:
         from bson import ObjectId
         try:
-            client = await db.clients.find_one({"_id": ObjectId(client_id), "businessId": biz_id, "active": {"$ne": False}})
+            client = await db.clients.find_one({"_id": ObjectId(client_id), **_biz_match(biz_id), "active": {"$ne": False}})
         except Exception:
             pass
     if not client:
@@ -588,7 +593,7 @@ async def get_client_crm_detail(
         })
 
     # Referral info
-    referral_count = await db.clients.count_documents({"businessId": biz_id, "referrer_id": cid})
+    referral_count = await db.clients.count_documents({**_biz_match(biz_id), "referrer_id": cid})
 
     # LTV breakdown (simplified — expand later)
     treatment_revenue = stats.get("totalSpent", 0) or stats.get("spend", 0) or 0
@@ -654,14 +659,14 @@ async def update_preferences(
     update = {f"preferences.{k}": v for k, v in prefs.items()}
     update["updatedAt"] = datetime.utcnow()
 
-    result = await db.clients.update_one({"id": client_id, "businessId": tenant.business_id}, {"$set": update})
+    result = await db.clients.update_one({"id": client_id, **_biz_match(tenant.business_id)}, {"$set": update})
     if result.matched_count == 0:
         try:
             await db.clients.update_one({"_id": ObjectId(client_id)}, {"$set": update})
         except Exception:
             pass
 
-    client = await db.clients.find_one({"$or": [{"id": client_id}, {"_id": client_id}], "businessId": tenant.business_id})
+    client = await db.clients.find_one({"$or": [{"id": client_id}, {"_id": client_id}], **_biz_match(tenant.business_id)})
     await log_event(
         sdb, tenant.business_id, client_id,
         event="profile.preference_updated",
@@ -694,7 +699,7 @@ async def update_source(
         if field in payload:
             update[field] = payload[field]
 
-    result = await db.clients.update_one({"id": client_id, "businessId": tenant.business_id}, {"$set": update})
+    result = await db.clients.update_one({"id": client_id, **_biz_match(tenant.business_id)}, {"$set": update})
     if result.matched_count == 0:
         try:
             await db.clients.update_one({"_id": ObjectId(client_id)}, {"$set": update})
@@ -722,7 +727,7 @@ async def get_analytics(
     period_start = now - timedelta(days=period_days)
 
     # All clients
-    all_clients = await db.clients.find({"businessId": biz_id, "active": {"$ne": False}}).to_list(5000)
+    all_clients = await db.clients.find({**_biz_match(biz_id), "active": {"$ne": False}}).to_list(5000)
 
     # Funnel
     funnel = {
@@ -824,7 +829,7 @@ async def recalculate_health_scores(
     sdb = get_scoped_db(tenant.business_id)
     biz_id = tenant.business_id
 
-    clients = await db.clients.find({"businessId": biz_id, "active": {"$ne": False}}).to_list(5000)
+    clients = await db.clients.find({**_biz_match(biz_id), "active": {"$ne": False}}).to_list(5000)
     updated = 0
 
     for c in clients:
