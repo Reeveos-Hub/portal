@@ -767,3 +767,88 @@ async def send_deposit_receipt(
         html=html,
         tags=[{"name": "type", "value": "deposit_receipt"}],
     )
+
+
+async def send_medical_quickcheck(
+    to: str,
+    client_name: str,
+    business_name: str,
+    booking_date: str,
+    booking_time: str,
+    service_name: str,
+    quickcheck_url: str,
+):
+    """
+    4-day pre-appointment email: 'Any medical changes since last visit?'
+    Client clicks Yes → redirected to update form, booking flagged.
+    Client clicks No → acknowledged, no action needed.
+    """
+    body = f"""
+    <h2>Your upcoming appointment</h2>
+    <p>Hi {client_name},</p>
+    <p>You have an appointment at <strong>{business_name}</strong> on <strong>{booking_date}</strong> at <strong>{booking_time}</strong> for <strong>{service_name}</strong>.</p>
+    <p>Before your visit, we need to check: <strong>have your medical circumstances changed since your last consultation?</strong></p>
+    <p>This includes new medications, pregnancy, recent surgery, skin conditions, or any other health changes.</p>
+    <div style="text-align:center; margin:24px 0;">
+      <a href="{quickcheck_url}&response=no" class="cta" style="background:#22C55E; margin-right:12px;">No Changes</a>
+      <a href="{quickcheck_url}&response=yes" class="cta" style="background:#EF4444;">Yes, I Have Changes</a>
+    </div>
+    <p style="font-size:13px; color:#6b7280;">If you have changes, your therapist will review them before your appointment. You may need to update your consultation form.</p>
+    """
+
+    html = wrap_html(body, preheader=f"Quick medical check before your {service_name} appointment")
+
+    return await send_email(
+        to=to,
+        subject=f"Quick check before your appointment — {business_name}",
+        html=html,
+        tags=[{"name": "type", "value": "medical_quickcheck"}],
+    )
+
+
+async def send_staff_form_notification(
+    to: str,
+    staff_name: str,
+    client_name: str,
+    client_email: str,
+    form_status: str,
+    business_name: str,
+    flags: list = None,
+    blocks: list = None,
+):
+    """Notify therapist/staff when a client submits a consultation form."""
+    status_html = {
+        "clear": '<span style="color:#22C55E; font-weight:700;">CLEAR — No contraindications</span>',
+        "flagged": '<span style="color:#F59E0B; font-weight:700;">FLAGGED — Review required</span>',
+        "blocked": '<span style="color:#EF4444; font-weight:700;">BLOCKED — Treatment restrictions apply</span>',
+    }.get(form_status, form_status)
+
+    alerts_html = ""
+    if blocks:
+        alerts_html += "<p style='color:#EF4444; font-weight:600;'>Blocked treatments:</p><ul>"
+        for b in blocks:
+            alerts_html += f"<li>{b.get('label', b.get('treatment', ''))} — {b.get('condition', '')}</li>"
+        alerts_html += "</ul>"
+    if flags:
+        alerts_html += "<p style='color:#F59E0B; font-weight:600;'>Flagged (review required):</p><ul>"
+        for f in flags:
+            alerts_html += f"<li>{f.get('label', f.get('treatment', ''))} — {f.get('condition', '')}</li>"
+        alerts_html += "</ul>"
+
+    body = f"""
+    <h2>New Consultation Form Submitted</h2>
+    <p>Hi {staff_name},</p>
+    <p><strong>{client_name}</strong> ({client_email}) has submitted their consultation form.</p>
+    <p>Status: {status_html}</p>
+    {alerts_html}
+    <p>Please review the form in your dashboard before their next appointment.</p>
+    """
+
+    html = wrap_html(body, preheader=f"New consultation form from {client_name}")
+
+    return await send_email(
+        to=to,
+        subject=f"New consultation form — {client_name} | {business_name}",
+        html=html,
+        tags=[{"name": "type", "value": "staff_form_notification"}],
+    )

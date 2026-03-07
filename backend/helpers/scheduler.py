@@ -27,11 +27,13 @@ async def _run_scheduler():
     drip_interval = 15 * 60     # 15 minutes
     reminder_interval = 60 * 60  # 1 hour
     aftercare_interval = 5 * 60  # 5 minutes
+    quickcheck_interval = 6 * 60 * 60  # 6 hours (runs ~4x daily)
     insights_interval = 24 * 60 * 60  # 24 hours
 
     last_drip = datetime.utcnow()
     last_reminder = datetime.utcnow()
     last_aftercare = datetime.utcnow()
+    last_quickcheck = datetime.utcnow()
     last_insights = datetime.utcnow()
 
     while True:
@@ -63,6 +65,14 @@ async def _run_scheduler():
                     last_aftercare = now
                 except Exception as e:
                     logger.error(f"Aftercare queue error: {e}")
+
+            # ─── Medical Quick-Check (4 days before appointment) ─── #
+            if (now - last_quickcheck).total_seconds() >= quickcheck_interval:
+                try:
+                    await _send_medical_quickchecks()
+                    last_quickcheck = now
+                except Exception as e:
+                    logger.error(f"Medical quickcheck error: {e}")
 
             # ─── Insights Report Drip ─── #
             if (now - last_insights).total_seconds() >= insights_interval:
@@ -241,6 +251,92 @@ async def _process_aftercare_queue():
 
     if sent_count:
         logger.info(f"Aftercare: sent {sent_count}/{len(queue)} emails")
+
+
+async def _send_medical_quickchecks():
+    """
+    G5: 4 days before appointment, email client: 'Any medical changes?'
+    If they respond yes → booking flagged → therapist alerted on the day.
+    Only for services businesses with consultation forms.
+    """
+    from database import get_database
+    from helpers.email import send_medical_quickcheck
+
+    db = get_database()
+    if not db:
+        return
+
+    now = datetime.utcnow()
+
+    # Find bookings 4 days from now (window: 3.5 to 4.5 days)
+    target_start = now + timedelta(days=3, hours=12)
+    target_end = now + timedelta(days=4, hours=12)
+    target_date_start = target_start.strftime("%Y-%m-%d")
+    target_date_end = target_end.strftime("%Y-%m-%d")
+
+    bookings = await db.bookings.find({
+        "status": {"$in": ["confirmed", "pending"]},
+        "date": {"$gte": target_date_start, "$lte": target_date_end},
+        "type": "services",
+        "medical_quickcheck_sent": {"$ne": True},
+    }).to_list(100)
+
+    sent = 0
+    for booking in bookings:
+        from models.normalize import normalize_booking
+        nb = normalize_booking(booking)
+        email = nb["customer"]["email"]
+        name = nb["customer"]["name"] or "there"
+        biz_id = nb["businessId"]
+
+        if not email:
+            continue
+
+        # Check if this business uses consultation forms
+        business = await db.businesses.find_one({"_id": biz_id})
+        if not business:
+            from bson import ObjectId
+            try:
+                business = await db.businesses.find_one({"_id": ObjectId(biz_id)})
+            except Exception:
+                pass
+        if not business or business.get("category") == "restaurant":
+            continue
+
+        biz_name = business.get("name", "")
+        service_name = ""
+        svc = nb.get("service")
+        if isinstance(svc, dict):
+            service_name = svc.get("name", "your treatment")
+        elif isinstance(svc, str):
+            service_name = svc
+
+        # Build quickcheck URL
+        slug = business.get("slug", "")
+        booking_id = str(booking["_id"])
+        quickcheck_url = f"https://portal.rezvo.app/client/{slug}?quickcheck={booking_id}"
+
+        try:
+            await send_medical_quickcheck(
+                to=email,
+                client_name=name.split()[0] if name != "there" else "there",
+                business_name=biz_name,
+                booking_date=nb["date"],
+                booking_time=nb["time"],
+                service_name=service_name or "your treatment",
+                quickcheck_url=quickcheck_url,
+            )
+            sent += 1
+        except Exception as e:
+            logger.error(f"Medical quickcheck email failed for {email}: {e}")
+
+        await db.bookings.update_one(
+            {"_id": booking["_id"]},
+            {"$set": {"medical_quickcheck_sent": True, "medical_quickcheck_sent_at": now}}
+        )
+
+    if sent:
+        logger.info(f"Medical quickchecks: sent {sent} emails")
 
 
 async def _send_insights_drip_emails():

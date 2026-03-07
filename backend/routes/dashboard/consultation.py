@@ -305,6 +305,27 @@ async def submit_form_public(slug: str, data: dict = Body(...)):
         ip_address=data.get("ip_address", ""),
     )
 
+    # G8: Notify staff when form is submitted (especially if flagged/blocked)
+    try:
+        from helpers.email import send_staff_form_notification
+        # Get business owner email
+        owner = await db.users.find_one({"business_id": biz_id, "role": {"$in": ["business_owner", "owner"]}})
+        if owner and owner.get("email"):
+            import asyncio
+            asyncio.ensure_future(send_staff_form_notification(
+                to=owner["email"],
+                staff_name=owner.get("name", "").split()[0] if owner.get("name") else "there",
+                client_name=client_name,
+                client_email=client_email,
+                form_status=status,
+                business_name=biz.get("name", ""),
+                flags=alerts.get("flags", []),
+                blocks=alerts.get("blocks", []),
+            ))
+    except Exception as notify_err:
+        import logging
+        logging.getLogger(__name__).warning(f"Staff form notification failed: {notify_err}")
+
     return {
         "submission_id": str(result.inserted_id),
         "client_id": client_id,
@@ -312,6 +333,65 @@ async def submit_form_public(slug: str, data: dict = Body(...)):
         "alerts": alerts,
         "expires_at": expires_at.isoformat(),
     }
+
+
+@router.get("/public/{slug}/quickcheck")
+async def handle_medical_quickcheck(
+    slug: str,
+    quickcheck: str = Query(..., description="Booking ID"),
+    response: str = Query(..., description="yes or no"),
+):
+    """
+    G5: Client responds to 'Any medical changes?' email.
+    If yes → flag booking, redirect to portal form.
+    If no → acknowledge, no action.
+    """
+    db = get_database()
+    biz = await db.businesses.find_one({"slug": slug})
+    if not biz:
+        raise HTTPException(404, "Business not found")
+
+    booking = await db.bookings.find_one({"_id": quickcheck})
+    if not booking:
+        # Try as string ID match
+        bookings_list = await db.bookings.find({"_id": {"$regex": quickcheck}}).to_list(1)
+        booking = bookings_list[0] if bookings_list else None
+
+    if not booking:
+        return {"status": "not_found", "message": "Booking not found"}
+
+    now = datetime.utcnow()
+
+    if response == "yes":
+        # Flag the booking — therapist needs to check
+        await db.bookings.update_one(
+            {"_id": booking["_id"]},
+            {"$set": {
+                "medical_update_flagged": True,
+                "medical_update_flagged_at": now,
+                "medical_update_response": "changes_reported",
+            }}
+        )
+        # Redirect to portal consultation form
+        return {
+            "status": "flagged",
+            "message": "Thank you. Your therapist will review before your appointment. Please update your consultation form.",
+            "redirect": f"/client/{slug}?view=form",
+        }
+    else:
+        # No changes — acknowledge
+        await db.bookings.update_one(
+            {"_id": booking["_id"]},
+            {"$set": {
+                "medical_update_flagged": False,
+                "medical_update_response": "no_changes",
+                "medical_update_responded_at": now,
+            }}
+        )
+        return {
+            "status": "confirmed",
+            "message": "Thank you for confirming. See you at your appointment!",
+        }
 
 
 @router.get("/business/{business_id}/submissions")
