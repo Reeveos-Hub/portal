@@ -803,23 +803,40 @@ export default function ClientPortal(){
         </div>
         {filtered.length===0&&<div style={{padding:40,textAlign:'center',color:$.txtM,fontSize:13}}>No products available in this category.</div>}
 
-        {/* Services section */}
+        {/* Services section — grouped by category */}
         {services.length>0&&(
           <div style={{padding:desk?'16px 24px':'12px'}}>
-            <h3 style={{fontSize:15,fontWeight:700,color:$.h,margin:'16px 0 12px',fontFamily:$.f}}>Book a Treatment</h3>
-            <div style={{display:'flex',flexDirection:'column',gap:8}}>
-              {services.map(s=>(
-                <div key={s.id||s.name} style={{background:$.card,borderRadius:12,border:`1px solid ${$.bdr}`,padding:desk?'14px 16px':'12px 14px',display:'flex',alignItems:'center',justifyContent:'space-between'}}>
-                  <div>
-                    <div style={{fontSize:13,fontWeight:600,color:$.h}}>{s.name}</div>
-                    <div style={{fontSize:11,color:$.txtM}}>{s.duration||s.durationMinutes||'—'} min{s.staffName?` · ${s.staffName}`:''}</div>
-                  </div>
-                  <div style={{display:'flex',alignItems:'center',gap:10}}>
-                    <span style={{fontSize:15,fontWeight:800,color:$.h}}>£{(s.price||0).toFixed(2)}</span>
-                    <button onClick={()=>{navTo('bookings')}} style={{padding:'6px 14px',borderRadius:99,border:'none',background:$.acc,color:'#111',fontSize:11,fontWeight:700,cursor:'pointer',fontFamily:$.f}}>Book</button>
+            {(()=>{
+              const pkgs=services.filter(s=>s.name&&(s.name.toLowerCase().includes('course')||s.name.toLowerCase().includes('package')))
+              const singles=services.filter(s=>!pkgs.includes(s))
+              const cats={}
+              singles.forEach(s=>{const c=s.category||'Treatments';if(!cats[c])cats[c]=[];cats[c].push(s)})
+              const secs=[]
+              if(pkgs.length)secs.push({title:'Packages & Courses',items:pkgs})
+              Object.keys(cats).sort().forEach(c=>secs.push({title:c,items:cats[c]}))
+              return secs.map((sec,si)=>(
+                <div key={si} style={{marginBottom:20}}>
+                  <h3 style={{fontSize:desk?13:14,fontWeight:800,color:$.h,margin:'0 0 10px',fontFamily:$.f,display:'flex',alignItems:'center',gap:8}}>
+                    <span style={{fontSize:10,fontWeight:700,color:$.acc,textTransform:'uppercase',letterSpacing:'0.6px'}}>{sec.title}</span>
+                    <div style={{flex:1,height:1,background:$.bdr}}/>
+                  </h3>
+                  <div style={{display:'flex',flexDirection:'column',gap:8}}>
+                    {sec.items.map(s=>(
+                      <div key={s.id||s.name} style={{background:$.card,borderRadius:12,border:`1px solid ${$.bdr}`,padding:desk?'14px 16px':'12px 14px',display:'flex',alignItems:'center',justifyContent:'space-between'}}>
+                        <div>
+                          <div style={{fontSize:13,fontWeight:600,color:$.h}}>{s.name}</div>
+                          <div style={{fontSize:11,color:$.txtM}}>{s.duration||s.durationMinutes||'—'} min{s.staffName?` · ${s.staffName}`:''}</div>
+                        </div>
+                        <div style={{display:'flex',alignItems:'center',gap:10}}>
+                          <span style={{fontSize:15,fontWeight:800,color:$.h}}>£{(s.price||0).toFixed(2)}</span>
+                          <button onClick={()=>{navTo('bookings')}} style={{padding:'6px 14px',borderRadius:99,border:'none',background:$.acc,color:'#111',fontSize:11,fontWeight:700,cursor:'pointer',fontFamily:$.f}}>Book</button>
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 </div>
-              ))}
+              ))
+            })()}
             </div>
           </div>
         )}
