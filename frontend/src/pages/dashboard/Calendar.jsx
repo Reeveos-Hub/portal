@@ -111,6 +111,8 @@ const Calendar = () => {
   const [cm, setCm] = useState('service')
   const [showBook, setShowBook] = useState(false)
   const [cancelConfirm, setCancelConfirm] = useState(null) // booking id to cancel
+  const [treatDrop, setTreatDrop] = useState(false)
+  const [staffDrop, setStaffDrop] = useState(false)
   const [hovA, setHovA] = useState(null)
   const [hovSlot, setHovSlot] = useState(null)
   const [selA, setSelA] = useState(null)
@@ -963,17 +965,46 @@ const Calendar = () => {
           </div>
           <div>
             <label style={{ fontSize: 11, fontWeight: 700, color: '#888', textTransform: 'uppercase', letterSpacing: 0.5 }}>Treatment</label>
-            <select value={bookForm.serviceId} onChange={e => setBookForm(f => ({ ...f, serviceId: e.target.value }))} style={{ width: '100%', padding: '10px 12px', border: '1px solid #E0E0E0', borderRadius: 10, fontSize: 14, fontFamily: "'Figtree', sans-serif", marginTop: 4, background: '#fff', outline: 'none', boxSizing: 'border-box' }}>
-              <option value="">Select treatment...</option>
-              {bookServices.map(s => <option key={s.id || s._id} value={s.id || s._id}>{s.name} — £{s.price || 0} ({s.duration || 60}min)</option>)}
-            </select>
+            <div style={{ position: 'relative', marginTop: 4 }}>
+              <div onClick={() => { setTreatDrop(!treatDrop); setStaffDrop(false) }} style={{ width: '100%', padding: '10px 12px', border: '1px solid #E0E0E0', borderRadius: 10, fontSize: 14, fontFamily: "'Figtree', sans-serif", background: '#FAFAF8', cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center', boxSizing: 'border-box', color: bookForm.serviceId ? '#111' : '#999' }}>
+                <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{bookForm.serviceId ? (bookServices.find(s => (s.id || s._id) === bookForm.serviceId)?.name || 'Select treatment...') : 'Select treatment...'}</span>
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#999" strokeWidth="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+              </div>
+              {treatDrop && (
+                <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, marginTop: 4, background: '#fff', border: '1px solid #EBEBEB', borderRadius: 12, boxShadow: '0 8px 24px rgba(0,0,0,0.12)', zIndex: 100, maxHeight: 220, overflowY: 'auto', padding: 4 }}>
+                  {bookServices.map(s => (
+                    <div key={s.id || s._id} onClick={() => { setBookForm(f => ({ ...f, serviceId: s.id || s._id })); setTreatDrop(false) }}
+                      style={{ padding: '10px 12px', fontSize: 13, fontFamily: "'Figtree', sans-serif", cursor: 'pointer', borderRadius: 8, background: bookForm.serviceId === (s.id || s._id) ? '#F5F5F5' : 'transparent', fontWeight: bookForm.serviceId === (s.id || s._id) ? 600 : 400, color: '#111', display: 'flex', justifyContent: 'space-between' }}
+                      onMouseOver={e => e.currentTarget.style.background = '#F5F5F5'} onMouseOut={e => { if (bookForm.serviceId !== (s.id || s._id)) e.currentTarget.style.background = 'transparent' }}>
+                      <span>{s.name}</span>
+                      <span style={{ color: '#888', fontSize: 12 }}>£{s.price || 0} · {s.duration || 60}min</span>
+                    </div>
+                  ))}
+                  {bookServices.length === 0 && <div style={{ padding: '10px 12px', fontSize: 13, color: '#999' }}>No treatments found</div>}
+                </div>
+              )}
+            </div>
           </div>
           <div>
             <label style={{ fontSize: 11, fontWeight: 700, color: '#888', textTransform: 'uppercase', letterSpacing: 0.5 }}>Therapist</label>
-            <select value={bookForm.staffId} onChange={e => setBookForm(f => ({ ...f, staffId: e.target.value }))} style={{ width: '100%', padding: '10px 12px', border: '1px solid #E0E0E0', borderRadius: 10, fontSize: 14, fontFamily: "'Figtree', sans-serif", marginTop: 4, background: '#fff', outline: 'none', boxSizing: 'border-box' }}>
-              <option value="">Any available</option>
-              {(data?.staff || []).map(s => <option key={s.id} value={s.id}>{s.full || s.name}</option>)}
-            </select>
+            <div style={{ position: 'relative', marginTop: 4 }}>
+              <div onClick={() => { setStaffDrop(!staffDrop); setTreatDrop(false) }} style={{ width: '100%', padding: '10px 12px', border: '1px solid #E0E0E0', borderRadius: 10, fontSize: 14, fontFamily: "'Figtree', sans-serif", background: '#FAFAF8', cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center', boxSizing: 'border-box', color: bookForm.staffId ? '#111' : '#999' }}>
+                <span>{bookForm.staffId ? ((data?.staff || []).find(s => s.id === bookForm.staffId)?.name || 'Any available') : 'Any available'}</span>
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#999" strokeWidth="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+              </div>
+              {staffDrop && (
+                <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, marginTop: 4, background: '#fff', border: '1px solid #EBEBEB', borderRadius: 12, boxShadow: '0 8px 24px rgba(0,0,0,0.12)', zIndex: 100, maxHeight: 200, overflowY: 'auto', padding: 4 }}>
+                  <div onClick={() => { setBookForm(f => ({ ...f, staffId: '' })); setStaffDrop(false) }} style={{ padding: '10px 12px', fontSize: 13, color: '#999', cursor: 'pointer', borderRadius: 8, fontFamily: "'Figtree', sans-serif" }} onMouseOver={e => e.currentTarget.style.background = '#F5F5F5'} onMouseOut={e => e.currentTarget.style.background = 'transparent'}>Any available</div>
+                  {(data?.staff || []).map(s => (
+                    <div key={s.id} onClick={() => { setBookForm(f => ({ ...f, staffId: s.id })); setStaffDrop(false) }}
+                      style={{ padding: '10px 12px', fontSize: 13, fontFamily: "'Figtree', sans-serif", cursor: 'pointer', borderRadius: 8, background: bookForm.staffId === s.id ? '#F5F5F5' : 'transparent', fontWeight: bookForm.staffId === s.id ? 600 : 400, color: '#111' }}
+                      onMouseOver={e => e.currentTarget.style.background = '#F5F5F5'} onMouseOut={e => { if (bookForm.staffId !== s.id) e.currentTarget.style.background = 'transparent' }}>
+                      {s.full || s.name}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
             <div>
