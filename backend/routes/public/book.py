@@ -697,6 +697,59 @@ async def create_booking(request: Request, business_slug: str, payload: dict):
 
     await db.bookings.insert_one(doc)
 
+    # ── G11: Auto-schedule patch test for first-time microneedling/peel clients ──
+    if biz_type == "services" and svc:
+        _svc_lower = ((svc.get("name") or "") + " " + (svc.get("category") or "")).lower()
+        needs_patch = "microneedling" in _svc_lower or "peel" in _svc_lower or "chemical" in _svc_lower
+        if needs_patch and (cust_email or cust_phone):
+            # Check if client has a valid patch test (within 90 days)
+            patch_query = {"business_id": biz_id, "type": "patch_test", "status": {"$in": ["completed", "pass"]}}
+            if cust_email:
+                patch_query["client_email"] = cust_email
+            elif cust_phone:
+                patch_query["client_phone"] = cust_phone
+            recent_patch = await db.patch_tests.find_one({
+                **patch_query,
+                "completed_at": {"$gte": datetime.utcnow() - timedelta(days=90)},
+            })
+            if not recent_patch:
+                # Auto-schedule patch test 48 hours before treatment
+                try:
+                    from datetime import datetime as dt
+                    treatment_date = datetime.strptime(payload.get("date", ""), "%Y-%m-%d")
+                    patch_date = treatment_date - timedelta(days=2)
+                    patch_ref = f"PT-{doc.get('reference', 'XXX')}"
+                    patch_doc = {
+                        "_id": f"pt_{datetime.utcnow().strftime('%Y%m%d%H%M%S')}_{biz_id[:8]}",
+                        "reference": patch_ref,
+                        "businessId": biz_id,
+                        "type": "patch_test",
+                        "linked_booking_id": doc["_id"],
+                        "status": "confirmed",
+                        "service": {"id": "patch_test", "name": "Patch Test", "duration": 15, "price": 0},
+                        "staffId": doc.get("staffId"),
+                        "date": patch_date.strftime("%Y-%m-%d"),
+                        "time": "10:00",
+                        "duration": 15,
+                        "endTime": "10:15",
+                        "customer": doc.get("customer", {}),
+                        "notes": f"Auto-scheduled patch test before {svc.get('name', 'treatment')} on {payload.get('date', '')}",
+                        "source": "auto_patch_test",
+                        "createdAt": datetime.utcnow(),
+                        "updatedAt": datetime.utcnow(),
+                    }
+                    await db.bookings.insert_one(patch_doc)
+                    # Mark main booking as pending patch test
+                    await db.bookings.update_one(
+                        {"_id": doc["_id"]},
+                        {"$set": {"patch_test_required": True, "patch_test_booking_id": patch_doc["_id"], "status": "pending_patch_test"}}
+                    )
+                    doc["patch_test_scheduled"] = True
+                    doc["patch_test_date"] = patch_date.strftime("%Y-%m-%d")
+                    logger.info(f"Patch test auto-scheduled for {doc.get('reference')} on {patch_date.strftime('%Y-%m-%d')}")
+                except Exception as patch_err:
+                    logger.warning(f"Patch test auto-schedule failed: {patch_err}")
+
     if client_id:
         await refresh_client_stats(db, biz_id, client_id)
 
@@ -993,7 +1046,83 @@ async def cancel_booking(business_slug: str, booking_id: str, email: str = Query
     except Exception as sms_err:
         logger.warning(f"Cancel SMS failed: {sms_err}")
 
+    # G12: Notify waitlist clients about the newly available slot
+    try:
+        import asyncio
+        asyncio.ensure_future(_notify_waitlist(db, business, bkg))
+    except Exception as wl_err:
+        logger.warning(f"Waitlist notification failed: {wl_err}")
+
     return {"detail": "Booking cancelled"}
+
+
+async def _notify_waitlist(db, business, cancelled_booking):
+    """
+    G12: When a booking is cancelled, notify clients on the waitlist.
+    Clients opt in via client portal toggle: 'Notify me of cancellations'.
+    """
+    biz_id = str(business["_id"])
+    biz_name = business.get("name", "")
+    cancelled_date = cancelled_booking.get("date", "")
+    cancelled_time = cancelled_booking.get("time", "")
+    service = cancelled_booking.get("service")
+    service_name = service.get("name", "treatment") if isinstance(service, dict) else str(service or "appointment")
+
+    # Find opted-in clients for this business
+    waitlist_clients = await db.client_notification_prefs.find({
+        "business_id": biz_id,
+        "cancellation_alerts": True,
+    }).to_list(50)
+
+    if not waitlist_clients:
+        return
+
+    sent = 0
+    for client in waitlist_clients:
+        # Don't notify the person who just cancelled
+        cancelled_email = (cancelled_booking.get("customer") or {}).get("email", "").lower()
+        if client.get("email", "").lower() == cancelled_email:
+            continue
+
+        phone = client.get("phone")
+        email = client.get("email")
+
+        # SMS notification
+        if phone:
+            try:
+                from helpers.sms import send_sms
+                sms_body = (
+                    f"A {service_name} slot just opened at {biz_name} on "
+                    f"{cancelled_date} at {cancelled_time}! "
+                    f"Book now before it's gone — first come, first served.\n- ReeveOS"
+                )
+                import asyncio
+                asyncio.ensure_future(send_sms(phone, sms_body))
+                sent += 1
+            except Exception:
+                pass
+
+        # Email notification
+        if email:
+            try:
+                from helpers.email import send_email, wrap_html
+                body = f"""
+                <h2>A slot just opened!</h2>
+                <p>Great news — a <strong>{service_name}</strong> appointment at <strong>{biz_name}</strong>
+                has become available on <strong>{cancelled_date}</strong> at <strong>{cancelled_time}</strong>.</p>
+                <p>Book now — first come, first served!</p>
+                <div style="text-align:center; margin:24px 0;">
+                  <a href="https://portal.rezvo.app/book/{business.get('slug', '')}" class="cta">Book Now</a>
+                </div>
+                """
+                html = wrap_html(body, preheader=f"Slot available at {biz_name}!")
+                import asyncio
+                asyncio.ensure_future(send_email(to=email, subject=f"Slot available at {biz_name}!", html=html))
+            except Exception:
+                pass
+
+    if sent:
+        logger.info(f"Waitlist: notified {sent} clients about cancelled slot at {biz_name}")
 
 
 def _format_booking(bkg, business):
