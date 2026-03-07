@@ -29,6 +29,7 @@ const PAGE_TITLES = {
   '/dashboard/notifications': 'Notifications',
   '/dashboard/pipeline': 'Sales Pipeline',
   '/dashboard/crm': 'CRM',
+  '/dashboard/shop': 'Shop',
   '/dashboard/portal-clients': 'Clients',
   '/dashboard/consultation-forms': 'Consultation Forms',
   '/dashboard/client-messages': 'Messages',

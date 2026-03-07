@@ -14,7 +14,7 @@ import {
   LayoutGrid, Megaphone, Settings, HelpCircle,
   ChevronLeft, ChevronRight, ChevronDown, Lock,
   Send, Bot, Linkedin, Bell,
-  Package, Flame, Clock, Wallet, ClipboardCheck, MessageSquare, Monitor, Target, Columns3
+  Package, Flame, Clock, Wallet, ClipboardCheck, MessageSquare, Monitor, Target, Columns3, Tag
 } from 'lucide-react'
 
 /* ── Color tokens ── */
@@ -144,6 +144,14 @@ function buildSections(navItems, tier, businessType) {
         { id: 'crm-pipeline', label: 'Pipeline', path: '/dashboard/crm?view=pipeline', Icon: Columns3, locked: false },
         { id: 'crm-clients', label: 'Clients', path: '/dashboard/crm?view=clients', Icon: BookUser, locked: false },
         { id: 'crm-analytics', label: 'Analytics', path: '/dashboard/crm?view=analytics', Icon: BarChart3, locked: false },
+      ]},
+    ]},
+    { label: 'SHOP', items: [
+      { id: 'shop-section', Icon: ShoppingBag, label: 'Shop', children: [
+        { id: 'shop-products', label: 'Products', path: '/dashboard/shop?tab=products', Icon: Package, locked: false },
+        { id: 'shop-orders', label: 'Orders', path: '/dashboard/shop?tab=orders', Icon: ShoppingBag, locked: false },
+        { id: 'shop-discounts', label: 'Discounts', path: '/dashboard/shop?tab=discounts', Icon: Tag, locked: false },
+        { id: 'shop-vouchers', label: 'Gift Vouchers', path: '/dashboard/shop?tab=vouchers', Icon: CreditCard, locked: false },
       ]},
     ]},
     { label: 'CLIENT PORTAL', items: [
