@@ -363,6 +363,11 @@ export default function ClientPortal(){
   if(view==='form')return(
     <Shell biz={biz} user={user} desk={desk} activeTab={activeTab} onNav={navTo} onLogout={logout} tab="form">
       <div ref={topRef}/>
+      {/* Desktop form header with back button */}
+      {desk&&<div style={{background:$.card,padding:'12px 20px 0',display:'flex',alignItems:'center'}}>
+        <button onClick={()=>step>0?goStep(step-1):setView('home')} style={{width:36,height:36,borderRadius:10,border:`1px solid ${$.bdr}`,background:$.card,display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer',flexShrink:0}}>{I.back($.txtM)}</button>
+        <p style={{fontSize:15,fontWeight:700,color:$.h,margin:'0 0 0 12px'}}>Consultation Form</p>
+      </div>}
       {/* Mobile form header (Figma 1:163) */}
       {!desk&&<div style={{background:$.card,padding:'16px 16px 0',display:'flex',alignItems:'center'}}>
         <button onClick={()=>step>0?goStep(step-1):setView('home')} style={{width:40,height:40,borderRadius:12,border:'none',background:'transparent',display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer'}}>{I.back($.h,18)}</button>
@@ -396,7 +401,7 @@ export default function ClientPortal(){
         </div>
       </div>
       {/* Steps */}
-      <div style={{flex:1,overflowY:'auto',paddingBottom:desk?80:120}}>
+      <div style={{flex:1,overflowY:'auto',paddingBottom:desk?120:140}}>
         <div style={{maxWidth:680,margin:'0 auto',padding:desk?'24px 20px 0':'16px 12px 0'}}>
 
           {step===0&&<div>
@@ -918,6 +923,11 @@ export default function ClientPortal(){
     <Shell biz={biz} user={user} desk={desk} activeTab={activeTab} onNav={navTo} onLogout={logout} tab="messages">
       <TopBar biz={biz} user={user} desk={desk}/>
       <div style={{flex:1,display:'flex',flexDirection:'column',paddingBottom:desk?0:120}}>
+        {/* Back + title */}
+        <div style={{display:'flex',alignItems:'center',gap:12,padding:desk?'12px 20px':'12px 16px',background:$.card,borderBottom:`1px solid ${$.bdr}`}}>
+          <button onClick={()=>navTo('home')} style={{width:36,height:36,borderRadius:10,border:`1px solid ${$.bdr}`,background:$.card,display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer',flexShrink:0}}>{I.back($.txtM)}</button>
+          <h2 style={{fontSize:desk?18:16,fontWeight:700,color:$.h,margin:0}}>Messages & Support</h2>
+        </div>
         {/* Tab bar: Chat / AI Support */}
         <div style={{display:'flex',borderBottom:`1px solid ${$.bdr}`,background:$.card,flexShrink:0}}>
           {[{id:'chat',label:'Messages'},{id:'ai',label:'AI Support'}].map(t=>(
@@ -978,7 +988,11 @@ export default function ClientPortal(){
       <TopBar biz={biz} user={user} desk={desk}/>
       <div style={{flex:1,overflowY:'auto',paddingBottom:desk?0:120}}>
         <div style={{maxWidth:800,margin:'0 auto',padding:desk?'24px 24px 32px':'16px 12px'}}>
-          {/* Profile header */}
+          {/* Back + Profile header */}
+          <div style={{display:'flex',alignItems:'center',gap:12,marginBottom:20}}>
+            <button onClick={()=>navTo('home')} style={{width:36,height:36,borderRadius:10,border:`1px solid ${$.bdr}`,background:$.card,display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer',flexShrink:0}}>{I.back($.txtM)}</button>
+            <h2 style={{fontSize:desk?20:18,fontWeight:700,color:$.h,margin:0}}>My Profile</h2>
+          </div>
           <div style={{display:'flex',alignItems:'center',gap:16,marginBottom:24}}>
             <div style={{width:desk?64:56,height:desk?64:56,borderRadius:99,border:`3px solid ${$.acc}`,background:$.bg,display:'flex',alignItems:'center',justifyContent:'center',fontSize:desk?24:20,fontWeight:700,color:$.acc,flexShrink:0}}>{(user?.name||'?').charAt(0)}</div>
             <div>
