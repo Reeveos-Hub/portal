@@ -75,6 +75,8 @@ export default function CRM() {
   const [timeline, setTimeline] = useState([])
   const [dragItem, setDragItem] = useState(null)
   const [interactionModal, setInteractionModal] = useState(false)
+  const [pipelinePeriod, setPipelinePeriod] = useState('all')
+  const [pipelineDate, setPipelineDate] = useState(new Date().toISOString().slice(0, 10))
 
   // Load data based on view
   const loadDashboard = useCallback(async () => {
@@ -145,6 +147,31 @@ export default function CRM() {
     } catch (e) { console.error(e) }
   }
 
+  const pipelineDateLabel = new Date(pipelineDate + 'T12:00').toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' })
+  const pipelineIsToday = pipelineDate === new Date().toISOString().slice(0, 10)
+  const ChevL = () => <svg width={14} height={14} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round"><path d="M15 18l-6-6 6-6"/></svg>
+  const ChevR = () => <svg width={14} height={14} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round"><path d="M9 18l6-6-6-6"/></svg>
+  const pipelineGoPrev = () => { const d = new Date(pipelineDate + 'T12:00'); if (pipelinePeriod === 'week') d.setDate(d.getDate() - 7); else if (pipelinePeriod === 'month') d.setMonth(d.getMonth() - 1); else d.setDate(d.getDate() - 1); setPipelineDate(d.toISOString().slice(0, 10)) }
+  const pipelineGoNext = () => { const d = new Date(pipelineDate + 'T12:00'); if (pipelinePeriod === 'week') d.setDate(d.getDate() + 7); else if (pipelinePeriod === 'month') d.setMonth(d.getMonth() + 1); else d.setDate(d.getDate() + 1); setPipelineDate(d.toISOString().slice(0, 10)) }
+
+  const PipelineDatePill = () => (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 2, background: '#F5F5F5', borderRadius: 24, padding: '2px 3px' }}>
+        <button onClick={pipelineGoPrev} style={{ width: 28, height: 28, borderRadius: '50%', border: 'none', background: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#111', boxShadow: '0 1px 3px rgba(0,0,0,0.06)' }}><ChevL /></button>
+        <span style={{ fontSize: 12, fontWeight: 700, color: '#111', padding: '0 4px', whiteSpace: 'nowrap' }}>{pipelineDateLabel}</span>
+        <button onClick={pipelineGoNext} style={{ width: 28, height: 28, borderRadius: '50%', border: 'none', background: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#111', boxShadow: '0 1px 3px rgba(0,0,0,0.06)' }}><ChevR /></button>
+      </div>
+      <button onClick={() => setPipelineDate(new Date().toISOString().slice(0, 10))} style={{ padding: '5px 12px', borderRadius: 16, border: 'none', background: pipelineIsToday ? '#111' : '#F5F5F5', color: pipelineIsToday ? '#fff' : '#111', fontSize: 11, fontWeight: 700, cursor: 'pointer' }}>Today</button>
+      <div style={{ width: 1, height: 20, background: '#EBEBEB' }} />
+      <div style={{ display: 'flex', background: '#F5F5F5', borderRadius: 16, padding: 2 }}>
+        {['All', 'Day', 'Week', 'Month'].map(v => {
+          const val = v.toLowerCase()
+          return <button key={v} onClick={() => setPipelinePeriod(val)} style={{ padding: '5px 12px', borderRadius: 14, border: 'none', cursor: 'pointer', fontSize: 11, fontWeight: pipelinePeriod === val ? 700 : 500, background: pipelinePeriod === val ? '#fff' : 'transparent', color: pipelinePeriod === val ? '#111' : '#999', boxShadow: pipelinePeriod === val ? '0 1px 4px rgba(0,0,0,0.06)' : 'none', transition: 'all 0.15s', fontFamily: "'Figtree', sans-serif" }}>{v}</button>
+        })}
+      </div>
+    </div>
+  )
+
   if (loading && !dashboard && !pipelineData && !error) return <AppLoader message="Loading CRM..." />
   if (error) return (
     <div style={{ fontFamily: "'Figtree', sans-serif", padding: 40, textAlign: 'center' }}>
@@ -178,13 +205,14 @@ export default function CRM() {
               style={{ paddingLeft: 32, padding: '7px 12px 7px 32px', border: '1px solid #E0E0E0', borderRadius: 10, fontSize: 13, width: 220, outline: 'none', fontFamily: "'Figtree', sans-serif" }} />
           </div>
         )}
+        {view === 'pipeline' && <PipelineDatePill />}
       </div>
 
       {/* ── Content ── */}
       <div style={{ flex: 1, overflow: 'hidden', display: 'flex' }}>
         <div style={{ flex: 1, overflowY: 'auto', overflowX: view === 'pipeline' ? 'auto' : 'hidden' }}>
           {view === 'dashboard' && <DashboardView data={dashboard} onClientClick={openClient} />}
-          {view === 'pipeline' && <PipelineView data={pipelineData} onClientClick={openClient} moveClient={moveClient} dragItem={dragItem} setDragItem={setDragItem} />}
+          {view === 'pipeline' && <PipelineView data={pipelineData} onClientClick={openClient} moveClient={moveClient} dragItem={dragItem} setDragItem={setDragItem} period={pipelinePeriod} selectedDate={pipelineDate} />}
           {view === 'clients' && <ClientListView clients={clients} search={search} onClientClick={openClient} />}
           {view === 'analytics' && <AnalyticsView data={analyticsData} />}
         </div>
@@ -313,31 +341,9 @@ function DashboardView({ data, onClientClick }) {
 // ═══════════════════════════════════════════════════════════════
 // PIPELINE VIEW
 // ═══════════════════════════════════════════════════════════════
-function PipelineView({ data, onClientClick, moveClient, dragItem, setDragItem }) {
+function PipelineView({ data, onClientClick, moveClient, dragItem, setDragItem, period, selectedDate }) {
   if (!data) return <div style={{ padding: 40, textAlign: 'center', color: '#999' }}>Loading pipeline...</div>
   const { stages, pipeline, stage_values } = data
-  const [period, setPeriod] = useState('all')
-  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().slice(0, 10))
-
-  const now = new Date()
-  const isToday = selectedDate === now.toISOString().slice(0, 10)
-  const dateLabel = new Date(selectedDate + 'T12:00').toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' })
-
-  const goPrev = () => {
-    const d = new Date(selectedDate + 'T12:00')
-    if (period === 'week') d.setDate(d.getDate() - 7)
-    else if (period === 'month') d.setMonth(d.getMonth() - 1)
-    else d.setDate(d.getDate() - 1)
-    setSelectedDate(d.toISOString().slice(0, 10))
-  }
-  const goNext = () => {
-    const d = new Date(selectedDate + 'T12:00')
-    if (period === 'week') d.setDate(d.getDate() + 7)
-    else if (period === 'month') d.setMonth(d.getMonth() + 1)
-    else d.setDate(d.getDate() + 1)
-    setSelectedDate(d.toISOString().slice(0, 10))
-  }
-  const goToday = () => setSelectedDate(new Date().toISOString().slice(0, 10))
 
   // Filter clients by period
   const filterByPeriod = (clients) => {
@@ -354,32 +360,8 @@ function PipelineView({ data, onClientClick, moveClient, dragItem, setDragItem }
     })
   }
 
-  const ChevL = () => <svg width={14} height={14} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round"><path d="M15 18l-6-6 6-6"/></svg>
-  const ChevR = () => <svg width={14} height={14} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round"><path d="M9 18l6-6-6-6"/></svg>
-
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-      {/* Date Pill Bar */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '12px 16px', flexShrink: 0, borderBottom: '1px solid #EBEBEB', background: '#fff' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 2, background: '#F5F5F5', borderRadius: 24, padding: '3px 4px' }}>
-          <button onClick={goPrev} style={{ width: 30, height: 30, borderRadius: '50%', border: 'none', background: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#111', boxShadow: '0 1px 3px rgba(0,0,0,0.06)' }}><ChevL /></button>
-          <span style={{ fontSize: 13, fontWeight: 700, color: '#111', padding: '0 6px', whiteSpace: 'nowrap' }}>{dateLabel}</span>
-          <button onClick={goNext} style={{ width: 30, height: 30, borderRadius: '50%', border: 'none', background: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#111', boxShadow: '0 1px 3px rgba(0,0,0,0.06)' }}><ChevR /></button>
-        </div>
-        <button onClick={goToday} style={{ padding: '7px 16px', borderRadius: 20, border: 'none', background: isToday ? '#111' : '#F5F5F5', color: isToday ? '#fff' : '#111', fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>Today</button>
-        <div style={{ width: 1, height: 24, background: '#EBEBEB' }} />
-        <div style={{ display: 'flex', background: '#F5F5F5', borderRadius: 20, padding: 3 }}>
-          {['All', 'Day', 'Week', 'Month'].map(v => {
-            const val = v.toLowerCase()
-            return (
-              <button key={v} onClick={() => setPeriod(val)} style={{ padding: '6px 16px', borderRadius: 18, border: 'none', cursor: 'pointer', fontSize: 12, fontWeight: period === val ? 700 : 500, background: period === val ? '#fff' : 'transparent', color: period === val ? '#111' : '#999', boxShadow: period === val ? '0 2px 6px rgba(0,0,0,0.06)' : 'none', transition: 'all 0.15s', fontFamily: "'Figtree', sans-serif" }}>{v}</button>
-            )
-          })}
-        </div>
-      </div>
-
-      {/* Kanban Columns */}
-      <div style={{ display: 'flex', gap: 12, padding: 16, flex: 1, overflowX: 'auto', overflowY: 'hidden' }}>
+    <div style={{ display: 'flex', gap: 12, padding: 16, height: '100%', overflowX: 'auto', overflowY: 'hidden' }}>
       {(stages || []).map(stage => {
         const clients = filterByPeriod(pipeline[stage.id] || [])
         const stageVal = stage_values?.[stage.id] || 0
@@ -423,10 +405,9 @@ function PipelineView({ data, onClientClick, moveClient, dragItem, setDragItem }
               ))}
               {clients.length === 0 && <div style={{ padding: 16, textAlign: 'center', fontSize: 11, color: '#BBB' }}>Empty</div>}
             </div>
-          </div>
-        )
-      })}
       </div>
+    )
+      })}
     </div>
   )
 }
