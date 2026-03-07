@@ -735,7 +735,7 @@ This is a local services business (salon/clinic/spa), NOT a restaurant. Use "app
                       <span style={{ fontSize:18, fontWeight:700, color:'#111111' }}>Walk-in</span>
                       <span style={{ background:'#D4A37320', color:'#D4A373', padding:'3px 12px', borderRadius:999, fontSize:11, fontWeight:700 }}>Starting now</span>
                     </div>
-                    <div style={{ fontSize:12, color:'#666', marginTop:1 }}>Quick-seat a walk-in guest</div>
+                    <div style={{ fontSize:12, color:'#666', marginTop:1 }}>{isRestaurant ? 'Quick-seat a walk-in guest' : 'Quick-add a walk-in client'}</div>
                   </div>
                 </div>
                 <button onClick={() => setActivePanel(null)} style={{ width:32, height:32, borderRadius:'50%', border:'none', background:'transparent', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', color:'#666' }}>
@@ -747,11 +747,11 @@ This is a local services business (salon/clinic/spa), NOT a restaurant. Use "app
             {/* Form — CRM styled */}
             <div style={{ flex:1, overflowY:'auto', padding:24, display:'flex', flexDirection:'column', gap:20 }}>
               <div>
-                <label style={{ fontSize:13, fontWeight:600, color:'#999', textTransform:'uppercase', letterSpacing:'0.08em', marginBottom:8, display:'block' }}>Guest name (optional)</label>
+                <label style={{ fontSize:13, fontWeight:600, color:'#999', textTransform:'uppercase', letterSpacing:'0.08em', marginBottom:8, display:'block' }}>{isRestaurant ? 'Guest name (optional)' : 'Client name'}</label>
                 <input value={walkinForm.name} onChange={e => setWalkinForm({...walkinForm, name:e.target.value})} placeholder="Name" style={{ width:'100%', padding:'12px 16px', borderRadius:12, border:'1px solid #EBEBEB', fontSize:14, fontFamily:"'Figtree', sans-serif", background:'#FAFAF8', outline:'none' }} />
               </div>
 
-              <div>
+              {isRestaurant && (<div>
                 <label style={{ fontSize:13, fontWeight:600, color:'#999', textTransform:'uppercase', letterSpacing:'0.08em', marginBottom:8, display:'block' }}>Party size</label>
                 <div style={{ display:'flex', gap:8, flexWrap:'wrap' }}>
                   {[1,2,3,4,5,6,7,8].map(n => (
@@ -762,9 +762,9 @@ This is a local services business (salon/clinic/spa), NOT a restaurant. Use "app
                     }}>{n}</button>
                   ))}
                 </div>
-              </div>
+              </div>)}
 
-              <div>
+              {isRestaurant && (<div>
                 <label style={{ fontSize:13, fontWeight:600, color:'#999', textTransform:'uppercase', letterSpacing:'0.08em', marginBottom:8, display:'block' }}>Table (optional)</label>
                 <div style={{ position:'relative' }}>
                   <div onClick={() => setWalkinTableDrop(!walkinTableDrop)} style={{ width:'100%', padding:'12px 16px', borderRadius:12, border:'1px solid #EBEBEB', fontSize:14, fontFamily:"'Figtree', sans-serif", background:'#FAFAF8', color: walkinForm.table ? '#111111' : '#999', cursor:'pointer', display:'flex', justifyContent:'space-between', alignItems:'center' }}>
@@ -780,7 +780,12 @@ This is a local services business (salon/clinic/spa), NOT a restaurant. Use "app
                     </div>
                   )}
                 </div>
-              </div>
+              </div>)}
+
+              {!isRestaurant && (<div>
+                <label style={{ fontSize:13, fontWeight:600, color:'#999', textTransform:'uppercase', letterSpacing:'0.08em', marginBottom:8, display:'block' }}>Phone</label>
+                <input value={walkinForm.phone || ''} onChange={e => setWalkinForm({...walkinForm, phone:e.target.value})} placeholder="07..." style={{ width:'100%', padding:'12px 16px', borderRadius:12, border:'1px solid #EBEBEB', fontSize:14, fontFamily:"'Figtree', sans-serif", background:'#FAFAF8', outline:'none' }} />
+              </div>)}
 
               <div>
                 <label style={{ fontSize:13, fontWeight:600, color:'#999', textTransform:'uppercase', letterSpacing:'0.08em', marginBottom:8, display:'block' }}>Notes</label>
@@ -791,7 +796,7 @@ This is a local services business (salon/clinic/spa), NOT a restaurant. Use "app
             {/* Footer — CRM action bar */}
             <div style={{ padding:16, borderTop:'1px solid #EBEBEB', flexShrink:0 }}>
               {saveSuccess && <div style={{ marginBottom:8, padding:'10px 16px', borderRadius:10, background: saveSuccess.includes('!') ? '#FFF8F0' : '#FFFBEB', color: '#92400E', fontSize:13, fontWeight:600, textAlign:'center' }}>{saveSuccess}</div>}
-              <button onClick={handleSaveWalkin} disabled={saving} style={{ width:'100%', padding:'14px', borderRadius:999, border:'none', background: saving ? '#9CA3AF' : '#D4A373', color:'white', fontSize:14, fontWeight:700, cursor: saving ? 'wait' : 'pointer', fontFamily:"'Figtree', sans-serif", boxShadow:'0 4px 12px rgba(212,163,115,.3)', transition:'all 0.2s' }}>{saving ? 'Saving...' : 'Seat Walk-in'}</button>
+              <button onClick={handleSaveWalkin} disabled={saving} style={{ width:'100%', padding:'14px', borderRadius:999, border:'none', background: saving ? '#9CA3AF' : '#D4A373', color:'white', fontSize:14, fontWeight:700, cursor: saving ? 'wait' : 'pointer', fontFamily:"'Figtree', sans-serif", boxShadow:'0 4px 12px rgba(212,163,115,.3)', transition:'all 0.2s' }}>{saving ? 'Saving...' : isRestaurant ? 'Seat Walk-in' : 'Check In Walk-in'}</button>
             </div>
           </div>
         </>
