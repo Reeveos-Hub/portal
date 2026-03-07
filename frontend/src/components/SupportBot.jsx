@@ -386,7 +386,7 @@ Use this data to answer questions about today's bookings, covers, availability, 
         
         .reeveos-chat-bubble {
           position: fixed;
-          bottom: 20px;
+          bottom: 90px;
           right: 20px;
           z-index: 50;
           width: 52px;

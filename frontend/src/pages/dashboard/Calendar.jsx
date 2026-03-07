@@ -342,21 +342,33 @@ const Calendar = () => {
 
   const startDragMove = useCallback((e, a) => {
     if (e.button !== 0) return
-    e.preventDefault()
-    e.stopPropagation()
-    const gridY = getGridY(e.clientY)
+    const startX = e.clientX, startY = e.clientY
+    const gridY = getGridY(startY)
     const blockTop = timeToPx(a.start)
     const offsetY = gridY - blockTop
-    const d = {
-      id: a.id, type: 'move', offsetY,
-      origStart: a.start, origDur: a.dur, origStaffId: a.staffId,
-      ghostTop: blockTop, ghostH: a.dur * HH, ghostStaffId: a.staffId,
+
+    const onFirstMove = (me) => {
+      const dx = me.clientX - startX, dy = me.clientY - startY
+      if (Math.abs(dx) < 5 && Math.abs(dy) < 5) return
+      window.removeEventListener('mousemove', onFirstMove)
+      window.removeEventListener('mouseup', onFirstUp)
+      const d = {
+        id: a.id, type: 'move', offsetY,
+        origStart: a.start, origDur: a.dur, origStaffId: a.staffId,
+        ghostTop: blockTop, ghostH: a.dur * HH, ghostStaffId: a.staffId,
+      }
+      dragRef.current = d
+      setDrag(d)
+      setSelA(null)
+      document.body.style.cursor = 'grabbing'
+      document.body.style.userSelect = 'none'
     }
-    dragRef.current = d
-    setDrag(d)
-    setSelA(null)
-    document.body.style.cursor = 'grabbing'
-    document.body.style.userSelect = 'none'
+    const onFirstUp = () => {
+      window.removeEventListener('mousemove', onFirstMove)
+      window.removeEventListener('mouseup', onFirstUp)
+    }
+    window.addEventListener('mousemove', onFirstMove)
+    window.addEventListener('mouseup', onFirstUp)
   }, [getGridY])
 
   const startDragResize = useCallback((e, a) => {
@@ -808,6 +820,21 @@ const Calendar = () => {
                       const y = e.clientY - r.top + (scrollRef.current?.scrollTop || 0)
                       setHoverRow(Math.floor(y / HH))
                       if (hovS === staff.id && !hovA && !selA) setHovSlot(Math.floor(y / (HH / 2)) * (HH / 2))
+                    }}
+                    onClick={e => {
+                      if (drag || hovA || selA) return
+                      const r = e.currentTarget.getBoundingClientRect()
+                      const y = e.clientY - r.top + (scrollRef.current?.scrollTop || 0)
+                      const slotHour = SH + y / HH
+                      const h = Math.floor(slotHour)
+                      const m = Math.round((slotHour - h) * 60 / 15) * 15
+                      const timeStr = `${String(h).padStart(2,'0')}:${String(m % 60).padStart(2,'0')}`
+                      setBookForm(f => ({ ...f, date: selectedDate, time: timeStr, staffId: staff.id, customerName: '', customerPhone: '', customerEmail: '', serviceId: '', notes: '' }))
+                      setBookError('')
+                      setShowBook(true)
+                      if (bid && bookServices.length === 0) {
+                        api.get(`/services-v2/business/${bid}`).then(r => setBookServices((r.categories || []).flatMap(c => c.services || []))).catch(() => {})
+                      }
                     }}
                     style={{
                       flex: 1, position: 'relative', borderLeft: '1px solid #EBEBEB',

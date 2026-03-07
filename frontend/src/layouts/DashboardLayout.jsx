@@ -76,7 +76,7 @@ const DashboardLayout = () => {
           onViewPlans={() => setUpgradeModal(null)}
         />
       )}
-      {location.pathname !== '/dashboard/calendar' && <SupportBot />}
+      <SupportBot />
       <WelcomeBanner />
     </div>
   )
