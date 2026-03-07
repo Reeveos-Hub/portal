@@ -12,7 +12,7 @@ import api from '../../utils/api'
 const STATUS_CONFIG = {
   confirmed: { label: 'Confirmed', bg: 'bg-green-50', text: 'text-green-700', border: 'border-green-100', bar: 'bg-emerald-500' },
   pending: { label: 'Pending', bg: 'bg-amber-50', text: 'text-amber-700', border: 'border-amber-100', bar: 'bg-amber-400' },
-  checked_in: { label: 'Seated', bg: 'bg-blue-50', text: 'text-blue-700', border: 'border-blue-100', bar: 'bg-blue-500' },
+  checked_in: { label: 'In Progress', bg: 'bg-blue-50', text: 'text-blue-700', border: 'border-blue-100', bar: 'bg-blue-500' },
   completed: { label: 'Finished', bg: 'bg-gray-100', text: 'text-gray-600', border: 'border-gray-200', bar: 'bg-gray-400' },
   cancelled: { label: 'Cancelled', bg: 'bg-red-50', text: 'text-red-700', border: 'border-red-100', bar: 'bg-red-400' },
   no_show: { label: 'No-show', bg: 'bg-red-50', text: 'text-red-600', border: 'border-red-100', bar: 'bg-red-500' },

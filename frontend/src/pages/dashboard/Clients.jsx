@@ -1,5 +1,5 @@
 /**
- * Guest CRM — matching UXPilot Guest Profile + Detail Panel designs
+ * Client CRM — matching UXPilot Client Profile + Detail Panel designs
  * Card grid list + full profile view with activity timeline, preferences, spend insights
  */
 import { useState, useEffect } from 'react'
@@ -34,7 +34,7 @@ const TAG_STYLES = {
 }
 
 const FILTER_TABS = [
-  { id: 'all', label: 'All Guests' },
+  { id: 'all', label: 'All Clients' },
   { id: 'vip', label: 'VIP' },
   { id: 'regular', label: 'Regular' },
   { id: 'new', label: 'New' },
@@ -43,7 +43,8 @@ const FILTER_TABS = [
 
 const Clients = () => {
   const navigate = useNavigate()
-  const { business, loading: bizLoading } = useBusiness()
+  const { business, businessType, loading: bizLoading } = useBusiness()
+  const isRestaurant = businessType === 'restaurant'
   const bid = business?.id ?? business?._id
   const [guests, setGuests] = useState([])
   const [loading, setLoading] = useState(true)
@@ -110,7 +111,7 @@ const Clients = () => {
     return true
   })
 
-  if (loading) return <AppLoader message="Loading guests..." />
+  if (loading) return <AppLoader message="Loading clients..." />
 
   /* ── GUEST PROFILE VIEW ── */
   if (selectedGuest) {
@@ -125,7 +126,7 @@ const Clients = () => {
               <ArrowLeft className="w-4 h-4" />
             </button>
             <div className="flex items-center gap-2 text-sm text-gray-400">
-              <span className="hover:text-primary cursor-pointer" onClick={() => setSelectedGuest(null)}>Guests</span>
+              <span className="hover:text-primary cursor-pointer" onClick={() => setSelectedGuest(null)}>Clients</span>
               <ChevronRight className="w-3 h-3" />
               <span className="text-primary font-semibold">{g.name}</span>
             </div>
@@ -327,11 +328,11 @@ const Clients = () => {
         <div className="max-w-7xl mx-auto space-y-6">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
-              <h1 className="text-2xl font-extrabold text-primary">Guest CRM</h1>
-              <p className="text-sm text-gray-500">{filteredGuests.length} guest{filteredGuests.length !== 1 ? 's' : ''} in your database</p>
+              <h1 className="text-2xl font-extrabold text-primary">Client CRM</h1>
+              <p className="text-sm text-gray-500">{filteredGuests.length} {isRestaurant ? 'guest' : 'client'}{filteredGuests.length !== 1 ? 's' : ''} in your database</p>
             </div>
             <button onClick={() => setAddGuestModal(true)} className="bg-[#111111] text-white font-bold text-xs px-5 py-2 rounded-full shadow-lg shadow-[#111111]/20 hover:bg-[#1a1a1a] transition-all flex items-center gap-2" style={{ fontFamily: "'Figtree', sans-serif" }}>
-              <UserPlus className="w-4 h-4" /> Add Guest
+              <UserPlus className="w-4 h-4" /> Add Client
             </button>
           </div>
 
@@ -343,7 +344,7 @@ const Clients = () => {
             </div>
             <div className="relative flex-1 max-w-xs">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-              <input type="text" value={search} onChange={e => setSearch(e.target.value)} placeholder="Search guests..." className="w-full pl-10 pr-4 py-2.5 bg-white border border-gray-200 rounded-full text-sm font-medium focus:outline-none focus:ring-2 focus:ring-[#111111]/15 focus:border-[#111111]/30 shadow-sm transition-all" style={{ fontFamily: "'Figtree', sans-serif" }} />
+              <input type="text" value={search} onChange={e => setSearch(e.target.value)} placeholder="Search clients..." className="w-full pl-10 pr-4 py-2.5 bg-white border border-gray-200 rounded-full text-sm font-medium focus:outline-none focus:ring-2 focus:ring-[#111111]/15 focus:border-[#111111]/30 shadow-sm transition-all" style={{ fontFamily: "'Figtree', sans-serif" }} />
             </div>
           </div>
 
@@ -387,8 +388,8 @@ const Clients = () => {
           {filteredGuests.length === 0 && (
             <div className="text-center py-16">
               <Users className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-              <p className="text-gray-500 font-medium">No guests found</p>
-              <p className="text-sm text-gray-400 mt-1">Guests will appear here as they make bookings</p>
+              <p className="text-gray-500 font-medium">No clients found</p>
+              <p className="text-sm text-gray-400 mt-1">Clients will appear here as they make bookings</p>
             </div>
           )}
         </div>
@@ -405,7 +406,7 @@ const AddGuestModal = ({ onClose, onAdd }) => {
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm" onClick={onClose}>
       <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl" onClick={e => e.stopPropagation()} style={{ fontFamily: "'Figtree', sans-serif" }}>
         <div className="flex items-center justify-between mb-5">
-          <h3 className="font-extrabold text-lg text-primary">Add Guest</h3>
+          <h3 className="font-extrabold text-lg text-primary">Add Client</h3>
           <button onClick={onClose} className="w-8 h-8 rounded-lg hover:bg-gray-100 flex items-center justify-center text-gray-400"><X className="w-5 h-5" /></button>
         </div>
         <div className="space-y-4">
@@ -421,12 +422,12 @@ const AddGuestModal = ({ onClose, onAdd }) => {
           ))}
           <div>
             <label className="block text-sm font-bold text-primary mb-1.5">Notes</label>
-            <textarea value={form.notes} onChange={e => setForm(prev => ({ ...prev, notes: e.target.value }))} className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary" rows={2} placeholder="Dietary preferences, special requests..." />
+            <textarea value={form.notes} onChange={e => setForm(prev => ({ ...prev, notes: e.target.value }))} className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary" rows={2} placeholder="Treatment preferences, notes..." />
           </div>
         </div>
         <div className="flex gap-3 mt-6">
           <button onClick={onClose} className="flex-1 px-4 py-2.5 bg-white border border-gray-200 rounded-lg text-sm font-bold text-gray-600 hover:bg-gray-50">Cancel</button>
-          <button onClick={() => { if (!form.name.trim()) return; onAdd({ id: `new-${Date.now()}`, name: form.name, email: form.email, phone: form.phone, location: '', since: new Date().toISOString(), tags: ['New'], stats: { visits: 0, spend: 0, avgSpend: 0, noShows: 0 }, riskLevel: 'New Guest', riskTag: 'bg-blue-50 text-blue-700', preferences: [], notes: form.notes, lastVisit: '', activity: [], upcoming: [], marketing: { emailOptIn: false, smsOptIn: false } }) }} className="flex-1 px-4 py-2 bg-[#111111] text-white rounded-full text-xs font-bold hover:bg-[#1a1a1a] shadow-lg shadow-[#111111]/20">Add Guest</button>
+          <button onClick={() => { if (!form.name.trim()) return; onAdd({ id: `new-${Date.now()}`, name: form.name, email: form.email, phone: form.phone, location: '', since: new Date().toISOString(), tags: ['New'], stats: { visits: 0, spend: 0, avgSpend: 0, noShows: 0 }, riskLevel: 'New Client', riskTag: 'bg-blue-50 text-blue-700', preferences: [], notes: form.notes, lastVisit: '', activity: [], upcoming: [], marketing: { emailOptIn: false, smsOptIn: false } }) }} className="flex-1 px-4 py-2 bg-[#111111] text-white rounded-full text-xs font-bold hover:bg-[#1a1a1a] shadow-lg shadow-[#111111]/20">Add Client</button>
         </div>
       </div>
     </div>

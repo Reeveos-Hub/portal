@@ -241,7 +241,7 @@ const Dashboard = () => {
           setActivity(bks.slice(0, 8).map(b => ({
             id: b.id || b._id,
             type: 'booking',
-            message: `New booking: ${b.customerName || b.customer?.name || 'Guest'}`,
+            message: `New booking: ${b.customerName || b.customer?.name || 'Client'}`,
             sub: `Booking, ${b.date} at ${b.time}`,
             timestamp: b.createdAt,
           })))
@@ -267,7 +267,7 @@ const Dashboard = () => {
             setTodayBookings(upcoming.slice(0, 10).map(b => ({
               id: b.id || b._id,
               time: b.time,
-              customerName: b.customerName || b.customer?.name || 'Guest',
+              customerName: b.customerName || b.customer?.name || 'Client',
               guests: b.guests || b.partySize || 2,
               table: b.table || b.tableName,
               status: b.status,
