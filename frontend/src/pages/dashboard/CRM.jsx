@@ -316,11 +316,76 @@ function DashboardView({ data, onClientClick }) {
 function PipelineView({ data, onClientClick, moveClient, dragItem, setDragItem }) {
   if (!data) return <div style={{ padding: 40, textAlign: 'center', color: '#999' }}>Loading pipeline...</div>
   const { stages, pipeline, stage_values } = data
+  const [period, setPeriod] = useState('all')
+  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().slice(0, 10))
+
+  const now = new Date()
+  const isToday = selectedDate === now.toISOString().slice(0, 10)
+  const dateLabel = new Date(selectedDate + 'T12:00').toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' })
+
+  const goPrev = () => {
+    const d = new Date(selectedDate + 'T12:00')
+    if (period === 'day') d.setDate(d.getDate() - 1)
+    else if (period === 'week') d.setDate(d.getDate() - 7)
+    else if (period === 'month') d.setMonth(d.getMonth() - 1)
+    setSelectedDate(d.toISOString().slice(0, 10))
+  }
+  const goNext = () => {
+    const d = new Date(selectedDate + 'T12:00')
+    if (period === 'day') d.setDate(d.getDate() + 1)
+    else if (period === 'week') d.setDate(d.getDate() + 7)
+    else if (period === 'month') d.setMonth(d.getMonth() + 1)
+    setSelectedDate(d.toISOString().slice(0, 10))
+  }
+  const goToday = () => setSelectedDate(new Date().toISOString().slice(0, 10))
+
+  // Filter clients by period
+  const filterByPeriod = (clients) => {
+    if (period === 'all') return clients
+    const sel = new Date(selectedDate + 'T12:00')
+    return clients.filter(c => {
+      const lv = c.last_visit || c.created_at
+      if (!lv) return period === 'all'
+      const d = new Date(lv)
+      if (period === 'day') return d.toISOString().slice(0, 10) === selectedDate
+      if (period === 'week') { const diff = Math.abs(sel - d); return diff <= 7 * 86400000 }
+      if (period === 'month') return d.getMonth() === sel.getMonth() && d.getFullYear() === sel.getFullYear()
+      return true
+    })
+  }
+
+  const ChevL = () => <svg width={14} height={14} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round"><path d="M15 18l-6-6 6-6"/></svg>
+  const ChevR = () => <svg width={14} height={14} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round"><path d="M9 18l6-6-6-6"/></svg>
 
   return (
-    <div style={{ display: 'flex', gap: 12, padding: 16, height: '100%' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+      {/* Date Pill Bar */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '12px 16px', flexShrink: 0, borderBottom: '1px solid #EBEBEB', background: '#fff' }}>
+        {period !== 'all' && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 2, background: '#F5F5F5', borderRadius: 24, padding: '3px 4px' }}>
+            <button onClick={goPrev} style={{ width: 30, height: 30, borderRadius: '50%', border: 'none', background: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#111', boxShadow: '0 1px 3px rgba(0,0,0,0.06)' }}><ChevL /></button>
+            <span style={{ fontSize: 13, fontWeight: 700, color: '#111', padding: '0 6px', whiteSpace: 'nowrap' }}>{dateLabel}</span>
+            <button onClick={goNext} style={{ width: 30, height: 30, borderRadius: '50%', border: 'none', background: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#111', boxShadow: '0 1px 3px rgba(0,0,0,0.06)' }}><ChevR /></button>
+          </div>
+        )}
+        {period !== 'all' && (
+          <button onClick={goToday} style={{ padding: '7px 16px', borderRadius: 20, border: 'none', background: isToday ? '#111' : '#F5F5F5', color: isToday ? '#fff' : '#111', fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>Today</button>
+        )}
+        {period !== 'all' && <div style={{ width: 1, height: 24, background: '#EBEBEB' }} />}
+        <div style={{ display: 'flex', background: '#F5F5F5', borderRadius: 20, padding: 3 }}>
+          {['All', 'Day', 'Week', 'Month'].map(v => {
+            const val = v.toLowerCase()
+            return (
+              <button key={v} onClick={() => setPeriod(val)} style={{ padding: '6px 16px', borderRadius: 18, border: 'none', cursor: 'pointer', fontSize: 12, fontWeight: period === val ? 700 : 500, background: period === val ? '#fff' : 'transparent', color: period === val ? '#111' : '#999', boxShadow: period === val ? '0 2px 6px rgba(0,0,0,0.06)' : 'none', transition: 'all 0.15s', fontFamily: "'Figtree', sans-serif" }}>{v}</button>
+            )
+          })}
+        </div>
+      </div>
+
+      {/* Kanban Columns */}
+      <div style={{ display: 'flex', gap: 12, padding: 16, flex: 1, overflowX: 'auto', overflowY: 'hidden' }}>
       {(stages || []).map(stage => {
-        const clients = pipeline[stage.id] || []
+        const clients = filterByPeriod(pipeline[stage.id] || [])
         const stageVal = stage_values?.[stage.id] || 0
 
         return (
@@ -365,6 +430,7 @@ function PipelineView({ data, onClientClick, moveClient, dragItem, setDragItem }
           </div>
         )
       })}
+      </div>
     </div>
   )
 }
