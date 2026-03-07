@@ -48,6 +48,7 @@ import AdminOverview from './pages/admin/AdminOverview'
 import AdminAIOps from './pages/admin/AIOps'
 import AdminOutreach from './pages/admin/EmailOutreach'
 import AdminLinkedIn from './pages/admin/LinkedIn'
+import AdminGhostPost from './pages/admin/AdminGhostPost'
 import AdminBusinesses from './pages/admin/AdminBusinesses'
 import AdminUsers from './pages/admin/AdminUsers'
 import AdminBookings from './pages/admin/AdminBookings'
@@ -118,6 +119,7 @@ const App = () => {
             <Route path="ai-ops" element={<AdminAIOps />} />
             <Route path="outreach" element={<AdminOutreach />} />
             <Route path="linkedin" element={<AdminLinkedIn />} />
+            <Route path="ghostpost" element={<AdminGhostPost />} />
             <Route path="pipeline" element={<Navigate to="/crm" replace />} />
             <Route path="crm" element={<AdminCRM />} />
             <Route path="businesses" element={<AdminBusinesses />} />
@@ -212,6 +214,7 @@ const App = () => {
               <Route path="ai-ops" element={<AdminAIOps />} />
               <Route path="outreach" element={<AdminOutreach />} />
               <Route path="linkedin" element={<AdminLinkedIn />} />
+              <Route path="ghostpost" element={<AdminGhostPost />} />
               <Route path="pipeline" element={<Navigate to="/admin/crm" replace />} />
               <Route path="crm" element={<AdminCRM />} />
               <Route path="businesses" element={<AdminBusinesses />} />

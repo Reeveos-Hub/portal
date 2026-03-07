@@ -39,6 +39,7 @@ const NAV_SECTIONS = [
       { id: 'churn', label: 'Churn Risk', icon: AlertTriangle, path: adminPath('/churn') },
       { id: 'email-marketing', label: 'Email Marketing', icon: Megaphone, path: adminPath('/email-marketing') },
       { id: 'linkedin', label: 'LinkedIn AI', icon: Linkedin, path: adminPath('/linkedin') },
+      { id: 'ghostpost', label: 'GhostPost', icon: Radio, path: adminPath('/ghostpost') },
     ],
   },
   {
