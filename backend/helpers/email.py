@@ -62,14 +62,14 @@ def wrap_html(body_html: str, preheader: str = "") -> str:
   body {{ margin:0; padding:0; background:#f4f4f5; -webkit-font-smoothing:antialiased; }}
   .wrapper {{ width:100%; background:#f4f4f5; padding:32px 0; }}
   .container {{ max-width:600px; margin:0 auto; background:#ffffff; border-radius:12px; overflow:hidden; box-shadow:0 1px 3px rgba(0,0,0,0.08); }}
-  .header {{ background:#1B4332; padding:24px 32px; text-align:center; }}
+  .header {{ background:#C9A84C; padding:24px 32px; text-align:center; }}
   .header img {{ height:32px; }}
   .header h1 {{ color:#ffffff; font-family:'Figtree',Arial,sans-serif; font-size:20px; margin:0; font-weight:600; letter-spacing:-0.01em; }}
   .body {{ padding:32px; font-family:'Figtree',Arial,sans-serif; color:#1a1a1a; font-size:15px; line-height:1.6; }}
-  .body h2 {{ color:#1B4332; font-size:18px; margin:0 0 16px; font-weight:600; }}
+  .body h2 {{ color:#C9A84C; font-size:18px; margin:0 0 16px; font-weight:600; }}
   .body p {{ margin:0 0 16px; }}
-  .body a {{ color:#1B4332; font-weight:500; }}
-  .cta {{ display:inline-block; background:#1B4332; color:#ffffff!important; padding:12px 28px; border-radius:8px; text-decoration:none; font-weight:600; font-size:15px; margin:8px 0; }}
+  .body a {{ color:#C9A84C; font-weight:500; }}
+  .cta {{ display:inline-block; background:#C9A84C; color:#ffffff!important; padding:12px 28px; border-radius:8px; text-decoration:none; font-weight:600; font-size:15px; margin:8px 0; }}
   .cta:hover {{ background:#2D6A4F; }}
   .footer {{ padding:24px 32px; background:#f9fafb; text-align:center; font-size:12px; color:#9ca3af; font-family:'Figtree',Arial,sans-serif; border-top:1px solid #e5e7eb; }}
   .footer a {{ color:#6b7280; text-decoration:underline; }}
@@ -219,7 +219,7 @@ async def send_booking_confirmation(
     <h2>Booking Confirmed! &#127881;</h2>
     <p>Hi {client_name},</p>
     <p>Your booking at <strong>{business_name}</strong> is confirmed.</p>
-    <div style="background:#f0fdf4; border-left:4px solid #1B4332; padding:16px; border-radius:0 8px 8px 0; margin:16px 0;">
+    <div style="background:#FFF8E7; border-left:4px solid #C9A84C; padding:16px; border-radius:0 8px 8px 0; margin:16px 0;">
       <p style="margin:0;"><strong>Date:</strong> {booking_date}</p>
       <p style="margin:4px 0 0;"><strong>Time:</strong> {booking_time}</p>
       {details}
@@ -253,7 +253,7 @@ async def send_booking_reminder(
     <h2>Reminder: Your booking is {'tomorrow' if hours_until >= 12 else 'coming up soon'}!</h2>
     <p>Hi {client_name},</p>
     <p>Just a friendly reminder about your booking at <strong>{business_name}</strong>.</p>
-    <div style="background:#f0fdf4; border-left:4px solid #1B4332; padding:16px; border-radius:0 8px 8px 0; margin:16px 0;">
+    <div style="background:#FFF8E7; border-left:4px solid #C9A84C; padding:16px; border-radius:0 8px 8px 0; margin:16px 0;">
       <p style="margin:0;"><strong>Date:</strong> {booking_date}</p>
       <p style="margin:4px 0 0;"><strong>Time:</strong> {booking_time}</p>
     </div>
@@ -592,7 +592,7 @@ async def send_order_confirmation(
     <h2>Order Confirmed! 🎉</h2>
     <p>Hi {customer_name},</p>
     <p>Your {type_label.lower()} order from <strong>{business_name}</strong> has been confirmed.</p>
-    <div style="background:#f0fdf4; border-left:4px solid #1B4332; padding:16px; border-radius:0 8px 8px 0; margin:16px 0;">
+    <div style="background:#FFF8E7; border-left:4px solid #C9A84C; padding:16px; border-radius:0 8px 8px 0; margin:16px 0;">
       <p style="margin:0;"><strong>Order #{order_number}</strong></p>
       <p style="margin:4px 0 0;"><strong>Estimated {type_label.lower()}:</strong> {estimated_minutes} minutes</p>
       {address_html}
@@ -644,7 +644,7 @@ async def send_order_status_update(
     <h2>{title}</h2>
     <p>Hi {customer_name},</p>
     <p>{message}</p>
-    <div style="background:#f0fdf4; border-left:4px solid #1B4332; padding:16px; border-radius:0 8px 8px 0; margin:16px 0;">
+    <div style="background:#FFF8E7; border-left:4px solid #C9A84C; padding:16px; border-radius:0 8px 8px 0; margin:16px 0;">
       <p style="margin:0;"><strong>Order #{order_number}</strong> at {business_name}</p>
     </div>
     {"<p><a href='" + track_url + "' class='cta'>Track Order</a></p>" if track_url else ""}
@@ -749,7 +749,7 @@ async def send_deposit_receipt(
     <h2>Deposit Payment Received</h2>
     <p>Hi {client_name},</p>
     <p>Your deposit of <strong>£{deposit_amount:.2f}</strong> for {business_name} has been processed.</p>
-    <div style="background:#f0fdf4; border-left:4px solid #1B4332; padding:16px; border-radius:0 8px 8px 0; margin:16px 0;">
+    <div style="background:#FFF8E7; border-left:4px solid #C9A84C; padding:16px; border-radius:0 8px 8px 0; margin:16px 0;">
       <p style="margin:0;"><strong>Date:</strong> {booking_date}</p>
       <p style="margin:4px 0 0;"><strong>Time:</strong> {booking_time}</p>
       <p style="margin:4px 0 0;"><strong>Party:</strong> {party_size} guests</p>

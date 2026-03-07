@@ -170,7 +170,7 @@ async def main():
                     "name": ADMIN_NAME,
                     "role": "owner",
                     "email": ADMIN_EMAIL,
-                    "color": "#1B4332",
+                    "color": "#C9A84C",
                     "active": True,
                 }
             ],

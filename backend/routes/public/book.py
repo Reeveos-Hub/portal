@@ -352,7 +352,7 @@ async def get_booking_page(business_slug: str):
             "logo": _img_url(branding.get("logo")),
             "coverPhoto": _img_url(branding.get("coverPhoto")) or (business.get("custom_photos") or business.get("photo_refs") or [None])[0],
             "description": branding.get("description", ""),
-            "accentColour": branding.get("accentColour", "#1B4332"),
+            "accentColour": branding.get("accentColour", "#C9A84C"),
             "rating": business.get("rating"),
             "reviewCount": business.get("review_count", 0),
             "address": _get_address_str(business),

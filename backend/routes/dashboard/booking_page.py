@@ -23,7 +23,7 @@ DEFAULTS = {
         "logo": None,
         "coverPhoto": None,
         "description": "",
-        "accentColour": "#1B4332",
+        "accentColour": "#C9A84C",
     },
     "settings": {
         "advanceBookingDays": 60,
@@ -192,7 +192,7 @@ async def get_qr_code(business_id: str, tenant: TenantContext = Depends(verify_b
         qr = qrcode.QRCode(version=1, box_size=10, border=2)
         qr.add_data(url)
         qr.make(fit=True)
-        img = qr.make_image(fill_color="#1B4332", back_color="white")
+        img = qr.make_image(fill_color="#C9A84C", back_color="white")
         buf = io.BytesIO()
         img.save(buf, format="PNG")
         buf.seek(0)
@@ -211,7 +211,7 @@ async def get_embed_code(business_id: str, tenant: TenantContext = Depends(verif
     slug = business.get("slug", "your-business")
     url = f"https://book.rezvo.app/{slug}"
     accent = (business.get("bookingPage") or {}).get("branding") or {}
-    accent = accent.get("accentColour", "#1B4332")
+    accent = accent.get("accentColour", "#C9A84C")
     iframe = f'<iframe src="{url}" width="100%" height="600" frameborder="0"></iframe>'
     button = f'<a href="{url}" style="background:{accent};color:#FEFBF4;padding:12px 24px;border-radius:10px;text-decoration:none;font-family:Figtree,sans-serif;">Book Now</a>'
     return {"embedCode": iframe, "buttonCode": button}

@@ -292,7 +292,7 @@ async def _send_owner_alert_email(**kwargs) -> Dict:
         body = f"""
         <h2>New Booking 🔔</h2>
         <p>You have a new booking at <strong>{kwargs['business_name']}</strong>.</p>
-        <div style="background:#f0fdf4; border-left:4px solid #1B4332; padding:16px; border-radius:0 8px 8px 0; margin:16px 0;">
+        <div style="background:#FFF8E7; border-left:4px solid #C9A84C; padding:16px; border-radius:0 8px 8px 0; margin:16px 0;">
           <p style="margin:0;"><strong>Customer:</strong> {kwargs['client_name']}</p>
           <p style="margin:4px 0 0;"><strong>Phone:</strong> {kwargs['client_phone']}</p>
           <p style="margin:4px 0 0;"><strong>Date:</strong> {kwargs['booking_date']}</p>
