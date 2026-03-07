@@ -3,6 +3,7 @@
  * Connect Google account, view setup guide, manage upcoming meetings
  */
 import { useState, useEffect, useCallback } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { useBusiness } from '../../contexts/BusinessContext'
 import api from '../../utils/api'
 import AppLoader from '../../components/shared/AppLoader'
@@ -25,6 +26,8 @@ const fmtDate = (d) => {
 export default function VideoMeetings() {
   const { business } = useBusiness()
   const bid = business?.id ?? business?._id
+  const [searchParams, setSearchParams] = useSearchParams()
+  const [showSplash, setShowSplash] = useState(searchParams.get('google_connected') === 'true')
   const [loading, setLoading] = useState(true)
   const [connected, setConnected] = useState(false)
   const [googleEmail, setGoogleEmail] = useState('')
@@ -70,6 +73,47 @@ export default function VideoMeetings() {
   }
 
   if (loading) return <AppLoader message="Loading video settings..." />
+
+  if (showSplash && connected) return (
+    <div style={{ fontFamily: "'Figtree', sans-serif", maxWidth: 560, margin: '60px auto', padding: '0 20px', textAlign: 'center' }}>
+      <div style={{ width: 72, height: 72, borderRadius: 99, background: '#ECFDF5', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px' }}>
+        <CheckCircle size={36} color="#10B981" />
+      </div>
+      <h1 style={{ fontSize: 26, fontWeight: 800, color: '#111', margin: '0 0 8px' }}>Google Connected</h1>
+      <p style={{ fontSize: 14, color: '#888', margin: '0 0 28px', lineHeight: 1.6 }}>
+        Your Google account {googleEmail ? `(${googleEmail})` : ''} is now linked. Video consultations will automatically generate Google Meet links.
+      </p>
+
+      <div style={{ background: '#fff', borderRadius: 16, border: '1px solid #EBEBEB', padding: 24, textAlign: 'left', marginBottom: 24 }}>
+        <h3 style={{ fontSize: 14, fontWeight: 700, color: '#111', margin: '0 0 16px' }}>What happens next</h3>
+        {[
+          { step: '1', title: 'Add "Virtual Consultation" as a service', desc: 'Go to Services and create a service called "Virtual Consultation". Set the duration (e.g. 30 min) and price.' },
+          { step: '2', title: 'Clients book as normal', desc: 'When a client books a virtual consultation, the system auto-creates a Google Calendar event with a Meet link on your calendar.' },
+          { step: '3', title: 'Meet link sent automatically', desc: 'Both you and the client receive the Meet link via email. The client also sees a "Join Now" button in their portal.' },
+          { step: '4', title: 'Everything is tracked', desc: 'Duration, attendance, consultation notes, outcomes — all recorded in the CRM against the client\'s profile.' },
+        ].map(s => (
+          <div key={s.step} style={{ display: 'flex', gap: 12, marginBottom: 14, alignItems: 'flex-start' }}>
+            <div style={{ width: 28, height: 28, borderRadius: 99, background: `${GOLD}15`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+              <span style={{ fontSize: 12, fontWeight: 800, color: GOLD }}>{s.step}</span>
+            </div>
+            <div>
+              <div style={{ fontSize: 13, fontWeight: 700, color: '#111' }}>{s.title}</div>
+              <div style={{ fontSize: 12, color: '#888', marginTop: 2, lineHeight: 1.5 }}>{s.desc}</div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <div style={{ display: 'flex', gap: 10, justifyContent: 'center' }}>
+        <button onClick={() => { setShowSplash(false); setSearchParams({}) }} style={{ padding: '10px 24px', borderRadius: 10, border: 'none', background: '#111', color: '#fff', fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: "'Figtree', sans-serif" }}>
+          Go to Video Meetings
+        </button>
+        <button onClick={() => { window.location.href = '/dashboard/services' }} style={{ padding: '10px 24px', borderRadius: 10, border: '1px solid #E5E5E5', background: '#fff', color: '#333', fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: "'Figtree', sans-serif" }}>
+          Add Virtual Consultation Service
+        </button>
+      </div>
+    </div>
+  )
 
   return (
     <div style={{ fontFamily: "'Figtree', sans-serif", maxWidth: 900, margin: '0 auto', padding: '24px 20px' }}>

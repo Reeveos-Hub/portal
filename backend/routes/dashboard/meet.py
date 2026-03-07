@@ -124,7 +124,7 @@ async def google_oauth_callback(code: str = None, state: str = None, error: str 
     )
 
     logger.info(f"Google connected for business {business_id} ({google_email})")
-    return RedirectResponse("/dashboard/settings?google_connected=true")
+    return RedirectResponse("/dashboard/video-meetings?google_connected=true")
 
 
 @router.get("/status/{business_id}")

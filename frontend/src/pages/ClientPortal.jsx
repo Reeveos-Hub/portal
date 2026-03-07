@@ -542,6 +542,31 @@ export default function ClientPortal(){
             <h1 style={{fontSize:desk?24:22,fontWeight:700,color:$.h,margin:'0 0 4px'}}>My Bookings</h1>
             <p style={{fontSize:desk?13:15,color:$.txtM,margin:'0 0 20px'}}>Book treatments, view upcoming and past appointments.</p>
 
+            {bookStep!=='done'&&bookStep!=='list'?(null):null}
+            {bookStep!=='done'&&(
+            <div style={{marginBottom:16}}>
+              {/* Step Progress */}
+              <div style={{display:'flex',gap:desk?16:8,marginBottom:16,flexWrap:'wrap'}}>
+                {[
+                  {n:1, label:'Treatment', done:!!bookSvc},
+                  {n:2, label:'Date', done:!!bookDate&&!!bookSvc},
+                  {n:3, label:'Time', done:!!bookTime},
+                  {n:4, label:'Confirm', done:false},
+                ].map(s=>{
+                  const active = (s.n===1&&!bookSvc) || (s.n===2&&bookSvc&&!bookTime) || (s.n===3&&bookSvc&&bookDate&&!bookTime) || (s.n===4&&bookSvc&&bookDate&&bookTime)
+                  return(
+                  <div key={s.n} style={{display:'flex',alignItems:'center',gap:6}}>
+                    <div style={{width:24,height:24,borderRadius:99,background:s.done?'#10B981':active?$.acc:'#F5F5F3',display:'flex',alignItems:'center',justifyContent:'center'}}>
+                      {s.done?I.chk('#fff',12):<span style={{fontSize:10,fontWeight:700,color:active?'#fff':'#BBB'}}>{s.n}</span>}
+                    </div>
+                    <span style={{fontSize:desk?12:11,fontWeight:s.done||active?700:500,color:s.done?'#10B981':active?$.h:'#BBB'}}>{s.label}</span>
+                    {s.n<4&&<span style={{color:'#DDD',fontSize:10}}>›</span>}
+                  </div>
+                )})}
+              </div>
+            </div>
+            )}
+
             {bookStep==='done'?(
               <div style={{textAlign:'center',padding:32,background:$.card,borderRadius:12,border:`1px solid ${$.bdr}`,marginBottom:24}}>
                 <div style={{width:48,height:48,borderRadius:99,background:'rgba(34,197,94,0.08)',border:'2px solid rgba(34,197,94,0.2)',display:'flex',alignItems:'center',justifyContent:'center',margin:'0 auto 16px'}}>{I.chk($.ok,24)}</div>
@@ -587,7 +612,7 @@ export default function ClientPortal(){
 
                 {/* Right: Calendar + Time slots */}
                 <div style={{flex:1,minWidth:0}}>
-                  <h3 style={{fontSize:desk?14:16,fontWeight:700,color:$.h,margin:'0 0 8px'}}>desk?'3. Pick Date & Time':'Pick a Date'</h3>
+                  <h3 style={{fontSize:desk?14:16,fontWeight:700,color:$.h,margin:'0 0 8px'}}>{desk?'3. Pick Date & Time':'Pick a Date'}</h3>
                   {/* Month nav */}
                   <div style={{background:$.card,border:`1px solid ${$.bdr}`,borderRadius:12,overflow:'hidden'}}>
                     <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:desk?'10px 14px':'12px 14px',borderBottom:`1px solid ${$.bdr}`}}>
