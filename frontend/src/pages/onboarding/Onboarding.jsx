@@ -197,33 +197,32 @@ export default function Onboarding() {
                 <p className="text-gray-500 font-body">We'll customise your setup based on this</p>
               </div>
 
-              <div className="max-h-[60vh] overflow-y-auto pr-2" style={{scrollbarWidth:'thin'}}>
+              <div>
                 {[...new Set(BUSINESS_TYPES.map(b=>b.group))].map(group=>(
-                  <div key={group} className="mb-6">
-                    <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3 px-1">{group}</p>
-                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                  <div key={group} className="mb-5">
+                    <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2 px-1">{group}</p>
+                    <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
                       {BUSINESS_TYPES.filter(b=>b.group===group).map((bt) => {
                         const isSelected = form.category === bt.value
                         return (
                           <button
                             key={bt.value}
                             onClick={() => update('category', bt.value)}
-                            className={`relative p-4 rounded-xl border-2 text-left transition-all duration-200 group hover:shadow-md ${
+                            className={`relative p-3 rounded-lg border-2 text-left transition-all duration-200 ${
                               isSelected
-                                ? 'border-primary bg-primary/[0.04] shadow-md'
+                                ? 'border-primary bg-primary/[0.04] shadow-sm'
                                 : 'border-border bg-white hover:border-primary/30'
                             }`}
                           >
                             {isSelected && (
-                              <div className="absolute top-3 right-3 w-5 h-5 rounded-full bg-primary flex items-center justify-center">
-                                <Check size={12} className="text-white" />
+                              <div className="absolute top-2 right-2 w-4 h-4 rounded-full bg-primary flex items-center justify-center">
+                                <Check size={10} className="text-white" />
                               </div>
                             )}
-                            <div className={`w-10 h-10 rounded-lg ${bt.color} flex items-center justify-center mb-2`}>
-                              <bt.Icon size={18} />
+                            <div className={`w-8 h-8 rounded-md ${bt.color} flex items-center justify-center mb-1.5`}>
+                              <bt.Icon size={14} />
                             </div>
-                            <h3 className="font-heading font-bold text-primary text-sm">{bt.label}</h3>
-                            <p className="text-gray-400 text-xs mt-0.5 font-body leading-tight">{bt.desc}</p>
+                            <h3 className="font-heading font-bold text-primary text-xs leading-tight">{bt.label}</h3>
                           </button>
                         )
                       })}

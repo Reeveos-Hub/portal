@@ -30,47 +30,57 @@ def slugify(text: str) -> str:
     return text
 
 
-@router.post("/", response_model=BusinessResponse, status_code=status.HTTP_201_CREATED)
+@router.post("/", status_code=status.HTTP_201_CREATED)
 async def create_business(
-    business_data: BusinessCreate,
+    business_data: dict = Body(...),
     tenant: TenantContext = Depends(set_user_tenant_context),
     current_user: dict = Depends(get_current_user)
 ):
     # Allow diner, business_owner, platform_admin, super_admin to create businesses
-    # Diners get upgraded to business_owner on success (onboarding flow)
     if current_user["role"] not in ("diner", "business_owner", "platform_admin", "super_admin"):
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not enough permissions")
 
     db = get_database()
     
-    slug = slugify(business_data.name)
+    name = (business_data.get("name") or "").strip()
+    if not name:
+        raise HTTPException(400, "Business name is required")
+    category = business_data.get("category", "other")
+    address = business_data.get("address", "")
+
+    slug = slugify(name)
     
     existing = await db.businesses.find_one({"slug": slug})
     if existing:
         slug = f"{slug}-{int(datetime.utcnow().timestamp())}"
     
-    business_dict = business_data.model_dump()
-    
-    # Map frontend tier names to backend enum if needed
+    # Map frontend tier names to backend tier
     tier_map = {"free": "solo", "starter": "team", "growth": "venue", "scale": "venue"}
-    raw_tier = business_dict.get("tier", "solo")
-    if raw_tier in tier_map:
-        business_dict["tier"] = tier_map[raw_tier]
+    raw_tier = business_data.get("tier", "solo")
+    tier = tier_map.get(raw_tier, raw_tier)
     
-    # Build full address if city/postcode provided separately
-    if business_data.city or business_data.postcode:
-        parts = [business_dict["address"]]
-        if business_data.city:
-            parts.append(business_data.city)
-        if business_data.postcode:
-            parts.append(business_data.postcode)
-        business_dict["full_address"] = ", ".join(parts)
-    
-    business_dict.update({
+    # Build full address
+    city = business_data.get("city", "")
+    postcode = business_data.get("postcode", "")
+    full_address = ", ".join(filter(None, [address, city, postcode]))
+
+    business_dict = {
+        "name": name,
+        "category": category,
+        "address": address,
+        "city": city,
+        "postcode": postcode,
+        "full_address": full_address,
+        "phone": business_data.get("phone", ""),
+        "email": business_data.get("email", ""),
+        "website": business_data.get("website"),
+        "lat": 0.0,
+        "lng": 0.0,
+        "tier": tier,
         "slug": slug,
         "claimed": True,
         "owner_id": str(current_user["_id"]),
-        "rezvo_tier": PlatformTier.FREE.value,
+        "rezvo_tier": "free",
         "promoted": False,
         "notify_count": 0,
         "rating": None,
@@ -79,9 +89,10 @@ async def create_business(
         "staff": [],
         "menu": [],
         "custom_photos": [],
+        "opening_hours": business_data.get("opening_hours", {}),
         "created_at": datetime.utcnow(),
-        "updated_at": datetime.utcnow()
-    })
+        "updated_at": datetime.utcnow(),
+    }
     
     result = await db.businesses.insert_one(business_dict)
     business_id = str(result.inserted_id)
@@ -115,28 +126,16 @@ async def create_business(
     except Exception:
         pass  # Don't block business creation if email fails
 
-    return BusinessResponse(
-        id=business_id,
-        name=business_dict["name"],
-        slug=business_dict["slug"],
-        category=business_dict["category"],
-        address=business_dict["address"],
-        phone=business_dict.get("phone"),
-        website=business_dict.get("website"),
-        lat=business_dict.get("lat", 0.0),
-        lng=business_dict.get("lng", 0.0),
-        rating=business_dict.get("rating"),
-        review_count=business_dict.get("review_count", 0),
-        price_level=business_dict.get("price_level"),
-        photo_refs=business_dict.get("photo_refs", []),
-        claimed=business_dict.get("claimed", True),
-        rezvo_tier=business_dict.get("rezvo_tier", "free"),
-        tier=business_dict.get("tier", "solo"),
-        promoted=business_dict.get("promoted", False),
-        opening_hours=business_dict.get("opening_hours"),
-        city=business_dict.get("city"),
-        postcode=business_dict.get("postcode"),
-    )
+    return {
+        "id": business_id,
+        "name": business_dict["name"],
+        "slug": business_dict["slug"],
+        "category": business_dict["category"],
+        "address": business_dict["address"],
+        "phone": business_dict.get("phone"),
+        "tier": business_dict.get("tier", "solo"),
+        "claimed": True,
+    }
 
 
 @router.get("/{business_id}")

@@ -72,7 +72,7 @@ class BusinessBase(BaseModel):
     category: str  # Any business type — see BusinessCategory for known values
     address: str
     phone: Optional[str] = None
-    website: Optional[HttpUrl] = None
+    website: Optional[str] = None
     lat: float = 0.0
     lng: float = 0.0
 
@@ -89,7 +89,7 @@ class BusinessCreate(BusinessBase):
 class BusinessUpdate(BaseModel):
     name: Optional[str] = None
     phone: Optional[str] = None
-    website: Optional[HttpUrl] = None
+    website: Optional[str] = None
     opening_hours: Optional[OpeningHours] = None
     booking_settings: Optional[BookingSettings] = None
 
@@ -146,10 +146,10 @@ class BusinessResponse(BaseModel):
     id: str
     name: str
     slug: str
-    category: BusinessCategory
+    category: str  # Plain string — matches BusinessBase
     address: str
     phone: Optional[str] = None
-    website: Optional[HttpUrl] = None
+    website: Optional[str] = None  # Plain string — HttpUrl causes issues with empty values
     lat: float = 0.0
     lng: float = 0.0
     rating: Optional[float] = None
