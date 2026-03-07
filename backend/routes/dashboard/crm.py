@@ -637,6 +637,25 @@ async def get_client_crm_detail(
     treatment_revenue = stats.get("totalSpent", 0) or stats.get("spend", 0) or 0
     package_revenue = client.get("package_revenue", 0)
 
+    # Video consultations for this client
+    video_list = []
+    if email:
+        video_meetings = await db.video_meetings.find({
+            "business_id": biz_id, "client_email": {"$regex": email, "$options": "i"}
+        }).sort("start_time", -1).limit(10).to_list(10)
+        for vm in video_meetings:
+            video_list.append({
+                "id": str(vm.get("_id", "")),
+                "title": vm.get("title", "Virtual Consultation"),
+                "date": vm.get("start_time", ""),
+                "duration": vm.get("actual_duration_minutes") or vm.get("duration_minutes", 0),
+                "staff": vm.get("staff_name", ""),
+                "status": vm.get("status", ""),
+                "outcome": vm.get("outcome", ""),
+                "meet_link": vm.get("meet_link", ""),
+                "notes": vm.get("consultation_notes", ""),
+            })
+
     return {
         "client": {
             "id": cid,
@@ -666,6 +685,7 @@ async def get_client_crm_detail(
         "consultation_form_status": form_status,
         "bookings": booking_list,
         "shop_orders": shop_order_list,
+        "video_consultations": video_list,
         "tasks": tasks,
         "referral_count": referral_count,
         "ltv": {

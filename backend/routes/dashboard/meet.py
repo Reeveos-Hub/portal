@@ -310,11 +310,45 @@ async def create_meeting(
         "staff_name": staff_name,
         "staff_email": staff_email,
         "description": description,
-        "status": "scheduled",
+        "status": "scheduled",  # scheduled → in_progress → completed → reviewed
+        # Audit tracking
+        "actual_start": None,
+        "actual_end": None,
+        "actual_duration_minutes": None,
+        "staff_joined_at": None,
+        "client_joined_at": None,
+        "staff_attended": False,
+        "client_attended": False,
+        # Post-consultation
+        "consultation_notes": "",
+        "outcome": "",  # successful, follow_up_needed, no_show_client, no_show_staff, cancelled, rescheduled
+        "follow_up_date": None,
+        "follow_up_notes": "",
+        "treatment_recommended": "",
+        "products_recommended": [],
+        # Audit trail
+        "events": [
+            {"action": "created", "at": datetime.utcnow().isoformat(), "by": staff_name or "System"}
+        ],
         "created_at": datetime.utcnow(),
+        "updated_at": datetime.utcnow(),
     }
     result = await db.video_meetings.insert_one(meeting_doc)
     meeting_doc["id"] = str(result.inserted_id)
+
+    # Log to client timeline
+    try:
+        from helpers.timeline import log_event
+        await log_event(
+            db, tenant.business_id, "",
+            event="clinical.video_consultation_scheduled",
+            summary=f"Video consultation scheduled — {client_name} with {staff_name}",
+            details={"meeting_id": meeting_doc["id"], "start_time": start_iso, "duration": duration, "meet_link": meet_link},
+            actor={"type": "staff", "name": staff_name or "System"},
+            client_name=client_name,
+        )
+    except Exception:
+        pass
 
     return {
         "meeting": {
@@ -328,27 +362,247 @@ async def create_meeting(
 
 
 # ═══════════════════════════════════════════════════════════════
+# TRACKING — start, join, end, record outcome
+# ═══════════════════════════════════════════════════════════════
+
+@router.post("/business/{business_id}/meetings/{meeting_id}/start")
+async def start_meeting(
+    business_id: str,
+    meeting_id: str,
+    tenant: TenantContext = Depends(verify_business_access),
+):
+    """Staff marks meeting as started (or auto-triggered when they join)."""
+    from bson import ObjectId
+    db = get_database()
+    now = datetime.utcnow()
+
+    meeting = await db.video_meetings.find_one({"_id": ObjectId(meeting_id), "business_id": tenant.business_id})
+    if not meeting:
+        raise HTTPException(404, "Meeting not found")
+
+    update = {
+        "status": "in_progress",
+        "actual_start": now.isoformat(),
+        "staff_joined_at": now.isoformat(),
+        "staff_attended": True,
+        "updated_at": now,
+    }
+    await db.video_meetings.update_one(
+        {"_id": ObjectId(meeting_id)},
+        {"$set": update, "$push": {"events": {"action": "started", "at": now.isoformat(), "by": "Staff"}}}
+    )
+    return {"status": "started", "actual_start": now.isoformat()}
+
+
+@router.post("/business/{business_id}/meetings/{meeting_id}/client-joined")
+async def client_joined(
+    business_id: str,
+    meeting_id: str,
+    tenant: TenantContext = Depends(verify_business_access),
+):
+    """Record that client has joined the meeting."""
+    from bson import ObjectId
+    db = get_database()
+    now = datetime.utcnow()
+
+    await db.video_meetings.update_one(
+        {"_id": ObjectId(meeting_id), "business_id": tenant.business_id},
+        {"$set": {"client_joined_at": now.isoformat(), "client_attended": True, "updated_at": now},
+         "$push": {"events": {"action": "client_joined", "at": now.isoformat(), "by": "Client"}}}
+    )
+    return {"status": "client_joined"}
+
+
+@router.post("/business/{business_id}/meetings/{meeting_id}/end")
+async def end_meeting(
+    business_id: str,
+    meeting_id: str,
+    payload: dict = Body({}),
+    tenant: TenantContext = Depends(verify_business_access),
+):
+    """End meeting and record duration. Optionally include notes + outcome."""
+    from bson import ObjectId
+    db = get_database()
+    now = datetime.utcnow()
+
+    meeting = await db.video_meetings.find_one({"_id": ObjectId(meeting_id), "business_id": tenant.business_id})
+    if not meeting:
+        raise HTTPException(404, "Meeting not found")
+
+    # Calculate actual duration
+    actual_start = meeting.get("actual_start")
+    actual_duration = None
+    if actual_start:
+        try:
+            start_dt = datetime.fromisoformat(actual_start)
+            actual_duration = round((now - start_dt).total_seconds() / 60, 1)
+        except Exception:
+            pass
+
+    update = {
+        "status": "completed",
+        "actual_end": now.isoformat(),
+        "actual_duration_minutes": actual_duration,
+        "updated_at": now,
+    }
+
+    # Optional immediate notes
+    if payload.get("notes"):
+        update["consultation_notes"] = payload["notes"]
+    if payload.get("outcome"):
+        update["outcome"] = payload["outcome"]
+
+    await db.video_meetings.update_one(
+        {"_id": ObjectId(meeting_id)},
+        {"$set": update, "$push": {"events": {"action": "ended", "at": now.isoformat(), "by": "Staff", "duration_minutes": actual_duration}}}
+    )
+
+    # Log to client timeline
+    try:
+        from helpers.timeline import log_event
+        await log_event(
+            db, tenant.business_id, "",
+            event="clinical.video_consultation_completed",
+            summary=f"Video consultation completed — {meeting.get('client_name', '')} ({actual_duration or '?'} min)",
+            details={"meeting_id": meeting_id, "duration": actual_duration, "outcome": payload.get("outcome", "")},
+            actor={"type": "staff", "name": meeting.get("staff_name", "System")},
+            client_name=meeting.get("client_name", ""),
+        )
+    except Exception:
+        pass
+
+    return {"status": "completed", "actual_duration_minutes": actual_duration}
+
+
+@router.post("/business/{business_id}/meetings/{meeting_id}/review")
+async def review_meeting(
+    business_id: str,
+    meeting_id: str,
+    payload: dict = Body(...),
+    tenant: TenantContext = Depends(verify_business_access),
+):
+    """Post-consultation review — notes, outcome, recommendations, follow-up."""
+    from bson import ObjectId
+    db = get_database()
+    now = datetime.utcnow()
+
+    update = {
+        "status": "reviewed",
+        "consultation_notes": payload.get("notes", ""),
+        "outcome": payload.get("outcome", ""),
+        "treatment_recommended": payload.get("treatment_recommended", ""),
+        "products_recommended": payload.get("products_recommended", []),
+        "follow_up_date": payload.get("follow_up_date"),
+        "follow_up_notes": payload.get("follow_up_notes", ""),
+        "updated_at": now,
+    }
+
+    await db.video_meetings.update_one(
+        {"_id": ObjectId(meeting_id), "business_id": tenant.business_id},
+        {"$set": update, "$push": {"events": {"action": "reviewed", "at": now.isoformat(), "by": "Staff", "outcome": payload.get("outcome", "")}}}
+    )
+
+    # Create follow-up task if needed
+    if payload.get("follow_up_date"):
+        meeting = await db.video_meetings.find_one({"_id": ObjectId(meeting_id)})
+        if meeting:
+            await db.client_tasks.insert_one({
+                "business_id": tenant.business_id,
+                "client_id": "",
+                "client_name": meeting.get("client_name", ""),
+                "title": f"Follow-up: {meeting.get('title', 'Video consultation')}",
+                "description": payload.get("follow_up_notes", ""),
+                "due_date": payload["follow_up_date"],
+                "status": "pending",
+                "assigned_to": meeting.get("staff_name", ""),
+                "assigned_name": meeting.get("staff_name", ""),
+                "type": "follow_up",
+                "source": "video_consultation",
+                "source_id": meeting_id,
+                "created_at": now,
+            })
+
+    # Log to timeline
+    try:
+        from helpers.timeline import log_event
+        meeting = await db.video_meetings.find_one({"_id": ObjectId(meeting_id)})
+        await log_event(
+            db, tenant.business_id, "",
+            event="clinical.video_consultation_reviewed",
+            summary=f"Consultation reviewed — {meeting.get('client_name', '')} — Outcome: {payload.get('outcome', 'N/A')}",
+            details={"meeting_id": meeting_id, "outcome": payload.get("outcome"), "treatment": payload.get("treatment_recommended"), "follow_up": payload.get("follow_up_date")},
+            actor={"type": "staff", "name": meeting.get("staff_name", "System")},
+            client_name=meeting.get("client_name", ""),
+        )
+    except Exception:
+        pass
+
+    return {"status": "reviewed"}
+
+
+@router.get("/business/{business_id}/meetings/{meeting_id}")
+async def get_meeting_detail(
+    business_id: str,
+    meeting_id: str,
+    tenant: TenantContext = Depends(verify_business_access),
+):
+    """Get full meeting detail with audit trail."""
+    from bson import ObjectId
+    db = get_database()
+
+    meeting = await db.video_meetings.find_one({"_id": ObjectId(meeting_id), "business_id": tenant.business_id})
+    if not meeting:
+        raise HTTPException(404, "Meeting not found")
+
+    meeting["id"] = str(meeting.pop("_id"))
+    return {"meeting": meeting}
+
+
+# ═══════════════════════════════════════════════════════════════
 # LIST MEETINGS — upcoming video consultations
 # ═══════════════════════════════════════════════════════════════
 
 @router.get("/business/{business_id}/meetings")
 async def list_meetings(
     business_id: str,
-    upcoming_only: bool = True,
+    upcoming_only: bool = False,
+    status: Optional[str] = None,
+    limit: int = 50,
     tenant: TenantContext = Depends(verify_business_access),
 ):
-    """List video meetings for a business."""
+    """List video meetings with full audit trail."""
     db = get_database()
     match = {"business_id": tenant.business_id}
     if upcoming_only:
         match["start_time"] = {"$gte": datetime.utcnow().isoformat()}
+    if status:
+        match["status"] = status
 
     meetings = []
-    async for m in db.video_meetings.find(match).sort("start_time", 1).limit(50):
+    async for m in db.video_meetings.find(match).sort("start_time", -1).limit(limit):
         m["id"] = str(m.pop("_id"))
         meetings.append(m)
 
-    return {"meetings": meetings}
+    # Stats
+    total = await db.video_meetings.count_documents({"business_id": tenant.business_id})
+    completed = await db.video_meetings.count_documents({"business_id": tenant.business_id, "status": {"$in": ["completed", "reviewed"]}})
+    total_minutes = 0
+    async for m in db.video_meetings.find({"business_id": tenant.business_id, "actual_duration_minutes": {"$ne": None}}):
+        total_minutes += m.get("actual_duration_minutes", 0)
+
+    no_shows = await db.video_meetings.count_documents({"business_id": tenant.business_id, "outcome": {"$in": ["no_show_client", "no_show_staff"]}})
+
+    return {
+        "meetings": meetings,
+        "stats": {
+            "total": total,
+            "completed": completed,
+            "total_minutes": round(total_minutes, 1),
+            "total_hours": round(total_minutes / 60, 1),
+            "no_shows": no_shows,
+            "avg_duration": round(total_minutes / completed, 1) if completed > 0 else 0,
+        }
+    }
 
 
 # ═══════════════════════════════════════════════════════════════

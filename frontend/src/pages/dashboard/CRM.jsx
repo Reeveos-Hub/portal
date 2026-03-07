@@ -12,7 +12,7 @@ import {
   LayoutDashboard, Columns3, Users, BarChart3, Search, X, Phone, Mail,
   Calendar, Clock, ChevronRight, ArrowLeft, Plus, CheckCircle, AlertTriangle,
   TrendingUp, TrendingDown, Heart, Target, Star, Tag, FileText, MessageSquare,
-  Activity, DollarSign, Package, ShoppingBag, Clipboard, Send, UserPlus
+  Activity, DollarSign, Package, ShoppingBag, Clipboard, Send, UserPlus, Video
 } from 'lucide-react'
 
 // ═══════════════════════════════════════════════════════════════
@@ -591,7 +591,7 @@ function ClientDetailPanel({ detail, timeline, onClose, bid, onInteraction, onRe
     </div>
   )
 
-  const { client, stats, health_score, pipeline_stage, consultation_form_status, bookings, shop_orders, tasks, ltv, referral_count } = detail
+  const { client, stats, health_score, pipeline_stage, consultation_form_status, bookings, shop_orders, video_consultations, tasks, ltv, referral_count } = detail
 
   return (
     <div style={{ position: 'fixed', top: 0, right: 0, bottom: 0, width: 440, maxWidth: '90vw', background: '#fff', zIndex: 201, display: 'flex', flexDirection: 'column', boxShadow: '-4px 0 30px rgba(0,0,0,0.1)' }}>
@@ -712,6 +712,29 @@ function ClientDetailPanel({ detail, timeline, onClose, bid, onInteraction, onRe
                 <div style={{ textAlign: 'right' }}>
                   <div style={{ fontSize: 12, fontWeight: 700, color: '#111' }}>{fmtCurrency(o.total)}</div>
                   <span style={{ fontSize: 9, fontWeight: 600, color: o.status === 'delivered' ? '#10B981' : o.status === 'cancelled' ? '#EF4444' : '#F59E0B', textTransform: 'capitalize' }}>{o.status}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Video Consultations */}
+        {video_consultations && video_consultations.length > 0 && (
+          <div style={{ marginBottom: 16 }}>
+            <h4 style={{ fontSize: 11, fontWeight: 700, color: '#888', textTransform: 'uppercase', marginBottom: 8 }}>Video Consultations</h4>
+            {video_consultations.slice(0, 6).map(v => (
+              <div key={v.id} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 0', borderBottom: '1px solid #F5F5F5' }}>
+                <Video size={13} color="#BBB" />
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontSize: 12, fontWeight: 600, color: '#333' }}>{v.title}</div>
+                  <div style={{ fontSize: 10, color: '#999' }}>
+                    {fmtDate(v.date)}{v.staff ? ` · ${v.staff}` : ''}{v.duration ? ` · ${v.duration} min` : ''}
+                  </div>
+                  {v.notes && <div style={{ fontSize: 10, color: '#666', marginTop: 2, fontStyle: 'italic' }}>{v.notes.slice(0, 80)}{v.notes.length > 80 ? '...' : ''}</div>}
+                </div>
+                <div style={{ textAlign: 'right' }}>
+                  <span style={{ fontSize: 9, fontWeight: 600, color: v.status === 'reviewed' ? '#10B981' : v.status === 'completed' ? '#3B82F6' : v.status === 'in_progress' ? GOLD : '#888', textTransform: 'capitalize' }}>{v.status}</span>
+                  {v.outcome && <div style={{ fontSize: 9, color: '#999' }}>{v.outcome.replace(/_/g, ' ')}</div>}
                 </div>
               </div>
             ))}
