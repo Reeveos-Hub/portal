@@ -75,6 +75,7 @@ from .dashboard.menu import router as run4_menu_router
 from .dashboard.staff_v2 import router as run5_staff_router
 from .dashboard.booking_page import router as run6_booking_page_router
 from .dashboard.clients import router as run7_clients_router
+from .dashboard.crm import router as crm_router
 from .dashboard.settings_v2 import router as run13_settings_router
 from .dashboard.calendar_routes import router as calendar_routes_router
 from .dashboard.packages import router as packages_router
@@ -112,7 +113,7 @@ __all__ = [
     "payments_router", "settings_router", "support_router", "notifications_router",
     "insights_router", "marketing_router", "chatbot_router", "studio_router",
     "run4_services_router", "run4_menu_router", "run5_staff_router",
-    "run6_booking_page_router", "run7_clients_router", "run13_settings_router",
+    "run6_booking_page_router", "run7_clients_router", "crm_router", "run13_settings_router",
     "calendar_routes_router",
     "packages_router",
     "orders_router", "kds_router", "inventory_router", "epos_ai_router",
