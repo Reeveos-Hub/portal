@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException, status, Depends
 from database import get_database
 from models.business import BusinessCreate, BusinessUpdate, BusinessResponse, PlatformTier
-from middleware.auth import get_current_owner
+from middleware.auth import get_current_owner, get_current_user
 from datetime import datetime
 from bson import ObjectId
 from typing import List
@@ -34,8 +34,13 @@ def slugify(text: str) -> str:
 async def create_business(
     business_data: BusinessCreate,
     tenant: TenantContext = Depends(set_user_tenant_context),
-    current_user: dict = Depends(get_current_owner)
+    current_user: dict = Depends(get_current_user)
 ):
+    # Allow diner, business_owner, platform_admin, super_admin to create businesses
+    # Diners get upgraded to business_owner on success (onboarding flow)
+    if current_user["role"] not in ("diner", "business_owner", "platform_admin", "super_admin"):
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not enough permissions")
+
     db = get_database()
     
     slug = slugify(business_data.name)
@@ -85,6 +90,13 @@ async def create_business(
         {"_id": current_user["_id"]},
         {"$addToSet": {"business_ids": business_id}}
     )
+
+    # Upgrade diner → business_owner on first business creation (onboarding flow)
+    if current_user.get("role") == "diner":
+        await db.users.update_one(
+            {"_id": current_user["_id"]},
+            {"$set": {"role": "business_owner"}}
+        )
     
     business_dict["_id"] = business_id
 
