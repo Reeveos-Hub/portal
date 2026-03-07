@@ -370,6 +370,26 @@ async def staff_create_booking(
 
     end_time = _mins_to_end(booking_time, duration)
 
+    # ── First appointment +15min buffer ──
+    # New clients get extra consultation time on their first visit
+    is_first_appointment = False
+    if customer_phone or customer_email:
+        existing = await db.bookings.count_documents({
+            "businessId": biz_id,
+            "$or": [
+                *([ {"customer.phone": customer_phone} ] if customer_phone else []),
+                *([ {"customer.email": customer_email} ] if customer_email else []),
+            ],
+            "status": {"$in": ["confirmed", "checked_in", "completed"]},
+        })
+        if existing == 0:
+            is_first_appointment = True
+            duration += 15
+            end_time = _mins_to_end(booking_time, duration)
+            if service_doc:
+                service_doc["duration"] = duration
+                service_doc["first_visit_buffer"] = 15
+
     # Generate reference
     import random, string
     ref = "".join(random.choices(string.ascii_uppercase + string.digits, k=6))
@@ -392,6 +412,7 @@ async def staff_create_booking(
             "email": customer_email,
         },
         "notes": notes[:500] if notes else "",
+        "firstVisit": is_first_appointment,
         "source": "staff",
         "createdAt": datetime.utcnow(),
         "updatedAt": datetime.utcnow(),
@@ -403,5 +424,7 @@ async def staff_create_booking(
         "id": doc["_id"],
         "reference": ref,
         "status": "confirmed",
-        "message": "Booking created",
+        "firstVisit": is_first_appointment,
+        "duration": duration,
+        "message": f"Booking created{' (+15min first visit buffer)' if is_first_appointment else ''}",
     }

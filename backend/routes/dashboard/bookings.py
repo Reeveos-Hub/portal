@@ -550,19 +550,64 @@ async def edit_booking_details(
 
     # Allowed fields for edit (accept both legacy and canonical names)
     update = {"updatedAt": datetime.utcnow()}
+    audit_changes = []
     for k, v in payload.items():
         if k == "customerName":
+            old = (b.get("customer") or {}).get("name", "")
+            if v != old:
+                audit_changes.append(f"name: {old} → {v}")
             update["customer.name"] = v
         elif k == "phone":
             update["customer.phone"] = v
         elif k == "email":
             update["customer.email"] = v
+        elif k == "serviceId":
+            # SERVICE SWAP — Natalie's #1 request
+            svc_doc = None
+            for cat in (business.get("menu") or []):
+                if not cat.get("active", True):
+                    continue
+                for svc in (cat.get("services") or []):
+                    if svc.get("id") == v or str(svc.get("_id", "")) == v:
+                        svc_doc = svc
+                        break
+            if svc_doc:
+                old_svc = b.get("service", {})
+                old_name = old_svc.get("name", "Unknown") if isinstance(old_svc, dict) else str(old_svc)
+                new_svc = {"name": svc_doc["name"], "duration": svc_doc.get("duration", 60), "price": svc_doc.get("price", 0)}
+                update["service"] = new_svc
+                update["duration"] = svc_doc.get("duration", 60)
+                audit_changes.append(f"service: {old_name} → {svc_doc['name']}")
+        elif k == "staffId":
+            old_staff = b.get("staffId", "")
+            if v != old_staff:
+                audit_changes.append(f"therapist changed")
+            update["staffId"] = v
         elif k in {"notes", "partySize", "tags", "tableId", "tableName",
                     "time", "date", "duration", "specialRequests",
                     "dietaryRequirements", "occasion"}:
+            if k == "time" and v != b.get("time"):
+                audit_changes.append(f"time: {b.get('time', '?')} → {v}")
+            if k == "date" and v != b.get("date"):
+                audit_changes.append(f"date: {b.get('date', '?')} → {v}")
             update[k] = v
 
     await sdb.bookings.update_one({"_id": b["_id"]}, {"$set": update})
+
+    # Audit trail for edits
+    if audit_changes:
+        nb_edit = normalize_booking(b)
+        await sdb.booking_audit.insert_one({
+            "type": "booking_edited",
+            "booking_id": str(b["_id"]),
+            "booking_ref": nb_edit.get("reference", ""),
+            "customer_name": nb_edit["customer"]["name"] or "Customer",
+            "changes": audit_changes,
+            "changed_by": tenant.user_email or tenant.user_id,
+            "changed_by_role": tenant.role,
+            "timestamp": datetime.utcnow(),
+            "immutable": True,
+        })
 
     updated = await sdb.bookings.find_one({"_id": b["_id"]})
     staff_map = {st.get("id"): st for st in (await sdb.db.businesses.find_one({"_id": tenant.business_id}) or {}).get("staff", [])}

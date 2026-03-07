@@ -110,6 +110,7 @@ const Calendar = () => {
   const [viewMode, setViewMode] = useState('Day')
   const [cm, setCm] = useState('service')
   const [showBook, setShowBook] = useState(false)
+  const [editingId, setEditingId] = useState(null) // null = new booking, string = editing existing
   const [cancelConfirm, setCancelConfirm] = useState(null) // booking id to cancel
   const [treatDrop, setTreatDrop] = useState(false)
   const [staffDrop, setStaffDrop] = useState(false)
@@ -153,6 +154,7 @@ const Calendar = () => {
   const [selPackages, setSelPackages] = useState([])
 
   const openBookModal = () => {
+    setEditingId(null)
     setBookForm(f => ({ ...f, date: selectedDate, time: '', serviceId: '', staffId: '', customerName: '', customerPhone: '', customerEmail: '', notes: '' }))
     setBookError('')
     setShowBook(true)
@@ -175,20 +177,36 @@ const Calendar = () => {
     setBookSaving(true); setBookError('')
     try {
       const svc = bookServices.find(s => s.id === bookForm.serviceId || s._id === bookForm.serviceId)
-      await api.post(`/calendar/business/${bid}/booking`, {
-        customerName: bookForm.customerName.trim(),
-        customerPhone: bookForm.customerPhone.trim(),
-        customerEmail: bookForm.customerEmail.trim(),
-        date: bookForm.date,
-        time: bookForm.time,
-        staffId: bookForm.staffId || undefined,
-        service: svc ? { id: svc.id || svc._id, name: svc.name, duration: svc.duration || 60, price: svc.price || 0 } : undefined,
-        notes: bookForm.notes.trim(),
-      })
-      setShowBook(false)
+
+      if (editingId) {
+        // EDIT existing booking — service swap, time change, etc.
+        await api.patch(`/bookings/business/${bid}/detail/${editingId}/edit`, {
+          customerName: bookForm.customerName.trim(),
+          phone: bookForm.customerPhone.trim(),
+          email: bookForm.customerEmail.trim(),
+          date: bookForm.date,
+          time: bookForm.time,
+          staffId: bookForm.staffId || undefined,
+          serviceId: svc ? (svc.id || svc._id) : undefined,
+          notes: bookForm.notes.trim(),
+        })
+      } else {
+        // CREATE new booking
+        await api.post(`/calendar/business/${bid}/booking`, {
+          customerName: bookForm.customerName.trim(),
+          customerPhone: bookForm.customerPhone.trim(),
+          customerEmail: bookForm.customerEmail.trim(),
+          date: bookForm.date,
+          time: bookForm.time,
+          staffId: bookForm.staffId || undefined,
+          service: svc ? { id: svc.id || svc._id, name: svc.name, duration: svc.duration || 60, price: svc.price || 0 } : undefined,
+          notes: bookForm.notes.trim(),
+        })
+      }
+      setShowBook(false); setEditingId(null)
       fetchCalendarData(false)
     } catch (err) {
-      setBookError(err?.message || 'Failed to create booking')
+      setBookError(err?.message || (editingId ? 'Failed to update booking' : 'Failed to create booking'))
     }
     setBookSaving(false)
   }
@@ -550,8 +568,24 @@ const Calendar = () => {
           )}
           <div style={{ display: 'flex', gap: 8, borderTop: '1px solid #F0F0F0', paddingTop: 12 }}>
             <button onClick={() => {
-              setBookForm({ customerName: a.customerName || '', customerPhone: a.customerPhone || '', customerEmail: '', serviceId: '', staffId: a.staffId || '', date: selectedDate, time: a.time ? fmt(a.start) : '', notes: a.notes || '' })
+              const svcName = typeof a.service === 'object' ? a.service?.name : a.service
+              const matchedSvc = bookServices.find(s => s.name === svcName)
+              setEditingId(a.id)
+              setBookForm({
+                customerName: a.customerName || '',
+                customerPhone: a.customerPhone || '',
+                customerEmail: a.customerEmail || '',
+                serviceId: matchedSvc ? (matchedSvc.id || matchedSvc._id) : '',
+                staffId: a.staffId || '',
+                date: a.date || selectedDate,
+                time: a.time ? fmt(a.start) : '',
+                notes: a.notes || '',
+              })
+              setBookError('')
               setShowBook(true); setSelA(null)
+              if (bid && bookServices.length === 0) {
+                api.get(`/services-v2/business/${bid}`).then(r => setBookServices((r.categories || []).flatMap(c => c.services || []))).catch(() => {})
+              }
             }} style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5, padding: '10px 0', borderRadius: 10, border: '1px solid #EBEBEB', background: '#fff', fontSize: 12, fontWeight: 600, color: '#111111', cursor: 'pointer' }}><EditIcon /> Edit</button>
             <button onClick={() => {
               const newStatus = a.status === 'checked_in' ? 'completed' : 'checked_in'
@@ -844,6 +878,7 @@ const Calendar = () => {
                       const h = Math.floor(slotHour)
                       const m = Math.round((slotHour - h) * 60 / 15) * 15
                       const timeStr = `${String(h).padStart(2,'0')}:${String(m % 60).padStart(2,'0')}`
+                      setEditingId(null)
                       setBookForm(f => ({ ...f, date: selectedDate, time: timeStr, staffId: staff.id, customerName: '', customerPhone: '', customerEmail: '', serviceId: '', notes: '' }))
                       setBookError('')
                       setShowBook(true)
@@ -945,7 +980,7 @@ const Calendar = () => {
         pointerEvents: showBook ? 'auto' : 'none',
       }}>
         <div style={{ height: 60, borderBottom: '1px solid #EBEBEB', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 20px', background: '#FAFAFA', flexShrink: 0 }}>
-          <h3 style={{ fontSize: 16, fontWeight: 700, margin: 0, color: '#111' }}>New Appointment</h3>
+          <h3 style={{ fontSize: 16, fontWeight: 700, margin: 0, color: '#111' }}>{editingId ? 'Edit Appointment' : 'New Appointment'}</h3>
           <button onClick={() => setShowBook(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 4, color: '#999' }}><XIcon /></button>
         </div>
         <div style={{ flex: 1, overflowY: 'auto', padding: '20px 20px 24px', display: 'flex', flexDirection: 'column', gap: 14 }}>
@@ -1024,7 +1059,7 @@ const Calendar = () => {
         {bookError && <p style={{ color: '#DC2626', fontSize: 13, fontWeight: 600, margin: 0, padding: '0 20px 8px' }}>{bookError}</p>}
         <div style={{ padding: '12px 20px 20px', borderTop: '1px solid #EBEBEB', flexShrink: 0, background: '#FAFAFA' }}>
           <button onClick={submitBooking} disabled={bookSaving} style={{ width: '100%', padding: '12px 0', background: '#111', color: '#fff', border: 'none', borderRadius: 10, fontSize: 14, fontWeight: 700, cursor: bookSaving ? 'wait' : 'pointer', fontFamily: "'Figtree', sans-serif", opacity: bookSaving ? 0.6 : 1 }}>
-            {bookSaving ? 'Creating...' : 'Create Appointment'}
+            {bookSaving ? (editingId ? 'Saving...' : 'Creating...') : (editingId ? 'Save Changes' : 'Create Appointment')}
           </button>
         </div>
       </div>
