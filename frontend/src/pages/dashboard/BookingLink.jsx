@@ -4,13 +4,14 @@
  */
 
 import { useState } from 'react'
-import { Link2, Copy, Check, QrCode, Eye, MousePointer, CalendarCheck, TrendingUp, TrendingDown, Globe, Code, Palette, ExternalLink } from 'lucide-react'
+import { Link2, Copy, Check, QrCode, Eye, MousePointer, CalendarCheck, TrendingUp, TrendingDown, Globe, Code, Palette, ExternalLink, Download, ArrowLeft, Share2, Printer, X } from 'lucide-react'
 import { useBusiness } from '../../contexts/BusinessContext'
 
 const BookingLink = () => {
   const { business } = useBusiness()
   const [copied, setCopied] = useState(false)
   const [activeChannelTab, setActiveChannelTab] = useState('channels')
+  const [showQr, setShowQr] = useState(false)
   const slug = business?.slug || 'your-business'
   const bookingUrl = `https://book.rezvo.app/${slug}`
 
@@ -67,7 +68,7 @@ const BookingLink = () => {
               <button onClick={handleCopy} className="bg-[#111111] text-white font-bold text-xs px-5 py-2.5 rounded-full shadow-lg shadow-[#111111]/20 hover:bg-[#1a1a1a] transition-all flex items-center gap-2" style={{ fontFamily: "'Figtree', sans-serif" }}>
                 {copied ? <><Check className="w-4 h-4" /> Copied!</> : <><Copy className="w-4 h-4" /> Copy Link</>}
               </button>
-              <button className="bg-white text-[#111111] border border-gray-200 font-bold text-sm w-10 h-10 rounded-full hover:bg-gray-50 transition-all shadow-sm flex items-center justify-center">
+              <button onClick={() => setShowQr(true)} className="bg-white text-[#111111] border border-gray-200 font-bold text-sm w-10 h-10 rounded-full hover:bg-gray-50 transition-all shadow-sm flex items-center justify-center">
                 <QrCode className="w-4 h-4" />
               </button>
             </div>
@@ -195,6 +196,93 @@ const BookingLink = () => {
           </button>
         </div>
       </div>
+
+      {/* QR Code Panel */}
+      {showQr && (
+        <>
+          <div onClick={() => setShowQr(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.2)', zIndex: 200 }} />
+          <div style={{
+            position: 'fixed', top: 0, right: 0, bottom: 0, width: 380, maxWidth: '90vw',
+            background: '#fff', zIndex: 201, display: 'flex', flexDirection: 'column',
+            boxShadow: '-4px 0 30px rgba(0,0,0,0.1)', fontFamily: "'Figtree', sans-serif",
+            animation: 'slideIn 0.25s ease-out',
+          }}>
+            <style>{`@keyframes slideIn { from { transform: translateX(100%) } to { transform: translateX(0) } }`}</style>
+            {/* Header */}
+            <div style={{ padding: '16px 20px', borderBottom: '1px solid #EBEBEB', display: 'flex', alignItems: 'center', gap: 12 }}>
+              <button onClick={() => setShowQr(false)} style={{ width: 32, height: 32, borderRadius: 8, border: '1px solid #EBEBEB', background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
+                <ArrowLeft size={16} color="#666" />
+              </button>
+              <div>
+                <h3 style={{ fontSize: 16, fontWeight: 700, color: '#111', margin: 0 }}>QR Code</h3>
+                <p style={{ fontSize: 12, color: '#888', margin: 0 }}>Scan to book instantly</p>
+              </div>
+            </div>
+
+            {/* QR Code */}
+            <div style={{ flex: 1, overflowY: 'auto', padding: 24, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 20 }}>
+              <div style={{ background: '#fff', borderRadius: 16, border: '2px solid #EBEBEB', padding: 20, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                <img
+                  src={`https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(bookingUrl)}&format=png&margin=10`}
+                  alt="Booking QR Code"
+                  style={{ width: 250, height: 250, borderRadius: 8 }}
+                />
+                <p style={{ fontSize: 13, fontWeight: 600, color: '#111', marginTop: 12, textAlign: 'center' }}>
+                  {business?.name || 'Your Business'}
+                </p>
+                <p style={{ fontSize: 11, color: '#888', marginTop: 2, textAlign: 'center', wordBreak: 'break-all' }}>
+                  {bookingUrl}
+                </p>
+              </div>
+
+              {/* Actions */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8, width: '100%' }}>
+                <a
+                  href={`https://api.qrserver.com/v1/create-qr-code/?size=500x500&data=${encodeURIComponent(bookingUrl)}&format=png&margin=10`}
+                  download={`qr-${slug}.png`}
+                  style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, padding: '12px 16px', borderRadius: 10, border: 'none', background: '#111', color: '#fff', fontSize: 13, fontWeight: 600, textDecoration: 'none', cursor: 'pointer', fontFamily: "'Figtree', sans-serif" }}
+                >
+                  <Download size={16} /> Download PNG
+                </a>
+                <a
+                  href={`https://api.qrserver.com/v1/create-qr-code/?size=1000x1000&data=${encodeURIComponent(bookingUrl)}&format=svg&margin=10`}
+                  download={`qr-${slug}.svg`}
+                  style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, padding: '12px 16px', borderRadius: 10, border: '1px solid #EBEBEB', background: '#fff', color: '#111', fontSize: 13, fontWeight: 600, textDecoration: 'none', cursor: 'pointer', fontFamily: "'Figtree', sans-serif" }}
+                >
+                  <Download size={16} /> Download SVG (Print Quality)
+                </a>
+                <button
+                  onClick={() => { window.print() }}
+                  style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, padding: '12px 16px', borderRadius: 10, border: '1px solid #EBEBEB', background: '#fff', color: '#111', fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: "'Figtree', sans-serif" }}
+                >
+                  <Printer size={16} /> Print
+                </button>
+                <button
+                  onClick={() => {
+                    if (navigator.share) {
+                      navigator.share({ title: `Book with ${business?.name || 'us'}`, url: bookingUrl })
+                    } else {
+                      navigator.clipboard.writeText(bookingUrl)
+                      alert('Link copied!')
+                    }
+                  }}
+                  style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, padding: '12px 16px', borderRadius: 10, border: '1px solid #EBEBEB', background: '#fff', color: '#111', fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: "'Figtree', sans-serif" }}
+                >
+                  <Share2 size={16} /> Share
+                </button>
+              </div>
+
+              {/* Tips */}
+              <div style={{ background: '#FAFAF8', borderRadius: 12, padding: 16, width: '100%', border: '1px solid #EBEBEB' }}>
+                <p style={{ fontSize: 12, fontWeight: 700, color: '#111', marginBottom: 8 }}>Where to use this QR code</p>
+                <div style={{ fontSize: 12, color: '#666', lineHeight: 1.8 }}>
+                  Print on business cards, flyers, or reception desk stand. Add to your shop window. Include in email signatures. Display at the till or waiting area.
+                </div>
+              </div>
+            </div>
+          </div>
+        </>
+      )}
     </div>
   )
 }
