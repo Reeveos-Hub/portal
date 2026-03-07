@@ -900,6 +900,7 @@ const Calendar = () => {
         transition: 'transform 0.3s cubic-bezier(0.22,1,0.36,1)',
         display: 'flex', flexDirection: 'column', fontFamily: "'Figtree', sans-serif",
         borderLeft: '1px solid #EBEBEB',
+        pointerEvents: showBook ? 'auto' : 'none',
       }}>
         <div style={{ height: 60, borderBottom: '1px solid #EBEBEB', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 20px', background: '#FAFAFA', flexShrink: 0 }}>
           <h3 style={{ fontSize: 16, fontWeight: 700, margin: 0, color: '#111' }}>New Appointment</h3>
