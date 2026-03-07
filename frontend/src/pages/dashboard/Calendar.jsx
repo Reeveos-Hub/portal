@@ -546,9 +546,24 @@ const Calendar = () => {
             </div>
           )}
           <div style={{ display: 'flex', gap: 8, borderTop: '1px solid #F0F0F0', paddingTop: 12 }}>
-            <button style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5, padding: '10px 0', borderRadius: 10, border: '1px solid #EBEBEB', background: '#fff', fontSize: 12, fontWeight: 600, color: '#111111', cursor: 'pointer' }}><EditIcon /> Edit</button>
-            <button style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5, padding: '10px 0', borderRadius: 10, border: 'none', background: '#111111', fontSize: 12, fontWeight: 600, color: '#fff', cursor: 'pointer', boxShadow: '0 2px 8px rgba(17,17,17,0.2)' }}><CheckIcon /> Check In</button>
-            <button style={{ width: 42, display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: 10, border: '1px solid #EF444420', background: '#FEF2F2', color: '#EF4444', cursor: 'pointer' }}><TrashIcon /></button>
+            <button onClick={() => {
+              setBookForm({ customerName: a.customerName || '', customerPhone: a.customerPhone || '', customerEmail: '', serviceId: '', staffId: a.staffId || '', date: selectedDate, time: a.time ? fmt(a.start) : '', notes: a.notes || '' })
+              setShowBook(true); setSelA(null)
+            }} style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5, padding: '10px 0', borderRadius: 10, border: '1px solid #EBEBEB', background: '#fff', fontSize: 12, fontWeight: 600, color: '#111111', cursor: 'pointer' }}><EditIcon /> Edit</button>
+            <button onClick={() => {
+              const newStatus = a.status === 'checked_in' ? 'completed' : 'checked_in'
+              api.patch(`/bookings/business/${bid}/detail/${a.id}/status`, { status: newStatus }).then(() => {
+                fetchCalendarData(false); setSelA(null)
+              }).catch(err => console.error('Status update failed:', err))
+            }} style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5, padding: '10px 0', borderRadius: 10, border: 'none', background: '#111111', fontSize: 12, fontWeight: 600, color: '#fff', cursor: 'pointer', boxShadow: '0 2px 8px rgba(17,17,17,0.2)' }}>
+              <CheckIcon /> {a.status === 'checked_in' ? 'Complete' : 'Check In'}
+            </button>
+            <button onClick={() => {
+              if (!confirm('Cancel this appointment?')) return
+              api.patch(`/bookings/business/${bid}/detail/${a.id}/status`, { status: 'cancelled' }).then(() => {
+                fetchCalendarData(false); setSelA(null)
+              }).catch(err => console.error('Cancel failed:', err))
+            }} style={{ width: 42, display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: 10, border: '1px solid #EF444420', background: '#FEF2F2', color: '#EF4444', cursor: 'pointer' }}><TrashIcon /></button>
           </div>
           {a.notes && <div style={{ marginTop: 8, padding: '8px 10px', background: '#FFFBEB', borderRadius: 8, border: '1px solid #FDE68A', fontSize: 11, color: '#92400E', lineHeight: '16px' }}>{a.notes}</div>}
         </div>
@@ -965,11 +980,11 @@ const Calendar = () => {
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
             <div>
               <label style={{ fontSize: 11, fontWeight: 700, color: '#888', textTransform: 'uppercase', letterSpacing: 0.5 }}>Date *</label>
-              <input type="date" value={bookForm.date} onChange={e => setBookForm(f => ({ ...f, date: e.target.value }))} style={{ width: '100%', padding: '10px 12px', border: '1px solid #E0E0E0', borderRadius: 10, fontSize: 14, fontFamily: "'Figtree', sans-serif", marginTop: 4, outline: 'none', boxSizing: 'border-box' }} />
+              <input type="date" value={bookForm.date} onChange={e => setBookForm(f => ({ ...f, date: e.target.value }))} style={{ width: '100%', padding: '10px 12px', border: '1px solid #E0E0E0', borderRadius: 10, fontSize: 14, fontFamily: "'Figtree', sans-serif", marginTop: 4, outline: 'none', boxSizing: 'border-box', colorScheme: 'light', WebkitAppearance: 'none', background: '#FAFAF8' }} />
             </div>
             <div>
               <label style={{ fontSize: 11, fontWeight: 700, color: '#888', textTransform: 'uppercase', letterSpacing: 0.5 }}>Time *</label>
-              <input type="time" value={bookForm.time} onChange={e => setBookForm(f => ({ ...f, time: e.target.value }))} style={{ width: '100%', padding: '10px 12px', border: '1px solid #E0E0E0', borderRadius: 10, fontSize: 14, fontFamily: "'Figtree', sans-serif", marginTop: 4, outline: 'none', boxSizing: 'border-box' }} />
+              <input type="time" value={bookForm.time} onChange={e => setBookForm(f => ({ ...f, time: e.target.value }))} style={{ width: '100%', padding: '10px 12px', border: '1px solid #E0E0E0', borderRadius: 10, fontSize: 14, fontFamily: "'Figtree', sans-serif", marginTop: 4, outline: 'none', boxSizing: 'border-box', colorScheme: 'light', WebkitAppearance: 'none', background: '#FAFAF8' }} />
             </div>
           </div>
           <div>

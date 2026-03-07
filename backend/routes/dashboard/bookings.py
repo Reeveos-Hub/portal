@@ -345,16 +345,32 @@ async def update_booking_status(
     if new_status not in valid:
         raise HTTPException(400, f"Invalid status. Use one of: {valid}")
 
+    old_status = b.get("status", "unknown")
     await sdb.bookings.update_one(
         {"_id": doc_id},
         {"$set": {"status": new_status, "updatedAt": datetime.utcnow()}},
     )
 
-    # Log to activity
+    # Audit trail — immutable, cannot be deleted by staff
     nb = normalize_booking(b)
+    audit_entry = {
+        "type": "status_change",
+        "booking_id": str(doc_id),
+        "booking_ref": nb.get("reference", ""),
+        "customer_name": nb["customer"]["name"] or "Customer",
+        "old_value": old_status,
+        "new_value": new_status,
+        "changed_by": tenant.user_email or tenant.user_id,
+        "changed_by_role": tenant.role,
+        "timestamp": datetime.utcnow(),
+        "immutable": True,
+    }
+    await sdb.booking_audit.insert_one(audit_entry)
+
+    # Also log to activity (existing)
     await sdb.activity_log.insert_one({
         "type": f"booking_{new_status}" if new_status != "cancelled" else "booking_cancelled",
-        "message": f"Booking {nb['reference']} {new_status}: {nb['customer']['name'] or 'Customer'}",
+        "message": f"Booking {nb['reference']} {old_status} → {new_status}: {nb['customer']['name'] or 'Customer'} (by {tenant.user_email})",
         "bookingId": str(doc_id),
         "timestamp": datetime.utcnow(),
     })
@@ -472,6 +488,28 @@ async def move_booking(
 
     await sdb.bookings.update_one({"_id": b["_id"]}, {"$set": update})
 
+    # Audit trail — immutable record of every move/reschedule
+    nb_move = normalize_booking(b)
+    changes = []
+    if "time" in payload and payload["time"] != b.get("time"):
+        changes.append(f"time: {b.get('time', '?')} → {payload['time']}")
+    if "staffId" in payload and payload["staffId"] != b.get("staffId"):
+        changes.append(f"staff changed")
+    if "duration" in payload and payload["duration"] != b.get("duration"):
+        changes.append(f"duration: {b.get('duration', 60)}min → {payload['duration']}min")
+    if changes:
+        await sdb.booking_audit.insert_one({
+            "type": "booking_moved",
+            "booking_id": str(b["_id"]),
+            "booking_ref": nb_move.get("reference", ""),
+            "customer_name": nb_move["customer"]["name"] or "Customer",
+            "changes": changes,
+            "changed_by": tenant.user_email or tenant.user_id,
+            "changed_by_role": tenant.role,
+            "timestamp": datetime.utcnow(),
+            "immutable": True,
+        })
+
     updated = await sdb.bookings.find_one({"_id": b["_id"]})
     return {
         "id": str(updated.get("_id")),
@@ -529,3 +567,43 @@ async def edit_booking_details(
     updated = await sdb.bookings.find_one({"_id": b["_id"]})
     staff_map = {st.get("id"): st for st in (await sdb.db.businesses.find_one({"_id": tenant.business_id}) or {}).get("staff", [])}
     return {"detail": "Booking updated", "booking": booking_to_detail(updated, staff_map)}
+
+
+# ═══════════════════════════════════════════════════════════════
+# BOOKING AUDIT TRAIL — immutable history, owner-only access
+# ═══════════════════════════════════════════════════════════════
+
+@router.get("/business/{business_id}/audit")
+async def get_booking_audit(
+    business_id: str,
+    booking_id: str = None,
+    limit: int = 100,
+    tenant: TenantContext = Depends(verify_business_access),
+):
+    """Get immutable audit trail for bookings. Cannot be deleted by staff."""
+    sdb = get_scoped_db(tenant.business_id)
+
+    query = {}
+    if booking_id:
+        query["booking_id"] = booking_id
+
+    cursor = sdb.booking_audit.find(query).sort("timestamp", -1).limit(limit)
+    docs = await cursor.to_list(length=limit)
+
+    entries = []
+    for d in docs:
+        entries.append({
+            "id": str(d.get("_id", "")),
+            "type": d.get("type", ""),
+            "booking_id": d.get("booking_id", ""),
+            "booking_ref": d.get("booking_ref", ""),
+            "customer_name": d.get("customer_name", ""),
+            "old_value": d.get("old_value"),
+            "new_value": d.get("new_value"),
+            "changes": d.get("changes", []),
+            "changed_by": d.get("changed_by", ""),
+            "changed_by_role": d.get("changed_by_role", ""),
+            "timestamp": d.get("timestamp"),
+        })
+
+    return {"audit": entries, "total": len(entries)}
