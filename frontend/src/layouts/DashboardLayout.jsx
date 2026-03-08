@@ -52,9 +52,7 @@ const DashboardLayout = () => {
   return (
     <WalkthroughProvider>
     <div className="h-screen flex overflow-hidden bg-background">
-      <div data-tour="sidebar" className="h-full flex-shrink-0">
-        <Sidebar open={sidebarOpen} onNavigate={() => setSidebarOpen(false)} />
-      </div>
+      <Sidebar open={sidebarOpen} onNavigate={() => setSidebarOpen(false)} />
 
       <div className="flex-1 flex flex-col overflow-hidden min-w-0 transition-all duration-300 ease-[cubic-bezier(0.25,0.1,0.25,1)]">
         <TopBar

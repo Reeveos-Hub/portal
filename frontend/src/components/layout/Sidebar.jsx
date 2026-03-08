@@ -448,6 +448,7 @@ const Sidebar = ({ open, onNavigate: closeMobile }) => {
       )}
 
       <div
+        data-tour="sidebar"
         className={`fixed lg:relative inset-y-0 left-0 z-40 flex transition-transform duration-300 ease-[cubic-bezier(0.25,0.1,0.25,1)] ${
           open ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
         }`}
