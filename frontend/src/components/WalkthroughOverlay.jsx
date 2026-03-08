@@ -94,7 +94,7 @@ const WalkthroughOverlay = () => {
   // Bubble position
   const getBubblePos = () => {
     if (!targetRect || isModal) return { top: '50%', left: '50%', transform: 'translate(-50%, -50%)' }
-    const bw = 360; const pos = currentStep.position || 'bottom'
+    const bw = 420; const pos = currentStep.position || 'bottom'
     let top, left
     if (pos === 'bottom') { top = targetRect.bottom + 20; left = targetRect.left + targetRect.width / 2 - bw / 2 }
     else if (pos === 'top') { top = targetRect.top - 260; left = targetRect.left + targetRect.width / 2 - bw / 2 }
@@ -159,7 +159,7 @@ const WalkthroughOverlay = () => {
 
       {/* Speech bubble */}
       <div ref={bubbleRef} className={`absolute z-[10001] transition-all duration-300 ${transitioning ? 'opacity-0 translate-y-2' : 'opacity-100 translate-y-0'}`} style={getBubblePos()}>
-        <div className={`bg-white rounded-2xl shadow-2xl border border-[#E8E0D4] ${isModal ? 'w-[440px] max-w-[90vw] p-8' : 'w-[360px] max-w-[85vw] p-5'}`} style={{ fontFamily: 'Figtree, sans-serif' }}>
+        <div className={`bg-white rounded-2xl shadow-2xl border border-[#E8E0D4] ${isModal ? 'w-[480px] max-w-[92vw] p-8' : 'w-[420px] max-w-[90vw] p-6'}`} style={{ fontFamily: 'Figtree, sans-serif' }}>
 
           {isModal && (
             <div className="flex justify-center mb-5">
@@ -182,11 +182,11 @@ const WalkthroughOverlay = () => {
             </div>
           )}
 
-          <h3 className={`font-bold text-[#111] mb-1.5 ${isModal ? 'text-2xl text-center' : 'text-base'}`}>
+          <h3 className={`font-bold text-[#111] mb-1.5 ${isModal ? 'text-2xl text-center' : 'text-lg'}`}>
             {(currentStep.title || '').replace(/\{firstName\}/g, firstName)}
           </h3>
 
-          <p className={`text-[#666] text-sm leading-relaxed ${isModal ? 'text-center mb-2' : 'mb-2'}`}>
+          <p className={`text-[#666] text-[13px] leading-relaxed ${isModal ? 'text-center mb-2' : 'mb-2'}`}>
             {bodyText}
           </p>
 
@@ -195,7 +195,7 @@ const WalkthroughOverlay = () => {
               <div className="w-5 h-5 rounded-full bg-[#C9A84C] flex items-center justify-center flex-shrink-0 mt-0.5">
                 <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
               </div>
-              <p className="text-[#111] text-xs font-semibold leading-relaxed">{taskText}</p>
+              <p className="text-[#111] text-[13px] font-semibold leading-relaxed">{taskText}</p>
             </div>
           )}
 
