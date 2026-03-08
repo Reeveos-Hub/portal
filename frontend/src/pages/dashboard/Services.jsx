@@ -80,7 +80,7 @@ const Services = () => {
   }
 
   return (
-    <div className="-m-6 lg:-m-8 flex flex-col h-[calc(100vh-4rem)]">
+    <div data-tour="services" className="-m-6 lg:-m-8 flex flex-col h-[calc(100vh-4rem)]">
       <div className="flex-1 flex flex-col lg:flex-row overflow-hidden">
 
         {/* Left Pane: Categories & List */}

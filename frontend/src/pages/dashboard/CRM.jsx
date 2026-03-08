@@ -174,7 +174,7 @@ export default function CRM() {
 
   if (loading && !dashboard && !pipelineData && !error) return <AppLoader message="Loading CRM..." />
   if (error) return (
-    <div style={{ fontFamily: "'Figtree', sans-serif", padding: 40, textAlign: 'center' }}>
+    <div data-tour="crm" style={{ fontFamily: "'Figtree', sans-serif", padding: 40, textAlign: 'center' }}>
       <p style={{ color: '#EF4444', fontWeight: 700, fontSize: 16 }}>CRM Error</p>
       <p style={{ color: '#666', fontSize: 13, marginTop: 8 }}>{error}</p>
       <p style={{ color: '#999', fontSize: 12, marginTop: 8 }}>Business ID: {bid || 'NOT SET'}</p>

@@ -235,7 +235,7 @@ const Staff = () => {
   }
 
   return (
-    <div>
+    <div data-tour="staff">
       <div className="mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-3xl font-heading font-bold mb-1">Staff</h1>

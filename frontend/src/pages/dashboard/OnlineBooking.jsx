@@ -207,7 +207,7 @@ const OnlineBooking = () => {
   }
 
   return (
-    <div className="flex flex-col lg:flex-row gap-6 lg:gap-8 min-h-0">
+    <div data-tour="booking-link" className="flex flex-col lg:flex-row gap-6 lg:gap-8 min-h-0">
       {/* Editor */}
       <div className="lg:w-1/2 space-y-6 overflow-y-auto pr-2">
         <div className="flex items-center justify-between">

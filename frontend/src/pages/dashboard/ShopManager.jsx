@@ -117,7 +117,7 @@ export default function ShopManager() {
 
   if (loading) return <AppLoader message="Loading shop..." />
   if (error) return (
-    <div style={{ padding: 40, textAlign: 'center', fontFamily: "'Figtree', sans-serif" }}>
+    <div data-tour="shop" style={{ padding: 40, textAlign: 'center', fontFamily: "'Figtree', sans-serif" }}>
       <p style={{ color: '#EF4444', fontWeight: 700 }}>Shop Error</p>
       <p style={{ color: '#666', fontSize: 13, marginTop: 8 }}>{error}</p>
       <button onClick={() => { setError(null); setLoading(true); load() }} style={{ marginTop: 16, padding: '8px 20px', borderRadius: 8, border: '1px solid #DDD', background: '#fff', cursor: 'pointer', fontFamily: "'Figtree', sans-serif", fontWeight: 600 }}>Retry</button>

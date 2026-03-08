@@ -81,7 +81,7 @@ const FloorStatusWidget = ({ navigate }) => {
   const occupancy = total > 0 ? Math.round((seated / total) * 100) : 0
 
   return (
-    <div className="bg-white rounded-2xl border border-gray-100 shadow-[0_2px_10px_rgba(0,0,0,0.03)] overflow-hidden">
+    <div data-tour="dashboard-stats" className="bg-white rounded-2xl border border-gray-100 shadow-[0_2px_10px_rgba(0,0,0,0.03)] overflow-hidden">
       <div className="p-6 border-b border-gray-100 flex justify-between items-center">
         <div>
           <h2 className="text-lg font-bold text-gray-900">Floor Status</h2>

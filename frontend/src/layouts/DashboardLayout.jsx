@@ -12,6 +12,8 @@ import Sidebar from '../components/layout/Sidebar'
 import TopBar from '../components/layout/TopBar'
 import UpgradeModal from '../components/layout/UpgradeModal'
 import SupportBot from '../components/SupportBot'
+import WalkthroughOverlay from '../components/WalkthroughOverlay'
+import { WalkthroughProvider } from '../contexts/WalkthroughContext'
 import WelcomeBanner from '../components/shared/WelcomeBanner'
 import AppLoader from '../components/shared/AppLoader'
 import { TIERS } from '../config/tiers'
@@ -48,8 +50,11 @@ const DashboardLayout = () => {
   }
 
   return (
+    <WalkthroughProvider>
     <div className="h-screen flex overflow-hidden bg-background">
-      <Sidebar open={sidebarOpen} onNavigate={() => setSidebarOpen(false)} />
+      <div data-tour="sidebar">
+        <Sidebar open={sidebarOpen} onNavigate={() => setSidebarOpen(false)} />
+      </div>
 
       <div className="flex-1 flex flex-col overflow-hidden min-w-0 transition-all duration-300 ease-[cubic-bezier(0.25,0.1,0.25,1)]">
         <TopBar
@@ -78,7 +83,9 @@ const DashboardLayout = () => {
       )}
       <SupportBot />
       <WelcomeBanner />
+      <WalkthroughOverlay />
     </div>
+    </WalkthroughProvider>
   )
 }
 

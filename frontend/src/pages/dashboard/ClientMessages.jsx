@@ -82,7 +82,7 @@ export default function ClientMessages() {
   if (!bizId) return <div style={{ padding: 40, textAlign: 'center', color: '#6B7280' }}>Loading business...</div>
 
   return (
-    <div style={{ display: 'flex', height: '100%', fontFamily: "'Figtree',-apple-system,sans-serif" }}>
+    <div data-tour="messages" style={{ display: 'flex', height: '100%', fontFamily: "'Figtree',-apple-system,sans-serif" }}>
       {/* Thread list */}
       <div style={{
         width: 340,

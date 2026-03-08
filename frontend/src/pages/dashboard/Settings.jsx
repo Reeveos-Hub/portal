@@ -9,12 +9,14 @@ import { useBusiness } from '../../contexts/BusinessContext'
 import api, { API_BASE_URL } from '../../utils/api'
 import { isFeatureUnlocked } from '../../config/tiers'
 import { getDomainConfig } from '../../utils/domain'
+import { useWalkthrough } from '../../contexts/WalkthroughContext'
 
 const TABS = [
   { id: 'business', label: 'Business' },
   { id: 'hours', label: 'Opening Hours' },
   { id: 'notifications', label: 'Notifications' },
   { id: 'integrations', label: 'Integrations' },
+  { id: 'preferences', label: 'Preferences' },
   { id: 'subscription', label: 'Subscription' },
   { id: 'team', label: 'Team Permissions' },
 ]
@@ -71,6 +73,67 @@ const PLANS = [
 ]
 
 const toImageUrl = (path) => path?.startsWith('/') ? `${API_BASE_URL}${path}` : path
+
+/* ─── Preferences Tab ─── */
+const PreferencesTab = () => {
+  const { active, restart, skip } = useWalkthrough()
+  const [tourOn, setTourOn] = useState(false)
+
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem('reeveos_walkthrough')
+      if (stored) {
+        const d = JSON.parse(stored)
+        setTourOn(d.active || false)
+      }
+    } catch {}
+  }, [active])
+
+  const handleToggle = () => {
+    if (tourOn || active) {
+      skip()
+      setTourOn(false)
+    } else {
+      restart()
+      setTourOn(true)
+    }
+  }
+
+  return (
+    <div className="bg-white border border-gray-100 rounded-2xl shadow-[0_2px_10px_rgba(0,0,0,0.03)] p-6">
+      <h2 className="text-xl font-heading font-semibold mb-6">Preferences</h2>
+
+      {/* Guided Tour */}
+      <div className="flex items-center justify-between py-4 border-b border-gray-100">
+        <div>
+          <h3 className="font-semibold text-sm">Guided Tour</h3>
+          <p className="text-gray-500 text-xs mt-0.5">Walk through every section of your portal with an interactive guide</p>
+        </div>
+        <button
+          onClick={handleToggle}
+          className={`relative w-12 h-6 rounded-full transition-colors duration-200 ${active ? 'bg-[#C9A84C]' : 'bg-gray-200'}`}
+        >
+          <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform duration-200 ${active ? 'translate-x-6' : ''}`} />
+        </button>
+      </div>
+
+      {/* Restart Tour button */}
+      <div className="flex items-center justify-between py-4 border-b border-gray-100">
+        <div>
+          <h3 className="font-semibold text-sm">Restart Tour</h3>
+          <p className="text-gray-500 text-xs mt-0.5">Run the guided walkthrough from the beginning</p>
+        </div>
+        <button
+          onClick={() => { restart(); setTourOn(true) }}
+          className="px-4 py-2 text-xs font-bold rounded-lg border border-[#111] text-[#111] hover:bg-[#111] hover:text-white transition-all"
+        >
+          Restart
+        </button>
+      </div>
+    </div>
+  )
+}
+
 
 const Settings = () => {
   const navigate = useNavigate()
@@ -356,7 +419,7 @@ const Settings = () => {
 
   if (loading && !settings) {
     return (
-      <div className="text-center py-12">
+      <div data-tour="settings" className="text-center py-12">
         <AppLoader message="Loading settings..." />
         <p className="mt-4 text-gray-500">Loading settings...</p>
       </div>
@@ -744,6 +807,10 @@ const Settings = () => {
               })}
             </div>
           </div>
+        )}
+
+        {activeTab === 'preferences' && (
+          <PreferencesTab />
         )}
 
         {activeTab === 'subscription' && (

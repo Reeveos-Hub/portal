@@ -94,7 +94,7 @@ const Calendar = () => {
        NEVER show salon demo to an authenticated user — show error instead. ── */
   if (false && localStorage.getItem('token')) {
     return (
-      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '60vh', fontFamily: "'Figtree', sans-serif", color: '#111111' }}>
+      <div data-tour="calendar" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '60vh', fontFamily: "'Figtree', sans-serif", color: '#111111' }}>
         <p style={{ fontSize: 18, fontWeight: 600 }}>Could not load your business</p>
         <p style={{ fontSize: 14, color: '#666', marginTop: 8 }}>Your session may have expired. Try refreshing or logging in again.</p>
         <div style={{ display: 'flex', gap: 12, marginTop: 16 }}>
