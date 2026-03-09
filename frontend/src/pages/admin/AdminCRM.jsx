@@ -11,7 +11,7 @@ import { useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import {
   LayoutDashboard, Columns3, Users2, Target, Plus, ArrowLeft, Search,
   Pencil, Trash2, ChevronDown, Check, Phone, Mail, FileText, Link2,
-  Eye, StickyNote, RefreshCw
+  Eye, StickyNote, RefreshCw, Handshake, ExternalLink
 } from 'lucide-react'
 // Inline admin fetch — uses sessionStorage token
 async function adminFetch(url, options = {}) {
@@ -312,6 +312,11 @@ function Fld({label,children}){ return <div><label className="block text-[10px] 
 function Sec({title,color,children}){ return <div className="mb-6"><div className="text-[10px] font-bold uppercase tracking-widest mb-3 pb-2 border-b border-gray-800" style={{color:color||GOLD}}>{title}</div>{children}</div> }
 
 function DashboardView({stats,settings,leads,teamData,profileId,teamTotal}){
+  const [partners,setPartners]=useState(null)
+  useEffect(()=>{
+    adminFetch('/api/admin/partners/overview').then(r=>r.ok?r.json():null).then(d=>d&&setPartners(d)).catch(()=>{})
+  },[])
+  const fPence=p=>p!=null?new Intl.NumberFormat('en-GB',{style:'currency',currency:'GBP',minimumFractionDigits:2}).format(p/100):'£0.00'
   return (
     <div className="flex-1 overflow-auto px-5 py-3 space-y-4">
       <div className="p-4 rounded-xl border border-gray-800 bg-gray-900/60">
@@ -349,6 +354,20 @@ function DashboardView({stats,settings,leads,teamData,profileId,teamTotal}){
           </div>
         </div>
       </div>
+      {partners&&(
+        <div className="p-4 rounded-xl border bg-gray-900/60" style={{borderColor:'rgba(201,168,76,0.2)'}}>
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-2"><Handshake size={14} style={{color:GOLD}}/><span className="text-sm font-bold text-white">Partner Programme</span></div>
+            <a href="/admin/partners" className="text-[10px] font-semibold flex items-center gap-1" style={{color:GOLD,textDecoration:'none'}}>View all <ExternalLink size={10}/></a>
+          </div>
+          <div className="grid grid-cols-4 gap-3">
+            <div className="p-3 rounded-lg border border-gray-800 bg-gray-800/40 text-center"><p className="text-[9px] text-gray-500 uppercase tracking-wider">Total</p><p className="text-xl font-extrabold text-white mt-1">{partners.affiliates?.total||0}</p></div>
+            <div className="p-3 rounded-lg border border-gray-800 bg-gray-800/40 text-center"><p className="text-[9px] text-gray-500 uppercase tracking-wider">Active</p><p className="text-xl font-extrabold text-emerald-400 mt-1">{partners.affiliates?.active||0}</p></div>
+            <div className="p-3 rounded-lg border text-center" style={{borderColor:'rgba(251,191,36,0.2)',background:'rgba(251,191,36,0.04)'}}><p className="text-[9px] uppercase tracking-wider" style={{color:'#FBBF24'}}>Pending</p><p className="text-xl font-extrabold mt-1" style={{color:'#FBBF24'}}>{partners.affiliates?.pending||0}</p></div>
+            <div className="p-3 rounded-lg border border-gray-800 bg-gray-800/40 text-center"><p className="text-[9px] text-gray-500 uppercase tracking-wider">Payouts Due</p><p className="text-base font-extrabold mt-1" style={{color:GOLD}}>{fPence(partners.commissions?.pending?.total)}</p></div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
