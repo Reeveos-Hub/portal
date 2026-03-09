@@ -5,7 +5,7 @@ import {
   Globe, FileText, Settings, LogOut, ChevronLeft, ChevronRight,
   Building2, CalendarCheck, MessageSquare, Star, AlertTriangle,
   CreditCard, ScrollText, Bug, Megaphone, ShieldCheck, Linkedin,
-  Search, Crosshair, BookOpen, Wallet, Sun, Moon
+  Search, Crosshair, BookOpen, Wallet, Sun, Moon, Handshake
 } from 'lucide-react'
 import { ADMIN_BASE, adminPath } from '../utils/domain'
 
@@ -18,6 +18,7 @@ const NAV_SECTIONS = [
       { id: 'ai-ops', label: 'AI Ops Centre', icon: Bot, path: adminPath('/ai-ops') },
       { id: 'outreach', label: 'Email Outreach', icon: Send, path: adminPath('/outreach') },
       { id: 'crm', label: 'CRM', icon: Wallet, path: adminPath('/crm') },
+      { id: 'partners', label: 'Partner Programme', icon: Handshake, path: adminPath('/partners') },
       { id: 'library', label: 'Knowledge Library', icon: BookOpen, path: adminPath('/library') },
     ],
   },
