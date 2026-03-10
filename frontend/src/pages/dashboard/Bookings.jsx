@@ -144,7 +144,7 @@ const Bookings = () => {
 
   useEffect(() => { const t = setTimeout(() => setSearchDebounce(search), 300); return () => clearTimeout(t) }, [search])
   useEffect(() => { if (bid) fetchBookings(false) }, [bid, status, searchDebounce])
-  useEffect(() => { if (bookingId && bid) fetchDetail(bookingId); else setDetail(null) }, [bookingId, bid])
+  // bookingId from URL is ignored — detail opens via click only (prevents crash on refresh)
 
   // Live polling — silently refresh every 15 seconds
   useEffect(() => {
@@ -160,8 +160,14 @@ const Bookings = () => {
     return () => clearTimeout(t)
   }, [newBookingIds])
 
-  const openDetail = (id) => setSearchParams({ booking: id })
-  const closeDetail = () => setSearchParams({})
+  const openDetail = (id) => {
+    if (!bid || !id) return
+    fetchDetail(id)
+  }
+  const closeDetail = () => {
+    setDetail(null)
+    setSearchParams({})
+  }
 
   const displayBookings = bookings
 
