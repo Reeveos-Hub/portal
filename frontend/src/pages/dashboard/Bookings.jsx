@@ -632,7 +632,10 @@ const Bookings = () => {
 
                   {/* CRM link */}
                   {detail.customer && (
-                    <button onClick={() => navigate('/dashboard/crm')} className="w-full flex items-center justify-between bg-gray-50 hover:bg-gray-100 border border-gray-200 rounded-lg px-4 py-3 transition-colors group">
+                    <button onClick={() => {
+                      const cid = detail?.customerId || detailClient?.client?.id || ''
+                      navigate(cid ? `/dashboard/crm?client=${cid}` : '/dashboard/crm')
+                    }} className="w-full flex items-center justify-between bg-gray-50 hover:bg-gray-100 border border-gray-200 rounded-lg px-4 py-3 transition-colors group">
                       <span className="text-sm font-bold text-gray-600 group-hover:text-[#111]">View in CRM</span>
                       <ExternalLink className="w-4 h-4 text-gray-400 group-hover:text-[#111]" />
                     </button>

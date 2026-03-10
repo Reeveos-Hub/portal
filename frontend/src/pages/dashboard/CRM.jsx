@@ -58,6 +58,7 @@ export default function CRM() {
   const navigate = useNavigate()
   const [searchParams, setSearchParams] = useSearchParams()
   const urlView = searchParams.get('view') || 'dashboard'
+  const urlClientId = searchParams.get('client')
   const [view, setViewState] = useState(urlView)
   const setView = (v) => { setViewState(v); setSearchParams({ view: v }) }
 
@@ -137,8 +138,15 @@ export default function CRM() {
     if (selectedClient) loadClientDetail(selectedClient.id || selectedClient)
   }, [selectedClient, loadClientDetail])
 
+  // Auto-open client from URL param (e.g., /dashboard/crm?client=abc123)
+  useEffect(() => {
+    if (urlClientId && bid && !selectedClient) {
+      openClient(urlClientId)
+    }
+  }, [urlClientId, bid])
+
   const openClient = (c) => setSelectedClient(typeof c === 'string' ? { id: c } : c)
-  const closeClient = () => { setSelectedClient(null); setClientDetail(null); setTimeline([]) }
+  const closeClient = () => { setSelectedClient(null); setClientDetail(null); setTimeline([]); searchParams.delete('client'); setSearchParams(searchParams) }
 
   const moveClient = async (clientId, newStage) => {
     try {
