@@ -4,7 +4,8 @@ import { useBusiness } from '../../contexts/BusinessContext'
 import api from '../../utils/api'
 
 const MothershipSettings = () => {
-  const { business, refetchBusiness } = useBusiness()  const [enabled, setEnabled] = useState(false)
+  const { business, refetchBusiness } = useBusiness()
+  const [enabled, setEnabled] = useState(false)
   const [settings, setSettings] = useState({
     commission_type: 'percentage', default_rate: 30, chair_rental: 200,
     settlement_frequency: 'instant', shared_booking: true,
