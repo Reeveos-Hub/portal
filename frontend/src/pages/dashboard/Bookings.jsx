@@ -105,8 +105,29 @@ const Bookings = () => {
   const fetchDetail = async (id) => {
     if (!bid || !id) return
     setDetailLoading(true)
-    try { const res = await api.get(`/bookings/business/${bid}/detail/${id}`); setDetail(res.booking) }
-    catch { setDetail(null) }
+    try {
+      const res = await api.get(`/bookings/business/${bid}/detail/${id}`)
+      const b = res?.booking || res || null
+      if (b) {
+        // Ensure all required fields exist with defaults
+        setDetail({
+          ...b,
+          id: b.id || b._id || id,
+          status: b.status || 'pending',
+          reference: b.reference || b.id || b._id || '',
+          customerName: b.customerName || b.customer?.name || b.customer_name || 'Unknown',
+          date: b.date || b.booking_date || '',
+          time: b.time || b.start_time || '',
+          service: b.service || b.serviceName || b.service_name || '',
+          staffName: b.staffName || b.staff_name || b.staff?.name || 'Any available',
+          notes: b.notes || '',
+          customer: b.customer || { name: b.customerName || 'Unknown', phone: b.phone || '', email: b.email || '' },
+        })
+      } else {
+        setDetail(null)
+      }
+    }
+    catch (e) { console.error('Failed to load booking detail:', e); setDetail(null) }
     finally { setDetailLoading(false) }
   }
 

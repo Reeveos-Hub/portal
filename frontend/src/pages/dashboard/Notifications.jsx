@@ -38,7 +38,7 @@ const Notifications = () => {
     if (!bid) return
     if (showLoader) setLoading(true)
     try {
-      const data = await api.get(`/notifications/business/${bid}?limit=100`)
+      const data = await api.get(`/notifications/business/${bid}?limit=100&hours_back=4320`)
       setNotifications(data.notifications || [])
       setUnreadCount(data.unread_count || 0)
     } catch (err) {
