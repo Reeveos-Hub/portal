@@ -30,10 +30,28 @@ const Services = () => {
     if (!bid) { setLoading(false); return }
     const fetchServices = async () => {
       try {
-        const res = await api.get(`/services/business/${bid}`)
-        setServices(res.services || [])
-        setCategories(res.categories || [])
-      } catch (e) { console.error(e) }
+        // Try v2 first (where data is stored via calendar/onboarding)
+        const res = await api.get(`/services-v2/business/${bid}`)
+        const cats = res.categories || []
+        const allServices = cats.flatMap(c => (c.services || []).map(s => ({ ...s, category: c.name || c.id })))
+        setServices(allServices)
+        setCategories(cats.map(c => c.name || c.id))
+        if (allServices.length === 0) {
+          // Fallback to v1 in case data is there instead
+          const v1 = await api.get(`/services/business/${bid}`).catch(() => ({}))
+          if ((v1.services || []).length > 0) {
+            setServices(v1.services)
+            setCategories(v1.categories || [])
+          }
+        }
+      } catch (e) {
+        // Fallback to v1
+        try {
+          const v1 = await api.get(`/services/business/${bid}`)
+          setServices(v1.services || [])
+          setCategories(v1.categories || [])
+        } catch { console.error('Services load failed') }
+      }
       finally { setLoading(false) }
     }
     fetchServices()

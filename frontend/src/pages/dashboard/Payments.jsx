@@ -64,7 +64,7 @@ const RangePill = ({ active, onClick, label }) => (
 /* ═══ Main ═══ */
 const Payments = () => {
   const { business, loading: bizLoading } = useBusiness()
-  const [tab, setTab] = useState('analytics')
+  const [tab, setTab] = useState('payments')
   const [loading, setLoading] = useState(true)
   const [stats, setStats] = useState({})
   const [transactions, setTransactions] = useState([])
