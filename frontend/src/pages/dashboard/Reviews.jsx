@@ -171,7 +171,7 @@ const Reviews = () => {
           </div>
 
           {r.text && <p className="text-sm text-gray-600 mt-3 leading-relaxed">{r.text}</p>}
-          {r.service && <p className="text-xs text-gray-400 mt-2">Service: {r.service}</p>}
+          {(typeof r.service === 'object' ? r.service?.name : r.service) && <p className="text-xs text-gray-400 mt-2">Service: {typeof r.service === 'object' ? r.service?.name : r.service}</p>}
 
           {/* Owner reply */}
           {r.replied && (

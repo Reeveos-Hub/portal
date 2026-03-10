@@ -191,7 +191,7 @@ export default function Deleted() {
                   <ItemRow key={b.id || b._id}
                     icon={CalendarX2} iconBg="#FEF2F2" iconColor="#EF4444"
                     title={b.customer_name || b.customerName || 'Unknown'}
-                    sub={`${b.service_name || b.service || b.serviceName || 'Service'} · ${fmtDate(b.date || b.booking_date)}`}
+                    sub={`${b.service_name || (typeof b.service === 'object' ? b.service?.name : b.service) || b.serviceName || 'Service'} · ${fmtDate(b.date || b.booking_date)}`}
                     detail={b.staff_name || b.staffName ? `Staff: ${b.staff_name || b.staffName}` : null}
                     badge="Cancelled" badgeColor="#EF4444"
                   />
@@ -212,7 +212,7 @@ export default function Deleted() {
                     title={item._type === 'product' ? item.name : (item.customer_name || item.customerName || 'Unknown')}
                     sub={item._type === 'product'
                       ? `Product · £${(item.price || 0).toFixed(2)}`
-                      : `Appointment · ${item.service_name || item.service || item.serviceName || 'Service'}`}
+                      : `Appointment · ${item.service_name || (typeof item.service === 'object' ? item.service?.name : item.service) || item.serviceName || 'Service'}`}
                     detail={fmtDate(item.updated_at || item.date || item.booking_date)}
                     badge={item._type === 'product' ? 'Product' : 'Booking'}
                     badgeColor={item._type === 'product' ? '#6366F1' : '#EF4444'}

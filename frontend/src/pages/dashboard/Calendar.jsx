@@ -539,7 +539,7 @@ const Calendar = () => {
             </div>
             <div style={{ flex: 1 }}>
               <div style={{ fontSize: 15, fontWeight: 700, color: '#111111' }}>{a.customerName}</div>
-              <div style={{ fontSize: 11, color: '#999' }}>{a.service}</div>
+              <div style={{ fontSize: 11, color: '#999' }}>{typeof a.service === 'object' ? a.service?.name : a.service}</div>
             </div>
             <div style={{ padding: '4px 10px', borderRadius: 20, background: st.color + '12', fontSize: 10, fontWeight: 700, color: st.color }}>{st.label}</div>
           </div>
@@ -683,7 +683,7 @@ const Calendar = () => {
                   {(a.price || 0) > 0 && <div style={{ fontSize: 10, fontWeight: 700, background: 'rgba(0,0,0,0.1)', borderRadius: 5, padding: '1px 6px' }}>£{a.price}</div>}
                 </div>
                 <div style={{ fontSize: 12, fontWeight: 700, lineHeight: 1.2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{a.customerName}</div>
-                <div style={{ fontSize: 10, opacity: 0.85, fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{a.service}</div>
+                <div style={{ fontSize: 10, opacity: 0.85, fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{typeof a.service === 'object' ? a.service?.name : a.service}</div>
               </>
             ) : (
               <>
@@ -692,7 +692,7 @@ const Calendar = () => {
                   {(a.price || 0) > 0 && <div style={{ fontSize: 11, fontWeight: 700, background: 'rgba(0,0,0,0.1)', borderRadius: 6, padding: '2px 8px' }}>£{a.price}</div>}
                 </div>
                 <div style={{ fontSize: 14, fontWeight: 700, lineHeight: 1.2, marginBottom: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{a.customerName}</div>
-                <div style={{ fontSize: 11, opacity: 0.85, fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{a.service}</div>
+                <div style={{ fontSize: 11, opacity: 0.85, fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{typeof a.service === 'object' ? a.service?.name : a.service}</div>
                 {a.isNewClient && <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, marginTop: 6, fontSize: 9, fontWeight: 800, letterSpacing: 1, background: 'linear-gradient(110deg, #111111 30%, #1a1a1a 50%, #111111 70%)', backgroundSize: '200% 100%', borderRadius: 20, padding: '4px 12px 4px 9px', textTransform: 'uppercase', width: 'fit-content', color: '#fff', animation: 'newPulse 2s ease-in-out infinite, shimmer 3s linear infinite', boxShadow: '0 2px 12px rgba(17,17,17,0.4)' }}><StarIcon /> New Client</span>}
                 {a.status === 'completed' && <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, marginTop: 6, fontSize: 9, fontWeight: 800, letterSpacing: 1, background: '#22C55E', borderRadius: 20, padding: '4px 12px 4px 9px', textTransform: 'uppercase', width: 'fit-content', color: '#fff', boxShadow: '0 2px 8px rgba(34,197,94,0.3)' }}>✓ Completed</span>}
               </>
@@ -733,7 +733,7 @@ const Calendar = () => {
           {fmt(pxToTime(drag.ghostTop))} - {fmt(pxToTime(drag.ghostTop) + drag.ghostH / HH)}
         </div>
         <div style={{ fontSize: 14, fontWeight: 700, lineHeight: 1.2, marginBottom: 2 }}>{a.customerName}</div>
-        <div style={{ fontSize: 11, opacity: 0.85, fontWeight: 500 }}>{a.service}</div>
+        <div style={{ fontSize: 11, opacity: 0.85, fontWeight: 500 }}>{typeof a.service === 'object' ? a.service?.name : a.service}</div>
       </div>
     )
   }

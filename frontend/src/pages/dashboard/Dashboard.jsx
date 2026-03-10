@@ -491,7 +491,7 @@ const Dashboard = () => {
               {(() => {
                 const services = {}
                 todayBookings.forEach(b => {
-                  const name = b.service_name || b.service || b.serviceName || 'Unknown Service'
+                  const name = b.service_name || (typeof b.service === 'object' ? b.service?.name : b.service) || b.serviceName || 'Unknown Service'
                   services[name] = (services[name] || 0) + 1
                 })
                 const sorted = Object.entries(services).sort((a, b) => b[1] - a[1])

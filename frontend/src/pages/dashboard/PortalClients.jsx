@@ -94,7 +94,7 @@ export default function PortalClients() {
         ) : (clientDetail.bookings || []).map((b, i) => (
           <div key={i} style={{ padding: '12px 16px', borderBottom: i < (clientDetail.bookings || []).length - 1 ? `1px solid ${S.bdr}` : 'none', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <div>
-              <p style={{ fontSize: 14, fontWeight: 600, color: S.h, margin: 0 }}>{b.service}</p>
+              <p style={{ fontSize: 14, fontWeight: 600, color: S.h, margin: 0 }}>{typeof b.service === 'object' ? b.service?.name : b.service}</p>
               <p style={{ fontSize: 12, color: S.txtM, margin: '2px 0 0' }}>{b.date}{b.time ? ` at ${b.time}` : ''}{b.staff ? ` · ${b.staff}` : ''}</p>
             </div>
             {b.price && <span style={{ fontSize: 14, fontWeight: 700, color: S.h }}>£{b.price}</span>}

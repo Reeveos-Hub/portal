@@ -50,7 +50,7 @@ const Notifications = () => {
             id: b.id || b._id,
             category: 'bookings',
             title: `Booking ${b.status || 'confirmed'}`,
-            message: `${b.customerName || b.customer_name || 'Client'} — ${b.service || b.serviceName || b.service_name || 'Appointment'}`,
+            message: `${b.customerName || b.customer_name || 'Client'} — ${(typeof b.service === 'object' ? b.service?.name : b.service) || b.serviceName || b.service_name || 'Appointment'}`,
             created_at: b.createdAt || b.created_at || b.date,
             read: b.status === 'completed' || b.status === 'cancelled',
             priority: b.status === 'pending' ? 'urgent' : 'normal',

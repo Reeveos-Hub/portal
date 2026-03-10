@@ -689,7 +689,7 @@ function ClientDetailPanel({ detail, timeline, onClose, bid, onInteraction, onRe
               <div key={b.id} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 0', borderBottom: '1px solid #F5F5F5' }}>
                 <Calendar size={13} color="#BBB" />
                 <div style={{ flex: 1 }}>
-                  <div style={{ fontSize: 12, fontWeight: 600, color: '#333' }}>{b.service}</div>
+                  <div style={{ fontSize: 12, fontWeight: 600, color: '#333' }}>{typeof b.service === 'object' ? b.service?.name : b.service}</div>
                   <div style={{ fontSize: 10, color: '#999' }}>{fmtDate(b.date)} · {b.staff || 'Any'}</div>
                 </div>
                 <span style={{ fontSize: 10, fontWeight: 600, color: b.status === 'completed' ? '#10B981' : b.status === 'cancelled' ? '#EF4444' : '#F59E0B', textTransform: 'capitalize' }}>{b.status}</span>
