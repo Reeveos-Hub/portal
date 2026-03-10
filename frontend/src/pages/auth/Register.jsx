@@ -3,11 +3,29 @@
  * Left: brand hero / Right: signup form
  */
 import { useState } from 'react'
-import { useNavigate, Link } from 'react-router-dom'
+import { useNavigate, Link, useSearchParams } from 'react-router-dom'
 import { useAuth } from '../../contexts/AuthContext'
-import { Eye, EyeOff, UtensilsCrossed, User, Building2, ArrowRight } from 'lucide-react'
+import { Eye, EyeOff, UtensilsCrossed, User, Building2, ArrowRight, ArrowLeft } from 'lucide-react'
+
+const TESTIMONIALS = {
+  hospitality: {
+    quote: "We switched from OpenTable and saved over £800 a month. Setup took 5 minutes.",
+    name: "Marcus Kennedy",
+    initials: "MK",
+    role: "Owner, The Kitchen Nottingham",
+  },
+  services: {
+    quote: "I left Fresha and never looked back. My clients love the booking page and I keep 100% of my revenue.",
+    name: "Natalie Price",
+    initials: "NP",
+    role: "Owner, Rejuvenate Skin Experts",
+  },
+}
 
 const Register = () => {
+  const [searchParams] = useSearchParams()
+  const bizType = searchParams.get('type') || 'services'
+  const testimonial = TESTIMONIALS[bizType] || TESTIMONIALS.services
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -73,13 +91,13 @@ const Register = () => {
             {[1,2,3,4,5].map(i => <i key={i} className="fa-solid fa-star" />)}
           </div>
           <h2 className="font-heading text-4xl xl:text-5xl font-bold leading-tight mb-6">
-            "We switched from OpenTable and saved over £800 a month. Setup took 5 minutes."
+            "{testimonial.quote}"
           </h2>
           <div className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center text-white font-bold text-lg">MK</div>
+            <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center text-white font-bold text-lg">{testimonial.initials}</div>
             <div>
-              <p className="font-bold text-lg">Marcus Kennedy</p>
-              <p className="text-white/70 text-sm">Owner, The Kitchen Nottingham</p>
+              <p className="font-bold text-lg">{testimonial.name}</p>
+              <p className="text-white/70 text-sm">{testimonial.role}</p>
             </div>
           </div>
         </div>
@@ -99,8 +117,8 @@ const Register = () => {
         </div>
 
         {/* Back button - bottom left */}
-        <a href="/" className="relative z-10 w-10 h-10 rounded-full border border-white/30 flex items-center justify-center text-white/70 hover:text-white hover:border-white/60 transition-all no-underline">
-          <i className="fa-solid fa-arrow-left text-sm" />
+        <a href="https://reeveos.app" className="relative z-10 w-10 h-10 rounded-full border border-white/30 flex items-center justify-center text-white/70 hover:text-white hover:border-white/60 transition-all no-underline">
+          <ArrowLeft className="w-4 h-4" />
         </a>
       </section>
 

@@ -164,7 +164,7 @@ const App = () => {
             {/* Auth */}
             <Route path="/get-started" element={<BusinessTypeSelector />} />
             <Route path="/signup" element={<BusinessTypeSelector />} />
-            <Route path="/login/restaurant" element={<RestaurantWelcome />} />
+            <Route path="/login/restaurant" element={<Navigate to="/login" replace />} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
             <Route path="/auth/login" element={<Login />} />
