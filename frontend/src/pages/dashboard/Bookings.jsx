@@ -484,23 +484,23 @@ const Bookings = () => {
 
                   {/* Reschedule mode */}
                   {rescheduleMode && (
-                    <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 space-y-3">
-                      <h3 className="text-sm font-bold text-blue-800 flex items-center gap-2"><Calendar className="w-4 h-4" /> Reschedule Appointment</h3>
+                    <div className="bg-gray-50 border border-gray-200 rounded-xl p-4 space-y-3">
+                      <h3 className="text-sm font-bold text-[#111111] flex items-center gap-2"><Calendar className="w-4 h-4" /> Reschedule Appointment</h3>
                       <div className="grid grid-cols-2 gap-3">
                         <div>
-                          <label className="text-[10px] font-bold text-blue-600 uppercase block mb-1">New Date</label>
+                          <label className="text-[10px] font-bold text-[#C9A84C] uppercase block mb-1">New Date</label>
                           <input type="date" value={rescheduleFields.date || ''} onChange={e => setRescheduleFields(f => ({ ...f, date: e.target.value }))}
-                            className="w-full border border-blue-200 rounded-lg px-3 py-2 text-sm focus:border-blue-500 outline-none bg-white" />
+                            className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:border-[#111111] outline-none bg-white" />
                         </div>
                         <div>
-                          <label className="text-[10px] font-bold text-blue-600 uppercase block mb-1">New Time</label>
+                          <label className="text-[10px] font-bold text-[#C9A84C] uppercase block mb-1">New Time</label>
                           <input type="time" value={rescheduleFields.time || ''} onChange={e => setRescheduleFields(f => ({ ...f, time: e.target.value }))}
-                            className="w-full border border-blue-200 rounded-lg px-3 py-2 text-sm focus:border-blue-500 outline-none bg-white" />
+                            className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:border-[#111111] outline-none bg-white" />
                         </div>
                       </div>
                       <div className="flex gap-2">
                         <button onClick={() => setRescheduleMode(false)} className="flex-1 bg-white border border-gray-200 text-gray-600 font-bold py-2 rounded-lg text-sm">Cancel</button>
-                        <button onClick={saveReschedule} disabled={saving} className="flex-1 bg-blue-600 text-white font-bold py-2 rounded-lg text-sm hover:bg-blue-700 transition-colors flex items-center justify-center gap-2">
+                        <button onClick={saveReschedule} disabled={saving} className="flex-1 bg-[#111111] text-white font-bold py-2 rounded-lg text-sm hover:bg-[#1a1a1a] transition-colors flex items-center justify-center gap-2">
                           {saving ? 'Saving...' : <><Save className="w-3.5 h-3.5" /> Save</>}
                         </button>
                       </div>
@@ -615,7 +615,7 @@ const Bookings = () => {
                       )}
                       {/* Staff notes */}
                       {detailClient.client?.notes?.length > 0 && (
-                        <div className="bg-purple-50 p-2.5 rounded-lg border border-purple-200 text-xs text-purple-800">
+                        <div className="bg-[#F5EDD6] p-2.5 rounded-lg border border-[#C9A84C]/30 text-xs text-[#111111]">
                           <strong>Staff notes:</strong> {Array.isArray(detailClient.client.notes) ? detailClient.client.notes.join(' · ') : detailClient.client.notes}
                         </div>
                       )}

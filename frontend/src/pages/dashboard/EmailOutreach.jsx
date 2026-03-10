@@ -693,7 +693,7 @@ export default function EmailOutreach() {
           <div className="flex items-center justify-between mb-6">
             <h2 className="font-bold text-lg text-gray-900">Email Templates</h2>
             <div className="flex gap-2">
-              <button onClick={seedTemplates} className="px-4 py-2 rounded-xl text-xs font-bold border border-purple-200 text-purple-700 hover:bg-purple-50">
+              <button onClick={seedTemplates} className="px-4 py-2 rounded-xl text-xs font-bold border border-gray-200 text-[#111111] hover:bg-gray-50">
                 <i className="fas fa-sparkles mr-1" /> Seed Defaults
               </button>
             </div>
@@ -901,7 +901,7 @@ export default function EmailOutreach() {
                 </div>
                 <label className="relative inline-flex items-center cursor-pointer">
                   <input type="checkbox" checked={newCampaign.ai_personalisation} onChange={e => setNewCampaign({ ...newCampaign, ai_personalisation: e.target.checked })} className="sr-only peer" />
-                  <div className="w-9 h-5 bg-gray-200 peer-checked:bg-purple-500 rounded-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:after:translate-x-full" />
+                  <div className="w-9 h-5 bg-gray-200 peer-checked:bg-[#111111] rounded-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:after:translate-x-full" />
                 </label>
               </div>
             </div>

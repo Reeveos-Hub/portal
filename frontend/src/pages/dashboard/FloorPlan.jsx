@@ -1311,7 +1311,7 @@ const FloorPlan = ({ embedded = false }) => {
               </div>
             </div>
             <div className="flex gap-3 mt-6 pt-4 border-t border-gray-100">
-              <button onClick={() => { duplicateTable(editTable.id); setEditTable(null) }} className="px-4 py-2.5 bg-blue-50 text-blue-600 rounded-xl text-sm font-bold hover:bg-blue-100 flex items-center gap-1.5"><Copy className="w-3.5 h-3.5" /> Duplicate</button>
+              <button onClick={() => { duplicateTable(editTable.id); setEditTable(null) }} className="px-4 py-2.5 bg-gray-100 text-[#111111] rounded-xl text-sm font-bold hover:bg-gray-200 flex items-center gap-1.5"><Copy className="w-3.5 h-3.5" /> Duplicate</button>
               <button onClick={() => { deleteElement(editTable.id); setEditTable(null) }} className="px-4 py-2.5 bg-red-50 text-red-600 rounded-xl text-sm font-bold hover:bg-red-100 flex items-center gap-1.5"><Trash2 className="w-3.5 h-3.5" /> Delete</button>
               <div className="flex-1" />
               <button onClick={() => setEditTable(null)} className="px-5 py-2.5 bg-primary text-white rounded-xl text-sm font-bold hover:bg-[#1a1a1a] shadow-lg shadow-primary/20">Done</button>
