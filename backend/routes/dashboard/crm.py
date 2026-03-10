@@ -939,3 +939,49 @@ async def recalculate_health_scores(
         updated += 1
 
     return {"status": "recalculated", "updated": updated}
+
+
+# ─── REFERRAL TRACKING ───
+
+@router.get("/business/{business_id}/referrals")
+async def referral_report(business_id: str, tenant: TenantContext = Depends(verify_business_access)):
+    """Top referrers and referral stats."""
+    db = get_database()
+    biz_id = tenant.business_id
+
+    # Find all clients who have referrer_id set
+    referred_clients = []
+    referrer_counts = {}
+    async for c in db.clients.find({**_biz_match(biz_id), "referrer_id": {"$exists": True, "$ne": ""}, "active": {"$ne": False}}):
+        ref_id = c.get("referrer_id", "")
+        if ref_id:
+            referrer_counts[ref_id] = referrer_counts.get(ref_id, 0) + 1
+            referred_clients.append({
+                "client_id": c.get("id") or str(c.get("_id", "")),
+                "name": c.get("name", ""),
+                "referrer_id": ref_id,
+                "created_at": str(c.get("created_at", "")),
+            })
+
+    # Resolve referrer names and build leaderboard
+    leaderboard = []
+    for ref_id, count in sorted(referrer_counts.items(), key=lambda x: -x[1]):
+        referrer = await db.clients.find_one({**_biz_match(biz_id), "id": ref_id}) or {}
+        if not referrer:
+            try:
+                referrer = await db.clients.find_one({"_id": ObjectId(ref_id), **_biz_match(biz_id)}) or {}
+            except:
+                pass
+        leaderboard.append({
+            "referrer_id": ref_id,
+            "name": referrer.get("name", "Unknown"),
+            "referral_count": count,
+            "total_spend": referrer.get("stats", {}).get("total_spend", 0),
+        })
+
+    return {
+        "leaderboard": leaderboard[:20],
+        "total_referrals": len(referred_clients),
+        "total_referrers": len(referrer_counts),
+        "recent_referrals": sorted(referred_clients, key=lambda x: x.get("created_at", ""), reverse=True)[:10],
+    }

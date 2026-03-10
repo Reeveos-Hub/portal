@@ -447,35 +447,117 @@ async def update_booking_status(
 async def check_availability(
     business_id: str,
     date_param: date = Query(..., alias="date"),
-    party_size: int = Query(2, ge=1)
+    party_size: int = Query(2, ge=1),
+    service_duration: int = Query(60),
+    staff_id: str = Query(None),
+    minimize_gaps: bool = Query(True),
 ):
+    """Smart availability with gap-minimization scoring."""
     db = get_database()
     
     business = await db.businesses.find_one({"_id": business_id})
     if not business:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Business not found"
-        )
+        try:
+            from bson import ObjectId
+            business = await db.businesses.find_one({"_id": ObjectId(business_id)})
+        except:
+            pass
+    if not business:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Business not found")
     
     booking_settings = business.get("booking_settings", {})
     slot_duration = booking_settings.get("slot_duration_minutes", 15)
+    gap_tolerance = booking_settings.get("gap_tolerance_minutes", 30)
     
     start_time = time(9, 0)
     end_time = time(21, 0)
+    
+    # Fetch existing bookings for this date
+    bid_str = str(business.get("_id", ""))
+    date_str = date_param.isoformat()
+    existing = []
+    async for b in db.bookings.find({
+        "businessId": {"$in": [business_id, bid_str]},
+        "date": date_str,
+        "status": {"$nin": ["cancelled", "no_show"]},
+    }):
+        btime = b.get("time", "09:00")
+        bdur = b.get("duration", 60)
+        if isinstance(b.get("service"), dict):
+            bdur = b["service"].get("duration", bdur)
+        bstaff = b.get("staffId", "")
+        existing.append({"time": btime, "duration": bdur, "staffId": bstaff})
+    
+    def time_to_min(t):
+        parts = t.split(":")
+        return int(parts[0]) * 60 + int(parts[1])
+    
+    def is_slot_free(slot_min, duration, sid=None):
+        slot_end = slot_min + duration
+        for e in existing:
+            if sid and e["staffId"] and e["staffId"] != sid:
+                continue
+            e_start = time_to_min(e["time"])
+            e_end = e_start + e["duration"]
+            if slot_min < e_end and slot_end > e_start:
+                return False
+        return True
+    
+    def gap_score(slot_min, duration, sid=None):
+        """Score 0-100: higher = less gap created. 100 = perfect fit."""
+        if not existing:
+            return 50
+        slot_end = slot_min + duration
+        before_gap = 999
+        after_gap = 999
+        for e in existing:
+            if sid and e["staffId"] and e["staffId"] != sid:
+                continue
+            e_start = time_to_min(e["time"])
+            e_end = e_start + e["duration"]
+            if e_end <= slot_min:
+                before_gap = min(before_gap, slot_min - e_end)
+            if e_start >= slot_end:
+                after_gap = min(after_gap, e_start - slot_end)
+        # Perfect back-to-back = 100, gap under tolerance = 70, big gap = 30
+        score = 50
+        if before_gap == 0 or after_gap == 0:
+            score = 100
+        elif before_gap <= gap_tolerance or after_gap <= gap_tolerance:
+            score = 70
+        elif before_gap > 120 and after_gap > 120:
+            score = 30
+        return score
     
     slots = []
     current_time = datetime.combine(date_param, start_time)
     end_datetime = datetime.combine(date_param, end_time)
     
     while current_time < end_datetime:
+        t = current_time.time().isoformat()[:5]
+        t_min = time_to_min(t)
+        available = is_slot_free(t_min, service_duration, staff_id)
+        score = gap_score(t_min, service_duration, staff_id) if available else 0
         slots.append({
-            "time": current_time.time().isoformat(),
-            "available": True
+            "time": t,
+            "available": available,
+            "score": score,
+            "preferred": available and score >= 70,
         })
         current_time += timedelta(minutes=slot_duration)
     
-    return {"date": date_param, "slots": slots}
+    if minimize_gaps:
+        # Sort available slots by score (highest first) for "preferred times" list
+        preferred = sorted([s for s in slots if s["available"]], key=lambda x: -x["score"])
+    else:
+        preferred = [s for s in slots if s["available"]]
+    
+    return {
+        "date": date_param,
+        "slots": slots,
+        "preferred_times": [s["time"] for s in preferred[:8]],
+        "total_available": sum(1 for s in slots if s["available"]),
+    }
 
 
 @router.get("/business/{business_id}/calendar")

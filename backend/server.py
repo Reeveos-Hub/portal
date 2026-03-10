@@ -295,6 +295,18 @@ app.include_router(client_photos_router)
 from routes.dashboard.consent_templates import router as consent_templates_router
 app.include_router(consent_templates_router)
 
+# Social Booking (embed widget, FB/IG integration)
+from routes.dashboard.social_booking import router as social_booking_router
+app.include_router(social_booking_router)
+
+# Injection Point Mapping
+from routes.dashboard.injection_mapping import router as injection_mapping_router
+app.include_router(injection_mapping_router)
+
+# Academy / Training Mode
+from routes.dashboard.academy import router as academy_router
+app.include_router(academy_router)
+
 # Static uploads for booking page logo/cover
 static_dir = Path("/opt/rezvo-app/uploads")
 try:
