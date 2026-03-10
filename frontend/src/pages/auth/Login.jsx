@@ -71,12 +71,12 @@ const Login = () => {
         </div>
 
         {/* Back button */}
-        <button
-          onClick={() => navigate('/login/restaurant')}
-          className="relative z-10 w-10 h-10 rounded-full border border-white/30 flex items-center justify-center text-white/70 hover:text-white hover:border-white/60 transition-all"
+        <a
+          href="https://reeveos.app"
+          className="relative z-10 w-10 h-10 rounded-full border border-white/30 flex items-center justify-center text-white/70 hover:text-white hover:border-white/60 transition-all no-underline"
         >
           <ArrowLeft className="w-4 h-4" />
-        </button>
+        </a>
       </section>
 
       {/* Right: Login Form */}
@@ -169,7 +169,7 @@ const Login = () => {
 
           <p className="text-center text-sm text-gray-500">
             Don't have an account?{' '}
-            <a href="/register" className="font-bold text-[#111111] hover:underline">Create one free</a>
+            <a href="/signup" className="font-bold text-[#111111] hover:underline">Create one free</a>
           </p>
         </div>
       </section>

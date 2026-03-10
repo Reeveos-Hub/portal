@@ -163,6 +163,7 @@ const App = () => {
           <Routes>
             {/* Auth */}
             <Route path="/get-started" element={<BusinessTypeSelector />} />
+            <Route path="/signup" element={<BusinessTypeSelector />} />
             <Route path="/login/restaurant" element={<RestaurantWelcome />} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />

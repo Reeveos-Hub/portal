@@ -17,10 +17,12 @@ import {
 const STEPS = ['Business Type', 'Details', 'Hours', 'Plan', 'Services', 'Team', 'Ready!']
 
 const BUSINESS_TYPES = [
-  // Food & Drink
-  { value: 'restaurant', label: 'Restaurant', desc: 'Fine dining, casual, family restaurants', Icon: UtensilsCrossed, color: 'bg-orange-50 text-orange-600', group: 'Food & Drink' },
+  // Hospitality
+  { value: 'restaurant', label: 'Restaurant', desc: 'Fine dining, casual, family restaurants', Icon: UtensilsCrossed, color: 'bg-orange-50 text-orange-600', group: 'Hospitality' },
+  { value: 'bar', label: 'Bar / Pub', desc: 'Bars, pubs, food & drinks with seating', Icon: Beer, color: 'bg-yellow-50 text-yellow-700', group: 'Hospitality' },
+  { value: 'bistro', label: 'Bistro / Brasserie', desc: 'Bistros, brasseries, wine bars', Icon: UtensilsCrossed, color: 'bg-amber-50 text-amber-700', group: 'Hospitality' },
+  // Food & Drink — Local
   { value: 'cafe', label: 'Café / Coffee Shop', desc: 'Cafés, coffee shops, bakeries', Icon: Coffee, color: 'bg-amber-50 text-amber-700', group: 'Food & Drink' },
-  { value: 'bar', label: 'Bar / Pub', desc: 'Bars, pubs, cocktail lounges', Icon: Beer, color: 'bg-yellow-50 text-yellow-700', group: 'Food & Drink' },
   { value: 'takeaway', label: 'Takeaway / Fast Food', desc: 'Takeaways, fast food, delivery', Icon: Pizza, color: 'bg-red-50 text-red-600', group: 'Food & Drink' },
   // Hair & Grooming
   { value: 'salon', label: 'Hair Salon', desc: 'Hair styling, colouring, treatments', Icon: Scissors, color: 'bg-pink-50 text-pink-600', group: 'Hair & Grooming' },
@@ -95,7 +97,7 @@ export default function Onboarding() {
     }))
   }
 
-  const isRestaurant = ['restaurant', 'cafe', 'bar', 'pub', 'takeaway'].includes(form.category)
+  const isRestaurant = ['restaurant', 'bar', 'pub', 'bistro', 'fine_dining', 'brasserie'].includes(form.category)
 
   const canProceed = () => {
     if (step === 0) return !!form.category
