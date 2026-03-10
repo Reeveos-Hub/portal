@@ -651,7 +651,7 @@ const Calendar = () => {
             borderRadius: 6, background: done ? `${bg}60` : bg,
             opacity: isDragging ? 0.85 : done ? 0.7 : a.status === 'no_show' ? 0.55 : 1,
             cursor: isDragging ? 'grabbing' : 'grab',
-            overflow: 'visible', color: '#111',
+            overflow: 'hidden', color: '#111',
             transition: isDragging ? 'none' : 'all 0.2s cubic-bezier(0.22,1,0.36,1)',
             transform: isDragging ? 'scale(1.03)' : hov && !sel ? 'scale(1.012) translateY(-1px)' : 'none',
             animation: isNewBooking ? 'calendarPulse 0.6s ease-out' : 'none',
@@ -673,22 +673,28 @@ const Calendar = () => {
             {tiny ? (
               <div style={{ display: 'flex', alignItems: 'center', gap: 4, height: '100%' }}>
                 <span style={{ fontSize: 9, opacity: 0.85, fontWeight: 600 }}>{fmt(isDragging ? pxToTime(drag.ghostTop) : a.start)}</span>
-                <span style={{ fontSize: 10, fontWeight: 700, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{a.customerName}</span>
+                <span style={{ fontSize: 10, fontWeight: 700, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1 }}>{a.customerName}</span>
+                {(a.price || 0) > 0 && <span style={{ fontSize: 9, fontWeight: 700, opacity: 0.8, flexShrink: 0 }}>£{a.price}</span>}
               </div>
             ) : sm ? (
               <>
-                <div style={{ fontSize: 9, opacity: 0.85, fontWeight: 600 }}>{fmt(isDragging ? pxToTime(drag.ghostTop) : a.start)}-{fmt((isDragging ? pxToTime(drag.ghostTop) : a.start) + (isDragging ? drag.ghostH / HH : a.dur))}</div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div style={{ fontSize: 9, opacity: 0.85, fontWeight: 600 }}>{fmt(isDragging ? pxToTime(drag.ghostTop) : a.start)}-{fmt((isDragging ? pxToTime(drag.ghostTop) : a.start) + (isDragging ? drag.ghostH / HH : a.dur))}</div>
+                  {(a.price || 0) > 0 && <div style={{ fontSize: 11, fontWeight: 700, opacity: 0.85 }}>£{a.price}</div>}
+                </div>
                 <div style={{ fontSize: 12, fontWeight: 700, lineHeight: 1.2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{a.customerName}</div>
                 <div style={{ fontSize: 10, opacity: 0.85, fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{a.service}</div>
               </>
             ) : (
               <>
-                <div style={{ fontSize: 9, opacity: 0.85, fontWeight: 700, letterSpacing: 0.3, marginBottom: 2 }}>{fmt(isDragging ? pxToTime(drag.ghostTop) : a.start)} - {fmt((isDragging ? pxToTime(drag.ghostTop) : a.start) + (isDragging ? drag.ghostH / HH : a.dur))}</div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 2 }}>
+                  <div style={{ fontSize: 9, opacity: 0.85, fontWeight: 700, letterSpacing: 0.3 }}>{fmt(isDragging ? pxToTime(drag.ghostTop) : a.start)} - {fmt((isDragging ? pxToTime(drag.ghostTop) : a.start) + (isDragging ? drag.ghostH / HH : a.dur))}</div>
+                  {(a.price || 0) > 0 && <div style={{ fontSize: 13, fontWeight: 700, opacity: 0.9 }}>£{a.price}</div>}
+                </div>
                 <div style={{ fontSize: 14, fontWeight: 700, lineHeight: 1.2, marginBottom: 2 }}>{a.customerName}</div>
                 <div style={{ fontSize: 11, opacity: 0.85, fontWeight: 500 }}>{a.service}</div>
                 {a.isNewClient && <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, marginTop: 6, fontSize: 9, fontWeight: 800, letterSpacing: 1, background: 'linear-gradient(110deg, #111111 30%, #1a1a1a 50%, #111111 70%)', backgroundSize: '200% 100%', borderRadius: 20, padding: '4px 12px 4px 9px', textTransform: 'uppercase', width: 'fit-content', color: '#fff', animation: 'newPulse 2s ease-in-out infinite, shimmer 3s linear infinite', boxShadow: '0 2px 12px rgba(17,17,17,0.4)' }}><StarIcon /> New Client</span>}
                 {a.status === 'completed' && <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, marginTop: 6, fontSize: 9, fontWeight: 800, letterSpacing: 1, background: '#22C55E', borderRadius: 20, padding: '4px 12px 4px 9px', textTransform: 'uppercase', width: 'fit-content', color: '#fff', boxShadow: '0 2px 8px rgba(34,197,94,0.3)' }}>✓ Completed</span>}
-                {(a.price || 0) > 0 && <div style={{ marginTop: 'auto', fontSize: 13, fontWeight: 700, opacity: 0.9, textAlign: 'right' }}>£{a.price}</div>}
               </>
             )}
           </div>
