@@ -13,10 +13,10 @@
                 extend: {
                     colors: {
                         rezvo: {
-                            dark: '#0A1F14',
+                            dark: '#111111',
                             forest: '#111111',
-                            mint: '#52B788',
-                            gold: '#D4A017',
+                            gold: '#C9A84C',
+                            gold: '#C9A84C',
                             cream: '#FAFAF7',
                             white: '#FFFFFF',
                             border: '#E2E5DF',
@@ -29,7 +29,7 @@
                     },
                     boxShadow: {
                         'soft': '0 4px 20px -2px rgba(17, 17, 17, 0.08)',
-                        'glow': '0 0 20px rgba(82, 183, 136, 0.3)',
+                        'glow': '0 0 20px rgba(201, 168, 76, 0.3)',
                     }
                 }
             }
@@ -60,11 +60,11 @@
             transition: all 0.2s;
         }
         .toc-link:hover {
-            background-color: rgba(82, 183, 136, 0.1);
+            background-color: rgba(201, 168, 76, 0.1);
         }
         .toc-link.active {
-            background-color: rgba(82, 183, 136, 0.15);
-            border-left-color: #52B788;
+            background-color: rgba(201, 168, 76, 0.15);
+            border-left-color: #C9A84C;
             font-weight: 700;
         }
     </style>
@@ -94,8 +94,8 @@
                     </button>
                 </div>
                 <div class="hidden lg:flex items-center gap-3">
-                    <a href="https://webportal.reeveos.app/login" class="text-rezvo-forest font-semibold text-sm hover:text-rezvo-mint transition-colors">Log in</a>
-                    <a href="https://webportal.reeveos.app/signup" class="bg-rezvo-forest hover:bg-rezvo-dark text-white font-semibold text-sm py-2.5 px-6 rounded-full transition-all duration-300 shadow-lg hover:shadow-xl">
+                    <a href="https://portal.rezvo.app/login" class="text-rezvo-forest font-semibold text-sm hover:text-rezvo-gold transition-colors">Log in</a>
+                    <a href="https://portal.rezvo.app/signup" class="text-white font-semibold text-sm py-2.5 px-6 rounded-full transition-all duration-300 shadow-lg" style="background-color:#C9A84C;color:#111111;">
                         Get Started Free
                     </a>
                 </div>
@@ -113,42 +113,42 @@
                         <p class="text-[11px] font-bold text-rezvo-forest/40 uppercase tracking-widest mb-4">Platform Features</p>
                         <div class="grid grid-cols-2 gap-1">
                             <a href="/features/restaurants.html" class="flex items-center gap-3 p-3 rounded-xl hover:bg-rezvo-forest/5 transition-colors no-underline group">
-                                <div class="w-9 h-9 rounded-lg bg-rezvo-forest/5 flex items-center justify-center group-hover:bg-rezvo-mint/20"><i class="fa-solid fa-utensils text-sm text-rezvo-forest/50 group-hover:text-rezvo-forest"></i></div>
+                                <div class="w-9 h-9 rounded-lg bg-rezvo-forest/5 flex items-center justify-center group-hover:bg-rezvo-gold/20"><i class="fa-solid fa-utensils text-sm text-rezvo-forest/50 group-hover:text-rezvo-forest"></i></div>
                                 <div><p class="text-sm font-semibold text-rezvo-forest m-0">For Restaurants</p><p class="text-xs text-rezvo-forest/45 m-0">Floor plans, covers & ordering</p></div>
                             </a>
                             <a href="/features/calendar.html" class="flex items-center gap-3 p-3 rounded-xl hover:bg-rezvo-forest/5 transition-colors no-underline group">
-                                <div class="w-9 h-9 rounded-lg bg-rezvo-forest/5 flex items-center justify-center group-hover:bg-rezvo-mint/20"><i class="fa-solid fa-calendar-check text-sm text-rezvo-forest/50 group-hover:text-rezvo-forest"></i></div>
+                                <div class="w-9 h-9 rounded-lg bg-rezvo-forest/5 flex items-center justify-center group-hover:bg-rezvo-gold/20"><i class="fa-solid fa-calendar-check text-sm text-rezvo-forest/50 group-hover:text-rezvo-forest"></i></div>
                                 <div><p class="text-sm font-semibold text-rezvo-forest m-0">Smart Calendar</p><p class="text-xs text-rezvo-forest/45 m-0">Flexible, intelligent scheduling</p></div>
                             </a>
                             <a href="/features/payments.html" class="flex items-center gap-3 p-3 rounded-xl hover:bg-rezvo-forest/5 transition-colors no-underline group">
-                                <div class="w-9 h-9 rounded-lg bg-rezvo-forest/5 flex items-center justify-center group-hover:bg-rezvo-mint/20"><i class="fa-solid fa-credit-card text-sm text-rezvo-forest/50 group-hover:text-rezvo-forest"></i></div>
+                                <div class="w-9 h-9 rounded-lg bg-rezvo-forest/5 flex items-center justify-center group-hover:bg-rezvo-gold/20"><i class="fa-solid fa-credit-card text-sm text-rezvo-forest/50 group-hover:text-rezvo-forest"></i></div>
                                 <div><p class="text-sm font-semibold text-rezvo-forest m-0">Stripe Payments</p><p class="text-xs text-rezvo-forest/45 m-0">Direct payouts, no middleman</p></div>
                             </a>
                             <a href="/features/mobile-app.html" class="flex items-center gap-3 p-3 rounded-xl hover:bg-rezvo-forest/5 transition-colors no-underline group">
-                                <div class="w-9 h-9 rounded-lg bg-rezvo-forest/5 flex items-center justify-center group-hover:bg-rezvo-mint/20"><i class="fa-solid fa-mobile-screen text-sm text-rezvo-forest/50 group-hover:text-rezvo-forest"></i></div>
+                                <div class="w-9 h-9 rounded-lg bg-rezvo-forest/5 flex items-center justify-center group-hover:bg-rezvo-gold/20"><i class="fa-solid fa-mobile-screen text-sm text-rezvo-forest/50 group-hover:text-rezvo-forest"></i></div>
                                 <div><p class="text-sm font-semibold text-rezvo-forest m-0">Mobile App</p><p class="text-xs text-rezvo-forest/45 m-0">Voice AI & smart assistant</p></div>
                             </a>
                             <a href="/features/integrations.html" class="flex items-center gap-3 p-3 rounded-xl hover:bg-rezvo-forest/5 transition-colors no-underline group">
-                                <div class="w-9 h-9 rounded-lg bg-rezvo-forest/5 flex items-center justify-center group-hover:bg-rezvo-mint/20"><i class="fa-solid fa-plug text-sm text-rezvo-forest/50 group-hover:text-rezvo-forest"></i></div>
+                                <div class="w-9 h-9 rounded-lg bg-rezvo-forest/5 flex items-center justify-center group-hover:bg-rezvo-gold/20"><i class="fa-solid fa-plug text-sm text-rezvo-forest/50 group-hover:text-rezvo-forest"></i></div>
                                 <div><p class="text-sm font-semibold text-rezvo-forest m-0">Integrations</p><p class="text-xs text-rezvo-forest/45 m-0">Google Cal, Outlook & more</p></div>
                             </a>
                             <a href="/features/uber-direct.html" class="flex items-center gap-3 p-3 rounded-xl hover:bg-rezvo-forest/5 transition-colors no-underline group">
-                                <div class="w-9 h-9 rounded-lg bg-rezvo-forest/5 flex items-center justify-center group-hover:bg-rezvo-mint/20"><i class="fa-solid fa-truck-fast text-sm text-rezvo-forest/50 group-hover:text-rezvo-forest"></i></div>
+                                <div class="w-9 h-9 rounded-lg bg-rezvo-forest/5 flex items-center justify-center group-hover:bg-rezvo-gold/20"><i class="fa-solid fa-truck-fast text-sm text-rezvo-forest/50 group-hover:text-rezvo-forest"></i></div>
                                 <div><p class="text-sm font-semibold text-rezvo-forest m-0">Uber Direct</p><p class="text-xs text-rezvo-forest/45 m-0">Delivery without commission</p></div>
                             </a>
                             <a href="/features/team-up.html" class="flex items-center gap-3 p-3 rounded-xl hover:bg-rezvo-forest/5 transition-colors no-underline group">
-                                <div class="w-9 h-9 rounded-lg bg-rezvo-forest/5 flex items-center justify-center group-hover:bg-rezvo-mint/20"><i class="fa-solid fa-user-group text-sm text-rezvo-forest/50 group-hover:text-rezvo-forest"></i></div>
+                                <div class="w-9 h-9 rounded-lg bg-rezvo-forest/5 flex items-center justify-center group-hover:bg-rezvo-gold/20"><i class="fa-solid fa-user-group text-sm text-rezvo-forest/50 group-hover:text-rezvo-forest"></i></div>
                                 <div><p class="text-sm font-semibold text-rezvo-forest m-0">Team Up & Save</p><p class="text-xs text-rezvo-forest/45 m-0">Refer & get 50% off forever</p></div>
                             </a>
                         </div>
                     </div>
                     <div class="bg-rezvo-forest rounded-2xl p-6 flex flex-col justify-between">
                         <div>
-                            <p class="text-rezvo-mint font-bold text-sm mb-2">Zero Commission</p>
+                            <p class="text-rezvo-gold font-bold text-sm mb-2">Zero Commission</p>
                             <p class="text-white font-extrabold text-xl mb-2 font-sans">Keep 100% of your revenue</p>
                             <p class="text-white/60 text-sm">No per-booking fees. No contracts. Just a simple monthly plan.</p>
                         </div>
-                        <a href="https://webportal.reeveos.app/signup" class="mt-4 inline-flex items-center gap-2 bg-rezvo-mint text-rezvo-forest font-bold text-sm py-2.5 px-5 rounded-full hover:bg-white transition-all w-fit no-underline">
+                        <a href="https://portal.rezvo.app/signup" class="mt-4 inline-flex items-center gap-2 bg-rezvo-gold text-rezvo-forest font-bold text-sm py-2.5 px-5 rounded-full hover:bg-white transition-all w-fit no-underline">
                             Start Free <i class="fa-solid fa-arrow-right text-xs"></i>
                         </a>
                     </div>
@@ -163,18 +163,18 @@
                     <div class="col-span-2">
                         <p class="text-[11px] font-bold text-rezvo-forest/40 uppercase tracking-widest mb-4">Who We Serve</p>
                         <div class="grid grid-cols-4 gap-1">
-                            <a href="/industries/restaurants" class="flex items-center gap-2.5 p-2.5 rounded-xl hover:bg-rezvo-forest/5 transition-colors no-underline group"><div class="w-8 h-8 rounded-lg bg-rezvo-forest/5 flex items-center justify-center group-hover:bg-rezvo-mint/20"><i class="fa-solid fa-utensils text-xs text-rezvo-forest/50"></i></div><span class="text-sm font-semibold text-rezvo-forest">Restaurants</span></a>
-                            <a href="/industries/barbers" class="flex items-center gap-2.5 p-2.5 rounded-xl hover:bg-rezvo-forest/5 transition-colors no-underline group"><div class="w-8 h-8 rounded-lg bg-rezvo-forest/5 flex items-center justify-center group-hover:bg-rezvo-mint/20"><i class="fa-solid fa-scissors text-xs text-rezvo-forest/50"></i></div><span class="text-sm font-semibold text-rezvo-forest">Barbers</span></a>
-                            <a href="/industries/salons-spas" class="flex items-center gap-2.5 p-2.5 rounded-xl hover:bg-rezvo-forest/5 transition-colors no-underline group"><div class="w-8 h-8 rounded-lg bg-rezvo-forest/5 flex items-center justify-center group-hover:bg-rezvo-mint/20"><i class="fa-solid fa-spa text-xs text-rezvo-forest/50"></i></div><span class="text-sm font-semibold text-rezvo-forest">Salons & Spas</span></a>
-                            <a href="/industries/personal-trainers" class="flex items-center gap-2.5 p-2.5 rounded-xl hover:bg-rezvo-forest/5 transition-colors no-underline group"><div class="w-8 h-8 rounded-lg bg-rezvo-forest/5 flex items-center justify-center group-hover:bg-rezvo-mint/20"><i class="fa-solid fa-dumbbell text-xs text-rezvo-forest/50"></i></div><span class="text-sm font-semibold text-rezvo-forest">Personal Trainers</span></a>
-                            <a href="/industries/tattoo-studios" class="flex items-center gap-2.5 p-2.5 rounded-xl hover:bg-rezvo-forest/5 transition-colors no-underline group"><div class="w-8 h-8 rounded-lg bg-rezvo-forest/5 flex items-center justify-center group-hover:bg-rezvo-mint/20"><i class="fa-solid fa-palette text-xs text-rezvo-forest/50"></i></div><span class="text-sm font-semibold text-rezvo-forest">Tattoo Studios</span></a>
-                            <a href="/industries/dentists" class="flex items-center gap-2.5 p-2.5 rounded-xl hover:bg-rezvo-forest/5 transition-colors no-underline group"><div class="w-8 h-8 rounded-lg bg-rezvo-forest/5 flex items-center justify-center group-hover:bg-rezvo-mint/20"><i class="fa-solid fa-tooth text-xs text-rezvo-forest/50"></i></div><span class="text-sm font-semibold text-rezvo-forest">Dentists</span></a>
-                            <a href="/industries/photographers" class="flex items-center gap-2.5 p-2.5 rounded-xl hover:bg-rezvo-forest/5 transition-colors no-underline group"><div class="w-8 h-8 rounded-lg bg-rezvo-forest/5 flex items-center justify-center group-hover:bg-rezvo-mint/20"><i class="fa-solid fa-camera text-xs text-rezvo-forest/50"></i></div><span class="text-sm font-semibold text-rezvo-forest">Photographers</span></a>
-                            <a href="/industries/fitness-studios" class="flex items-center gap-2.5 p-2.5 rounded-xl hover:bg-rezvo-forest/5 transition-colors no-underline group"><div class="w-8 h-8 rounded-lg bg-rezvo-forest/5 flex items-center justify-center group-hover:bg-rezvo-mint/20"><i class="fa-solid fa-bolt text-xs text-rezvo-forest/50"></i></div><span class="text-sm font-semibold text-rezvo-forest">Fitness Studios</span></a>
+                            <a href="/industries/restaurants" class="flex items-center gap-2.5 p-2.5 rounded-xl hover:bg-rezvo-forest/5 transition-colors no-underline group"><div class="w-8 h-8 rounded-lg bg-rezvo-forest/5 flex items-center justify-center group-hover:bg-rezvo-gold/20"><i class="fa-solid fa-utensils text-xs text-rezvo-forest/50"></i></div><span class="text-sm font-semibold text-rezvo-forest">Restaurants</span></a>
+                            <a href="/industries/barbers" class="flex items-center gap-2.5 p-2.5 rounded-xl hover:bg-rezvo-forest/5 transition-colors no-underline group"><div class="w-8 h-8 rounded-lg bg-rezvo-forest/5 flex items-center justify-center group-hover:bg-rezvo-gold/20"><i class="fa-solid fa-scissors text-xs text-rezvo-forest/50"></i></div><span class="text-sm font-semibold text-rezvo-forest">Barbers</span></a>
+                            <a href="/industries/salons-spas" class="flex items-center gap-2.5 p-2.5 rounded-xl hover:bg-rezvo-forest/5 transition-colors no-underline group"><div class="w-8 h-8 rounded-lg bg-rezvo-forest/5 flex items-center justify-center group-hover:bg-rezvo-gold/20"><i class="fa-solid fa-spa text-xs text-rezvo-forest/50"></i></div><span class="text-sm font-semibold text-rezvo-forest">Salons & Spas</span></a>
+                            <a href="/industries/personal-trainers" class="flex items-center gap-2.5 p-2.5 rounded-xl hover:bg-rezvo-forest/5 transition-colors no-underline group"><div class="w-8 h-8 rounded-lg bg-rezvo-forest/5 flex items-center justify-center group-hover:bg-rezvo-gold/20"><i class="fa-solid fa-dumbbell text-xs text-rezvo-forest/50"></i></div><span class="text-sm font-semibold text-rezvo-forest">Personal Trainers</span></a>
+                            <a href="/industries/tattoo-studios" class="flex items-center gap-2.5 p-2.5 rounded-xl hover:bg-rezvo-forest/5 transition-colors no-underline group"><div class="w-8 h-8 rounded-lg bg-rezvo-forest/5 flex items-center justify-center group-hover:bg-rezvo-gold/20"><i class="fa-solid fa-palette text-xs text-rezvo-forest/50"></i></div><span class="text-sm font-semibold text-rezvo-forest">Tattoo Studios</span></a>
+                            <a href="/industries/dentists" class="flex items-center gap-2.5 p-2.5 rounded-xl hover:bg-rezvo-forest/5 transition-colors no-underline group"><div class="w-8 h-8 rounded-lg bg-rezvo-forest/5 flex items-center justify-center group-hover:bg-rezvo-gold/20"><i class="fa-solid fa-tooth text-xs text-rezvo-forest/50"></i></div><span class="text-sm font-semibold text-rezvo-forest">Dentists</span></a>
+                            <a href="/industries/photographers" class="flex items-center gap-2.5 p-2.5 rounded-xl hover:bg-rezvo-forest/5 transition-colors no-underline group"><div class="w-8 h-8 rounded-lg bg-rezvo-forest/5 flex items-center justify-center group-hover:bg-rezvo-gold/20"><i class="fa-solid fa-camera text-xs text-rezvo-forest/50"></i></div><span class="text-sm font-semibold text-rezvo-forest">Photographers</span></a>
+                            <a href="/industries/fitness-studios" class="flex items-center gap-2.5 p-2.5 rounded-xl hover:bg-rezvo-forest/5 transition-colors no-underline group"><div class="w-8 h-8 rounded-lg bg-rezvo-forest/5 flex items-center justify-center group-hover:bg-rezvo-gold/20"><i class="fa-solid fa-bolt text-xs text-rezvo-forest/50"></i></div><span class="text-sm font-semibold text-rezvo-forest">Fitness Studios</span></a>
                         </div>
-                        <a href="/industries" class="mt-4 inline-flex items-center gap-2 text-sm font-bold text-rezvo-mint hover:text-rezvo-forest transition-colors no-underline">View all industries <i class="fa-solid fa-arrow-right text-xs"></i></a>
+                        <a href="/industries" class="mt-4 inline-flex items-center gap-2 text-sm font-bold text-rezvo-gold hover:text-rezvo-forest transition-colors no-underline">View all industries <i class="fa-solid fa-arrow-right text-xs"></i></a>
                     </div>
-                    <div class="bg-gradient-to-br from-rezvo-mint/10 to-rezvo-forest/5 rounded-2xl p-6 border border-rezvo-mint/20">
+                    <div class="bg-gradient-to-br from-rezvo-gold/10 to-rezvo-forest/5 rounded-2xl p-6 border border-rezvo-gold/20">
                         <p class="text-rezvo-forest font-extrabold text-lg mb-2 font-sans">One platform, every business</p>
                         <p class="text-rezvo-forest/60 text-sm mb-4">From barbers to restaurants — if you take bookings, ReeveOS is for you.</p>
                         <a href="/for-business" class="inline-flex items-center gap-2 bg-rezvo-forest text-white font-bold text-sm py-2.5 px-5 rounded-full hover:bg-rezvo-dark transition-all no-underline">Learn More <i class="fa-solid fa-arrow-right text-xs"></i></a>
@@ -186,19 +186,19 @@
         <!-- COMPANY PANEL -->
         <div id="company-panel" class="nav-panel hidden absolute right-0 top-[72px] w-[360px] bg-white border border-rezvo-border rounded-b-2xl shadow-xl z-50 p-3" style="animation:fadeDown .2s ease-out;right:10%">
             <a href="/about.html" class="flex items-center gap-3 p-3 rounded-xl hover:bg-rezvo-forest/5 transition-colors no-underline group">
-                <div class="w-9 h-9 rounded-lg bg-rezvo-forest/5 flex items-center justify-center group-hover:bg-rezvo-mint/20"><i class="fa-solid fa-info-circle text-sm text-rezvo-forest/50"></i></div>
+                <div class="w-9 h-9 rounded-lg bg-rezvo-forest/5 flex items-center justify-center group-hover:bg-rezvo-gold/20"><i class="fa-solid fa-info-circle text-sm text-rezvo-forest/50"></i></div>
                 <div><p class="text-sm font-semibold text-rezvo-forest m-0">About Us</p><p class="text-xs text-rezvo-forest/45 m-0">Our mission & story</p></div>
             </a>
             <a href="/#faq" class="flex items-center gap-3 p-3 rounded-xl hover:bg-rezvo-forest/5 transition-colors no-underline group">
-                <div class="w-9 h-9 rounded-lg bg-rezvo-forest/5 flex items-center justify-center group-hover:bg-rezvo-mint/20"><i class="fa-solid fa-circle-question text-sm text-rezvo-forest/50"></i></div>
+                <div class="w-9 h-9 rounded-lg bg-rezvo-forest/5 flex items-center justify-center group-hover:bg-rezvo-gold/20"><i class="fa-solid fa-circle-question text-sm text-rezvo-forest/50"></i></div>
                 <div><p class="text-sm font-semibold text-rezvo-forest m-0">FAQs</p><p class="text-xs text-rezvo-forest/45 m-0">Common questions answered</p></div>
             </a>
             <a href="/support.html" class="flex items-center gap-3 p-3 rounded-xl hover:bg-rezvo-forest/5 transition-colors no-underline group">
-                <div class="w-9 h-9 rounded-lg bg-rezvo-forest/5 flex items-center justify-center group-hover:bg-rezvo-mint/20"><i class="fa-solid fa-headset text-sm text-rezvo-forest/50"></i></div>
+                <div class="w-9 h-9 rounded-lg bg-rezvo-forest/5 flex items-center justify-center group-hover:bg-rezvo-gold/20"><i class="fa-solid fa-headset text-sm text-rezvo-forest/50"></i></div>
                 <div><p class="text-sm font-semibold text-rezvo-forest m-0">Support Center</p><p class="text-xs text-rezvo-forest/45 m-0">Help when you need it</p></div>
             </a>
             <a href="/contact.html" class="flex items-center gap-3 p-3 rounded-xl hover:bg-rezvo-forest/5 transition-colors no-underline group">
-                <div class="w-9 h-9 rounded-lg bg-rezvo-forest/5 flex items-center justify-center group-hover:bg-rezvo-mint/20"><i class="fa-solid fa-envelope text-sm text-rezvo-forest/50"></i></div>
+                <div class="w-9 h-9 rounded-lg bg-rezvo-forest/5 flex items-center justify-center group-hover:bg-rezvo-gold/20"><i class="fa-solid fa-envelope text-sm text-rezvo-forest/50"></i></div>
                 <div><p class="text-sm font-semibold text-rezvo-forest m-0">Contact</p><p class="text-xs text-rezvo-forest/45 m-0">Get in touch</p></div>
             </a>
         </div>
@@ -218,13 +218,13 @@
             <a href="/industries/restaurants" class="block py-2 pl-3 text-sm text-rezvo-forest/70">Restaurants</a>
             <a href="/industries/barbers" class="block py-2 pl-3 text-sm text-rezvo-forest/70">Barbers</a>
             <a href="/industries/salons-spas" class="block py-2 pl-3 text-sm text-rezvo-forest/70">Salons & Spas</a>
-            <a href="/industries" class="block py-2 pl-3 text-sm font-bold text-rezvo-mint">View all →</a>
+            <a href="/industries" class="block py-2 pl-3 text-sm font-bold text-rezvo-gold">View all →</a>
             <a href="/for-business" class="block py-3 text-base font-semibold text-rezvo-forest">For Business</a>
             <a href="/about.html" class="block py-3 text-base font-semibold text-rezvo-forest">About</a>
             <a href="/#faq" class="block py-3 text-base font-semibold text-rezvo-forest">FAQs</a>
             <div class="border-t border-rezvo-border mt-3 pt-3 flex flex-col gap-2">
-                <a href="https://webportal.reeveos.app/login" class="text-center text-rezvo-forest font-bold text-sm py-3 rounded-xl border border-rezvo-forest/20">Log in</a>
-                <a href="https://webportal.reeveos.app/signup" class="text-center bg-rezvo-forest text-white font-bold text-sm py-3 rounded-full">Get Started Free</a>
+                <a href="https://portal.rezvo.app/login" class="text-center text-rezvo-forest font-bold text-sm py-3 rounded-xl border border-rezvo-forest/20">Log in</a>
+                <a href="https://portal.rezvo.app/signup" class="text-center bg-rezvo-forest text-white font-bold text-sm py-3 rounded-full">Get Started Free</a>
             </div>
         </div>
     </nav>
@@ -284,18 +284,18 @@
         <div class="absolute inset-0 z-0 bg-gradient-to-br from-rezvo-forest via-rezvo-dark to-rezvo-forest">
             <div class="absolute inset-0 bg-grain opacity-30"></div>
         </div>
-        <div class="absolute top-20 right-0 w-96 h-96 bg-rezvo-mint rounded-full filter blur-[200px] opacity-20 pointer-events-none"></div>
-        <div class="absolute bottom-0 left-0 w-96 h-96 bg-rezvo-mint rounded-full filter blur-[180px] opacity-10 pointer-events-none"></div>
+        <div class="absolute top-20 right-0 w-96 h-96 bg-rezvo-gold rounded-full filter blur-[200px] opacity-20 pointer-events-none"></div>
+        <div class="absolute bottom-0 left-0 w-96 h-96 bg-rezvo-gold rounded-full filter blur-[180px] opacity-10 pointer-events-none"></div>
         
         <div class="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-            <div class="inline-flex items-center gap-2 bg-rezvo-mint/20 border border-rezvo-mint/30 rounded-full px-4 py-2 mb-6">
-                <i class="fa-solid fa-shield-halved text-rezvo-mint text-sm"></i>
-                <span class="text-sm font-bold text-rezvo-mint">Last updated: February 2026</span>
+            <div class="inline-flex items-center gap-2 bg-rezvo-gold/20 border border-rezvo-gold/30 rounded-full px-4 py-2 mb-6">
+                <i class="fa-solid fa-shield-halved text-rezvo-gold text-sm"></i>
+                <span class="text-sm font-bold text-rezvo-gold">Last updated: February 2026</span>
             </div>
             <h1 class="font-sans font-extrabold text-3xl md:text-4xl lg:text-6xl text-white leading-[1.1] mb-6">
                 Privacy Policy
             </h1>
-            <p class="text-lg lg:text-xl text-rezvo-mint/90 max-w-2xl mx-auto leading-relaxed">
+            <p class="text-lg lg:text-xl text-rezvo-gold/90 max-w-2xl mx-auto leading-relaxed">
                 This policy explains how ReeveOS collects, uses, and protects your personal data.
             </p>
         </div>
@@ -349,15 +349,15 @@
                 <main id="privacy-main" class="lg:col-span-9 order-1 lg:order-2">
                     
                     <div id="key-highlights" class="grid sm:grid-cols-3 gap-4 mb-12">
-                        <div class="bg-rezvo-mint/10 border-2 border-rezvo-mint rounded-2xl p-6 text-center">
+                        <div class="bg-rezvo-gold/10 border-2 border-rezvo-gold rounded-2xl p-6 text-center">
                             <i class="fa-solid fa-ban text-3xl text-rezvo-forest mb-3"></i>
                             <p class="font-bold text-rezvo-forest text-sm">We never sell your data</p>
                         </div>
-                        <div class="bg-rezvo-mint/10 border-2 border-rezvo-mint rounded-2xl p-6 text-center">
+                        <div class="bg-rezvo-gold/10 border-2 border-rezvo-gold rounded-2xl p-6 text-center">
                             <i class="fa-solid fa-trash-can text-3xl text-rezvo-forest mb-3"></i>
                             <p class="font-bold text-rezvo-forest text-sm">You can request deletion at any time</p>
                         </div>
-                        <div class="bg-rezvo-mint/10 border-2 border-rezvo-mint rounded-2xl p-6 text-center">
+                        <div class="bg-rezvo-gold/10 border-2 border-rezvo-gold rounded-2xl p-6 text-center">
                             <i class="fa-solid fa-map-location-dot text-3xl text-rezvo-forest mb-3"></i>
                             <p class="font-bold text-rezvo-forest text-sm">All data stored in the UK/EU</p>
                         </div>
@@ -380,7 +380,7 @@
                                     We provide a comprehensive booking system and business management tools for independent service businesses across the UK, including salons, barbers, restaurants, beauty clinics, personal trainers, and hundreds of other service providers.
                                 </p>
                                 <p class="text-rezvo-forest/80 leading-relaxed m-0">
-                                    Our Data Protection Officer can be reached at <a href="mailto:privacy@reeveos.app" class="text-rezvo-mint font-bold hover:underline">privacy@reeveos.app</a>.
+                                    Our Data Protection Officer can be reached at <a href="mailto:privacy@reeveos.app" class="text-rezvo-gold font-bold hover:underline">privacy@reeveos.app</a>.
                                 </p>
                             </div>
                         </section>
@@ -397,27 +397,27 @@
                                     <h3 class="font-sans font-bold text-xl text-rezvo-forest mb-3">For Business Owners</h3>
                                     <ul class="space-y-2 text-rezvo-forest/80">
                                         <li class="flex items-start gap-2">
-                                            <i class="fa-solid fa-circle text-rezvo-mint text-[6px] mt-2"></i>
+                                            <i class="fa-solid fa-circle text-rezvo-gold text-[6px] mt-2"></i>
                                             <span>Business name, address, and contact details</span>
                                         </li>
                                         <li class="flex items-start gap-2">
-                                            <i class="fa-solid fa-circle text-rezvo-mint text-[6px] mt-2"></i>
+                                            <i class="fa-solid fa-circle text-rezvo-gold text-[6px] mt-2"></i>
                                             <span>Your name, email address, and phone number</span>
                                         </li>
                                         <li class="flex items-start gap-2">
-                                            <i class="fa-solid fa-circle text-rezvo-mint text-[6px] mt-2"></i>
+                                            <i class="fa-solid fa-circle text-rezvo-gold text-[6px] mt-2"></i>
                                             <span>Payment and billing information</span>
                                         </li>
                                         <li class="flex items-start gap-2">
-                                            <i class="fa-solid fa-circle text-rezvo-mint text-[6px] mt-2"></i>
+                                            <i class="fa-solid fa-circle text-rezvo-gold text-[6px] mt-2"></i>
                                             <span>Staff member details you add to the system</span>
                                         </li>
                                         <li class="flex items-start gap-2">
-                                            <i class="fa-solid fa-circle text-rezvo-mint text-[6px] mt-2"></i>
+                                            <i class="fa-solid fa-circle text-rezvo-gold text-[6px] mt-2"></i>
                                             <span>Service offerings, pricing, and availability</span>
                                         </li>
                                         <li class="flex items-start gap-2">
-                                            <i class="fa-solid fa-circle text-rezvo-mint text-[6px] mt-2"></i>
+                                            <i class="fa-solid fa-circle text-rezvo-gold text-[6px] mt-2"></i>
                                             <span>Usage data and analytics about how you use ReeveOS</span>
                                         </li>
                                     </ul>
@@ -426,30 +426,30 @@
                                     <h3 class="font-sans font-bold text-xl text-rezvo-forest mb-3">For Customers</h3>
                                     <ul class="space-y-2 text-rezvo-forest/80">
                                         <li class="flex items-start gap-2">
-                                            <i class="fa-solid fa-circle text-rezvo-mint text-[6px] mt-2"></i>
+                                            <i class="fa-solid fa-circle text-rezvo-gold text-[6px] mt-2"></i>
                                             <span>Name, email address, and phone number</span>
                                         </li>
                                         <li class="flex items-start gap-2">
-                                            <i class="fa-solid fa-circle text-rezvo-mint text-[6px] mt-2"></i>
+                                            <i class="fa-solid fa-circle text-rezvo-gold text-[6px] mt-2"></i>
                                             <span>Booking history and preferences</span>
                                         </li>
                                         <li class="flex items-start gap-2">
-                                            <i class="fa-solid fa-circle text-rezvo-mint text-[6px] mt-2"></i>
+                                            <i class="fa-solid fa-circle text-rezvo-gold text-[6px] mt-2"></i>
                                             <span>Payment information (processed securely by Stripe)</span>
                                         </li>
                                         <li class="flex items-start gap-2">
-                                            <i class="fa-solid fa-circle text-rezvo-mint text-[6px] mt-2"></i>
+                                            <i class="fa-solid fa-circle text-rezvo-gold text-[6px] mt-2"></i>
                                             <span>Communication preferences and marketing consent</span>
                                         </li>
                                         <li class="flex items-start gap-2">
-                                            <i class="fa-solid fa-circle text-rezvo-mint text-[6px] mt-2"></i>
+                                            <i class="fa-solid fa-circle text-rezvo-gold text-[6px] mt-2"></i>
                                             <span>Notes added by businesses (e.g., service preferences)</span>
                                         </li>
                                     </ul>
                                 </div>
                                 <div class="bg-white rounded-xl p-4 border border-rezvo-border">
                                     <p class="text-sm text-rezvo-forest/70 m-0">
-                                        <i class="fa-solid fa-circle-info text-rezvo-mint mr-2"></i>
+                                        <i class="fa-solid fa-circle-info text-rezvo-gold mr-2"></i>
                                         We only collect data that is necessary to provide our service. You can request to see all data we hold about you at any time.
                                     </p>
                                 </div>
@@ -468,7 +468,7 @@
                                 <div class="grid sm:grid-cols-2 gap-4 mb-4">
                                     <div class="bg-white rounded-xl p-4 border border-rezvo-border">
                                         <div class="flex items-start gap-3">
-                                            <i class="fa-solid fa-calendar-check text-2xl text-rezvo-mint mt-1"></i>
+                                            <i class="fa-solid fa-calendar-check text-2xl text-rezvo-gold mt-1"></i>
                                             <div>
                                                 <h4 class="font-bold text-rezvo-forest mb-1">Provide Our Service</h4>
                                                 <p class="text-sm text-rezvo-forest/70 m-0">Process bookings, manage appointments, send confirmations and reminders</p>
@@ -477,7 +477,7 @@
                                     </div>
                                     <div class="bg-white rounded-xl p-4 border border-rezvo-border">
                                         <div class="flex items-start gap-3">
-                                            <i class="fa-solid fa-credit-card text-2xl text-rezvo-mint mt-1"></i>
+                                            <i class="fa-solid fa-credit-card text-2xl text-rezvo-gold mt-1"></i>
                                             <div>
                                                 <h4 class="font-bold text-rezvo-forest mb-1">Process Payments</h4>
                                                 <p class="text-sm text-rezvo-forest/70 m-0">Handle billing, subscriptions, and customer payments securely</p>
@@ -486,7 +486,7 @@
                                     </div>
                                     <div class="bg-white rounded-xl p-4 border border-rezvo-border">
                                         <div class="flex items-start gap-3">
-                                            <i class="fa-solid fa-chart-line text-2xl text-rezvo-mint mt-1"></i>
+                                            <i class="fa-solid fa-chart-line text-2xl text-rezvo-gold mt-1"></i>
                                             <div>
                                                 <h4 class="font-bold text-rezvo-forest mb-1">Improve Our Platform</h4>
                                                 <p class="text-sm text-rezvo-forest/70 m-0">Analyze usage patterns to enhance features and user experience</p>
@@ -495,7 +495,7 @@
                                     </div>
                                     <div class="bg-white rounded-xl p-4 border border-rezvo-border">
                                         <div class="flex items-start gap-3">
-                                            <i class="fa-solid fa-headset text-2xl text-rezvo-mint mt-1"></i>
+                                            <i class="fa-solid fa-headset text-2xl text-rezvo-gold mt-1"></i>
                                             <div>
                                                 <h4 class="font-bold text-rezvo-forest mb-1">Customer Support</h4>
                                                 <p class="text-sm text-rezvo-forest/70 m-0">Respond to inquiries, troubleshoot issues, provide assistance</p>
@@ -504,7 +504,7 @@
                                     </div>
                                     <div class="bg-white rounded-xl p-4 border border-rezvo-border">
                                         <div class="flex items-start gap-3">
-                                            <i class="fa-solid fa-bell text-2xl text-rezvo-mint mt-1"></i>
+                                            <i class="fa-solid fa-bell text-2xl text-rezvo-gold mt-1"></i>
                                             <div>
                                                 <h4 class="font-bold text-rezvo-forest mb-1">Send Updates</h4>
                                                 <p class="text-sm text-rezvo-forest/70 m-0">Notify you about important service changes and new features</p>
@@ -513,7 +513,7 @@
                                     </div>
                                     <div class="bg-white rounded-xl p-4 border border-rezvo-border">
                                         <div class="flex items-start gap-3">
-                                            <i class="fa-solid fa-envelope text-2xl text-rezvo-mint mt-1"></i>
+                                            <i class="fa-solid fa-envelope text-2xl text-rezvo-gold mt-1"></i>
                                             <div>
                                                 <h4 class="font-bold text-rezvo-forest mb-1">Marketing (with consent)</h4>
                                                 <p class="text-sm text-rezvo-forest/70 m-0">Share relevant tips, offers, and updates if you've opted in</p>
@@ -538,28 +538,28 @@
                                 <p class="text-rezvo-forest/80 leading-relaxed mb-4">Under UK GDPR, we process your personal data based on:</p>
                                 <div class="space-y-3">
                                     <div class="flex items-start gap-3 bg-white rounded-xl p-4 border border-rezvo-border">
-                                        <i class="fa-solid fa-file-contract text-xl text-rezvo-mint mt-1"></i>
+                                        <i class="fa-solid fa-file-contract text-xl text-rezvo-gold mt-1"></i>
                                         <div>
                                             <h4 class="font-bold text-rezvo-forest mb-1">Contract Performance</h4>
                                             <p class="text-sm text-rezvo-forest/70 m-0">Processing necessary to provide our booking and management services to you</p>
                                         </div>
                                     </div>
                                     <div class="flex items-start gap-3 bg-white rounded-xl p-4 border border-rezvo-border">
-                                        <i class="fa-solid fa-scale-balanced text-xl text-rezvo-mint mt-1"></i>
+                                        <i class="fa-solid fa-scale-balanced text-xl text-rezvo-gold mt-1"></i>
                                         <div>
                                             <h4 class="font-bold text-rezvo-forest mb-1">Legal Obligation</h4>
                                             <p class="text-sm text-rezvo-forest/70 m-0">Compliance with tax, accounting, and other legal requirements</p>
                                         </div>
                                     </div>
                                     <div class="flex items-start gap-3 bg-white rounded-xl p-4 border border-rezvo-border">
-                                        <i class="fa-solid fa-handshake text-xl text-rezvo-mint mt-1"></i>
+                                        <i class="fa-solid fa-handshake text-xl text-rezvo-gold mt-1"></i>
                                         <div>
                                             <h4 class="font-bold text-rezvo-forest mb-1">Legitimate Interests</h4>
                                             <p class="text-sm text-rezvo-forest/70 m-0">Improving our service, preventing fraud, and ensuring platform security</p>
                                         </div>
                                     </div>
                                     <div class="flex items-start gap-3 bg-white rounded-xl p-4 border border-rezvo-border">
-                                        <i class="fa-solid fa-check-circle text-xl text-rezvo-mint mt-1"></i>
+                                        <i class="fa-solid fa-check-circle text-xl text-rezvo-gold mt-1"></i>
                                         <div>
                                             <h4 class="font-bold text-rezvo-forest mb-1">Consent</h4>
                                             <p class="text-sm text-rezvo-forest/70 m-0">Marketing communications and optional features you've explicitly agreed to</p>
@@ -577,9 +577,9 @@
                                 <h2 class="font-sans font-extrabold text-3xl text-rezvo-forest m-0">Data Sharing</h2>
                             </div>
                             <div class="bg-rezvo-cream rounded-2xl p-6 border border-rezvo-border">
-                                <div class="bg-rezvo-mint/10 border-2 border-rezvo-mint rounded-xl p-4 mb-6">
+                                <div class="bg-rezvo-gold/10 border-2 border-rezvo-gold rounded-xl p-4 mb-6">
                                     <p class="font-bold text-rezvo-forest m-0 flex items-center gap-2">
-                                        <i class="fa-solid fa-shield-halved text-rezvo-mint"></i>
+                                        <i class="fa-solid fa-shield-halved text-rezvo-gold"></i>
                                         We never sell your personal data to third parties.
                                     </p>
                                 </div>
@@ -588,28 +588,28 @@
                                     <div class="bg-white rounded-xl p-5 border border-rezvo-border">
                                         <div class="flex items-start justify-between gap-4 mb-2">
                                             <h4 class="font-bold text-rezvo-forest">Payment Processors</h4>
-                                            <span class="text-xs bg-rezvo-mint/20 text-rezvo-forest font-bold px-3 py-1 rounded-full">Stripe</span>
+                                            <span class="text-xs bg-rezvo-gold/20 text-rezvo-forest font-bold px-3 py-1 rounded-full">Stripe</span>
                                         </div>
                                         <p class="text-sm text-rezvo-forest/70 m-0">Secure payment processing for subscriptions and customer bookings. Stripe is PCI-DSS compliant.</p>
                                     </div>
                                     <div class="bg-white rounded-xl p-5 border border-rezvo-border">
                                         <div class="flex items-start justify-between gap-4 mb-2">
                                             <h4 class="font-bold text-rezvo-forest">Cloud Infrastructure</h4>
-                                            <span class="text-xs bg-rezvo-mint/20 text-rezvo-forest font-bold px-3 py-1 rounded-full">AWS (UK/EU)</span>
+                                            <span class="text-xs bg-rezvo-gold/20 text-rezvo-forest font-bold px-3 py-1 rounded-full">AWS (UK/EU)</span>
                                         </div>
                                         <p class="text-sm text-rezvo-forest/70 m-0">All data stored on secure UK and EU-based servers with enterprise-grade encryption.</p>
                                     </div>
                                     <div class="bg-white rounded-xl p-5 border border-rezvo-border">
                                         <div class="flex items-start justify-between gap-4 mb-2">
                                             <h4 class="font-bold text-rezvo-forest">Email Service</h4>
-                                            <span class="text-xs bg-rezvo-mint/20 text-rezvo-forest font-bold px-3 py-1 rounded-full">SendGrid</span>
+                                            <span class="text-xs bg-rezvo-gold/20 text-rezvo-forest font-bold px-3 py-1 rounded-full">SendGrid</span>
                                         </div>
                                         <p class="text-sm text-rezvo-forest/70 m-0">Booking confirmations, reminders, and account notifications sent via secure email infrastructure.</p>
                                     </div>
                                     <div class="bg-white rounded-xl p-5 border border-rezvo-border">
                                         <div class="flex items-start justify-between gap-4 mb-2">
                                             <h4 class="font-bold text-rezvo-forest">Analytics</h4>
-                                            <span class="text-xs bg-rezvo-mint/20 text-rezvo-forest font-bold px-3 py-1 rounded-full">Privacy-focused</span>
+                                            <span class="text-xs bg-rezvo-gold/20 text-rezvo-forest font-bold px-3 py-1 rounded-full">Privacy-focused</span>
                                         </div>
                                         <p class="text-sm text-rezvo-forest/70 m-0">Anonymized usage data to improve our service. We don't use invasive tracking.</p>
                                     </div>
@@ -629,23 +629,23 @@
                                 <p class="text-rezvo-forest/80 leading-relaxed mb-4">We retain your data only as long as necessary:</p>
                                 <div class="space-y-3">
                                     <div class="flex items-start gap-3">
-                                        <i class="fa-solid fa-circle text-rezvo-mint text-[8px] mt-2"></i>
+                                        <i class="fa-solid fa-circle text-rezvo-gold text-[8px] mt-2"></i>
                                         <p class="text-rezvo-forest/80 m-0"><strong>Active accounts:</strong> Data retained while your account is active and for legitimate business purposes</p>
                                     </div>
                                     <div class="flex items-start gap-3">
-                                        <i class="fa-solid fa-circle text-rezvo-mint text-[8px] mt-2"></i>
+                                        <i class="fa-solid fa-circle text-rezvo-gold text-[8px] mt-2"></i>
                                         <p class="text-rezvo-forest/80 m-0"><strong>Closed accounts:</strong> Most data deleted within 30 days of account closure</p>
                                     </div>
                                     <div class="flex items-start gap-3">
-                                        <i class="fa-solid fa-circle text-rezvo-mint text-[8px] mt-2"></i>
+                                        <i class="fa-solid fa-circle text-rezvo-gold text-[8px] mt-2"></i>
                                         <p class="text-rezvo-forest/80 m-0"><strong>Financial records:</strong> Retained for 7 years to comply with UK tax and accounting laws</p>
                                     </div>
                                     <div class="flex items-start gap-3">
-                                        <i class="fa-solid fa-circle text-rezvo-mint text-[8px] mt-2"></i>
+                                        <i class="fa-solid fa-circle text-rezvo-gold text-[8px] mt-2"></i>
                                         <p class="text-rezvo-forest/80 m-0"><strong>Marketing data:</strong> Deleted immediately upon withdrawal of consent</p>
                                     </div>
                                     <div class="flex items-start gap-3">
-                                        <i class="fa-solid fa-circle text-rezvo-mint text-[8px] mt-2"></i>
+                                        <i class="fa-solid fa-circle text-rezvo-gold text-[8px] mt-2"></i>
                                         <p class="text-rezvo-forest/80 m-0"><strong>Analytics:</strong> Anonymized and aggregated data may be retained indefinitely for product improvement</p>
                                     </div>
                                 </div>
@@ -663,40 +663,40 @@
                                 <p class="text-rezvo-forest/80 leading-relaxed mb-4">Under UK GDPR, you have the following rights:</p>
                                 <div class="grid sm:grid-cols-2 gap-4">
                                     <div class="bg-white rounded-xl p-5 border border-rezvo-border">
-                                        <i class="fa-solid fa-eye text-2xl text-rezvo-mint mb-3"></i>
+                                        <i class="fa-solid fa-eye text-2xl text-rezvo-gold mb-3"></i>
                                         <h4 class="font-bold text-rezvo-forest mb-2">Right to Access</h4>
                                         <p class="text-sm text-rezvo-forest/70 m-0">Request a copy of all personal data we hold about you</p>
                                     </div>
                                     <div class="bg-white rounded-xl p-5 border border-rezvo-border">
-                                        <i class="fa-solid fa-pen-to-square text-2xl text-rezvo-mint mb-3"></i>
+                                        <i class="fa-solid fa-pen-to-square text-2xl text-rezvo-gold mb-3"></i>
                                         <h4 class="font-bold text-rezvo-forest mb-2">Right to Rectification</h4>
                                         <p class="text-sm text-rezvo-forest/70 m-0">Correct any inaccurate or incomplete information</p>
                                     </div>
                                     <div class="bg-white rounded-xl p-5 border border-rezvo-border">
-                                        <i class="fa-solid fa-trash-can text-2xl text-rezvo-mint mb-3"></i>
+                                        <i class="fa-solid fa-trash-can text-2xl text-rezvo-gold mb-3"></i>
                                         <h4 class="font-bold text-rezvo-forest mb-2">Right to Erasure</h4>
                                         <p class="text-sm text-rezvo-forest/70 m-0">Request deletion of your personal data (subject to legal obligations)</p>
                                     </div>
                                     <div class="bg-white rounded-xl p-5 border border-rezvo-border">
-                                        <i class="fa-solid fa-ban text-2xl text-rezvo-mint mb-3"></i>
+                                        <i class="fa-solid fa-ban text-2xl text-rezvo-gold mb-3"></i>
                                         <h4 class="font-bold text-rezvo-forest mb-2">Right to Restrict</h4>
                                         <p class="text-sm text-rezvo-forest/70 m-0">Limit how we process your data in certain circumstances</p>
                                     </div>
                                     <div class="bg-white rounded-xl p-5 border border-rezvo-border">
-                                        <i class="fa-solid fa-download text-2xl text-rezvo-mint mb-3"></i>
+                                        <i class="fa-solid fa-download text-2xl text-rezvo-gold mb-3"></i>
                                         <h4 class="font-bold text-rezvo-forest mb-2">Right to Portability</h4>
                                         <p class="text-sm text-rezvo-forest/70 m-0">Receive your data in a machine-readable format</p>
                                     </div>
                                     <div class="bg-white rounded-xl p-5 border border-rezvo-border">
-                                        <i class="fa-solid fa-hand text-2xl text-rezvo-mint mb-3"></i>
+                                        <i class="fa-solid fa-hand text-2xl text-rezvo-gold mb-3"></i>
                                         <h4 class="font-bold text-rezvo-forest mb-2">Right to Object</h4>
                                         <p class="text-sm text-rezvo-forest/70 m-0">Object to processing based on legitimate interests or for marketing</p>
                                     </div>
                                 </div>
-                                <div class="bg-rezvo-mint/10 border border-rezvo-mint rounded-xl p-4 mt-6">
+                                <div class="bg-rezvo-gold/10 border border-rezvo-gold rounded-xl p-4 mt-6">
                                     <p class="text-sm text-rezvo-forest m-0">
-                                        <i class="fa-solid fa-circle-info text-rezvo-mint mr-2"></i>
-                                        To exercise any of these rights, email <a href="mailto:privacy@reeveos.app" class="font-bold text-rezvo-mint hover:underline">privacy@reeveos.app</a>. We'll respond within 30 days.
+                                        <i class="fa-solid fa-circle-info text-rezvo-gold mr-2"></i>
+                                        To exercise any of these rights, email <a href="mailto:privacy@reeveos.app" class="font-bold text-rezvo-gold hover:underline">privacy@reeveos.app</a>. We'll respond within 30 days.
                                     </p>
                                 </div>
                             </div>
@@ -723,7 +723,7 @@
                                     <div class="bg-white rounded-xl p-5 border border-rezvo-border">
                                         <div class="flex items-start justify-between gap-4 mb-2">
                                             <h4 class="font-bold text-rezvo-forest">Analytics Cookies</h4>
-                                            <span class="text-xs bg-rezvo-mint/30 text-rezvo-forest font-bold px-3 py-1 rounded-full">Optional</span>
+                                            <span class="text-xs bg-rezvo-gold/30 text-rezvo-forest font-bold px-3 py-1 rounded-full">Optional</span>
                                         </div>
                                         <p class="text-sm text-rezvo-forest/70 mb-2">Help us understand how you use ReeveOS so we can improve it. All data is anonymized.</p>
                                         <p class="text-xs text-rezvo-forest/50 m-0">Examples: _ga, _gid (Google Analytics alternative)</p>
@@ -731,14 +731,14 @@
                                     <div class="bg-white rounded-xl p-5 border border-rezvo-border">
                                         <div class="flex items-start justify-between gap-4 mb-2">
                                             <h4 class="font-bold text-rezvo-forest">Marketing Cookies</h4>
-                                            <span class="text-xs bg-rezvo-mint/30 text-rezvo-forest font-bold px-3 py-1 rounded-full">Optional</span>
+                                            <span class="text-xs bg-rezvo-gold/30 text-rezvo-forest font-bold px-3 py-1 rounded-full">Optional</span>
                                         </div>
                                         <p class="text-sm text-rezvo-forest/70 mb-2">Show you relevant content and measure campaign effectiveness. Only with your consent.</p>
                                         <p class="text-xs text-rezvo-forest/50 m-0">Examples: _fbp, conversion_tracking</p>
                                     </div>
                                 </div>
                                 <p class="text-sm text-rezvo-forest/70 mt-4 m-0">
-                                    You can manage cookie preferences in your browser settings or through our cookie banner. For more details, see our <a href="/cookies.html" class="text-rezvo-mint font-bold hover:underline">Cookie Policy</a>.
+                                    You can manage cookie preferences in your browser settings or through our cookie banner. For more details, see our <a href="/cookies.html" class="text-rezvo-gold font-bold hover:underline">Cookie Policy</a>.
                                 </p>
                             </div>
                         </section>
@@ -754,40 +754,40 @@
                                 <p class="text-rezvo-forest/80 leading-relaxed mb-4">We take data security seriously and implement industry-leading measures:</p>
                                 <div class="grid sm:grid-cols-2 gap-4 mb-6">
                                     <div class="bg-white rounded-xl p-5 border border-rezvo-border">
-                                        <i class="fa-solid fa-lock text-2xl text-rezvo-mint mb-3"></i>
+                                        <i class="fa-solid fa-lock text-2xl text-rezvo-gold mb-3"></i>
                                         <h4 class="font-bold text-rezvo-forest mb-2">Encryption</h4>
                                         <p class="text-sm text-rezvo-forest/70 m-0">All data encrypted in transit (TLS 1.3) and at rest (AES-256)</p>
                                     </div>
                                     <div class="bg-white rounded-xl p-5 border border-rezvo-border">
-                                        <i class="fa-solid fa-server text-2xl text-rezvo-mint mb-3"></i>
+                                        <i class="fa-solid fa-server text-2xl text-rezvo-gold mb-3"></i>
                                         <h4 class="font-bold text-rezvo-forest mb-2">Secure Infrastructure</h4>
                                         <p class="text-sm text-rezvo-forest/70 m-0">UK/EU-based servers with 24/7 monitoring and DDoS protection</p>
                                     </div>
                                     <div class="bg-white rounded-xl p-5 border border-rezvo-border">
-                                        <i class="fa-solid fa-user-shield text-2xl text-rezvo-mint mb-3"></i>
+                                        <i class="fa-solid fa-user-shield text-2xl text-rezvo-gold mb-3"></i>
                                         <h4 class="font-bold text-rezvo-forest mb-2">Access Controls</h4>
                                         <p class="text-sm text-rezvo-forest/70 m-0">Role-based permissions and multi-factor authentication</p>
                                     </div>
                                     <div class="bg-white rounded-xl p-5 border border-rezvo-border">
-                                        <i class="fa-solid fa-clipboard-check text-2xl text-rezvo-mint mb-3"></i>
+                                        <i class="fa-solid fa-clipboard-check text-2xl text-rezvo-gold mb-3"></i>
                                         <h4 class="font-bold text-rezvo-forest mb-2">Regular Audits</h4>
                                         <p class="text-sm text-rezvo-forest/70 m-0">Penetration testing and security reviews by third-party experts</p>
                                     </div>
                                     <div class="bg-white rounded-xl p-5 border border-rezvo-border">
-                                        <i class="fa-solid fa-database text-2xl text-rezvo-mint mb-3"></i>
+                                        <i class="fa-solid fa-database text-2xl text-rezvo-gold mb-3"></i>
                                         <h4 class="font-bold text-rezvo-forest mb-2">Backups</h4>
                                         <p class="text-sm text-rezvo-forest/70 m-0">Automated daily backups stored in geographically separate locations</p>
                                     </div>
                                     <div class="bg-white rounded-xl p-5 border border-rezvo-border">
-                                        <i class="fa-solid fa-triangle-exclamation text-2xl text-rezvo-mint mb-3"></i>
+                                        <i class="fa-solid fa-triangle-exclamation text-2xl text-rezvo-gold mb-3"></i>
                                         <h4 class="font-bold text-rezvo-forest mb-2">Breach Response</h4>
                                         <p class="text-sm text-rezvo-forest/70 m-0">Incident response plan to notify affected users within 72 hours</p>
                                     </div>
                                 </div>
-                                <div class="bg-rezvo-mint/10 border border-rezvo-mint rounded-xl p-4">
+                                <div class="bg-rezvo-gold/10 border border-rezvo-gold rounded-xl p-4">
                                     <p class="text-sm text-rezvo-forest m-0">
-                                        <i class="fa-solid fa-shield-halved text-rezvo-mint mr-2"></i>
-                                        If you notice any security issues, please report them immediately to <a href="mailto:security@rezvo.app" class="font-bold text-rezvo-mint hover:underline">security@rezvo.app</a>.
+                                        <i class="fa-solid fa-shield-halved text-rezvo-gold mr-2"></i>
+                                        If you notice any security issues, please report them immediately to <a href="mailto:security@rezvo.app" class="font-bold text-rezvo-gold hover:underline">security@rezvo.app</a>.
                                     </p>
                                 </div>
                             </div>
@@ -808,19 +808,19 @@
                                     <h4 class="font-bold text-rezvo-forest mb-3">When we make changes:</h4>
                                     <div class="space-y-2">
                                         <div class="flex items-start gap-2">
-                                            <i class="fa-solid fa-circle text-rezvo-mint text-[6px] mt-2"></i>
+                                            <i class="fa-solid fa-circle text-rezvo-gold text-[6px] mt-2"></i>
                                             <p class="text-sm text-rezvo-forest/70 m-0">We'll update the "Last updated" date at the top of this page</p>
                                         </div>
                                         <div class="flex items-start gap-2">
-                                            <i class="fa-solid fa-circle text-rezvo-mint text-[6px] mt-2"></i>
+                                            <i class="fa-solid fa-circle text-rezvo-gold text-[6px] mt-2"></i>
                                             <p class="text-sm text-rezvo-forest/70 m-0">For significant changes, we'll notify you by email or through an in-app notification</p>
                                         </div>
                                         <div class="flex items-start gap-2">
-                                            <i class="fa-solid fa-circle text-rezvo-mint text-[6px] mt-2"></i>
+                                            <i class="fa-solid fa-circle text-rezvo-gold text-[6px] mt-2"></i>
                                             <p class="text-sm text-rezvo-forest/70 m-0">You'll have 30 days to review changes before they take effect</p>
                                         </div>
                                         <div class="flex items-start gap-2">
-                                            <i class="fa-solid fa-circle text-rezvo-mint text-[6px] mt-2"></i>
+                                            <i class="fa-solid fa-circle text-rezvo-gold text-[6px] mt-2"></i>
                                             <p class="text-sm text-rezvo-forest/70 m-0">Continued use of ReeveOS after changes indicates acceptance of the updated policy</p>
                                         </div>
                                     </div>
@@ -844,13 +844,13 @@
                                 </p>
                                 <div class="grid sm:grid-cols-2 gap-4 mb-6">
                                     <div class="bg-white rounded-xl p-5 border border-rezvo-border">
-                                        <i class="fa-solid fa-envelope text-2xl text-rezvo-mint mb-3"></i>
+                                        <i class="fa-solid fa-envelope text-2xl text-rezvo-gold mb-3"></i>
                                         <h4 class="font-bold text-rezvo-forest mb-2">Email</h4>
-                                        <a href="mailto:privacy@reeveos.app" class="text-rezvo-mint font-bold hover:underline">privacy@reeveos.app</a>
+                                        <a href="mailto:privacy@reeveos.app" class="text-rezvo-gold font-bold hover:underline">privacy@reeveos.app</a>
                                         <p class="text-xs text-rezvo-forest/50 mt-1 m-0">Data Protection Officer</p>
                                     </div>
                                     <div class="bg-white rounded-xl p-5 border border-rezvo-border">
-                                        <i class="fa-solid fa-location-dot text-2xl text-rezvo-mint mb-3"></i>
+                                        <i class="fa-solid fa-location-dot text-2xl text-rezvo-gold mb-3"></i>
                                         <h4 class="font-bold text-rezvo-forest mb-2">Postal Address</h4>
                                         <p class="text-sm text-rezvo-forest/70 m-0">
                                             ReeveOS Ltd<br>
@@ -860,13 +860,13 @@
                                         </p>
                                     </div>
                                 </div>
-                                <div class="bg-rezvo-mint/10 border border-rezvo-mint rounded-xl p-5">
+                                <div class="bg-rezvo-gold/10 border border-rezvo-gold rounded-xl p-5">
                                     <h4 class="font-bold text-rezvo-forest mb-2 flex items-center gap-2">
-                                        <i class="fa-solid fa-scale-balanced text-rezvo-mint"></i>
+                                        <i class="fa-solid fa-scale-balanced text-rezvo-gold"></i>
                                         Right to Complain
                                     </h4>
                                     <p class="text-sm text-rezvo-forest/70 m-0">
-                                        If you're not satisfied with our response, you have the right to lodge a complaint with the UK Information Commissioner's Office (ICO). Visit <a href="https://ico.org.uk" target="_blank" class="text-rezvo-mint font-bold hover:underline">ico.org.uk</a> or call 0303 123 1113.
+                                        If you're not satisfied with our response, you have the right to lodge a complaint with the UK Information Commissioner's Office (ICO). Visit <a href="https://ico.org.uk" target="_blank" class="text-rezvo-gold font-bold hover:underline">ico.org.uk</a> or call 0303 123 1113.
                                     </p>
                                 </div>
                             </div>
@@ -883,18 +883,18 @@
         <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
             <h3 class="font-sans font-extrabold text-2xl text-rezvo-forest text-center mb-8">Related Documents</h3>
             <div class="grid sm:grid-cols-3 gap-6">
-                <a href="/terms.html" class="bg-white rounded-2xl p-6 border border-rezvo-border hover:border-rezvo-mint hover:shadow-soft transition-all group">
-                    <i class="fa-solid fa-file-contract text-3xl text-rezvo-mint mb-4 group-hover:scale-110 transition-transform"></i>
+                <a href="/terms.html" class="bg-white rounded-2xl p-6 border border-rezvo-border hover:border-rezvo-gold hover:shadow-soft transition-all group">
+                    <i class="fa-solid fa-file-contract text-3xl text-rezvo-gold mb-4 group-hover:scale-110 transition-transform"></i>
                     <h4 class="font-bold text-rezvo-forest mb-2">Terms of Service</h4>
                     <p class="text-sm text-rezvo-forest/60">Our terms and conditions for using ReeveOS</p>
                 </a>
-                <a href="/cookies.html" class="bg-white rounded-2xl p-6 border border-rezvo-border hover:border-rezvo-mint hover:shadow-soft transition-all group">
-                    <i class="fa-solid fa-cookie-bite text-3xl text-rezvo-mint mb-4 group-hover:scale-110 transition-transform"></i>
+                <a href="/cookies.html" class="bg-white rounded-2xl p-6 border border-rezvo-border hover:border-rezvo-gold hover:shadow-soft transition-all group">
+                    <i class="fa-solid fa-cookie-bite text-3xl text-rezvo-gold mb-4 group-hover:scale-110 transition-transform"></i>
                     <h4 class="font-bold text-rezvo-forest mb-2">Cookie Policy</h4>
                     <p class="text-sm text-rezvo-forest/60">How we use cookies and tracking</p>
                 </a>
-                <a href="/contact.html" class="bg-white rounded-2xl p-6 border border-rezvo-border hover:border-rezvo-mint hover:shadow-soft transition-all group">
-                    <i class="fa-solid fa-shield-halved text-3xl text-rezvo-mint mb-4 group-hover:scale-110 transition-transform"></i>
+                <a href="/contact.html" class="bg-white rounded-2xl p-6 border border-rezvo-border hover:border-rezvo-gold hover:shadow-soft transition-all group">
+                    <i class="fa-solid fa-shield-halved text-3xl text-rezvo-gold mb-4 group-hover:scale-110 transition-transform"></i>
                     <h4 class="font-bold text-rezvo-forest mb-2">Security</h4>
                     <p class="text-sm text-rezvo-forest/60">Our commitment to keeping your data safe</p>
                 </a>
@@ -906,18 +906,18 @@
         <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="bg-rezvo-forest rounded-3xl p-10 lg:p-16 relative overflow-hidden text-center">
                 <div class="absolute inset-0 bg-grain opacity-10"></div>
-                <div class="absolute top-0 right-0 w-96 h-96 bg-rezvo-mint rounded-full filter blur-[150px] opacity-20 pointer-events-none"></div>
-                <div class="absolute bottom-0 left-0 w-96 h-96 bg-rezvo-mint rounded-full filter blur-[150px] opacity-20 pointer-events-none"></div>
+                <div class="absolute top-0 right-0 w-96 h-96 bg-rezvo-gold rounded-full filter blur-[150px] opacity-20 pointer-events-none"></div>
+                <div class="absolute bottom-0 left-0 w-96 h-96 bg-rezvo-gold rounded-full filter blur-[150px] opacity-20 pointer-events-none"></div>
                 
                 <div class="relative z-10">
                     <h2 class="font-sans font-extrabold text-3xl md:text-4xl lg:text-5xl text-white mb-6">
                         Ready to Save Your High Street?
                     </h2>
-                    <p class="text-xl text-rezvo-mint/90 mb-10 max-w-2xl mx-auto leading-relaxed">
+                    <p class="text-xl text-rezvo-gold/90 mb-10 max-w-2xl mx-auto leading-relaxed">
                         Join the movement supporting independent businesses across the UK. Get started free today.
                     </p>
                     <div class="flex flex-col sm:flex-row gap-4 justify-center">
-                        <a href="https://webportal.reeveos.app/signup" class="bg-rezvo-mint hover:bg-white text-rezvo-forest font-bold py-4 px-10 rounded-full transition-all duration-300 shadow-xl hover:shadow-2xl">
+                        <a href="https://portal.rezvo.app/signup" class="bg-rezvo-gold hover:bg-white text-rezvo-forest font-bold py-4 px-10 rounded-full transition-all duration-300 shadow-xl hover:shadow-2xl">
                             Start Free Trial
                         </a>
                         <a href="/contact.html" class="bg-white/10 hover:bg-white/20 text-white font-bold py-4 px-10 rounded-full transition-all duration-300 border-2 border-white/20">
@@ -935,16 +935,16 @@
                 <!-- Brand -->
                 <div class="col-span-2">
                     <div class="flex items-center gap-3 mb-6">
-                        <div class="bg-rezvo-mint text-rezvo-forest w-10 h-10 rounded-xl flex items-center justify-center">
+                        <div class="bg-rezvo-gold text-rezvo-forest w-10 h-10 rounded-xl flex items-center justify-center">
                             <span class="font-sans font-extrabold text-xl">R</span>
                         </div>
                         <span class="font-sans font-extrabold text-2xl text-white tracking-tight">ReeveOS</span>
                     </div>
                     <p class="text-white/50 text-sm leading-relaxed mb-6 max-w-xs">The zero-commission booking &amp; ordering platform helping UK restaurants and service businesses thrive.</p>
                     <div class="flex gap-3">
-                        <a href="https://instagram.com/rezvouk" target="_blank" rel="noopener" class="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center hover:bg-rezvo-mint hover:text-rezvo-dark transition-colors"><i class="fa-brands fa-instagram"></i></a>
-                        <a href="https://linkedin.com/company/rezvo" target="_blank" rel="noopener" class="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center hover:bg-rezvo-mint hover:text-rezvo-dark transition-colors"><i class="fa-brands fa-linkedin-in"></i></a>
-                        <a href="https://twitter.com/rezvouk" target="_blank" rel="noopener" class="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center hover:bg-rezvo-mint hover:text-rezvo-dark transition-colors"><i class="fa-brands fa-twitter"></i></a>
+                        <a href="https://instagram.com/rezvouk" target="_blank" rel="noopener" class="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center hover:bg-rezvo-gold hover:text-rezvo-dark transition-colors"><i class="fa-brands fa-instagram"></i></a>
+                        <a href="https://linkedin.com/company/rezvo" target="_blank" rel="noopener" class="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center hover:bg-rezvo-gold hover:text-rezvo-dark transition-colors"><i class="fa-brands fa-linkedin-in"></i></a>
+                        <a href="https://twitter.com/rezvouk" target="_blank" rel="noopener" class="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center hover:bg-rezvo-gold hover:text-rezvo-dark transition-colors"><i class="fa-brands fa-twitter"></i></a>
                     </div>
                 </div>
 
@@ -952,11 +952,11 @@
                 <div>
                     <h4 class="font-bold text-white text-sm uppercase tracking-wider mb-4">Discover</h4>
                     <ul class="space-y-2.5 text-sm text-white/50">
-                        <li><a href="/industries/restaurants.html" class="hover:text-rezvo-mint transition-colors">Restaurants</a></li>
-                        <li><a href="/industries/salons-spas.html" class="hover:text-rezvo-mint transition-colors">Hair Salons</a></li>
-                        <li><a href="/industries/barbers.html" class="hover:text-rezvo-mint transition-colors">Barbers</a></li>
-                        <li><a href="/industries/wellness-clinics.html" class="hover:text-rezvo-mint transition-colors">Spas &amp; Wellness</a></li>
-                        <li><a href="/industries/index.html" class="hover:text-rezvo-mint transition-colors">Browse All</a></li>
+                        <li><a href="/industries/restaurants.html" class="hover:text-rezvo-gold transition-colors">Restaurants</a></li>
+                        <li><a href="/industries/salons-spas.html" class="hover:text-rezvo-gold transition-colors">Hair Salons</a></li>
+                        <li><a href="/industries/barbers.html" class="hover:text-rezvo-gold transition-colors">Barbers</a></li>
+                        <li><a href="/industries/wellness-clinics.html" class="hover:text-rezvo-gold transition-colors">Spas &amp; Wellness</a></li>
+                        <li><a href="/industries/index.html" class="hover:text-rezvo-gold transition-colors">Browse All</a></li>
                     </ul>
                 </div>
 
@@ -964,12 +964,12 @@
                 <div>
                     <h4 class="font-bold text-white text-sm uppercase tracking-wider mb-4">Features</h4>
                     <ul class="space-y-2.5 text-sm text-white/50">
-                        <li><a href="/features/restaurants.html" class="hover:text-rezvo-mint transition-colors">For Restaurants</a></li>
-                        <li><a href="/features/calendar.html" class="hover:text-rezvo-mint transition-colors">Smart Calendar</a></li>
-                        <li><a href="/features/payments.html" class="hover:text-rezvo-mint transition-colors">Stripe Payments</a></li>
-                        <li><a href="/features/mobile-app.html" class="hover:text-rezvo-mint transition-colors">Mobile App</a></li>
-                        <li><a href="/features/integrations.html" class="hover:text-rezvo-mint transition-colors">Integrations</a></li>
-                        <li><a href="/features/uber-direct.html" class="hover:text-rezvo-mint transition-colors">Uber Direct</a></li>
+                        <li><a href="/features/restaurants.html" class="hover:text-rezvo-gold transition-colors">For Restaurants</a></li>
+                        <li><a href="/features/calendar.html" class="hover:text-rezvo-gold transition-colors">Smart Calendar</a></li>
+                        <li><a href="/features/payments.html" class="hover:text-rezvo-gold transition-colors">Stripe Payments</a></li>
+                        <li><a href="/features/mobile-app.html" class="hover:text-rezvo-gold transition-colors">Mobile App</a></li>
+                        <li><a href="/features/integrations.html" class="hover:text-rezvo-gold transition-colors">Integrations</a></li>
+                        <li><a href="/features/uber-direct.html" class="hover:text-rezvo-gold transition-colors">Uber Direct</a></li>
                     </ul>
                 </div>
 
@@ -977,11 +977,11 @@
                 <div>
                     <h4 class="font-bold text-white text-sm uppercase tracking-wider mb-4">For Business</h4>
                     <ul class="space-y-2.5 text-sm text-white/50">
-                        <li><a href="/for-business" class="hover:text-rezvo-mint transition-colors">How It Works</a></li>
-                        <li><a href="/for-business#pricing" class="hover:text-rezvo-mint transition-colors">Pricing</a></li>
-                        <li><a href="/features/team-up.html" class="hover:text-rezvo-mint transition-colors">Team Up &amp; Save</a></li>
-                        <li><a href="https://webportal.reeveos.app/signup" class="hover:text-rezvo-mint transition-colors">Get Started</a></li>
-                        <li><a href="https://webportal.reeveos.app/login" class="hover:text-rezvo-mint transition-colors">Partner Login</a></li>
+                        <li><a href="/for-business" class="hover:text-rezvo-gold transition-colors">How It Works</a></li>
+                        <li><a href="/for-business#pricing" class="hover:text-rezvo-gold transition-colors">Pricing</a></li>
+                        <li><a href="/features/team-up.html" class="hover:text-rezvo-gold transition-colors">Team Up &amp; Save</a></li>
+                        <li><a href="https://portal.rezvo.app/signup" class="hover:text-rezvo-gold transition-colors">Get Started</a></li>
+                        <li><a href="https://portal.rezvo.app/login" class="hover:text-rezvo-gold transition-colors">Partner Login</a></li>
                     </ul>
                 </div>
 
@@ -989,27 +989,27 @@
                 <div>
                     <h4 class="font-bold text-white text-sm uppercase tracking-wider mb-4">Company</h4>
                     <ul class="space-y-2.5 text-sm text-white/50">
-                        <li><a href="/about.html" class="hover:text-rezvo-mint transition-colors">About Us</a></li>
-                        <li><a href="/#faq" class="hover:text-rezvo-mint transition-colors">FAQs</a></li>
-                        <li><a href="/support.html" class="hover:text-rezvo-mint transition-colors">Support Center</a></li>
-                        <li><a href="/contact.html" class="hover:text-rezvo-mint transition-colors">Contact</a></li>
+                        <li><a href="/about.html" class="hover:text-rezvo-gold transition-colors">About Us</a></li>
+                        <li><a href="/#faq" class="hover:text-rezvo-gold transition-colors">FAQs</a></li>
+                        <li><a href="/support.html" class="hover:text-rezvo-gold transition-colors">Support Center</a></li>
+                        <li><a href="/contact.html" class="hover:text-rezvo-gold transition-colors">Contact</a></li>
                     </ul>
                 </div>
             </div>
 
             <!-- Divider + giant watermark -->
             <div class="border-t border-white/10 pt-10 text-center">
-                <h1 class="font-sans font-extrabold text-[20vw] md:text-[12vw] leading-none text-rezvo-mint opacity-10 select-none">ReeveOS</h1>
+                <h1 class="font-sans font-extrabold text-[20vw] md:text-[12vw] leading-none text-rezvo-gold opacity-10 select-none">ReeveOS</h1>
             </div>
 
             <!-- Bottom bar -->
             <div class="flex flex-col md:flex-row justify-between items-center mt-10 pt-6 border-t border-white/5 text-xs text-white/40">
                 <p>&copy; 2026 ReeveOS Ltd. All rights reserved.</p>
                 <div class="flex items-center gap-6 mt-4 md:mt-0">
-                    <a href="/privacy.html" class="hover:text-rezvo-mint transition-colors">Privacy Policy</a>
-                    <a href="/terms.html" class="hover:text-rezvo-mint transition-colors">Terms of Service</a>
-                    <a href="/cookies.html" class="hover:text-rezvo-mint transition-colors">Cookie Policy</a>
-                    <a href="/sitemap.html" class="hover:text-rezvo-mint transition-colors">Sitemap</a>
+                    <a href="/privacy.html" class="hover:text-rezvo-gold transition-colors">Privacy Policy</a>
+                    <a href="/terms.html" class="hover:text-rezvo-gold transition-colors">Terms of Service</a>
+                    <a href="/cookies.html" class="hover:text-rezvo-gold transition-colors">Cookie Policy</a>
+                    <a href="/sitemap.html" class="hover:text-rezvo-gold transition-colors">Sitemap</a>
                 </div>
             </div>
         </div>
