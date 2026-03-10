@@ -41,6 +41,7 @@ import Marketing from './pages/dashboard/Marketing'
 import Payments from './pages/dashboard/Payments'
 import Help from './pages/dashboard/Help'
 import Deleted from './pages/dashboard/Deleted'
+import Operators from './pages/dashboard/Operators'
 
 /* EPOS pages — restaurant only */
 import EposInventory from './pages/dashboard/EposInventory'
@@ -191,6 +192,7 @@ const App = () => {
               <Route path="booking-link" element={<BookingLink />} />
               <Route path="floor-plan" element={<FloorPlan />} />
               <Route path="staff" element={<Staff />} />
+              <Route path="operators" element={<Operators />} />
               <Route path="services" element={<Services />} />
               <Route path="online-booking" element={<OnlineBooking />} />
               <Route path="orders" element={<Orders />} />

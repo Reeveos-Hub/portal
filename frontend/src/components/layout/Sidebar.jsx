@@ -14,7 +14,7 @@ import {
   LayoutGrid, Megaphone, Settings, HelpCircle,
   ChevronLeft, ChevronRight, ChevronDown, Lock,
   Send, Bot, Linkedin, Bell,
-  Package, Flame, Clock, Wallet, ClipboardCheck, MessageSquare, Monitor, Target, Columns3, Tag, Video, Trash2
+  Package, Flame, Clock, Wallet, ClipboardCheck, MessageSquare, Monitor, Target, Columns3, Tag, Video, Trash2, UserPlus
 } from 'lucide-react'
 
 /* ── Color tokens ── */
@@ -60,7 +60,7 @@ const ICON_MAP = {
 }
 
 /* ── Build grouped sections from nav config ── */
-function buildSections(navItems, tier, businessType) {
+function buildSections(navItems, tier, businessType, business) {
   const iconFor = (item) => ICON_MAP[item.icon] || LayoutDashboard
   const locked = () => false // All features unlocked
   const isRestaurant = businessType === 'restaurant'
@@ -170,6 +170,7 @@ function buildSections(navItems, tier, businessType) {
         ...(navItems.management || []).filter(i => i.id === 'staff').map(i => ({
           id: i.id, label: i.label, path: i.path, Icon: iconFor(i), locked: locked(i),
         })),
+        ...(business?.mothership_mode ? [{ id: 'operators', label: 'Operators', path: '/dashboard/operators', Icon: UserPlus, locked: false }] : []),
         ...(navItems.business || []).filter(i => ['reviews'].includes(i.id)).map(i => ({
           id: i.id, label: i.label, path: i.path, Icon: iconFor(i), locked: locked(i),
         })),
@@ -357,7 +358,7 @@ const Sidebar = ({ open, onNavigate: closeMobile }) => {
   const { user } = useAuth()
   const { business, businessType, tier } = useBusiness()
   const navItems = getNavItemsFn(businessType)
-  const sections = buildSections(navItems, tier, businessType)
+  const sections = buildSections(navItems, tier, businessType, business)
   const allItems = sections.flatMap(s => s.items)
 
   const [panelOpen, setPanelOpen] = useState(true)

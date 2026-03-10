@@ -14,6 +14,7 @@ import { useWalkthrough } from '../../contexts/WalkthroughContext'
 const TABS = [
   { id: 'business', label: 'Business' },
   { id: 'hours', label: 'Opening Hours' },
+  { id: 'selfemployed', label: 'Self-Employed Mode' },
   { id: 'notifications', label: 'Notifications' },
   { id: 'integrations', label: 'Integrations' },
   { id: 'preferences', label: 'Preferences' },
@@ -148,6 +149,8 @@ const Settings = () => {
   const [deleteModal, setDeleteModal] = useState(false)
   const [deleteConfirmName, setDeleteConfirmName] = useState('')
   const [specialHoursForm, setSpecialHoursForm] = useState({ date: '', open: true, start: '09:00', end: '17:00', label: '' })
+  const [mothershipEnabled, setMothershipEnabled] = useState(false)
+  const [mothershipSettings, setMothershipSettings] = useState({ commission_type: 'percentage', default_rate: 30, chair_rental: 200, settlement_frequency: 'instant', shared_booking: true })
 
   const bizId = business?.id ?? business?._id
 
@@ -160,6 +163,12 @@ const Settings = () => {
       ])
       setSettings(s)
       setSubscription(sub)
+      // Fetch mothership status
+      try {
+        const ms = await api.get(`/mothership/business/${bizId}/settings`)
+        setMothershipEnabled(ms.mothership_mode || false)
+        if (ms.settings) setMothershipSettings(prev => ({ ...prev, ...ms.settings }))
+      } catch { /* not enabled yet, that's fine */ }
     } catch (err) {
       console.error(err)
       setToast(err.message || 'Failed to load settings')
@@ -699,6 +708,145 @@ const Settings = () => {
               Save Hours
             </button>
             </div>
+          </div>
+        )}
+
+        {activeTab === 'selfemployed' && (
+          <div className="bg-white border border-gray-100 rounded-2xl shadow-[0_2px_10px_rgba(0,0,0,0.03)] p-6 space-y-6">
+            <div>
+              <h2 className="text-xl font-heading font-semibold mb-1">Self-Employed Mode</h2>
+              <p className="text-sm text-gray-500">Let self-employed operators run their own bookings, clients, and payments — while you keep the overview.</p>
+            </div>
+
+            {/* Enable toggle */}
+            <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl border border-gray-100">
+              <div>
+                <div className="text-sm font-bold text-primary">Enable Self-Employed Mode</div>
+                <div className="text-xs text-gray-400 mt-0.5">Your operators get their own portal. You see everything.</div>
+              </div>
+              <button onClick={async () => {
+                try {
+                  if (!mothershipEnabled) {
+                    await api.post(`/mothership/business/${bizId}/enable`, mothershipSettings)
+                    setMothershipEnabled(true)
+                    setToast('Self-Employed Mode enabled')
+                  } else {
+                    await api.post(`/mothership/business/${bizId}/disable`)
+                    setMothershipEnabled(false)
+                    setToast('Self-Employed Mode disabled')
+                  }
+                } catch (e) { setToast(e.message || 'Failed') }
+              }}
+                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${mothershipEnabled ? 'bg-green-500' : 'bg-gray-300'}`}>
+                <span className={`inline-block h-5 w-5 transform rounded-full bg-white transition-transform shadow ${mothershipEnabled ? 'translate-x-5' : 'translate-x-0.5'}`} />
+              </button>
+            </div>
+
+            {mothershipEnabled && (
+              <>
+                {/* Commission settings */}
+                <div className="space-y-4 pt-4 border-t border-gray-100">
+                  <h3 className="text-sm font-bold text-primary">Commission Structure</h3>
+                  <div className="flex gap-3">
+                    <button onClick={() => setMothershipSettings(s => ({ ...s, commission_type: 'percentage' }))}
+                      className={`flex-1 py-3 rounded-xl text-sm font-bold border transition-all ${mothershipSettings.commission_type === 'percentage' ? 'bg-primary text-white border-primary' : 'bg-white text-gray-500 border-gray-200 hover:border-primary/30'}`}>
+                      Percentage
+                    </button>
+                    <button onClick={() => setMothershipSettings(s => ({ ...s, commission_type: 'fixed' }))}
+                      className={`flex-1 py-3 rounded-xl text-sm font-bold border transition-all ${mothershipSettings.commission_type === 'fixed' ? 'bg-primary text-white border-primary' : 'bg-white text-gray-500 border-gray-200 hover:border-primary/30'}`}>
+                      Fixed Chair Rental
+                    </button>
+                  </div>
+
+                  {mothershipSettings.commission_type === 'percentage' ? (
+                    <div>
+                      <label className="block text-sm font-bold text-primary mb-1.5">Default Commission Rate (%)</label>
+                      <p className="text-xs text-gray-400 mb-2">Your cut from each operator's bookings. Can be overridden per operator.</p>
+                      <div className="flex flex-wrap gap-2">
+                        {[10, 15, 20, 25, 30, 35, 40].map(r => (
+                          <button key={r} onClick={() => setMothershipSettings(s => ({ ...s, default_rate: r }))}
+                            className={`px-4 py-2 rounded-full text-xs font-bold border transition-all ${mothershipSettings.default_rate === r ? 'bg-primary text-white border-primary' : 'bg-white text-gray-500 border-gray-200 hover:border-primary/30'}`}>
+                            {r}%
+                          </button>
+                        ))}
+                      </div>
+                      <p className="text-xs text-gray-400 mt-2">If an operator takes £100, you receive £{mothershipSettings.default_rate || 30}. They receive £{100 - (mothershipSettings.default_rate || 30)}.</p>
+                    </div>
+                  ) : (
+                    <div>
+                      <label className="block text-sm font-bold text-primary mb-1.5">Weekly Chair Rental (£)</label>
+                      <p className="text-xs text-gray-400 mb-2">Fixed weekly charge per operator regardless of their bookings.</p>
+                      <div className="relative max-w-[200px]">
+                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">£</span>
+                        <input type="number" value={mothershipSettings.chair_rental || ''} onChange={e => setMothershipSettings(s => ({ ...s, chair_rental: Number(e.target.value) }))}
+                          className="w-full pl-7 pr-3 py-2.5 border border-gray-200 rounded-lg text-sm font-medium text-primary outline-none focus:border-primary" placeholder="200" />
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Settlement frequency */}
+                <div className="space-y-3 pt-4 border-t border-gray-100">
+                  <h3 className="text-sm font-bold text-primary">Payment Settlement</h3>
+                  <p className="text-xs text-gray-400">How operators receive their cut.</p>
+                  <div className="flex flex-wrap gap-2">
+                    {[
+                      { id: 'instant', label: 'Instant (Stripe)', desc: 'Funds split automatically at payment time' },
+                      { id: 'weekly', label: 'Weekly', desc: 'You review and pay operators each week' },
+                      { id: 'monthly', label: 'Monthly', desc: 'Monthly settlement reports' },
+                    ].map(f => (
+                      <button key={f.id} onClick={() => setMothershipSettings(s => ({ ...s, settlement_frequency: f.id }))}
+                        className={`px-4 py-2.5 rounded-xl text-xs font-bold border transition-all text-left ${mothershipSettings.settlement_frequency === f.id ? 'bg-primary text-white border-primary' : 'bg-white text-gray-500 border-gray-200 hover:border-primary/30'}`}>
+                        {f.label}
+                      </button>
+                    ))}
+                  </div>
+                  {mothershipSettings.settlement_frequency === 'instant' && (
+                    <div className="flex gap-2 p-3 bg-[#FFFDF6] border border-[#C9A84C]/20 rounded-lg text-xs text-[#C9A84C]">
+                      <svg className="w-4 h-4 shrink-0 mt-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+                      Requires each operator to connect their Stripe account. Funds split instantly at payment time — no manual transfers needed.
+                    </div>
+                  )}
+                </div>
+
+                {/* Shared booking */}
+                <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl border border-gray-100">
+                  <div>
+                    <div className="text-sm font-bold text-primary">Shared Booking Page</div>
+                    <div className="text-xs text-gray-400 mt-0.5">Clients see all available operators on one booking page.</div>
+                  </div>
+                  <button onClick={() => setMothershipSettings(s => ({ ...s, shared_booking: !s.shared_booking }))}
+                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${mothershipSettings.shared_booking ? 'bg-green-500' : 'bg-gray-300'}`}>
+                    <span className={`inline-block h-5 w-5 transform rounded-full bg-white transition-transform shadow ${mothershipSettings.shared_booking ? 'translate-x-5' : 'translate-x-0.5'}`} />
+                  </button>
+                </div>
+
+                {/* Save + Manage */}
+                <div className="flex items-center justify-between pt-4 border-t border-gray-100">
+                  <button onClick={() => navigate('/dashboard/operators')}
+                    className="text-sm font-bold text-[#C9A84C] hover:underline">
+                    Manage Operators →
+                  </button>
+                  <button onClick={async () => {
+                    try {
+                      setSaving(true)
+                      await api.post(`/mothership/business/${bizId}/enable`, {
+                        commission_type: mothershipSettings.commission_type,
+                        default_rate: mothershipSettings.default_rate,
+                        chair_rental: mothershipSettings.chair_rental,
+                        settlement_frequency: mothershipSettings.settlement_frequency,
+                        shared_booking: mothershipSettings.shared_booking,
+                      })
+                      setToast('Settings saved')
+                    } catch (e) { setToast(e.message || 'Failed') }
+                    finally { setSaving(false) }
+                  }} disabled={saving}
+                    className="text-sm font-bold text-white bg-primary px-6 py-2 rounded-lg hover:bg-primary-hover transition-colors shadow-md disabled:opacity-50">
+                    {saving ? 'Saving...' : 'Save Settings'}
+                  </button>
+                </div>
+              </>
+            )}
           </div>
         )}
 
