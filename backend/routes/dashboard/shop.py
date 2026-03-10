@@ -787,3 +787,54 @@ async def shop_stats(
         "active_vouchers": active_vouchers,
         "total_revenue": round(total_revenue, 2),
     }
+
+
+# ─── STOCK MANAGEMENT ───
+
+@router.get("/business/{business_id}/stock/alerts")
+async def stock_alerts(business_id: str, tenant: TenantContext = Depends(verify_business_access)):
+    """Get all products below their low stock threshold."""
+    sdb = get_scoped_db(tenant.business_id)
+    products = []
+    async for p in sdb.shop_products.find({
+        "business_id": tenant.business_id,
+        "track_stock": True,
+        "deleted": {"$ne": True},
+        "$expr": {"$lte": ["$stock", "$low_stock_threshold"]},
+    }):
+        products.append({
+            "id": p.get("product_id") or str(p.get("_id", "")),
+            "name": p.get("name", ""),
+            "stock": p.get("stock", 0),
+            "threshold": p.get("low_stock_threshold", 5),
+            "category": p.get("category", ""),
+        })
+    return {"alerts": products, "total": len(products)}
+
+
+@router.post("/business/{business_id}/stock/adjust")
+async def adjust_stock(business_id: str, payload: dict = Body(...), tenant: TenantContext = Depends(verify_business_access)):
+    """Manual stock adjustment (add or remove)."""
+    product_id = payload.get("product_id")
+    adjustment = int(payload.get("adjustment", 0))
+    reason = payload.get("reason", "manual")
+
+    if not product_id or adjustment == 0:
+        raise HTTPException(400, "product_id and non-zero adjustment required")
+
+    sdb = get_scoped_db(tenant.business_id)
+    result = await sdb.shop_products.update_one(
+        {"business_id": tenant.business_id, "product_id": product_id},
+        {
+            "$inc": {"stock": adjustment},
+            "$push": {"stock_history": {
+                "adjustment": adjustment,
+                "reason": reason,
+                "by": str(tenant.user_id),
+                "timestamp": datetime.utcnow(),
+            }},
+        },
+    )
+    if result.modified_count == 0:
+        raise HTTPException(404, "Product not found")
+    return {"product_id": product_id, "adjusted": adjustment, "reason": reason}

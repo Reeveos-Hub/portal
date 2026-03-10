@@ -38,6 +38,20 @@ def _cat_id():
     return f"cat_{datetime.utcnow().strftime('%Y%m%d%H%M%S')}"
 
 
+PRESET_PALETTE = [
+    '#D4A574', '#6BA3C7', '#A87BBF', '#6BC7A3',
+    '#E8845E', '#E8B84E', '#E87B9E', '#6366F1',
+    '#14B8A6', '#F97316', '#8B5CF6', '#64748B',
+]
+
+
+def _auto_color(menu):
+    """Round-robin assign from palette based on existing service count."""
+    used = [s.get("color") for s in menu if s.get("color")]
+    idx = len(used) % len(PRESET_PALETTE)
+    return PRESET_PALETTE[idx]
+
+
 @router.get("/business/{business_id}")
 async def get_services_grouped(business_id: str, tenant: TenantContext = Depends(verify_business_access)):
     """Run 4: Services grouped by category."""
@@ -54,7 +68,7 @@ async def get_services_grouped(business_id: str, tenant: TenantContext = Depends
 
     # Group services by category
     by_cat = {}
-    for s in menu:
+    for i, s in enumerate(menu):
         if not s.get("active", True):
             continue
         cid = s.get("categoryId") or s.get("category") or "General"
@@ -65,6 +79,8 @@ async def get_services_grouped(business_id: str, tenant: TenantContext = Depends
             st = next((x for x in staff_list if x.get("id") == sid), None)
             if st:
                 staff_names.append(st.get("name", ""))
+        # Auto-assign color if missing
+        color = s.get("color") or cat_map.get(cid, {}).get("color") or PRESET_PALETTE[i % len(PRESET_PALETTE)]
         by_cat[cid].append({
             "id": s.get("id"),
             "name": s.get("name"),
@@ -76,6 +92,7 @@ async def get_services_grouped(business_id: str, tenant: TenantContext = Depends
             "online": s.get("online", True),
             "active": s.get("active", True),
             "sortOrder": s.get("sortOrder", 0),
+            "color": color,
         })
 
     categories = []
@@ -86,6 +103,7 @@ async def get_services_grouped(business_id: str, tenant: TenantContext = Depends
             "id": cid,
             "name": c.get("name"),
             "sortOrder": c.get("sortOrder", 0),
+            "color": c.get("color"),
             "services": services,
         })
         by_cat.pop(cid, None)
@@ -120,6 +138,7 @@ async def create_service(business_id: str, payload: dict = Body(...), tenant: Te
             raise HTTPException(400, "Service name already exists")
 
     cat_name = next((c.get("name") for c in business.get("categories", []) if c.get("id") == payload.get("categoryId")), "General")
+    color = payload.get("color") or _auto_color(menu)
     svc = {
         "id": _gen_id(),
         "name": name,
@@ -132,6 +151,7 @@ async def create_service(business_id: str, payload: dict = Body(...), tenant: Te
         "online": payload.get("online", True),
         "active": True,
         "sortOrder": len(menu),
+        "color": color,
         "createdAt": datetime.utcnow(),
         "updatedAt": datetime.utcnow(),
     }
@@ -170,6 +190,8 @@ async def update_service(business_id: str, service_id: str, payload: dict = Body
         s["staffIds"] = payload["staffIds"]
     if "online" in payload:
         s["online"] = bool(payload["online"])
+    if "color" in payload:
+        s["color"] = (payload["color"] or "")[:7]
     s["updatedAt"] = datetime.utcnow()
     menu[idx] = s
     await db.businesses.update_one(

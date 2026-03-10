@@ -13,6 +13,12 @@ from middleware.encryption import TenantEncryption
 from datetime import datetime, timedelta
 from bson import ObjectId
 
+PRESET_PALETTE = [
+    '#D4A574', '#6BA3C7', '#A87BBF', '#6BC7A3',
+    '#E8845E', '#E8B84E', '#E87B9E', '#6366F1',
+    '#14B8A6', '#F97316', '#8B5CF6', '#64748B',
+]
+
 router = APIRouter(prefix="/calendar", tags=["calendar"])
 
 STATUS_COLOURS = {
@@ -114,6 +120,17 @@ async def get_calendar(
         ["appointments", "bookings"]
     )
 
+    # Build service color map from menu
+    svc_color_map = {}
+    for i, s in enumerate(business.get("menu", [])):
+        sid = s.get("id", "")
+        sname = (s.get("name") or "").lower()
+        color = s.get("color") or PRESET_PALETTE[i % len(PRESET_PALETTE)]
+        if sid:
+            svc_color_map[sid] = color
+        if sname:
+            svc_color_map[sname] = color
+
     bookings = []
     for b in bookings_raw:
         nb = normalize_booking(b)
@@ -130,6 +147,10 @@ async def get_calendar(
         if isinstance(nb["service"], dict):
             price = nb["service"].get("price", 0)
 
+        # Resolve service color: direct ID match → name match → fallback
+        svc_id = nb.get("serviceId") or (nb["service"].get("id") if isinstance(nb["service"], dict) else "")
+        svc_color = svc_color_map.get(svc_id) or svc_color_map.get(service_name.lower()) or "#6BA3C7"
+
         bookings.append({
             "id": nb["id"],
             "staffId": nb["staffId"] or "default",
@@ -140,6 +161,7 @@ async def get_calendar(
             "customerName": nb["customer"]["name"],
             "customerId": nb.get("customerId") or b.get("customerId", ""),
             "service": service_name,
+            "serviceColor": svc_color,
             "status": nb["status"],
             "colour": STATUS_COLOURS.get(nb["status"], "#22C55E"),
             "isNewClient": b.get("is_new_client", False),

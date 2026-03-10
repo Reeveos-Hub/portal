@@ -340,12 +340,16 @@ const Calendar = () => {
   })
 
   const gc = useCallback((a) => {
+    // Priority: no_show=red, completed=grey, then service color, then fallback
+    if (a.status === 'no_show') return '#EF4444'
+    if (a.status === 'completed') return '#9CA3AF'
     if (cm === 'staff') {
       const s = staffColumns.find(s => s.id === a.staffId)
       return s?.color || '#999'
     }
     if (cm === 'status') return STATUS_MAP[a.status]?.color || '#999'
-    return SERVICE_COLORS[a.cat] || SERVICE_COLORS.default
+    // Service color from backend (primary) or category fallback
+    return a.serviceColor || SERVICE_COLORS[a.cat] || SERVICE_COLORS.default
   }, [cm, staffColumns])
 
   const revenue = bookings.reduce((s, a) => s + (a.price || 0), 0)

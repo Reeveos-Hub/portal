@@ -283,6 +283,18 @@ app.include_router(packages_router)
 from routes.support_chat import router as public_support_chat_router
 app.include_router(public_support_chat_router)
 
+# Loyalty & Rewards
+from routes.dashboard.loyalty import router as loyalty_router
+app.include_router(loyalty_router)
+
+# Client Photos (Before & After)
+from routes.dashboard.client_photos import router as client_photos_router
+app.include_router(client_photos_router)
+
+# Consent Template Library
+from routes.dashboard.consent_templates import router as consent_templates_router
+app.include_router(consent_templates_router)
+
 # Static uploads for booking page logo/cover
 static_dir = Path("/opt/rezvo-app/uploads")
 try:

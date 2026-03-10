@@ -10,7 +10,7 @@ import { useBusiness } from '../../contexts/BusinessContext'
 import api from '../../utils/api'
 import { Trash2, Archive } from 'lucide-react'
 
-const COLORS = ['#FFD166', '#06D6A0', '#118AB2', '#EF476F', '#073B4C', '#F77F00']
+const COLORS = ['#D4A574', '#6BA3C7', '#A87BBF', '#6BC7A3', '#E8845E', '#E8B84E', '#E87B9E', '#6366F1', '#14B8A6', '#F97316', '#8B5CF6', '#64748B']
 const DURATIONS = ['15 mins', '30 mins', '45 mins', '1 hour', '1 hr 15 mins', '1 hr 30 mins', '2 hours', '2 hr 30 mins', '3 hours']
 const BUFFER_TIMES = ['None', '5 mins', '10 mins', '15 mins', '30 mins']
 
@@ -93,9 +93,13 @@ const Services = () => {
     if (!bid || !selected) return
     setSaving(true)
     try {
-      await api.patch(`/services/business/${bid}/${selected.id}`, editing)
+      await api.put(`/services-v2/business/${bid}/${selected.id}`, editing)
       setServices(prev => prev.map(s => s.id === selected.id ? { ...s, ...editing } : s))
-    } catch (e) { console.error(e) }
+    } catch (e) {
+      // Fallback to v1
+      try { await api.patch(`/services/business/${bid}/${selected.id}`, editing) } catch (e2) { console.error(e2) }
+      setServices(prev => prev.map(s => s.id === selected.id ? { ...s, ...editing } : s))
+    }
     finally { setSaving(false) }
   }
 
