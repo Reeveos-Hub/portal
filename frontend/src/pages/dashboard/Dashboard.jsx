@@ -424,38 +424,44 @@ const Dashboard = () => {
         <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
           <div className="xl:col-span-2 space-y-8">
 
-            {/* Occupancy Chart */}
+            {/* Occupancy Chart — wired to real booking data */}
             <div className="bg-white rounded-2xl border border-gray-100 shadow-[0_2px_10px_rgba(0,0,0,0.03)] p-6">
               <div className="flex justify-between items-center mb-6">
                 <div>
                   <h2 className="text-lg font-extrabold text-gray-900">{isRestaurant ? 'Occupancy Trends' : 'Appointment Trends'}</h2>
-                  <p className="text-xs text-gray-400 font-medium mt-0.5">{isRestaurant ? 'Live seating vs capacity over time' : 'Bookings and availability over time'}</p>
+                  <p className="text-xs text-gray-400 font-medium mt-0.5">{isRestaurant ? 'Bookings by hour today' : 'Appointments by hour today'}</p>
                 </div>
-                <div className="flex gap-1.5">
-                  {['Today', 'Week', 'Month'].map((label, i) => (
-                    <button key={label} className={`px-3.5 py-1.5 rounded-full text-xs font-bold transition-all ${
-                      i === 0
-                        ? 'bg-primary text-white shadow-md shadow-primary/20'
-                        : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'
-                    }`}>{label}</button>
-                  ))}
-                </div>
+                <div className="text-xs font-bold text-gray-400">{todayBookings.length} total today</div>
               </div>
-              <div className="h-[200px] relative">
-                <svg viewBox="0 0 600 200" className="w-full h-full" preserveAspectRatio="none">
-                  <defs>
-                    <linearGradient id="chartFill" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="#1a1a1a" stopOpacity="0.25" />
-                      <stop offset="100%" stopColor="#1a1a1a" stopOpacity="0.02" />
-                    </linearGradient>
-                  </defs>
-                  <path d="M0,160 C50,135 100,100 150,110 C200,120 250,140 300,60 C350,20 400,30 450,50 C500,70 550,100 600,130 L600,200 L0,200 Z" fill="url(#chartFill)" />
-                  <path d="M0,160 C50,135 100,100 150,110 C200,120 250,140 300,60 C350,20 400,30 450,50 C500,70 550,100 600,130" fill="none" stroke="#111111" strokeWidth="2.5" strokeLinecap="round" />
-                </svg>
-                <div className="absolute bottom-0 left-0 right-0 flex justify-between text-[9px] text-gray-400 font-medium px-2">
-                  {['12PM','1PM','2PM','3PM','4PM','5PM','6PM','7PM','8PM','9PM','10PM'].map(t => <span key={t}>{t}</span>)}
-                </div>
-              </div>
+              {(() => {
+                const hours = Array.from({ length: 12 }, (_, i) => i + 8)
+                const counts = hours.map(h => todayBookings.filter(b => {
+                  const bTime = b.time || b.start_time || ''
+                  const bHour = typeof bTime === 'string' ? parseInt(bTime.split(':')[0], 10) : (typeof bTime === 'number' ? Math.floor(bTime) : -1)
+                  return bHour === h
+                }).length)
+                const max = Math.max(...counts, 1)
+                return (
+                  <div style={{ display: 'flex', alignItems: 'flex-end', gap: 6, height: 160, padding: '0 4px' }}>
+                    {hours.map((h, i) => (
+                      <div key={h} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6, height: '100%', justifyContent: 'flex-end' }}>
+                        {counts[i] > 0 && <span style={{ fontSize: 10, fontWeight: 700, color: '#111' }}>{counts[i]}</span>}
+                        <div style={{
+                          width: '100%', borderRadius: 6,
+                          height: counts[i] > 0 ? `${Math.max((counts[i] / max) * 100, 12)}%` : 4,
+                          background: counts[i] > 0 ? '#111111' : '#F0F0F0',
+                          transition: 'height 0.4s ease',
+                          minHeight: counts[i] > 0 ? 16 : 4,
+                        }} />
+                        <span style={{ fontSize: 9, color: '#999', fontWeight: 500 }}>{h > 12 ? `${h-12}pm` : h === 12 ? '12pm' : `${h}am`}</span>
+                      </div>
+                    ))}
+                  </div>
+                )
+              })()}
+              {todayBookings.length === 0 && (
+                <div style={{ textAlign: 'center', padding: '20px 0 0', fontSize: 12, color: '#BBB' }}>Chart will populate as bookings come in today</div>
+              )}
             </div>
 
             {/* Floor Status — restaurants only */}
