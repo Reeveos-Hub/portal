@@ -307,6 +307,14 @@ app.include_router(injection_mapping_router)
 from routes.dashboard.academy import router as academy_router
 app.include_router(academy_router)
 
+# Operators (Self-Employed) Management
+from routes.dashboard.operators import router as operators_router
+app.include_router(operators_router)
+
+# Mothership Dashboard & Settlements
+from routes.dashboard.mothership import router as mothership_router
+app.include_router(mothership_router)
+
 # Static uploads for booking page logo/cover
 static_dir = Path("/opt/rezvo-app/uploads")
 try:

@@ -1,0 +1,653 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Self-Employed Mode | ReeveOS — The Mothership for Salon Owners</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        window.FontAwesomeConfig = { autoReplaceSvg: 'nest' };
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        rezvo: {
+                            dark: '#111111',
+                            forest: '#111111',
+                            gold: '#C9A84C',
+                            gold: '#C9A84C',
+                            cream: '#FEFBF4',
+                            white: '#FFFFFF',
+                            border: '#E2E5DF',
+                            text: '#111111'
+                        }
+                    },
+                    fontFamily: {
+                        heading: ['"Figtree"', 'sans-serif'],
+                        body: ['"Figtree"', 'sans-serif'],
+                    },
+                    boxShadow: {
+                        'soft': '0 4px 20px -2px rgba(17, 17, 17, 0.08)',
+                        'glow': '0 0 20px rgba(201, 168, 76, 0.3)',
+                    },
+                    animation: {
+                        'float': 'float 6s ease-in-out infinite',
+                        'pulse-glow': 'pulse-glow 2s ease-in-out infinite',
+                        'slide-up': 'slide-up 0.6s ease-out',
+                        'fade-in': 'fade-in 0.8s ease-out',
+                    },
+                    keyframes: {
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0px)' },
+                            '50%': { transform: 'translateY(-20px)' },
+                        },
+                        'pulse-glow': {
+                            '0%, 100%': { boxShadow: '0 0 20px rgba(201, 168, 76, 0.4)' },
+                            '50%': { boxShadow: '0 0 40px rgba(201, 168, 76, 0.8)' },
+                        },
+                        'slide-up': {
+                            '0%': { transform: 'translateY(30px)', opacity: '0' },
+                            '100%': { transform: 'translateY(0)', opacity: '1' },
+                        },
+                        'fade-in': {
+                            '0%': { opacity: '0' },
+                            '100%': { opacity: '1' },
+                        },
+                    }
+                }
+            }
+        }
+    </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Figtree:ital,wght@0,300..900;1,300..900&display=swap" rel="stylesheet">
+    <style>
+        ::-webkit-scrollbar { display: none; }
+        html, body { max-width: 100vw; overflow-x: hidden; }
+        img, video, iframe { max-width: 100%; height: auto; }
+        .bg-grain {
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.05'/%3E%3C/svg%3E");
+        }
+        .nav-blur {
+            backdrop-filter: blur(12px);
+            background-color: rgba(255, 255, 255, 0.9);
+        }
+    </style>
+</head>
+<body class="bg-rezvo-cream font-body text-rezvo-text antialiased overflow-x-hidden">
+
+    <nav class="fixed top-0 left-0 right-0 z-50 bg-white border-b border-reeve-border shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-[72px]">
+                <a href="/" class="flex-shrink-0 flex items-center gap-3 cursor-pointer no-underline">
+                    <div class="w-10 h-10 rounded-xl flex items-center justify-center" style="background-color:#111111;">
+                        <span class="text-white font-sans font-extrabold text-xl">R</span>
+                    </div>
+                    <span class="text-reeve-black font-sans font-extrabold text-[22px] tracking-tight">ReeveOS</span>
+                </a>
+                <div class="hidden lg:flex items-center gap-1" id="nav-links">
+                    <a href="/" class="px-3 py-2 rounded-lg text-sm font-semibold text-reeve-black/70 hover:text-reeve-black hover:bg-reeve-black/5 transition-all">Home</a>
+                    <button class="nav-drop-btn flex items-center gap-1 px-3 py-2 rounded-lg text-sm font-semibold text-reeve-black/70 hover:text-reeve-black hover:bg-reeve-black/5 transition-all" data-target="features-panel">
+                        Features <i class="fa-solid fa-chevron-down text-[10px] ml-0.5 opacity-60 transition-transform duration-200"></i>
+                    </button>
+                    <button class="nav-drop-btn flex items-center gap-1 px-3 py-2 rounded-lg text-sm font-semibold text-reeve-black/70 hover:text-reeve-black hover:bg-reeve-black/5 transition-all" data-target="industries-panel">
+                        Industries <i class="fa-solid fa-chevron-down text-[10px] ml-0.5 opacity-60 transition-transform duration-200"></i>
+                    </button>
+                    <a href="/for-business" class="px-3 py-2 rounded-lg text-sm font-semibold text-reeve-black/70 hover:text-reeve-black hover:bg-reeve-black/5 transition-all">For Business</a>
+                    <button class="nav-drop-btn flex items-center gap-1 px-3 py-2 rounded-lg text-sm font-semibold text-reeve-black/70 hover:text-reeve-black hover:bg-reeve-black/5 transition-all" data-target="company-panel">
+                        Company <i class="fa-solid fa-chevron-down text-[10px] ml-0.5 opacity-60 transition-transform duration-200"></i>
+                    </button>
+                </div>
+                <div class="hidden lg:flex items-center gap-3">
+                    <a href="https://portal.rezvo.app/login" class="text-reeve-black font-semibold text-sm hover:text-reeve-gold transition-colors">Log in</a>
+                    <a href="https://portal.rezvo.app/signup" class="text-white font-semibold text-sm py-2.5 px-6 rounded-full transition-all duration-300 shadow-lg" style="background-color:#C9A84C;color:#111111;">
+                        Get Started Free
+                    </a>
+                </div>
+                <button onclick="document.getElementById('mobile-menu').classList.toggle('hidden')" class="lg:hidden w-10 h-10 rounded-xl flex items-center justify-center text-reeve-black hover:bg-reeve-black/5">
+                    <i class="fa-solid fa-bars text-lg"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- FEATURES MEGA PANEL -->
+        <div id="features-panel" class="nav-panel hidden absolute left-0 right-0 top-[72px] bg-white border-t border-b border-reeve-border shadow-xl z-50" style="animation:fadeDown .2s ease-out">
+            <div class="max-w-7xl mx-auto px-6 py-8">
+                <div class="grid grid-cols-3 gap-8">
+                    <div class="col-span-2">
+                        <p class="text-[11px] font-bold text-reeve-black/40 uppercase tracking-widest mb-4">Platform Features</p>
+                        <div class="grid grid-cols-2 gap-1">
+                            <a href="/features/restaurants.html" class="flex items-center gap-3 p-3 rounded-xl hover:bg-reeve-black/5 transition-colors no-underline group">
+                                <div class="w-9 h-9 rounded-lg bg-reeve-black/5 flex items-center justify-center group-hover:bg-reeve-gold/20"><i class="fa-solid fa-utensils text-sm text-reeve-black/50 group-hover:text-reeve-black"></i></div>
+                                <div><p class="text-sm font-semibold text-reeve-black m-0">For Restaurants</p><p class="text-xs text-reeve-black/45 m-0">Floor plans, covers & ordering</p></div>
+                            </a>
+                            <a href="/features/calendar.html" class="flex items-center gap-3 p-3 rounded-xl hover:bg-reeve-black/5 transition-colors no-underline group">
+                                <div class="w-9 h-9 rounded-lg bg-reeve-black/5 flex items-center justify-center group-hover:bg-reeve-gold/20"><i class="fa-solid fa-calendar-check text-sm text-reeve-black/50 group-hover:text-reeve-black"></i></div>
+                                <div><p class="text-sm font-semibold text-reeve-black m-0">Smart Calendar</p><p class="text-xs text-reeve-black/45 m-0">Flexible, intelligent scheduling</p></div>
+                            </a>
+                            <a href="/features/payments.html" class="flex items-center gap-3 p-3 rounded-xl hover:bg-reeve-black/5 transition-colors no-underline group">
+                                <div class="w-9 h-9 rounded-lg bg-reeve-black/5 flex items-center justify-center group-hover:bg-reeve-gold/20"><i class="fa-solid fa-credit-card text-sm text-reeve-black/50 group-hover:text-reeve-black"></i></div>
+                                <div><p class="text-sm font-semibold text-reeve-black m-0">Stripe Payments</p><p class="text-xs text-reeve-black/45 m-0">Direct payouts, no middleman</p></div>
+                            </a>
+                            <a href="/features/mobile-app.html" class="flex items-center gap-3 p-3 rounded-xl hover:bg-reeve-black/5 transition-colors no-underline group">
+                                <div class="w-9 h-9 rounded-lg bg-reeve-black/5 flex items-center justify-center group-hover:bg-reeve-gold/20"><i class="fa-solid fa-mobile-screen text-sm text-reeve-black/50 group-hover:text-reeve-black"></i></div>
+                                <div><p class="text-sm font-semibold text-reeve-black m-0">Mobile App</p><p class="text-xs text-reeve-black/45 m-0">Voice AI & smart assistant</p></div>
+                            </a>
+                            <a href="/features/integrations.html" class="flex items-center gap-3 p-3 rounded-xl hover:bg-reeve-black/5 transition-colors no-underline group">
+                                <div class="w-9 h-9 rounded-lg bg-reeve-black/5 flex items-center justify-center group-hover:bg-reeve-gold/20"><i class="fa-solid fa-plug text-sm text-reeve-black/50 group-hover:text-reeve-black"></i></div>
+                                <div><p class="text-sm font-semibold text-reeve-black m-0">Integrations</p><p class="text-xs text-reeve-black/45 m-0">Google Cal, Outlook & more</p></div>
+                            </a>
+                            <a href="/features/uber-direct.html" class="flex items-center gap-3 p-3 rounded-xl hover:bg-reeve-black/5 transition-colors no-underline group">
+                                <div class="w-9 h-9 rounded-lg bg-reeve-black/5 flex items-center justify-center group-hover:bg-reeve-gold/20"><i class="fa-solid fa-truck-fast text-sm text-reeve-black/50 group-hover:text-reeve-black"></i></div>
+                                <div><p class="text-sm font-semibold text-reeve-black m-0">Uber Direct</p><p class="text-xs text-reeve-black/45 m-0">Delivery without commission</p></div>
+                            </a>
+                            <a href="/features/team-up.html" class="flex items-center gap-3 p-3 rounded-xl hover:bg-reeve-black/5 transition-colors no-underline group">
+                                <div class="w-9 h-9 rounded-lg bg-reeve-black/5 flex items-center justify-center group-hover:bg-reeve-gold/20"><i class="fa-solid fa-user-group text-sm text-reeve-black/50 group-hover:text-reeve-black"></i></div>
+                                <div><p class="text-sm font-semibold text-reeve-black m-0">Team Up & Save</p><p class="text-xs text-reeve-black/45 m-0">Refer & get 50% off forever</p></div>
+                            </a>
+                        </div>
+                    </div>
+                    <div class="bg-reeve-black rounded-2xl p-6 flex flex-col justify-between">
+                        <div>
+                            <p class="text-reeve-gold font-bold text-sm mb-2">Zero Commission</p>
+                            <p class="text-white font-extrabold text-xl mb-2 font-sans">Keep 100% of your revenue</p>
+                            <p class="text-white/60 text-sm">No per-booking fees. No contracts. Just a simple monthly plan.</p>
+                        </div>
+                        <a href="https://portal.rezvo.app/signup" class="mt-4 inline-flex items-center gap-2 bg-reeve-gold text-reeve-black font-bold text-sm py-2.5 px-5 rounded-full hover:bg-white transition-all w-fit no-underline">
+                            Start Free <i class="fa-solid fa-arrow-right text-xs"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- INDUSTRIES MEGA PANEL -->
+        <div id="industries-panel" class="nav-panel hidden absolute left-0 right-0 top-[72px] bg-white border-t border-b border-reeve-border shadow-xl z-50" style="animation:fadeDown .2s ease-out">
+            <div class="max-w-7xl mx-auto px-6 py-8">
+                <div class="grid grid-cols-3 gap-8">
+                    <div class="col-span-2">
+                        <p class="text-[11px] font-bold text-reeve-black/40 uppercase tracking-widest mb-4">Who We Serve</p>
+                        <div class="grid grid-cols-4 gap-1">
+                            <a href="/industries/restaurants" class="flex items-center gap-2.5 p-2.5 rounded-xl hover:bg-reeve-black/5 transition-colors no-underline group"><div class="w-8 h-8 rounded-lg bg-reeve-black/5 flex items-center justify-center group-hover:bg-reeve-gold/20"><i class="fa-solid fa-utensils text-xs text-reeve-black/50"></i></div><span class="text-sm font-semibold text-reeve-black">Restaurants</span></a>
+                            <a href="/industries/barbers" class="flex items-center gap-2.5 p-2.5 rounded-xl hover:bg-reeve-black/5 transition-colors no-underline group"><div class="w-8 h-8 rounded-lg bg-reeve-black/5 flex items-center justify-center group-hover:bg-reeve-gold/20"><i class="fa-solid fa-scissors text-xs text-reeve-black/50"></i></div><span class="text-sm font-semibold text-reeve-black">Barbers</span></a>
+                            <a href="/industries/salons-spas" class="flex items-center gap-2.5 p-2.5 rounded-xl hover:bg-reeve-black/5 transition-colors no-underline group"><div class="w-8 h-8 rounded-lg bg-reeve-black/5 flex items-center justify-center group-hover:bg-reeve-gold/20"><i class="fa-solid fa-spa text-xs text-reeve-black/50"></i></div><span class="text-sm font-semibold text-reeve-black">Salons & Spas</span></a>
+                            <a href="/industries/personal-trainers" class="flex items-center gap-2.5 p-2.5 rounded-xl hover:bg-reeve-black/5 transition-colors no-underline group"><div class="w-8 h-8 rounded-lg bg-reeve-black/5 flex items-center justify-center group-hover:bg-reeve-gold/20"><i class="fa-solid fa-dumbbell text-xs text-reeve-black/50"></i></div><span class="text-sm font-semibold text-reeve-black">Personal Trainers</span></a>
+                            <a href="/industries/tattoo-studios" class="flex items-center gap-2.5 p-2.5 rounded-xl hover:bg-reeve-black/5 transition-colors no-underline group"><div class="w-8 h-8 rounded-lg bg-reeve-black/5 flex items-center justify-center group-hover:bg-reeve-gold/20"><i class="fa-solid fa-palette text-xs text-reeve-black/50"></i></div><span class="text-sm font-semibold text-reeve-black">Tattoo Studios</span></a>
+                            <a href="/industries/dentists" class="flex items-center gap-2.5 p-2.5 rounded-xl hover:bg-reeve-black/5 transition-colors no-underline group"><div class="w-8 h-8 rounded-lg bg-reeve-black/5 flex items-center justify-center group-hover:bg-reeve-gold/20"><i class="fa-solid fa-tooth text-xs text-reeve-black/50"></i></div><span class="text-sm font-semibold text-reeve-black">Dentists</span></a>
+                            <a href="/industries/photographers" class="flex items-center gap-2.5 p-2.5 rounded-xl hover:bg-reeve-black/5 transition-colors no-underline group"><div class="w-8 h-8 rounded-lg bg-reeve-black/5 flex items-center justify-center group-hover:bg-reeve-gold/20"><i class="fa-solid fa-camera text-xs text-reeve-black/50"></i></div><span class="text-sm font-semibold text-reeve-black">Photographers</span></a>
+                            <a href="/industries/fitness-studios" class="flex items-center gap-2.5 p-2.5 rounded-xl hover:bg-reeve-black/5 transition-colors no-underline group"><div class="w-8 h-8 rounded-lg bg-reeve-black/5 flex items-center justify-center group-hover:bg-reeve-gold/20"><i class="fa-solid fa-bolt text-xs text-reeve-black/50"></i></div><span class="text-sm font-semibold text-reeve-black">Fitness Studios</span></a>
+                        </div>
+                        <a href="/industries" class="mt-4 inline-flex items-center gap-2 text-sm font-bold text-reeve-gold hover:text-reeve-black transition-colors no-underline">View all industries <i class="fa-solid fa-arrow-right text-xs"></i></a>
+                    </div>
+                    <div class="bg-gradient-to-br from-reeve-gold/10 to-reeve-black/5 rounded-2xl p-6 border border-white/20">
+                        <p class="text-reeve-black font-extrabold text-lg mb-2 font-sans">One platform, every business</p>
+                        <p class="text-reeve-black/60 text-sm mb-4">From barbers to restaurants — if you take bookings, ReeveOS is for you.</p>
+                        <a href="/for-business" class="inline-flex items-center gap-2 bg-reeve-black text-white font-bold text-sm py-2.5 px-5 rounded-full hover:bg-reeve-dark transition-all no-underline">Learn More <i class="fa-solid fa-arrow-right text-xs"></i></a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- COMPANY PANEL -->
+        <div id="company-panel" class="nav-panel hidden absolute right-0 top-[72px] w-[360px] bg-white border border-reeve-border rounded-b-2xl shadow-xl z-50 p-3" style="animation:fadeDown .2s ease-out;right:10%">
+            <a href="/about.html" class="flex items-center gap-3 p-3 rounded-xl hover:bg-reeve-black/5 transition-colors no-underline group">
+                <div class="w-9 h-9 rounded-lg bg-reeve-black/5 flex items-center justify-center group-hover:bg-reeve-gold/20"><i class="fa-solid fa-info-circle text-sm text-reeve-black/50"></i></div>
+                <div><p class="text-sm font-semibold text-reeve-black m-0">About Us</p><p class="text-xs text-reeve-black/45 m-0">Our mission & story</p></div>
+            </a>
+            <a href="/#faq" class="flex items-center gap-3 p-3 rounded-xl hover:bg-reeve-black/5 transition-colors no-underline group">
+                <div class="w-9 h-9 rounded-lg bg-reeve-black/5 flex items-center justify-center group-hover:bg-reeve-gold/20"><i class="fa-solid fa-circle-question text-sm text-reeve-black/50"></i></div>
+                <div><p class="text-sm font-semibold text-reeve-black m-0">FAQs</p><p class="text-xs text-reeve-black/45 m-0">Common questions answered</p></div>
+            </a>
+            <a href="/support.html" class="flex items-center gap-3 p-3 rounded-xl hover:bg-reeve-black/5 transition-colors no-underline group">
+                <div class="w-9 h-9 rounded-lg bg-reeve-black/5 flex items-center justify-center group-hover:bg-reeve-gold/20"><i class="fa-solid fa-headset text-sm text-reeve-black/50"></i></div>
+                <div><p class="text-sm font-semibold text-reeve-black m-0">Support Center</p><p class="text-xs text-reeve-black/45 m-0">Help when you need it</p></div>
+            </a>
+            <a href="/contact.html" class="flex items-center gap-3 p-3 rounded-xl hover:bg-reeve-black/5 transition-colors no-underline group">
+                <div class="w-9 h-9 rounded-lg bg-reeve-black/5 flex items-center justify-center group-hover:bg-reeve-gold/20"><i class="fa-solid fa-envelope text-sm text-reeve-black/50"></i></div>
+                <div><p class="text-sm font-semibold text-reeve-black m-0">Contact</p><p class="text-xs text-reeve-black/45 m-0">Get in touch</p></div>
+            </a>
+        </div>
+
+        <!-- Mobile Menu -->
+        <div id="mobile-menu" class="hidden lg:hidden bg-white border-t border-reeve-border px-4 py-4 max-h-[80vh] overflow-y-auto">
+            <a href="/" class="block py-3 text-base font-semibold text-reeve-black">Home</a>
+            <p class="text-xs font-bold text-reeve-black/40 uppercase tracking-wider mt-2 mb-1 px-1">Features</p>
+            <a href="/features/restaurants.html" class="block py-2 pl-3 text-sm text-reeve-black/70">For Restaurants</a>
+            <a href="/features/calendar.html" class="block py-2 pl-3 text-sm text-reeve-black/70">Smart Calendar</a>
+            <a href="/features/payments.html" class="block py-2 pl-3 text-sm text-reeve-black/70">Stripe Payments</a>
+            <a href="/features/mobile-app.html" class="block py-2 pl-3 text-sm text-reeve-black/70">Mobile App</a>
+            <a href="/features/integrations.html" class="block py-2 pl-3 text-sm text-reeve-black/70">Integrations</a>
+            <a href="/features/uber-direct.html" class="block py-2 pl-3 text-sm text-reeve-black/70">Uber Direct</a>
+            <a href="/features/team-up.html" class="block py-2 pl-3 text-sm text-reeve-black/70">Team Up & Save</a>
+            <p class="text-xs font-bold text-reeve-black/40 uppercase tracking-wider mt-3 mb-1 px-1">Industries</p>
+            <a href="/industries/restaurants" class="block py-2 pl-3 text-sm text-reeve-black/70">Restaurants</a>
+            <a href="/industries/barbers" class="block py-2 pl-3 text-sm text-reeve-black/70">Barbers</a>
+            <a href="/industries/salons-spas" class="block py-2 pl-3 text-sm text-reeve-black/70">Salons & Spas</a>
+            <a href="/industries" class="block py-2 pl-3 text-sm font-bold text-reeve-gold">View all →</a>
+            <a href="/for-business" class="block py-3 text-base font-semibold text-reeve-black">For Business</a>
+            <a href="/about.html" class="block py-3 text-base font-semibold text-reeve-black">About</a>
+            <a href="/#faq" class="block py-3 text-base font-semibold text-reeve-black">FAQs</a>
+            <div class="border-t border-reeve-border mt-3 pt-3 flex flex-col gap-2">
+                <a href="https://portal.rezvo.app/login" class="text-center text-reeve-black font-bold text-sm py-3 rounded-xl border border-reeve-black/20">Log in</a>
+                <a href="https://portal.rezvo.app/signup" class="text-center bg-reeve-black text-white font-bold text-sm py-3 rounded-full">Get Started Free</a>
+            </div>
+        </div>
+    </nav>
+
+    <script>
+    (function(){
+        var current = null;
+        var btns = document.querySelectorAll('.nav-drop-btn');
+        var panels = document.querySelectorAll('.nav-panel');
+        
+        btns.forEach(function(btn){
+            btn.addEventListener('click', function(e){
+                e.stopPropagation();
+                var target = btn.getAttribute('data-target');
+                var panel = document.getElementById(target);
+                if(current === target){
+                    panel.classList.add('hidden');
+                    btn.classList.remove('bg-rezvo-forest/10','text-rezvo-forest');
+                    var chev = btn.querySelector('i');
+                    if(chev) chev.style.transform = '';
+                    current = null;
+                } else {
+                    panels.forEach(function(p){ p.classList.add('hidden'); });
+                    btns.forEach(function(b){ 
+                        b.classList.remove('bg-rezvo-forest/10','text-rezvo-forest');
+                        var c = b.querySelector('i');
+                        if(c) c.style.transform = '';
+                    });
+                    panel.classList.remove('hidden');
+                    btn.classList.add('bg-rezvo-forest/10','text-rezvo-forest');
+                    var chev = btn.querySelector('i');
+                    if(chev) chev.style.transform = 'rotate(180deg)';
+                    current = target;
+                }
+            });
+        });
+        
+        document.addEventListener('click', function(e){
+            if(!e.target.closest('nav')){
+                panels.forEach(function(p){ p.classList.add('hidden'); });
+                btns.forEach(function(b){
+                    b.classList.remove('bg-rezvo-forest/10','text-rezvo-forest');
+                    var c = b.querySelector('i');
+                    if(c) c.style.transform = '';
+                });
+                current = null;
+            }
+        });
+    })();
+    </script>
+
+    <style>
+    @keyframes fadeDown { from { opacity:0; transform:translateY(-8px); } to { opacity:1; transform:translateY(0); } }
+    </style>
+
+
+<!-- ═══ HERO ═══ -->
+<section class="relative pt-32 pb-20 lg:pt-40 lg:pb-28 overflow-hidden min-h-[800px] flex items-center">
+    <div class="absolute inset-0 z-0 bg-gradient-to-br from-rezvo-forest via-[#1a1a1a] to-rezvo-forest">
+        <div class="absolute inset-0 bg-grain opacity-30"></div>
+    </div>
+    <div class="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="grid lg:grid-cols-2 gap-12 items-center">
+            <div class="animate-slide-up">
+                <div class="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm rounded-full px-4 py-2 mb-6 border border-white/10">
+                    <span class="w-2 h-2 rounded-full bg-rezvo-gold animate-pulse"></span>
+                    <span class="text-white/70 text-sm font-semibold">New: Self-Employed Mode</span>
+                </div>
+                <h1 class="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-white leading-[1.1] tracking-tight mb-6">
+                    The <span class="text-rezvo-gold">Mothership</span><br>for Salon Owners
+                </h1>
+                <p class="text-lg text-white/60 max-w-xl mb-8 leading-relaxed">
+                    Your self-employed staff all have their own Fresha. Their own card machines. You can&rsquo;t see a thing. 
+                    ReeveOS gives you the overview &mdash; while they keep their independence.
+                </p>
+                <div class="flex flex-wrap gap-4">
+                    <a href="https://portal.rezvo.app/signup" class="inline-flex items-center gap-2 px-8 py-3.5 rounded-full font-bold text-sm transition-all duration-300 shadow-lg hover:shadow-glow" style="background:#C9A84C;color:#111111;">
+                        Get Started Free
+                    </a>
+                    <a href="#how-it-works" class="inline-flex items-center gap-2 px-8 py-3.5 rounded-full font-bold text-sm border border-white/20 text-white hover:bg-white/5 transition-all">
+                        See How It Works
+                    </a>
+                </div>
+                <div class="flex items-center gap-8 mt-10 text-white/40 text-sm">
+                    <div class="flex items-center gap-2"><svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg> Zero commission</div>
+                    <div class="flex items-center gap-2"><svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg> Instant split payments</div>
+                    <div class="flex items-center gap-2"><svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg> GDPR compliant</div>
+                </div>
+            </div>
+            <div class="relative hidden lg:block animate-fade-in">
+                <div class="bg-white/5 backdrop-blur-sm rounded-2xl border border-white/10 p-8">
+                    <div class="text-white/30 text-[11px] font-bold uppercase tracking-widest mb-6">Mothership Dashboard</div>
+                    <div class="grid grid-cols-3 gap-4 mb-6">
+                        <div class="bg-white/5 rounded-xl p-4 text-center">
+                            <div class="text-2xl font-extrabold text-white">8</div>
+                            <div class="text-[11px] text-white/40 mt-1">Operators</div>
+                        </div>
+                        <div class="bg-white/5 rounded-xl p-4 text-center">
+                            <div class="text-2xl font-extrabold text-rezvo-gold">&pound;4,230</div>
+                            <div class="text-[11px] text-white/40 mt-1">This Week</div>
+                        </div>
+                        <div class="bg-white/5 rounded-xl p-4 text-center">
+                            <div class="text-2xl font-extrabold text-white">78%</div>
+                            <div class="text-[11px] text-white/40 mt-1">Chair Utilisation</div>
+                        </div>
+                    </div>
+                    <div class="space-y-3">
+                        <div class="flex items-center gap-3 bg-white/5 rounded-lg p-3">
+                            <div class="w-8 h-8 rounded-full bg-rezvo-gold/20 flex items-center justify-center text-rezvo-gold text-xs font-bold">1</div>
+                            <div class="flex-1"><div class="text-white text-sm font-bold">Grace</div><div class="text-white/30 text-[11px]">12 bookings</div></div>
+                            <div class="text-rezvo-gold font-bold text-sm">&pound;1,200</div>
+                        </div>
+                        <div class="flex items-center gap-3 bg-white/5 rounded-lg p-3">
+                            <div class="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-white/50 text-xs font-bold">2</div>
+                            <div class="flex-1"><div class="text-white text-sm font-bold">Emily</div><div class="text-white/30 text-[11px]">9 bookings</div></div>
+                            <div class="text-white font-bold text-sm">&pound;980</div>
+                        </div>
+                        <div class="flex items-center gap-3 bg-white/5 rounded-lg p-3">
+                            <div class="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-white/50 text-xs font-bold">3</div>
+                            <div class="flex-1"><div class="text-white text-sm font-bold">Jen</div><div class="text-white/30 text-[11px]">6 bookings</div></div>
+                            <div class="text-white font-bold text-sm">&pound;650</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ═══ THE PROBLEM ═══ -->
+<section class="py-20 lg:py-28 bg-white">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center max-w-3xl mx-auto mb-16">
+            <h2 class="text-3xl lg:text-4xl font-extrabold text-rezvo-dark mb-4">The salon industry has changed</h2>
+            <p class="text-lg text-rezvo-dark/60 leading-relaxed">Most stylists and therapists are now self-employed. They rent a chair, run their own bookings, take their own payments. And you &mdash; the salon owner &mdash; can&rsquo;t see a thing.</p>
+        </div>
+        <div class="grid md:grid-cols-3 gap-8">
+            <div class="bg-rezvo-cream rounded-2xl p-8 border border-rezvo-border">
+                <div class="w-12 h-12 rounded-xl bg-red-50 flex items-center justify-center mb-4"><svg class="w-6 h-6 text-red-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M18.36 6.64A9 9 0 0 1 21 12c0 4.97-4.03 9-9 9s-9-4.03-9-9 4.03-9 9-9"/><path d="M12 8v4l3 3"/></svg></div>
+                <h3 class="text-lg font-bold text-rezvo-dark mb-2">Zero visibility</h3>
+                <p class="text-sm text-rezvo-dark/60 leading-relaxed">Everyone&rsquo;s got their own Fresha. Their own card machine. You have no idea what&rsquo;s happening in your own building.</p>
+            </div>
+            <div class="bg-rezvo-cream rounded-2xl p-8 border border-rezvo-border">
+                <div class="w-12 h-12 rounded-xl bg-amber-50 flex items-center justify-center mb-4"><svg class="w-6 h-6 text-amber-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg></div>
+                <h3 class="text-lg font-bold text-rezvo-dark mb-2">Card machine chaos</h3>
+                <p class="text-sm text-rezvo-dark/60 leading-relaxed">Five different card machines at the till. WorldPay, Dojo, SumUp &mdash; it looks unprofessional and clients notice.</p>
+            </div>
+            <div class="bg-rezvo-cream rounded-2xl p-8 border border-rezvo-border">
+                <div class="w-12 h-12 rounded-xl bg-purple-50 flex items-center justify-center mb-4"><svg class="w-6 h-6 text-purple-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
+                <h3 class="text-lg font-bold text-rezvo-dark mb-2">Can&rsquo;t spot problems</h3>
+                <p class="text-sm text-rezvo-dark/60 leading-relaxed">Who&rsquo;s underperforming? Who has empty chairs? Who&rsquo;s your top earner? You have no data to manage your business.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ═══ HOW IT WORKS ═══ -->
+<section id="how-it-works" class="py-20 lg:py-28 bg-rezvo-cream">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center max-w-3xl mx-auto mb-16">
+            <h2 class="text-3xl lg:text-4xl font-extrabold text-rezvo-dark mb-4">One system. Everyone&rsquo;s independent.</h2>
+            <p class="text-lg text-rezvo-dark/60">You get the overview. They keep their freedom. Payments split instantly.</p>
+        </div>
+        <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <div class="bg-white rounded-2xl p-8 border border-rezvo-border shadow-soft">
+                <div class="w-12 h-12 rounded-xl flex items-center justify-center mb-4" style="background:#111111;">
+                    <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="#C9A84C" stroke-width="2" stroke-linecap="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg>
+                </div>
+                <h3 class="text-lg font-bold text-rezvo-dark mb-2">Invite your team</h3>
+                <p class="text-sm text-rezvo-dark/60 leading-relaxed">Add self-employed stylists and therapists. They get their own portal with their own calendar, clients, and revenue tracking.</p>
+            </div>
+            <div class="bg-white rounded-2xl p-8 border border-rezvo-border shadow-soft">
+                <div class="w-12 h-12 rounded-xl flex items-center justify-center mb-4" style="background:#111111;">
+                    <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="#C9A84C" stroke-width="2" stroke-linecap="round"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
+                </div>
+                <h3 class="text-lg font-bold text-rezvo-dark mb-2">Instant payment split</h3>
+                <p class="text-sm text-rezvo-dark/60 leading-relaxed">Client pays &pound;100. Stripe Connect splits instantly: &pound;70 to the stylist, &pound;30 to you. No end-of-week maths. No trust issues.</p>
+            </div>
+            <div class="bg-white rounded-2xl p-8 border border-rezvo-border shadow-soft">
+                <div class="w-12 h-12 rounded-xl flex items-center justify-center mb-4" style="background:#111111;">
+                    <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="#C9A84C" stroke-width="2" stroke-linecap="round"><path d="M21 12a9 9 0 0 1-9 9 9 9 0 0 1-9-9 9 9 0 0 1 9-9"/><path d="M12 8v4l3 3"/></svg>
+                </div>
+                <h3 class="text-lg font-bold text-rezvo-dark mb-2">Real-time overview</h3>
+                <p class="text-sm text-rezvo-dark/60 leading-relaxed">See total revenue, bookings, chair utilisation, and who&rsquo;s performing &mdash; all from one dashboard. Spot problems before they cost you.</p>
+            </div>
+            <div class="bg-white rounded-2xl p-8 border border-rezvo-border shadow-soft">
+                <div class="w-12 h-12 rounded-xl flex items-center justify-center mb-4" style="background:#111111;">
+                    <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="#C9A84C" stroke-width="2" stroke-linecap="round"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
+                </div>
+                <h3 class="text-lg font-bold text-rezvo-dark mb-2">Tap to Pay on iPhone</h3>
+                <p class="text-sm text-rezvo-dark/60 leading-relaxed">No card machine needed. Each operator takes contactless payments on their own iPhone via Stripe Tap to Pay. Funds split to their bank instantly.</p>
+            </div>
+            <div class="bg-white rounded-2xl p-8 border border-rezvo-border shadow-soft">
+                <div class="w-12 h-12 rounded-xl flex items-center justify-center mb-4" style="background:#111111;">
+                    <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="#C9A84C" stroke-width="2" stroke-linecap="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                </div>
+                <h3 class="text-lg font-bold text-rezvo-dark mb-2">Complete data isolation</h3>
+                <p class="text-sm text-rezvo-dark/60 leading-relaxed">GDPR &amp; ICO compliant. Each operator sees only their own clients. No data leakage between operators. Encrypted at rest. Audit-logged.</p>
+            </div>
+            <div class="bg-white rounded-2xl p-8 border border-rezvo-border shadow-soft">
+                <div class="w-12 h-12 rounded-xl flex items-center justify-center mb-4" style="background:#111111;">
+                    <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="#C9A84C" stroke-width="2" stroke-linecap="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                </div>
+                <h3 class="text-lg font-bold text-rezvo-dark mb-2">One booking page</h3>
+                <p class="text-sm text-rezvo-dark/60 leading-relaxed">Clients see all your services and available operators on one shared booking page. No more &ldquo;which Fresha link is yours again?&rdquo;</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ═══ PRICING COMPARISON ═══ -->
+<section class="py-20 lg:py-28 bg-white">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center mb-12">
+            <h2 class="text-3xl lg:text-4xl font-extrabold text-rezvo-dark mb-4">Cheaper than what you&rsquo;re paying now</h2>
+            <p class="text-lg text-rezvo-dark/60">Salon with 10 self-employed stylists. Annual cost comparison.</p>
+        </div>
+        <div class="bg-rezvo-cream rounded-2xl border border-rezvo-border overflow-hidden">
+            <div class="grid grid-cols-3 text-center font-bold text-sm border-b border-rezvo-border">
+                <div class="p-4 bg-rezvo-dark text-white">Platform</div>
+                <div class="p-4 bg-rezvo-dark text-white">Annual Cost</div>
+                <div class="p-4 bg-rezvo-dark text-white">Split Payments</div>
+            </div>
+            <div class="grid grid-cols-3 text-center text-sm border-b border-rezvo-border bg-rezvo-gold/10">
+                <div class="p-4 font-bold text-rezvo-dark">ReeveOS</div>
+                <div class="p-4 font-extrabold text-rezvo-gold text-lg">&pound;1,788</div>
+                <div class="p-4 font-bold text-green-600">Instant via Stripe</div>
+            </div>
+            <div class="grid grid-cols-3 text-center text-sm border-b border-rezvo-border">
+                <div class="p-4 font-bold text-rezvo-dark/70">Fresha</div>
+                <div class="p-4 text-rezvo-dark/70">&pound;2,394+</div>
+                <div class="p-4 text-red-500">Not supported</div>
+            </div>
+            <div class="grid grid-cols-3 text-center text-sm border-b border-rezvo-border">
+                <div class="p-4 font-bold text-rezvo-dark/70">Timely</div>
+                <div class="p-4 text-rezvo-dark/70">&pound;3,780+</div>
+                <div class="p-4 text-red-500">Not supported</div>
+            </div>
+            <div class="grid grid-cols-3 text-center text-sm">
+                <div class="p-4 font-bold text-rezvo-dark/70">Booksy</div>
+                <div class="p-4 text-rezvo-dark/70">&pound;1,794+</div>
+                <div class="p-4 text-red-500">Not supported</div>
+            </div>
+        </div>
+        <p class="text-center text-xs text-rezvo-dark/40 mt-4">ReeveOS: &pound;59/mo salon + 10 operators at &pound;8.99/mo. Competitors: per-staff pricing + transaction fees. No competitor supports instant split payments.</p>
+    </div>
+</section>
+
+<!-- ═══ WHO IT'S FOR ═══ -->
+<section class="py-20 lg:py-28 bg-rezvo-cream">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center max-w-3xl mx-auto mb-16">
+            <h2 class="text-3xl lg:text-4xl font-extrabold text-rezvo-dark mb-4">Built for businesses with self-employed teams</h2>
+        </div>
+        <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div class="bg-white rounded-xl p-6 border border-rezvo-border text-center">
+                <div class="w-14 h-14 rounded-full mx-auto mb-4 flex items-center justify-center" style="background:#111111;"><svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="#C9A84C" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg></div>
+                <h3 class="font-bold text-rezvo-dark mb-1">Hair Salons</h3>
+                <p class="text-xs text-rezvo-dark/50">Chair renters, freelance stylists, booth operators</p>
+            </div>
+            <div class="bg-white rounded-xl p-6 border border-rezvo-border text-center">
+                <div class="w-14 h-14 rounded-full mx-auto mb-4 flex items-center justify-center" style="background:#111111;"><svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="#C9A84C" stroke-width="1.5"><path d="M12 2L9 12l-7 1 5.5 5L6 22l6-4 6 4-1.5-4 5.5-5-7-1z"/></svg></div>
+                <h3 class="font-bold text-rezvo-dark mb-1">Aesthetics Clinics</h3>
+                <p class="text-xs text-rezvo-dark/50">Independent practitioners sharing treatment rooms</p>
+            </div>
+            <div class="bg-white rounded-xl p-6 border border-rezvo-border text-center">
+                <div class="w-14 h-14 rounded-full mx-auto mb-4 flex items-center justify-center" style="background:#111111;"><svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="#C9A84C" stroke-width="1.5"><path d="M17 3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2"/><path d="M9 7h6"/><path d="M9 11h6"/><path d="M9 15h4"/></svg></div>
+                <h3 class="font-bold text-rezvo-dark mb-1">Barbershops</h3>
+                <p class="text-xs text-rezvo-dark/50">Self-employed barbers with their own client lists</p>
+            </div>
+            <div class="bg-white rounded-xl p-6 border border-rezvo-border text-center">
+                <div class="w-14 h-14 rounded-full mx-auto mb-4 flex items-center justify-center" style="background:#111111;"><svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="#C9A84C" stroke-width="1.5"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg></div>
+                <h3 class="font-bold text-rezvo-dark mb-1">Wellness Studios</h3>
+                <p class="text-xs text-rezvo-dark/50">Freelance therapists, yoga instructors, PT trainers</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ═══ SECURITY ═══ -->
+<section class="py-20 lg:py-28 bg-gradient-to-br from-rezvo-forest to-rezvo-dark relative overflow-hidden">
+    <div class="absolute inset-0 bg-grain opacity-20"></div>
+    <div class="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+        <div class="w-16 h-16 rounded-2xl mx-auto mb-6 flex items-center justify-center" style="background:rgba(201,168,76,0.15);">
+            <svg class="w-8 h-8" viewBox="0 0 24 24" fill="none" stroke="#C9A84C" stroke-width="1.5" stroke-linecap="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        </div>
+        <h2 class="text-3xl lg:text-4xl font-extrabold text-white mb-4">Military-grade data isolation</h2>
+        <p class="text-lg text-white/50 max-w-2xl mx-auto mb-10">Every operator&rsquo;s data is locked in its own vault. GDPR, ICO, and HIPAA compliant by design &mdash; not as an afterthought.</p>
+        <div class="grid sm:grid-cols-3 gap-6">
+            <div class="bg-white/5 backdrop-blur-sm rounded-xl p-6 border border-white/10">
+                <div class="text-rezvo-gold font-extrabold text-2xl mb-2">0</div>
+                <div class="text-white/50 text-sm">Data leakage between operators. Enforced at API level, not just UI.</div>
+            </div>
+            <div class="bg-white/5 backdrop-blur-sm rounded-xl p-6 border border-white/10">
+                <div class="text-rezvo-gold font-extrabold text-2xl mb-2">AES-256</div>
+                <div class="text-white/50 text-sm">All client data, PINs, and bank details encrypted at rest.</div>
+            </div>
+            <div class="bg-white/5 backdrop-blur-sm rounded-xl p-6 border border-white/10">
+                <div class="text-rezvo-gold font-extrabold text-2xl mb-2">100%</div>
+                <div class="text-white/50 text-sm">Audit-logged. Every access, every mutation, every export tracked.</div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ═══ CTA ═══ -->
+<section class="py-20 lg:py-28 bg-white">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+        <h2 class="text-3xl lg:text-4xl font-extrabold text-rezvo-dark mb-4">Ready to see everything?</h2>
+        <p class="text-lg text-rezvo-dark/60 max-w-xl mx-auto mb-8">Enable Self-Employed Mode on your ReeveOS account. Invite your first operator in 5 minutes. See the difference by Friday.</p>
+        <div class="flex flex-wrap justify-center gap-4 mb-10">
+            <a href="https://portal.rezvo.app/signup" class="inline-flex items-center gap-2 px-10 py-4 rounded-full font-bold text-base transition-all duration-300 shadow-lg hover:shadow-glow" style="background:#C9A84C;color:#111111;">
+                Get Started Free
+            </a>
+            <a href="/contact" class="inline-flex items-center gap-2 px-10 py-4 rounded-full font-bold text-base border-2 transition-all duration-300" style="border-color:#111111;color:#111111;">
+                Talk to Us
+            </a>
+        </div>
+        <div class="flex justify-center gap-8 text-sm text-rezvo-dark/40">
+            <span>No credit card required</span>
+            <span>&bull;</span>
+            <span>Free plan available</span>
+            <span>&bull;</span>
+            <span>Set up in 5 minutes</span>
+        </div>
+    </div>
+</section>
+
+    <footer id="footer" class="bg-rezvo-dark text-white pt-20 pb-10 border-t border-white/10">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-10 mb-16">
+                <!-- Brand -->
+                <div class="col-span-2">
+                    <div class="flex items-center gap-3 mb-6">
+                        <div class="bg-rezvo-gold text-rezvo-forest w-10 h-10 rounded-xl flex items-center justify-center">
+                            <span class="font-sans font-extrabold text-xl">R</span>
+                        </div>
+                        <span class="font-sans font-extrabold text-2xl text-white tracking-tight">ReeveOS</span>
+                    </div>
+                    <p class="text-white/50 text-sm leading-relaxed mb-6 max-w-xs">The zero-commission booking &amp; ordering platform helping UK restaurants and service businesses thrive.</p>
+                    <div class="flex gap-3">
+                        <a href="https://instagram.com/rezvouk" target="_blank" rel="noopener" class="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center hover:bg-rezvo-gold hover:text-rezvo-dark transition-colors"><i class="fa-brands fa-instagram"></i></a>
+                        <a href="https://linkedin.com/company/rezvo" target="_blank" rel="noopener" class="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center hover:bg-rezvo-gold hover:text-rezvo-dark transition-colors"><i class="fa-brands fa-linkedin-in"></i></a>
+                        <a href="https://twitter.com/rezvouk" target="_blank" rel="noopener" class="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center hover:bg-rezvo-gold hover:text-rezvo-dark transition-colors"><i class="fa-brands fa-twitter"></i></a>
+                    </div>
+                </div>
+
+                <!-- Discover -->
+                <div>
+                    <h4 class="font-bold text-white text-sm uppercase tracking-wider mb-4">Discover</h4>
+                    <ul class="space-y-2.5 text-sm text-white/50">
+                        <li><a href="/industries/restaurants.html" class="hover:text-rezvo-gold transition-colors">Restaurants</a></li>
+                        <li><a href="/industries/salons-spas.html" class="hover:text-rezvo-gold transition-colors">Hair Salons</a></li>
+                        <li><a href="/industries/barbers.html" class="hover:text-rezvo-gold transition-colors">Barbers</a></li>
+                        <li><a href="/industries/wellness-clinics.html" class="hover:text-rezvo-gold transition-colors">Spas &amp; Wellness</a></li>
+                        <li><a href="/industries/index.html" class="hover:text-rezvo-gold transition-colors">Browse All</a></li>
+                    </ul>
+                </div>
+
+                <!-- Features -->
+                <div>
+                    <h4 class="font-bold text-white text-sm uppercase tracking-wider mb-4">Features</h4>
+                    <ul class="space-y-2.5 text-sm text-white/50">
+                        <li><a href="/features/restaurants.html" class="hover:text-rezvo-gold transition-colors">For Restaurants</a></li>
+                        <li><a href="/features/calendar.html" class="hover:text-rezvo-gold transition-colors">Smart Calendar</a></li>
+                        <li><a href="/features/payments.html" class="hover:text-rezvo-gold transition-colors">Stripe Payments</a></li>
+                        <li><a href="/features/mobile-app.html" class="hover:text-rezvo-gold transition-colors">Mobile App</a></li>
+                        <li><a href="/features/integrations.html" class="hover:text-rezvo-gold transition-colors">Integrations</a></li>
+                        <li><a href="/features/uber-direct.html" class="hover:text-rezvo-gold transition-colors">Uber Direct</a></li>
+                    </ul>
+                </div>
+
+                <!-- For Business -->
+                <div>
+                    <h4 class="font-bold text-white text-sm uppercase tracking-wider mb-4">For Business</h4>
+                    <ul class="space-y-2.5 text-sm text-white/50">
+                        <li><a href="/for-business" class="hover:text-rezvo-gold transition-colors">How It Works</a></li>
+                        <li><a href="/for-business#pricing" class="hover:text-rezvo-gold transition-colors">Pricing</a></li>
+                        <li><a href="/features/team-up.html" class="hover:text-rezvo-gold transition-colors">Team Up &amp; Save</a></li>
+                        <li><a href="https://portal.rezvo.app/signup" class="hover:text-rezvo-gold transition-colors">Get Started</a></li>
+                        <li><a href="https://portal.rezvo.app/login" class="hover:text-rezvo-gold transition-colors">Partner Login</a></li>
+                    </ul>
+                </div>
+
+                <!-- Company -->
+                <div>
+                    <h4 class="font-bold text-white text-sm uppercase tracking-wider mb-4">Company</h4>
+                    <ul class="space-y-2.5 text-sm text-white/50">
+                        <li><a href="/about.html" class="hover:text-rezvo-gold transition-colors">About Us</a></li>
+                        <li><a href="/#faq" class="hover:text-rezvo-gold transition-colors">FAQs</a></li>
+                        <li><a href="/support.html" class="hover:text-rezvo-gold transition-colors">Support Center</a></li>
+                        <li><a href="/contact.html" class="hover:text-rezvo-gold transition-colors">Contact</a></li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Divider + giant watermark -->
+            <div class="border-t border-white/10 pt-10 text-center">
+                <h1 class="font-sans font-extrabold text-[20vw] md:text-[12vw] leading-none select-none" style="color:#C9A84C;">ReeveOS</h1>
+            </div>
+
+            <!-- Bottom bar -->
+            <div class="flex flex-col md:flex-row justify-between items-center mt-10 pt-6 border-t border-white/5 text-xs text-white/40">
+                <p>&copy; 2026 ReeveOS Ltd. All rights reserved.</p>
+                <div class="flex items-center gap-6 mt-4 md:mt-0">
+                    <a href="/privacy.html" class="hover:text-rezvo-gold transition-colors">Privacy Policy</a>
+                    <a href="/terms.html" class="hover:text-rezvo-gold transition-colors">Terms of Service</a>
+                    <a href="/cookies.html" class="hover:text-rezvo-gold transition-colors">Cookie Policy</a>
+                    <a href="/sitemap.html" class="hover:text-rezvo-gold transition-colors">Sitemap</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+<script>window.scrollTo(0,0);</script>
+<script id="scroll-to-top-handler">document.addEventListener("click",function(e){var a=e.target.closest("a");if(a&&a.href&&a.href.startsWith(window.location.origin)&&!a.href.includes("#")){sessionStorage.setItem("scrollTop","1")}});if(sessionStorage.getItem("scrollTop")){sessionStorage.removeItem("scrollTop");window.scrollTo(0,0)}</script>
+<script src="/js/rezvo-chat.js" defer></script>
+</body>
+</html>
