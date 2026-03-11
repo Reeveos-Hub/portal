@@ -119,6 +119,45 @@ const icons = {
   alignRight: (
     <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M2 3h12M6 6.5h8M2 10h12M8 13.5h6" /></svg>
   ),
+  preview: (
+    <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"><path d="M1 9s3.2-6 8-6 8 6 8 6-3.2 6-8 6-8-6-8-6z" /><circle cx="9" cy="9" r="2.5" /></svg>
+  ),
+  code: (
+    <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M5.5 4.5l-4 4.5 4 4.5M12.5 4.5l4 4.5-4 4.5" /></svg>
+  ),
+  fullscreen: (
+    <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M2 6V3a1 1 0 011-1h3M12 2h3a1 1 0 011 1v3M16 12v3a1 1 0 01-1 1h-3M6 16H3a1 1 0 01-1-1v-3" /></svg>
+  ),
+  mobileLandscape: (
+    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="5.5" width="16" height="9" rx="1.5" /><path d="M16 9v2" /></svg>
+  ),
+  dots: (
+    <svg width="14" height="14" viewBox="0 0 14 14" fill="currentColor"><circle cx="7" cy="3" r="1.2" /><circle cx="7" cy="7" r="1.2" /><circle cx="7" cy="11" r="1.2" /></svg>
+  ),
+  duplicate: (
+    <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"><rect x="4" y="4" width="8" height="8" rx="1" /><path d="M10 4V3a1 1 0 00-1-1H3a1 1 0 00-1 1v6a1 1 0 001 1h1" /></svg>
+  ),
+  moveUp: (
+    <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M7 11V3M4 6l3-3 3 3" /></svg>
+  ),
+  moveDown: (
+    <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M7 3v8M4 8l3 3 3-3" /></svg>
+  ),
+  copy: (
+    <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"><rect x="4.5" y="4.5" width="7" height="7" rx="1" /><path d="M9.5 4.5V3a1 1 0 00-1-1H3a1 1 0 00-1 1v5.5a1 1 0 001 1h1.5" /></svg>
+  ),
+  paste: (
+    <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"><rect x="3" y="3" width="8" height="9" rx="1" /><path d="M5.5 1.5h3a.5.5 0 01.5.5v1H5V2a.5.5 0 01.5-.5z" /></svg>
+  ),
+  page: (
+    <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"><path d="M8 1H3.5A1.5 1.5 0 002 2.5v9A1.5 1.5 0 003.5 13h7a1.5 1.5 0 001.5-1.5V5L8 1z" /><path d="M8 1v4h4" /></svg>
+  ),
+  layers: (
+    <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"><path d="M7 1L1 4l6 3 6-3-6-3zM1 7l6 3 6-3M1 10l6 3 6-3" /></svg>
+  ),
+  rename: (
+    <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"><path d="M8.5 2.5l3 3L5 12H2v-3l6.5-6.5z" /></svg>
+  ),
 }
 
 const catIcons = {
@@ -165,6 +204,7 @@ const COMPONENT_LABELS = {
 const FONT = 'Figtree, sans-serif'
 const GOLD = '#C9A84C'
 const DARK = '#111111'
+const T = { bg: '#111111', panel: '#1A1A1A', input: '#222222', border: '#333333', hover: '#2A2A2A', canvas: '#0A0A0A', text: '#FFFFFF', muted: '#999999', gold: '#C9A84C' }
 const placeholderBg = (w, h, label) =>
   `data:image/svg+xml,${encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}"><rect fill="#e5e5e5" width="${w}" height="${h}"/><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="#999" font-family="sans-serif" font-size="14">${label}</text></svg>`)}`
 
@@ -909,16 +949,62 @@ const buildPuckConfig = () => ({
   },
 })
 
+/* ───────────────────────────── TOOLTIP ───────────────────────────── */
+
+function Tip({ text, children }) {
+  const [show, setShow] = useState(false)
+  return (
+    <span style={{ position: 'relative', display: 'inline-flex' }} onMouseEnter={() => setShow(true)} onMouseLeave={() => setShow(false)}>
+      {children}
+      {show && (
+        <span style={{ position: 'absolute', bottom: '100%', left: '50%', transform: 'translateX(-50%)', marginBottom: '6px', padding: '4px 10px', background: T.panel, color: T.text, border: `1px solid ${T.gold}`, borderRadius: '4px', fontSize: '0.7rem', fontFamily: FONT, whiteSpace: 'nowrap', zIndex: 999, pointerEvents: 'none' }}>{text}</span>
+      )}
+    </span>
+  )
+}
+
+/* ───────────────────────────── CONTEXT MENU ───────────────────────────── */
+
+function CtxMenu({ x, y, onClose, onAction }) {
+  const items = [
+    { key: 'duplicate', label: 'Duplicate', icon: icons.duplicate },
+    { key: 'delete', label: 'Delete', icon: icons.trash },
+    { key: 'moveUp', label: 'Move Up', icon: icons.moveUp },
+    { key: 'moveDown', label: 'Move Down', icon: icons.moveDown },
+    { key: 'copyStyle', label: 'Copy Style', icon: icons.copy },
+    { key: 'pasteStyle', label: 'Paste Style', icon: icons.paste },
+  ]
+  useEffect(() => {
+    const h = () => onClose()
+    window.addEventListener('click', h)
+    return () => window.removeEventListener('click', h)
+  }, [onClose])
+  return (
+    <div style={{ position: 'fixed', top: y, left: x, zIndex: 9999, background: T.panel, border: `1px solid ${T.border}`, borderRadius: '8px', padding: '4px 0', minWidth: '180px', boxShadow: '0 8px 24px rgba(0,0,0,0.5)' }} onClick={e => e.stopPropagation()}>
+      {items.map(it => (
+        <button key={it.key} onClick={() => { onAction(it.key); onClose() }} style={{ display: 'flex', alignItems: 'center', gap: '10px', width: '100%', padding: '8px 14px', border: 'none', background: 'transparent', color: T.text, fontFamily: FONT, fontSize: '0.82rem', cursor: 'pointer', transition: 'background 0.15s' }} onMouseEnter={e => e.currentTarget.style.background = T.hover} onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
+          <span style={{ display: 'flex', color: T.muted }}>{it.icon}</span>{it.label}
+        </button>
+      ))}
+    </div>
+  )
+}
+
 /* ───────────────────────────── INNER EDITOR (uses usePuck) ───────────────────────────── */
 
-function EditorInner({ pages, currentSlug, onChangePage, onAddPage, onSaveDraft, onPublish, saving, previewWidth, setPreviewWidth, settingsOpen, setSettingsOpen }) {
+function EditorInner({ pages, currentSlug, onChangePage, onAddPage, onRenamePage, onDeletePage, onDuplicatePage, onSaveDraft, onPublish, saving, previewWidth, setPreviewWidth }) {
   const { appState, dispatch, history } = usePuck()
   const [searchTerm, setSearchTerm] = useState('')
   const [expandedCats, setExpandedCats] = useState(() => Object.keys(CATEGORIES).reduce((a, k) => ({ ...a, [k]: true }), {}))
-  const [rightTab, setRightTab] = useState('properties')
+  const [rightTab, setRightTab] = useState('styles')
   const [seoTitle, setSeoTitle] = useState('')
   const [seoDesc, setSeoDesc] = useState('')
   const [ogImage, setOgImage] = useState('')
+  const [leftSection, setLeftSection] = useState('pages')
+  const [isFullscreen, setIsFullscreen] = useState(false)
+  const [showPreview, setShowPreview] = useState(false)
+  const [pageMenuSlug, setPageMenuSlug] = useState(null)
+  const [ctxMenu, setCtxMenu] = useState(null)
 
   // Style tab state
   const [styleBg, setStyleBg] = useState('')
@@ -926,8 +1012,16 @@ function EditorInner({ pages, currentSlug, onChangePage, onAddPage, onSaveDraft,
   const [styleTextColor, setStyleTextColor] = useState('')
   const [styleTextAlign, setStyleTextAlign] = useState('left')
   const [styleBorderRadius, setStyleBorderRadius] = useState('none')
-  const [styleVisibility, setStyleVisibility] = useState({ desktop: true, tablet: true, mobile: true })
-  const [styleAnimation, setStyleAnimation] = useState('none')
+  const [styleWidth, setStyleWidth] = useState('')
+  const [styleHeight, setStyleHeight] = useState('')
+  const [styleMaxWidth, setStyleMaxWidth] = useState('')
+  const [styleOpacity, setStyleOpacity] = useState(100)
+  const [styleFontSize, setStyleFontSize] = useState('')
+  const [styleFontWeight, setStyleFontWeight] = useState('400')
+  const [styleLineHeight, setStyleLineHeight] = useState('')
+  const [styleBorderWidth, setStyleBorderWidth] = useState('')
+  const [styleBorderColor, setStyleBorderColor] = useState('')
+  const [styleBorderStyle, setStyleBorderStyle] = useState('solid')
 
   const toggleCat = (cat) => setExpandedCats(prev => ({ ...prev, [cat]: !prev[cat] }))
 
@@ -942,105 +1036,195 @@ function EditorInner({ pages, currentSlug, onChangePage, onAddPage, onSaveDraft,
     return result
   }, [searchTerm])
 
-  const selectedComponent = appState?.ui?.itemSelector ? 'Selected Component' : null
+  const selectedIndex = appState?.ui?.itemSelector?.index
+  const selectedItem = selectedIndex !== undefined ? (appState?.data?.content || [])[selectedIndex] : null
 
-  // Breadcrumb
-  const breadcrumb = useMemo(() => {
-    const sel = appState?.ui?.itemSelector
-    if (!sel) return 'No selection'
-    return `Page > Content > Item ${sel.index !== undefined ? sel.index : ''}`
-  }, [appState?.ui?.itemSelector])
+  const breadcrumbParts = useMemo(() => {
+    const parts = [{ label: 'Body', index: null }]
+    if (selectedItem) {
+      parts.push({ label: COMPONENT_LABELS[selectedItem.type] || selectedItem.type, index: selectedIndex })
+    }
+    return parts
+  }, [selectedItem, selectedIndex])
 
-  // Layers
   const layers = appState?.data?.content || []
+  const brandPalette = [T.bg, T.gold, '#ffffff', '#f9f9f9', T.border, '#666666', '#e5e5e5', '#25D366']
 
-  const brandPalette = ['#111111', '#C9A84C', '#ffffff', '#f9f9f9', '#333333', '#666666', '#e5e5e5', '#25D366']
+  // Keyboard shortcuts
+  useEffect(() => {
+    const h = (e) => {
+      if (e.ctrlKey || e.metaKey) {
+        if (e.key === 'z') { e.preventDefault(); history.back?.() }
+        if (e.key === 'y') { e.preventDefault(); history.forward?.() }
+        if (e.key === 'd' && selectedIndex !== undefined) {
+          e.preventDefault()
+          const content = [...(appState?.data?.content || [])]
+          const item = content[selectedIndex]
+          if (item) { content.splice(selectedIndex + 1, 0, { ...item, props: { ...item.props, id: `${item.type}-${Date.now()}` } }); dispatch({ type: 'setData', data: { ...appState.data, content } }) }
+        }
+        if (e.key === 's') { e.preventDefault(); onSaveDraft() }
+      }
+      if (e.key === 'Delete' && selectedIndex !== undefined) {
+        const content = [...(appState?.data?.content || [])]
+        content.splice(selectedIndex, 1)
+        dispatch({ type: 'setData', data: { ...appState.data, content } })
+        dispatch({ type: 'setUi', ui: { itemSelector: null } })
+      }
+    }
+    window.addEventListener('keydown', h)
+    return () => window.removeEventListener('keydown', h)
+  }, [selectedIndex, appState, dispatch, history, onSaveDraft])
+
+  // Fullscreen
+  const toggleFullscreen = () => {
+    if (!document.fullscreenElement) document.documentElement.requestFullscreen().catch(() => {})
+    else document.exitFullscreen().catch(() => {})
+    setIsFullscreen(!isFullscreen)
+  }
+
+  // Context menu handler
+  const handleCtxAction = useCallback((action) => {
+    if (selectedIndex === undefined) return
+    const content = [...(appState?.data?.content || [])]
+    if (action === 'delete') { content.splice(selectedIndex, 1); dispatch({ type: 'setData', data: { ...appState.data, content } }); dispatch({ type: 'setUi', ui: { itemSelector: null } }) }
+    if (action === 'duplicate') { const item = content[selectedIndex]; if (item) { content.splice(selectedIndex + 1, 0, { ...item, props: { ...item.props, id: `${item.type}-${Date.now()}` } }); dispatch({ type: 'setData', data: { ...appState.data, content } }) } }
+    if (action === 'moveUp' && selectedIndex > 0) { [content[selectedIndex - 1], content[selectedIndex]] = [content[selectedIndex], content[selectedIndex - 1]]; dispatch({ type: 'setData', data: { ...appState.data, content } }); dispatch({ type: 'setUi', ui: { itemSelector: { index: selectedIndex - 1 } } }) }
+    if (action === 'moveDown' && selectedIndex < content.length - 1) { [content[selectedIndex], content[selectedIndex + 1]] = [content[selectedIndex + 1], content[selectedIndex]]; dispatch({ type: 'setData', data: { ...appState.data, content } }); dispatch({ type: 'setUi', ui: { itemSelector: { index: selectedIndex + 1 } } }) }
+  }, [selectedIndex, appState, dispatch])
+
+  // Dark input style helper
+  const dkInput = { background: T.input, color: T.text, border: `1px solid ${T.border}`, borderRadius: '6px', padding: '8px 12px', fontFamily: FONT, fontSize: '0.85rem', boxSizing: 'border-box', width: '100%', outline: 'none' }
+  const dkLabel = { fontWeight: 600, fontSize: '0.75rem', color: T.muted, display: 'block', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.5px' }
+  const sectionTitle = (text) => <div style={{ ...dkLabel, fontSize: '0.7rem', padding: '10px 0 6px', borderBottom: `1px solid ${T.border}`, marginBottom: '12px' }}>{text}</div>
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', fontFamily: FONT, overflow: 'hidden' }}>
-      {/* ── TOP BAR ── */}
-      <div style={{ height: '56px', background: DARK, display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 16px', flexShrink: 0, zIndex: 50 }}>
-        {/* Left */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <a href="/dashboard/website" style={{ color: '#fff', display: 'flex', alignItems: 'center', textDecoration: 'none', opacity: 0.7, transition: 'opacity 0.15s' }} onMouseEnter={e => e.currentTarget.style.opacity = 1} onMouseLeave={e => e.currentTarget.style.opacity = 0.7}>{icons.back}</a>
-          <select value={currentSlug} onChange={e => onChangePage(e.target.value)} style={{ background: '#222', color: '#fff', border: '1px solid #333', borderRadius: '6px', padding: '6px 12px', fontFamily: FONT, fontSize: '0.85rem', cursor: 'pointer', minWidth: '140px' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', fontFamily: FONT, overflow: 'hidden', background: T.bg }} onContextMenu={e => { if (selectedIndex !== undefined) { e.preventDefault(); setCtxMenu({ x: e.clientX, y: e.clientY }) } }}>
+
+      {/* ── TOP BAR (48px) ── */}
+      <div style={{ height: '48px', background: T.bg, display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 12px', flexShrink: 0, zIndex: 50, borderBottom: `1px solid ${T.border}` }}>
+        {/* Left: Logo + Page selector + Add */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <a href="/dashboard/website" style={{ color: T.gold, fontFamily: FONT, fontWeight: 800, fontSize: '1.2rem', textDecoration: 'none', letterSpacing: '-0.5px', marginRight: '4px' }}>R.</a>
+          <select value={currentSlug} onChange={e => onChangePage(e.target.value)} style={{ background: T.input, color: T.text, border: `1px solid ${T.border}`, borderRadius: '6px', padding: '5px 28px 5px 10px', fontFamily: FONT, fontSize: '0.82rem', cursor: 'pointer', minWidth: '130px', appearance: 'none', backgroundImage: `url("data:image/svg+xml,${encodeURIComponent('<svg width="10" height="6" viewBox="0 0 10 6" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M1 1l4 4 4-4" stroke="%23999" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>')}")`, backgroundRepeat: 'no-repeat', backgroundPosition: 'right 8px center' }}>
             {pages.map(p => <option key={p.slug} value={p.slug}>{p.title || p.slug}</option>)}
           </select>
-          <button onClick={onAddPage} style={{ background: 'transparent', border: '1px solid #444', color: '#fff', borderRadius: '6px', padding: '6px 10px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px', fontFamily: FONT, fontSize: '0.8rem' }}>
-            {icons.plus} <span>Add Page</span>
-          </button>
+          <Tip text="Add Page"><button onClick={onAddPage} style={{ background: 'transparent', border: `1px solid ${T.border}`, color: T.muted, borderRadius: '6px', padding: '5px 8px', cursor: 'pointer', display: 'flex', alignItems: 'center', transition: 'all 0.2s' }} onMouseEnter={e => { e.currentTarget.style.borderColor = T.gold; e.currentTarget.style.color = T.gold }} onMouseLeave={e => { e.currentTarget.style.borderColor = T.border; e.currentTarget.style.color = T.muted }}>{icons.plus}</button></Tip>
         </div>
 
-        {/* Centre — responsive preview */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '4px', background: '#222', borderRadius: '8px', padding: '4px' }}>
+        {/* Centre: Responsive preview */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '2px' }}>
           {[
             { w: 1200, icon: icons.desktop, label: 'Desktop' },
             { w: 768, icon: icons.tablet, label: 'Tablet' },
-            { w: 375, icon: icons.mobile, label: 'Mobile' },
+            { w: 568, icon: icons.mobileLandscape, label: 'Mobile Landscape' },
+            { w: 375, icon: icons.mobile, label: 'Mobile Portrait' },
           ].map(({ w, icon, label }) => (
-            <button key={w} onClick={() => setPreviewWidth(w)} title={label} style={{ background: previewWidth === w ? '#444' : 'transparent', color: previewWidth === w ? GOLD : '#888', border: 'none', borderRadius: '6px', padding: '6px 10px', cursor: 'pointer', display: 'flex', alignItems: 'center', transition: 'all 0.15s' }}>{icon}</button>
+            <Tip key={w} text={label}>
+              <button onClick={() => setPreviewWidth(w)} style={{ background: 'transparent', color: previewWidth === w ? T.gold : '#666', border: 'none', padding: '6px 12px', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', transition: 'color 0.2s', position: 'relative' }}>
+                {icon}
+                {previewWidth === w && <div style={{ position: 'absolute', bottom: '-1px', left: '50%', transform: 'translateX(-50%)', width: '24px', height: '2px', background: T.gold, borderRadius: '1px' }} />}
+              </button>
+            </Tip>
           ))}
         </div>
 
-        {/* Right */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <button onClick={() => history.back()} disabled={!history.hasPast} style={{ background: 'transparent', border: 'none', color: history.hasPast ? '#fff' : '#555', cursor: history.hasPast ? 'pointer' : 'default', padding: '6px', display: 'flex' }} title="Undo">{icons.undo}</button>
-          <button onClick={() => history.forward()} disabled={!history.hasFuture} style={{ background: 'transparent', border: 'none', color: history.hasFuture ? '#fff' : '#555', cursor: history.hasFuture ? 'pointer' : 'default', padding: '6px', display: 'flex' }} title="Redo">{icons.redo}</button>
-          <div style={{ width: '1px', height: '24px', background: '#333' }} />
-          {saving && <span style={{ color: '#999', fontSize: '0.8rem' }}>Saving...</span>}
-          <button onClick={onSaveDraft} style={{ background: '#222', color: '#fff', border: '1px solid #444', borderRadius: '6px', padding: '7px 16px', fontFamily: FONT, fontWeight: 600, fontSize: '0.8rem', cursor: 'pointer' }}>Save Draft</button>
-          <button onClick={onPublish} style={{ background: GOLD, color: DARK, border: 'none', borderRadius: '6px', padding: '7px 16px', fontFamily: FONT, fontWeight: 700, fontSize: '0.8rem', cursor: 'pointer' }}>Publish</button>
-          <button onClick={() => setSettingsOpen(!settingsOpen)} style={{ background: 'transparent', border: 'none', color: settingsOpen ? GOLD : '#888', cursor: 'pointer', padding: '6px', display: 'flex' }}>{icons.settings}</button>
+        {/* Right: Actions */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+          <Tip text="Undo (Ctrl+Z)"><button onClick={() => history.back?.()} disabled={!history.hasPast} style={{ background: 'transparent', border: 'none', color: history.hasPast ? T.text : '#444', cursor: history.hasPast ? 'pointer' : 'default', padding: '6px', display: 'flex', transition: 'color 0.2s' }}>{icons.undo}</button></Tip>
+          <Tip text="Redo (Ctrl+Y)"><button onClick={() => history.forward?.()} disabled={!history.hasFuture} style={{ background: 'transparent', border: 'none', color: history.hasFuture ? T.text : '#444', cursor: history.hasFuture ? 'pointer' : 'default', padding: '6px', display: 'flex', transition: 'color 0.2s' }}>{icons.redo}</button></Tip>
+          <div style={{ width: '1px', height: '20px', background: T.border, margin: '0 4px' }} />
+          <Tip text="Preview"><button onClick={() => setShowPreview(!showPreview)} style={{ background: 'transparent', border: 'none', color: showPreview ? T.gold : '#666', cursor: 'pointer', padding: '6px', display: 'flex', transition: 'color 0.2s' }}>{icons.preview}</button></Tip>
+          <Tip text="Fullscreen"><button onClick={toggleFullscreen} style={{ background: 'transparent', border: 'none', color: isFullscreen ? T.gold : '#666', cursor: 'pointer', padding: '6px', display: 'flex', transition: 'color 0.2s' }}>{icons.fullscreen}</button></Tip>
+          <div style={{ width: '1px', height: '20px', background: T.border, margin: '0 4px' }} />
+          {saving && <span style={{ color: T.muted, fontSize: '0.75rem', marginRight: '4px' }}>Saving...</span>}
+          <button onClick={onSaveDraft} style={{ background: 'transparent', color: T.text, border: 'none', padding: '6px 12px', fontFamily: FONT, fontWeight: 600, fontSize: '0.8rem', cursor: 'pointer', transition: 'color 0.2s' }} onMouseEnter={e => e.currentTarget.style.color = T.gold} onMouseLeave={e => e.currentTarget.style.color = T.text}>Save Draft</button>
+          <button onClick={onPublish} style={{ background: T.gold, color: T.bg, border: 'none', borderRadius: '6px', padding: '6px 16px', fontFamily: FONT, fontWeight: 700, fontSize: '0.8rem', cursor: 'pointer', transition: 'opacity 0.2s' }} onMouseEnter={e => e.currentTarget.style.opacity = '0.85'} onMouseLeave={e => e.currentTarget.style.opacity = '1'}>Publish</button>
         </div>
       </div>
 
       {/* ── MAIN AREA ── */}
       <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
-        {/* LEFT SIDEBAR */}
-        <div style={{ width: '280px', background: '#fff', borderRight: '1px solid #e5e5e5', display: 'flex', flexDirection: 'column', flexShrink: 0, overflow: 'hidden' }}>
-          <div style={{ padding: '12px', borderBottom: '1px solid #eee' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: '#f5f5f5', borderRadius: '8px', padding: '8px 12px' }}>
-              <span style={{ color: '#999', display: 'flex' }}>{icons.search}</span>
-              <input type="text" placeholder="Search components..." value={searchTerm} onChange={e => setSearchTerm(e.target.value)} style={{ border: 'none', outline: 'none', background: 'transparent', fontFamily: FONT, fontSize: '0.85rem', flex: 1 }} />
-            </div>
-          </div>
-          <div style={{ flex: 1, overflow: 'auto', padding: '8px 0' }}>
-            {Object.entries(filteredCategories).map(([cat, comps]) => (
-              <div key={cat}>
-                <button onClick={() => toggleCat(cat)} style={{ display: 'flex', alignItems: 'center', gap: '8px', width: '100%', padding: '10px 16px', border: 'none', background: 'transparent', cursor: 'pointer', fontFamily: FONT, fontWeight: 600, fontSize: '0.8rem', color: '#555', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                  <span style={{ display: 'flex', transition: 'transform 0.15s', transform: expandedCats[cat] ? 'rotate(90deg)' : 'rotate(0deg)' }}>{icons.chevRight}</span>
-                  <span style={{ display: 'flex', color: '#888' }}>{catIcons[cat]}</span>
-                  {cat}
-                </button>
-                {expandedCats[cat] && (
-                  <div style={{ paddingBottom: '4px' }}>
-                    {comps.map(comp => (
-                      <div key={comp} data-puck-component={comp} draggable style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '8px 16px 8px 44px', cursor: 'grab', fontSize: '0.88rem', color: '#333', borderRadius: '4px', margin: '0 8px', transition: 'background 0.1s' }} onMouseEnter={e => e.currentTarget.style.background = '#f5f5f5'} onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
-                        <span style={{ color: '#bbb', display: 'flex' }}>{icons.drag}</span>
-                        <span>{COMPONENT_LABELS[comp] || comp}</span>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
+
+        {/* LEFT PANEL (280px) */}
+        <div style={{ width: '280px', background: T.panel, borderRight: `1px solid ${T.border}`, display: 'flex', flexDirection: 'column', flexShrink: 0, overflow: 'hidden' }}>
+          {/* Section tabs */}
+          <div style={{ display: 'flex', borderBottom: `1px solid ${T.border}`, flexShrink: 0 }}>
+            {[{ key: 'pages', label: 'Pages', icon: icons.page }, { key: 'layers', label: 'Layers', icon: icons.layers }].map(s => (
+              <button key={s.key} onClick={() => setLeftSection(s.key)} style={{ flex: 1, padding: '10px 0', border: 'none', background: 'transparent', cursor: 'pointer', fontFamily: FONT, fontWeight: 600, fontSize: '0.72rem', color: leftSection === s.key ? T.gold : T.muted, borderBottom: leftSection === s.key ? `2px solid ${T.gold}` : '2px solid transparent', transition: 'all 0.2s', textTransform: 'uppercase', letterSpacing: '0.5px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
+                <span style={{ display: 'flex' }}>{s.icon}</span>{s.label}
+              </button>
             ))}
+          </div>
+
+          <div style={{ flex: 1, overflow: 'auto' }}>
+            {/* PAGES section */}
+            {leftSection === 'pages' && (
+              <div style={{ padding: '4px 0' }}>
+                {pages.map(p => (
+                  <div key={p.slug} style={{ display: 'flex', alignItems: 'center', padding: '0', borderLeft: currentSlug === p.slug ? `3px solid ${T.gold}` : '3px solid transparent', transition: 'all 0.2s' }}>
+                    <button onClick={() => onChangePage(p.slug)} style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 12px', border: 'none', background: currentSlug === p.slug ? `${T.gold}15` : 'transparent', cursor: 'pointer', fontFamily: FONT, fontSize: '0.85rem', color: currentSlug === p.slug ? T.text : T.muted, textAlign: 'left', transition: 'all 0.2s' }} onMouseEnter={e => { if (currentSlug !== p.slug) e.currentTarget.style.background = T.hover }} onMouseLeave={e => { if (currentSlug !== p.slug) e.currentTarget.style.background = 'transparent' }}>
+                      <span style={{ display: 'flex', color: currentSlug === p.slug ? T.gold : '#555' }}>{icons.page}</span>
+                      {p.title || p.slug}
+                      {p.status === 'published' && <span style={{ marginLeft: 'auto', fontSize: '0.6rem', background: '#1a3a1a', color: '#4ade80', padding: '2px 6px', borderRadius: '3px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Live</span>}
+                    </button>
+                    <div style={{ position: 'relative' }}>
+                      <button onClick={(e) => { e.stopPropagation(); setPageMenuSlug(pageMenuSlug === p.slug ? null : p.slug) }} style={{ background: 'transparent', border: 'none', color: T.muted, cursor: 'pointer', padding: '8px', display: 'flex', transition: 'color 0.2s' }} onMouseEnter={e => e.currentTarget.style.color = T.text} onMouseLeave={e => e.currentTarget.style.color = T.muted}>{icons.dots}</button>
+                      {pageMenuSlug === p.slug && (
+                        <div style={{ position: 'absolute', right: 0, top: '100%', zIndex: 100, background: T.input, border: `1px solid ${T.border}`, borderRadius: '8px', padding: '4px 0', minWidth: '140px', boxShadow: '0 8px 24px rgba(0,0,0,0.5)' }}>
+                          <button onClick={() => { onRenamePage?.(p.slug); setPageMenuSlug(null) }} style={{ display: 'flex', alignItems: 'center', gap: '8px', width: '100%', padding: '8px 12px', border: 'none', background: 'transparent', color: T.text, fontFamily: FONT, fontSize: '0.82rem', cursor: 'pointer', transition: 'background 0.15s' }} onMouseEnter={e => e.currentTarget.style.background = T.hover} onMouseLeave={e => e.currentTarget.style.background = 'transparent'}><span style={{ display: 'flex', color: T.muted }}>{icons.rename}</span>Rename</button>
+                          <button onClick={() => { onDuplicatePage?.(p.slug); setPageMenuSlug(null) }} style={{ display: 'flex', alignItems: 'center', gap: '8px', width: '100%', padding: '8px 12px', border: 'none', background: 'transparent', color: T.text, fontFamily: FONT, fontSize: '0.82rem', cursor: 'pointer', transition: 'background 0.15s' }} onMouseEnter={e => e.currentTarget.style.background = T.hover} onMouseLeave={e => e.currentTarget.style.background = 'transparent'}><span style={{ display: 'flex', color: T.muted }}>{icons.duplicate}</span>Duplicate</button>
+                          <button onClick={() => { onDeletePage?.(p.slug); setPageMenuSlug(null) }} style={{ display: 'flex', alignItems: 'center', gap: '8px', width: '100%', padding: '8px 12px', border: 'none', background: 'transparent', color: '#e55', fontFamily: FONT, fontSize: '0.82rem', cursor: 'pointer', transition: 'background 0.15s' }} onMouseEnter={e => e.currentTarget.style.background = T.hover} onMouseLeave={e => e.currentTarget.style.background = 'transparent'}><span style={{ display: 'flex' }}>{icons.trash}</span>Delete</button>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* LAYERS section */}
+            {leftSection === 'layers' && (
+              <div style={{ padding: '4px 0' }}>
+                {layers.length === 0 && <p style={{ color: T.muted, fontSize: '0.82rem', textAlign: 'center', marginTop: '40px' }}>No components yet</p>}
+                {layers.map((item, i) => {
+                  const isSelected = selectedIndex === i
+                  return (
+                    <div key={item.props?.id || i} style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '8px 10px', borderLeft: isSelected ? `3px solid ${T.gold}` : '3px solid transparent', background: isSelected ? `${T.gold}18` : 'transparent', cursor: 'pointer', transition: 'all 0.2s' }} onMouseEnter={e => { if (!isSelected) e.currentTarget.style.background = T.hover }} onMouseLeave={e => { if (!isSelected) e.currentTarget.style.background = 'transparent' }} onClick={() => dispatch({ type: 'setUi', ui: { itemSelector: { index: i } } })}>
+                      <span style={{ color: '#555', display: 'flex', cursor: 'grab' }}>{icons.drag}</span>
+                      <span style={{ display: 'flex', color: isSelected ? T.gold : '#555' }}>{catIcons[Object.keys(CATEGORIES).find(c => CATEGORIES[c].includes(item.type))] || icons.layout}</span>
+                      <span style={{ flex: 1, fontSize: '0.82rem', fontWeight: isSelected ? 600 : 400, color: isSelected ? T.text : T.muted }}>{COMPONENT_LABELS[item.type] || item.type}</span>
+                      <button style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: '#555', display: 'flex', padding: '2px', transition: 'color 0.2s' }} onMouseEnter={e => e.currentTarget.style.color = T.text} onMouseLeave={e => e.currentTarget.style.color = '#555'} title="Toggle visibility">{icons.eye}</button>
+                      <button style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: '#555', display: 'flex', padding: '2px', transition: 'color 0.2s' }} onMouseEnter={e => e.currentTarget.style.color = T.text} onMouseLeave={e => e.currentTarget.style.color = '#555'} title="Lock">{icons.lock}</button>
+                      <button onClick={(e) => { e.stopPropagation(); const content = [...layers]; content.splice(i, 1); dispatch({ type: 'setData', data: { ...appState.data, content } }) }} style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: '#555', display: 'flex', padding: '2px', transition: 'color 0.2s' }} onMouseEnter={e => e.currentTarget.style.color = '#e55'} onMouseLeave={e => e.currentTarget.style.color = '#555'} title="Delete">{icons.trash}</button>
+                    </div>
+                  )
+                })}
+              </div>
+            )}
           </div>
         </div>
 
         {/* CENTRE CANVAS */}
-        <div style={{ flex: 1, background: '#F0F0F0', overflow: 'auto', display: 'flex', justifyContent: 'center', padding: '24px' }}>
+        <div style={{ flex: 1, background: T.canvas, overflow: 'auto', display: 'flex', justifyContent: 'center', padding: '24px' }}>
           <div style={{
             width: previewWidth === 1200 ? '100%' : `${previewWidth}px`,
             maxWidth: '100%',
             transition: 'width 0.3s ease',
+            boxShadow: '0 4px 40px rgba(0,0,0,0.4)',
             ...(previewWidth === 768 ? {
-              border: '8px solid #333',
+              border: `8px solid ${T.border}`,
               borderRadius: '20px',
               background: '#fff',
               overflow: 'hidden',
               alignSelf: 'flex-start',
+            } : previewWidth === 568 ? {
+              border: `6px solid ${T.border}`,
+              borderRadius: '16px',
+              background: '#fff',
+              overflow: 'hidden',
+              alignSelf: 'flex-start',
             } : previewWidth === 375 ? {
-              border: '6px solid #333',
+              border: `6px solid ${T.border}`,
               borderRadius: '32px',
               background: '#fff',
               overflow: 'hidden',
@@ -1051,9 +1235,8 @@ function EditorInner({ pages, currentSlug, onChangePage, onAddPage, onSaveDraft,
               alignSelf: 'flex-start',
             }),
           }}>
-            {/* Phone notch */}
             {previewWidth === 375 && (
-              <div style={{ height: '28px', background: '#333', display: 'flex', justifyContent: 'center', alignItems: 'flex-end', paddingBottom: '4px' }}>
+              <div style={{ height: '28px', background: T.border, display: 'flex', justifyContent: 'center', alignItems: 'flex-end', paddingBottom: '4px' }}>
                 <div style={{ width: '80px', height: '6px', background: '#555', borderRadius: '3px' }} />
               </div>
             )}
@@ -1063,139 +1246,166 @@ function EditorInner({ pages, currentSlug, onChangePage, onAddPage, onSaveDraft,
           </div>
         </div>
 
-        {/* RIGHT PANEL */}
-        <div style={{ width: '320px', background: '#fff', borderLeft: '1px solid #e5e5e5', display: 'flex', flexDirection: 'column', flexShrink: 0, overflow: 'hidden' }}>
+        {/* RIGHT PANEL (320px) */}
+        <div style={{ width: '320px', background: T.panel, borderLeft: `1px solid ${T.border}`, display: 'flex', flexDirection: 'column', flexShrink: 0, overflow: 'hidden' }}>
           {/* Tabs */}
-          <div style={{ display: 'flex', borderBottom: '1px solid #eee', flexShrink: 0 }}>
+          <div style={{ display: 'flex', borderBottom: `1px solid ${T.border}`, flexShrink: 0 }}>
             {[
+              { key: 'styles', label: 'Styles' },
               { key: 'properties', label: 'Properties' },
-              { key: 'style', label: 'Style' },
-              { key: 'page', label: 'Page' },
-              { key: 'layers', label: 'Layers' },
+              { key: 'components', label: 'Components' },
             ].map(tab => (
-              <button key={tab.key} onClick={() => setRightTab(tab.key)} style={{ flex: 1, padding: '12px 0', border: 'none', background: 'transparent', cursor: 'pointer', fontFamily: FONT, fontWeight: 600, fontSize: '0.75rem', color: rightTab === tab.key ? GOLD : '#999', borderBottom: rightTab === tab.key ? `2px solid ${GOLD}` : '2px solid transparent', transition: 'all 0.15s', textTransform: 'uppercase', letterSpacing: '0.5px' }}>{tab.label}</button>
+              <button key={tab.key} onClick={() => setRightTab(tab.key)} style={{ flex: 1, padding: '11px 0', border: 'none', background: 'transparent', cursor: 'pointer', fontFamily: FONT, fontWeight: 600, fontSize: '0.72rem', color: rightTab === tab.key ? T.text : T.muted, borderBottom: rightTab === tab.key ? `2px solid ${T.gold}` : '2px solid transparent', transition: 'all 0.2s', textTransform: 'uppercase', letterSpacing: '0.5px' }}>{tab.label}</button>
             ))}
           </div>
 
-          <div style={{ flex: 1, overflow: 'auto', padding: '16px' }}>
+          <div style={{ flex: 1, overflow: 'auto', padding: '12px' }}>
+
+            {/* STYLES TAB */}
+            {rightTab === 'styles' && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                {/* Selection info */}
+                {selectedItem && (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 10px', background: `${T.gold}12`, borderRadius: '6px', marginBottom: '8px', border: `1px solid ${T.gold}30` }}>
+                    <span style={{ display: 'flex', color: T.gold }}>{catIcons[Object.keys(CATEGORIES).find(c => CATEGORIES[c].includes(selectedItem.type))] || icons.layout}</span>
+                    <span style={{ fontSize: '0.85rem', fontWeight: 600, color: T.gold }}>{COMPONENT_LABELS[selectedItem.type] || selectedItem.type}</span>
+                  </div>
+                )}
+
+                {/* Size */}
+                {sectionTitle('Size')}
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '12px' }}>
+                  <div><label style={dkLabel}>Width</label><input style={dkInput} value={styleWidth} onChange={e => setStyleWidth(e.target.value)} placeholder="auto" onFocus={e => e.target.style.borderColor = T.gold} onBlur={e => e.target.style.borderColor = T.border} /></div>
+                  <div><label style={dkLabel}>Height</label><input style={dkInput} value={styleHeight} onChange={e => setStyleHeight(e.target.value)} placeholder="auto" onFocus={e => e.target.style.borderColor = T.gold} onBlur={e => e.target.style.borderColor = T.border} /></div>
+                  <div style={{ gridColumn: 'span 2' }}><label style={dkLabel}>Max Width</label><input style={dkInput} value={styleMaxWidth} onChange={e => setStyleMaxWidth(e.target.value)} placeholder="none" onFocus={e => e.target.style.borderColor = T.gold} onBlur={e => e.target.style.borderColor = T.border} /></div>
+                </div>
+
+                {/* Space */}
+                {sectionTitle('Space')}
+                <div style={{ display: 'flex', gap: '4px', marginBottom: '12px' }}>
+                  {['none', 's', 'm', 'l', 'xl'].map(p => (
+                    <button key={p} onClick={() => setStylePadding(p)} style={{ flex: 1, padding: '6px 0', border: `1px solid ${stylePadding === p ? T.gold : T.border}`, borderRadius: '6px', background: stylePadding === p ? `${T.gold}20` : T.input, cursor: 'pointer', fontFamily: FONT, fontWeight: 600, fontSize: '0.7rem', color: stylePadding === p ? T.gold : T.muted, textTransform: 'uppercase', transition: 'all 0.2s' }}>{p}</button>
+                  ))}
+                </div>
+
+                {/* Typography */}
+                {sectionTitle('Typography')}
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '4px' }}>
+                  <div><label style={dkLabel}>Size</label><input style={dkInput} value={styleFontSize} onChange={e => setStyleFontSize(e.target.value)} placeholder="1rem" onFocus={e => e.target.style.borderColor = T.gold} onBlur={e => e.target.style.borderColor = T.border} /></div>
+                  <div><label style={dkLabel}>Weight</label>
+                    <select value={styleFontWeight} onChange={e => setStyleFontWeight(e.target.value)} style={{ ...dkInput, cursor: 'pointer' }}>
+                      <option value="300">Light</option><option value="400">Regular</option><option value="600">Semi Bold</option><option value="700">Bold</option><option value="800">Extra Bold</option>
+                    </select>
+                  </div>
+                  <div><label style={dkLabel}>Line Height</label><input style={dkInput} value={styleLineHeight} onChange={e => setStyleLineHeight(e.target.value)} placeholder="1.5" onFocus={e => e.target.style.borderColor = T.gold} onBlur={e => e.target.style.borderColor = T.border} /></div>
+                  <div><label style={dkLabel}>Align</label>
+                    <div style={{ display: 'flex', gap: '2px' }}>
+                      {[{ key: 'left', icon: icons.alignLeft }, { key: 'center', icon: icons.alignCenter }, { key: 'right', icon: icons.alignRight }].map(a => (
+                        <button key={a.key} onClick={() => setStyleTextAlign(a.key)} style={{ flex: 1, padding: '7px 0', border: `1px solid ${styleTextAlign === a.key ? T.gold : T.border}`, borderRadius: '4px', background: styleTextAlign === a.key ? `${T.gold}20` : T.input, cursor: 'pointer', display: 'flex', justifyContent: 'center', color: styleTextAlign === a.key ? T.gold : T.muted, transition: 'all 0.2s' }}>{a.icon}</button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Text Colour */}
+                <div style={{ marginBottom: '12px', marginTop: '8px' }}>
+                  <label style={dkLabel}>Text Colour</label>
+                  <div style={{ display: 'flex', gap: '5px', flexWrap: 'wrap' }}>
+                    {brandPalette.map(c => (
+                      <button key={`tc-${c}`} onClick={() => setStyleTextColor(c)} style={{ width: '26px', height: '26px', borderRadius: '6px', background: c, border: styleTextColor === c ? `2px solid ${T.gold}` : `1px solid ${T.border}`, cursor: 'pointer', transition: 'transform 0.15s' }} onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.15)'} onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'} />
+                    ))}
+                  </div>
+                </div>
+
+                {/* Background */}
+                {sectionTitle('Background')}
+                <div style={{ display: 'flex', gap: '5px', flexWrap: 'wrap', marginBottom: '12px' }}>
+                  {brandPalette.map(c => (
+                    <button key={`bg-${c}`} onClick={() => setStyleBg(c)} style={{ width: '26px', height: '26px', borderRadius: '6px', background: c, border: styleBg === c ? `2px solid ${T.gold}` : `1px solid ${T.border}`, cursor: 'pointer', transition: 'transform 0.15s' }} onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.15)'} onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'} />
+                  ))}
+                </div>
+
+                {/* Borders */}
+                {sectionTitle('Borders')}
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '4px' }}>
+                  <div><label style={dkLabel}>Width</label><input style={dkInput} value={styleBorderWidth} onChange={e => setStyleBorderWidth(e.target.value)} placeholder="0" onFocus={e => e.target.style.borderColor = T.gold} onBlur={e => e.target.style.borderColor = T.border} /></div>
+                  <div><label style={dkLabel}>Style</label>
+                    <select value={styleBorderStyle} onChange={e => setStyleBorderStyle(e.target.value)} style={{ ...dkInput, cursor: 'pointer' }}>
+                      <option value="solid">Solid</option><option value="dashed">Dashed</option><option value="dotted">Dotted</option>
+                    </select>
+                  </div>
+                </div>
+                <div style={{ marginBottom: '4px' }}>
+                  <label style={dkLabel}>Border Colour</label>
+                  <div style={{ display: 'flex', gap: '5px', flexWrap: 'wrap' }}>
+                    {brandPalette.slice(0, 6).map(c => (
+                      <button key={`bc-${c}`} onClick={() => setStyleBorderColor(c)} style={{ width: '26px', height: '26px', borderRadius: '6px', background: c, border: styleBorderColor === c ? `2px solid ${T.gold}` : `1px solid ${T.border}`, cursor: 'pointer' }} />
+                    ))}
+                  </div>
+                </div>
+                <div style={{ marginBottom: '12px' }}>
+                  <label style={dkLabel}>Radius</label>
+                  <div style={{ display: 'flex', gap: '3px' }}>
+                    {['none', 'sm', 'md', 'lg', 'pill'].map(r => (
+                      <button key={r} onClick={() => setStyleBorderRadius(r)} style={{ flex: 1, padding: '6px 0', border: `1px solid ${styleBorderRadius === r ? T.gold : T.border}`, borderRadius: '4px', background: styleBorderRadius === r ? `${T.gold}20` : T.input, cursor: 'pointer', fontFamily: FONT, fontWeight: 600, fontSize: '0.65rem', color: styleBorderRadius === r ? T.gold : T.muted, transition: 'all 0.2s' }}>{r}</button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Effects */}
+                {sectionTitle('Effects')}
+                <div>
+                  <label style={dkLabel}>Opacity</label>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    <input type="range" min="0" max="100" value={styleOpacity} onChange={e => setStyleOpacity(Number(e.target.value))} style={{ flex: 1, accentColor: T.gold, height: '4px' }} />
+                    <span style={{ color: T.text, fontSize: '0.8rem', fontFamily: FONT, minWidth: '32px', textAlign: 'right' }}>{styleOpacity}%</span>
+                  </div>
+                </div>
+              </div>
+            )}
+
             {/* PROPERTIES TAB */}
             {rightTab === 'properties' && (
-              <div className="puck-fields-wrapper">
-                <Puck.Fields />
-              </div>
-            )}
-
-            {/* STYLE TAB */}
-            {rightTab === 'style' && (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-                {/* Background */}
-                <div>
-                  <label style={{ fontWeight: 600, fontSize: '0.8rem', color: '#555', display: 'block', marginBottom: '8px' }}>Background</label>
-                  <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
-                    {brandPalette.map(c => (
-                      <button key={c} onClick={() => setStyleBg(c)} style={{ width: '28px', height: '28px', borderRadius: '6px', background: c, border: styleBg === c ? `2px solid ${GOLD}` : '1px solid #ddd', cursor: 'pointer' }} />
-                    ))}
-                  </div>
-                </div>
-                {/* Padding */}
-                <div>
-                  <label style={{ fontWeight: 600, fontSize: '0.8rem', color: '#555', display: 'block', marginBottom: '8px' }}>Padding</label>
-                  <div style={{ display: 'flex', gap: '4px' }}>
-                    {['none', 's', 'm', 'l', 'xl'].map(p => (
-                      <button key={p} onClick={() => setStylePadding(p)} style={{ flex: 1, padding: '6px 0', border: '1px solid', borderColor: stylePadding === p ? GOLD : '#ddd', borderRadius: '6px', background: stylePadding === p ? `${GOLD}15` : '#fff', cursor: 'pointer', fontFamily: FONT, fontWeight: 600, fontSize: '0.75rem', color: stylePadding === p ? GOLD : '#888', textTransform: 'uppercase' }}>{p}</button>
-                    ))}
-                  </div>
-                </div>
-                {/* Text Colour */}
-                <div>
-                  <label style={{ fontWeight: 600, fontSize: '0.8rem', color: '#555', display: 'block', marginBottom: '8px' }}>Text Colour</label>
-                  <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
-                    {brandPalette.map(c => (
-                      <button key={`tc-${c}`} onClick={() => setStyleTextColor(c)} style={{ width: '28px', height: '28px', borderRadius: '6px', background: c, border: styleTextColor === c ? `2px solid ${GOLD}` : '1px solid #ddd', cursor: 'pointer' }} />
-                    ))}
-                  </div>
-                </div>
-                {/* Text Align */}
-                <div>
-                  <label style={{ fontWeight: 600, fontSize: '0.8rem', color: '#555', display: 'block', marginBottom: '8px' }}>Text Align</label>
-                  <div style={{ display: 'flex', gap: '4px' }}>
-                    {[{ key: 'left', icon: icons.alignLeft }, { key: 'center', icon: icons.alignCenter }, { key: 'right', icon: icons.alignRight }].map(a => (
-                      <button key={a.key} onClick={() => setStyleTextAlign(a.key)} style={{ flex: 1, padding: '8px 0', border: '1px solid', borderColor: styleTextAlign === a.key ? GOLD : '#ddd', borderRadius: '6px', background: styleTextAlign === a.key ? `${GOLD}15` : '#fff', cursor: 'pointer', display: 'flex', justifyContent: 'center', color: styleTextAlign === a.key ? GOLD : '#888' }}>{a.icon}</button>
-                    ))}
-                  </div>
-                </div>
-                {/* Border Radius */}
-                <div>
-                  <label style={{ fontWeight: 600, fontSize: '0.8rem', color: '#555', display: 'block', marginBottom: '8px' }}>Border Radius</label>
-                  <div style={{ display: 'flex', gap: '4px' }}>
-                    {['none', 'sm', 'md', 'lg', 'pill'].map(r => (
-                      <button key={r} onClick={() => setStyleBorderRadius(r)} style={{ flex: 1, padding: '6px 0', border: '1px solid', borderColor: styleBorderRadius === r ? GOLD : '#ddd', borderRadius: '6px', background: styleBorderRadius === r ? `${GOLD}15` : '#fff', cursor: 'pointer', fontFamily: FONT, fontWeight: 600, fontSize: '0.7rem', color: styleBorderRadius === r ? GOLD : '#888' }}>{r}</button>
-                    ))}
-                  </div>
-                </div>
-                {/* Visibility */}
-                <div>
-                  <label style={{ fontWeight: 600, fontSize: '0.8rem', color: '#555', display: 'block', marginBottom: '8px' }}>Visibility</label>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                    {['desktop', 'tablet', 'mobile'].map(device => (
-                      <label key={device} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer' }}>
-                        <span style={{ fontSize: '0.85rem', color: '#555', textTransform: 'capitalize' }}>{device}</span>
-                        <div onClick={() => setStyleVisibility(prev => ({ ...prev, [device]: !prev[device] }))} style={{ width: '36px', height: '20px', borderRadius: '10px', background: styleVisibility[device] ? GOLD : '#ddd', position: 'relative', cursor: 'pointer', transition: 'background 0.15s' }}>
-                          <div style={{ position: 'absolute', top: '2px', left: styleVisibility[device] ? '18px' : '2px', width: '16px', height: '16px', borderRadius: '50%', background: '#fff', transition: 'left 0.15s', boxShadow: '0 1px 3px rgba(0,0,0,0.15)' }} />
-                        </div>
-                      </label>
-                    ))}
-                  </div>
-                </div>
-                {/* Animation */}
-                <div>
-                  <label style={{ fontWeight: 600, fontSize: '0.8rem', color: '#555', display: 'block', marginBottom: '8px' }}>Animation</label>
-                  <select value={styleAnimation} onChange={e => setStyleAnimation(e.target.value)} style={{ width: '100%', padding: '8px 12px', border: '1px solid #ddd', borderRadius: '6px', fontFamily: FONT, fontSize: '0.85rem', color: '#333' }}>
-                    <option value="none">None</option>
-                    <option value="fade-in">Fade In</option>
-                    <option value="slide-up">Slide Up</option>
-                    <option value="slide-left">Slide Left</option>
-                  </select>
-                </div>
-              </div>
-            )}
-
-            {/* PAGE / SEO TAB */}
-            {rightTab === 'page' && (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-                <div>
-                  <label style={{ fontWeight: 600, fontSize: '0.8rem', color: '#555', display: 'block', marginBottom: '6px' }}>Page Title</label>
-                  <input type="text" value={seoTitle} onChange={e => setSeoTitle(e.target.value)} placeholder="Enter page title" style={{ width: '100%', padding: '10px 12px', border: '1px solid #ddd', borderRadius: '6px', fontFamily: FONT, fontSize: '0.9rem', boxSizing: 'border-box' }} />
-                </div>
-                <div>
-                  <label style={{ fontWeight: 600, fontSize: '0.8rem', color: '#555', display: 'block', marginBottom: '6px' }}>Meta Description</label>
-                  <textarea value={seoDesc} onChange={e => { if (e.target.value.length <= 160) setSeoDesc(e.target.value) }} placeholder="Enter meta description" rows={4} style={{ width: '100%', padding: '10px 12px', border: '1px solid #ddd', borderRadius: '6px', fontFamily: FONT, fontSize: '0.9rem', resize: 'vertical', boxSizing: 'border-box' }} />
-                  <p style={{ margin: '4px 0 0', fontSize: '0.75rem', color: seoDesc.length > 140 ? '#e55' : '#999', textAlign: 'right' }}>{seoDesc.length}/160</p>
-                </div>
-                <div>
-                  <label style={{ fontWeight: 600, fontSize: '0.8rem', color: '#555', display: 'block', marginBottom: '6px' }}>OG Image URL</label>
-                  <input type="text" value={ogImage} onChange={e => setOgImage(e.target.value)} placeholder="https://..." style={{ width: '100%', padding: '10px 12px', border: '1px solid #ddd', borderRadius: '6px', fontFamily: FONT, fontSize: '0.9rem', boxSizing: 'border-box' }} />
-                  {ogImage && <img src={ogImage} alt="OG Preview" style={{ width: '100%', marginTop: '8px', borderRadius: '6px', border: '1px solid #eee' }} />}
-                </div>
-              </div>
-            )}
-
-            {/* LAYERS TAB */}
-            {rightTab === 'layers' && (
               <div>
-                {layers.length === 0 && <p style={{ color: '#999', fontSize: '0.85rem', textAlign: 'center', marginTop: '40px' }}>No components added yet.</p>}
-                {layers.map((item, i) => (
-                  <div key={item.props?.id || i} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 8px', borderBottom: '1px solid #f0f0f0', borderRadius: '4px', cursor: 'pointer', transition: 'background 0.1s' }} onMouseEnter={e => e.currentTarget.style.background = '#f9f9f9'} onMouseLeave={e => e.currentTarget.style.background = 'transparent'} onClick={() => dispatch({ type: 'setUi', ui: { itemSelector: { index: i } } })}>
-                    <span style={{ color: '#bbb', display: 'flex' }}>{icons.drag}</span>
-                    <span style={{ flex: 1, fontSize: '0.85rem', fontWeight: 500 }}>{COMPONENT_LABELS[item.type] || item.type}</span>
-                    <button style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: '#bbb', display: 'flex', padding: '2px' }} title="Toggle visibility">{icons.eye}</button>
-                    <button style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: '#bbb', display: 'flex', padding: '2px' }} title="Lock">{icons.lock}</button>
-                    <button onClick={(e) => {
-                      e.stopPropagation()
-                      const newContent = [...layers]
-                      newContent.splice(i, 1)
-                      dispatch({ type: 'setData', data: { ...appState.data, content: newContent } })
-                    }} style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: '#bbb', display: 'flex', padding: '2px' }} title="Delete">{icons.trash}</button>
+                {selectedItem && (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 10px', background: `${T.gold}12`, borderRadius: '6px', marginBottom: '12px', border: `1px solid ${T.gold}30` }}>
+                    <span style={{ display: 'flex', color: T.gold }}>{catIcons[Object.keys(CATEGORIES).find(c => CATEGORIES[c].includes(selectedItem.type))] || icons.layout}</span>
+                    <span style={{ fontSize: '0.85rem', fontWeight: 600, color: T.gold }}>{COMPONENT_LABELS[selectedItem.type] || selectedItem.type}</span>
+                  </div>
+                )}
+                <div className="puck-fields-wrapper">
+                  <Puck.Fields />
+                </div>
+              </div>
+            )}
+
+            {/* COMPONENTS TAB */}
+            {rightTab === 'components' && (
+              <div>
+                <div style={{ marginBottom: '10px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: T.input, borderRadius: '8px', padding: '8px 12px', border: `1px solid ${T.border}`, transition: 'border-color 0.2s' }} onFocus={e => e.currentTarget.style.borderColor = T.gold} onBlur={e => e.currentTarget.style.borderColor = T.border}>
+                    <span style={{ color: T.muted, display: 'flex' }}>{icons.search}</span>
+                    <input type="text" placeholder="Search components..." value={searchTerm} onChange={e => setSearchTerm(e.target.value)} style={{ border: 'none', outline: 'none', background: 'transparent', fontFamily: FONT, fontSize: '0.82rem', flex: 1, color: T.text }} />
+                  </div>
+                </div>
+                {Object.entries(filteredCategories).map(([cat, comps]) => (
+                  <div key={cat} style={{ marginBottom: '2px' }}>
+                    <button onClick={() => toggleCat(cat)} style={{ display: 'flex', alignItems: 'center', gap: '8px', width: '100%', padding: '9px 8px', border: 'none', background: 'transparent', cursor: 'pointer', fontFamily: FONT, fontWeight: 600, fontSize: '0.72rem', color: T.muted, textTransform: 'uppercase', letterSpacing: '0.5px', transition: 'color 0.2s' }} onMouseEnter={e => e.currentTarget.style.color = T.text} onMouseLeave={e => e.currentTarget.style.color = T.muted}>
+                      <span style={{ display: 'flex', transition: 'transform 0.2s', transform: expandedCats[cat] ? 'rotate(90deg)' : 'rotate(0deg)' }}>{icons.chevRight}</span>
+                      <span style={{ display: 'flex', color: T.gold }}>{catIcons[cat]}</span>
+                      {cat}
+                      <span style={{ marginLeft: 'auto', fontSize: '0.65rem', color: '#555' }}>{comps.length}</span>
+                    </button>
+                    {expandedCats[cat] && (
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px', padding: '4px 4px 8px 4px' }}>
+                        {comps.map(comp => (
+                          <div key={comp} data-puck-component={comp} draggable style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px', padding: '12px 6px', cursor: 'grab', fontSize: '0.75rem', color: T.muted, borderRadius: '8px', border: `1px solid ${T.border}`, background: T.input, transition: 'all 0.2s', textAlign: 'center' }} onMouseEnter={e => { e.currentTarget.style.borderColor = T.gold; e.currentTarget.style.background = T.hover; e.currentTarget.style.color = T.text }} onMouseLeave={e => { e.currentTarget.style.borderColor = T.border; e.currentTarget.style.background = T.input; e.currentTarget.style.color = T.muted }}>
+                            <span style={{ display: 'flex', color: 'inherit' }}>{catIcons[cat] || icons.layout}</span>
+                            <span style={{ lineHeight: '1.2' }}>{COMPONENT_LABELS[comp] || comp}</span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>
@@ -1204,10 +1414,19 @@ function EditorInner({ pages, currentSlug, onChangePage, onAddPage, onSaveDraft,
         </div>
       </div>
 
-      {/* ── BOTTOM BAR ── */}
-      <div style={{ height: '32px', background: '#1a1a1a', display: 'flex', alignItems: 'center', padding: '0 16px', flexShrink: 0 }}>
-        <span style={{ color: '#777', fontSize: '0.7rem', fontFamily: FONT }}>{breadcrumb}</span>
+      {/* ── BOTTOM BAR (32px) ── */}
+      <div style={{ height: '32px', background: T.bg, display: 'flex', alignItems: 'center', padding: '0 16px', flexShrink: 0, borderTop: `1px solid ${T.border}`, gap: '4px' }}>
+        {breadcrumbParts.map((part, i) => (
+          <span key={i} style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+            {i > 0 && <span style={{ color: '#444', fontSize: '0.65rem' }}>&rsaquo;</span>}
+            <button onClick={() => { if (part.index === null) dispatch({ type: 'setUi', ui: { itemSelector: null } }); else dispatch({ type: 'setUi', ui: { itemSelector: { index: part.index } } }) }} style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: i === breadcrumbParts.length - 1 ? T.text : T.muted, fontFamily: FONT, fontSize: '0.72rem', padding: '2px 4px', borderRadius: '3px', transition: 'color 0.2s' }} onMouseEnter={e => e.currentTarget.style.color = T.gold} onMouseLeave={e => e.currentTarget.style.color = i === breadcrumbParts.length - 1 ? T.text : T.muted}>{part.label}</button>
+          </span>
+        ))}
+        <span style={{ marginLeft: 'auto', color: '#444', fontSize: '0.65rem', fontFamily: FONT }}>{layers.length} component{layers.length !== 1 ? 's' : ''}</span>
       </div>
+
+      {/* Context menu */}
+      {ctxMenu && <CtxMenu x={ctxMenu.x} y={ctxMenu.y} onClose={() => setCtxMenu(null)} onAction={handleCtxAction} />}
     </div>
   )
 }
@@ -1224,24 +1443,26 @@ function AddPageModal({ open, onClose, onSubmit }) {
 
   if (!open) return null
 
+  const modalInput = { background: T.input, color: T.text, border: `1px solid ${T.border}`, borderRadius: '6px', padding: '10px 12px', fontFamily: FONT, fontSize: '0.9rem', boxSizing: 'border-box', width: '100%', outline: 'none' }
+
   return (
-    <div style={{ position: 'fixed', inset: 0, zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.5)' }} onClick={onClose}>
-      <div style={{ background: '#fff', borderRadius: '12px', padding: '32px', width: '400px', maxWidth: '90vw', fontFamily: FONT }} onClick={e => e.stopPropagation()}>
+    <div style={{ position: 'fixed', inset: 0, zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(4px)' }} onClick={onClose}>
+      <div style={{ background: T.panel, borderRadius: '12px', padding: '32px', width: '420px', maxWidth: '90vw', fontFamily: FONT, border: `1px solid ${T.border}`, boxShadow: '0 16px 48px rgba(0,0,0,0.5)' }} onClick={e => e.stopPropagation()}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
-          <h3 style={{ margin: 0, fontSize: '1.2rem', fontWeight: 700 }}>Add New Page</h3>
-          <button onClick={onClose} style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: '#999', display: 'flex' }}>{icons.close}</button>
+          <h3 style={{ margin: 0, fontSize: '1.15rem', fontWeight: 700, color: T.text }}>Add New Page</h3>
+          <button onClick={onClose} style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: T.muted, display: 'flex', transition: 'color 0.2s' }} onMouseEnter={e => e.currentTarget.style.color = T.text} onMouseLeave={e => e.currentTarget.style.color = T.muted}>{icons.close}</button>
         </div>
         <div style={{ marginBottom: '16px' }}>
-          <label style={{ fontWeight: 600, fontSize: '0.8rem', color: '#555', display: 'block', marginBottom: '6px' }}>Page Title</label>
-          <input type="text" value={title} onChange={e => setTitle(e.target.value)} placeholder="e.g. About Us" style={{ width: '100%', padding: '10px 12px', border: '1px solid #ddd', borderRadius: '6px', fontFamily: FONT, fontSize: '0.9rem', boxSizing: 'border-box' }} autoFocus />
+          <label style={{ fontWeight: 600, fontSize: '0.8rem', color: T.muted, display: 'block', marginBottom: '6px' }}>Page Title</label>
+          <input type="text" value={title} onChange={e => setTitle(e.target.value)} placeholder="e.g. About Us" style={modalInput} onFocus={e => e.target.style.borderColor = T.gold} onBlur={e => e.target.style.borderColor = T.border} autoFocus />
         </div>
         <div style={{ marginBottom: '24px' }}>
-          <label style={{ fontWeight: 600, fontSize: '0.8rem', color: '#555', display: 'block', marginBottom: '6px' }}>Slug</label>
-          <input type="text" value={slug} onChange={e => setSlug(e.target.value)} placeholder="about-us" style={{ width: '100%', padding: '10px 12px', border: '1px solid #ddd', borderRadius: '6px', fontFamily: FONT, fontSize: '0.9rem', boxSizing: 'border-box' }} />
+          <label style={{ fontWeight: 600, fontSize: '0.8rem', color: T.muted, display: 'block', marginBottom: '6px' }}>URL Slug</label>
+          <input type="text" value={slug} onChange={e => setSlug(e.target.value)} placeholder="about-us" style={modalInput} onFocus={e => e.target.style.borderColor = T.gold} onBlur={e => e.target.style.borderColor = T.border} />
         </div>
         <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
-          <button onClick={onClose} style={{ fontFamily: FONT, fontWeight: 600, padding: '10px 20px', border: '1px solid #ddd', borderRadius: '6px', background: '#fff', cursor: 'pointer', fontSize: '0.9rem', color: '#555' }}>Cancel</button>
-          <button onClick={() => { if (title && slug) onSubmit(title, slug) }} disabled={!title || !slug} style={{ fontFamily: FONT, fontWeight: 600, padding: '10px 20px', border: 'none', borderRadius: '6px', background: (!title || !slug) ? '#ccc' : DARK, color: '#fff', cursor: (!title || !slug) ? 'default' : 'pointer', fontSize: '0.9rem' }}>Create Page</button>
+          <button onClick={onClose} style={{ fontFamily: FONT, fontWeight: 600, padding: '10px 20px', border: `1px solid ${T.border}`, borderRadius: '6px', background: 'transparent', cursor: 'pointer', fontSize: '0.9rem', color: T.muted, transition: 'all 0.2s' }} onMouseEnter={e => { e.currentTarget.style.borderColor = T.text; e.currentTarget.style.color = T.text }} onMouseLeave={e => { e.currentTarget.style.borderColor = T.border; e.currentTarget.style.color = T.muted }}>Cancel</button>
+          <button onClick={() => { if (title && slug) onSubmit(title, slug) }} disabled={!title || !slug} style={{ fontFamily: FONT, fontWeight: 700, padding: '10px 20px', border: 'none', borderRadius: '6px', background: (!title || !slug) ? '#333' : T.gold, color: (!title || !slug) ? '#666' : T.bg, cursor: (!title || !slug) ? 'default' : 'pointer', fontSize: '0.9rem', transition: 'opacity 0.2s' }}>Create Page</button>
         </div>
       </div>
     </div>
@@ -1263,13 +1484,11 @@ export default function WebsiteBuilder() {
   const [pages, setPages] = useState([])
   const [showAddPage, setShowAddPage] = useState(false)
   const [previewWidth, setPreviewWidth] = useState(1200)
-  const [settingsOpen, setSettingsOpen] = useState(false)
 
   const puckConfig = useMemo(() => buildPuckConfig(), [])
   const autoSaveRef = useRef(null)
   const latestDataRef = useRef(null)
 
-  // Fetch pages list
   const fetchPages = useCallback(async () => {
     if (!bid) return
     try {
@@ -1278,7 +1497,6 @@ export default function WebsiteBuilder() {
     } catch { /* ignore */ }
   }, [bid])
 
-  // Fetch current page data
   const fetchPage = useCallback(async () => {
     if (!bid || !slug) return
     setLoading(true)
@@ -1321,11 +1539,9 @@ export default function WebsiteBuilder() {
 
   const handlePublish = useCallback(async (data) => {
     if (!bid || !slug) return
-    // Update latestDataRef with the data puck provides via onPublish
     if (data) latestDataRef.current = data
     setSaving(true)
     try {
-      // Save first, then publish
       await api.put(`/website/business/${bid}/pages/${slug}`, { puck_data: latestDataRef.current })
       await api.post(`/website/business/${bid}/pages/${slug}/publish`)
     } catch { /* ignore */ } finally {
@@ -1347,13 +1563,29 @@ export default function WebsiteBuilder() {
     } catch { /* ignore */ }
   }, [bid, fetchPages, navigate])
 
+  const handleDuplicatePage = useCallback(async (pageSlug) => {
+    if (!bid) return
+    try {
+      await api.post(`/website/business/${bid}/pages/${pageSlug}/duplicate`)
+      await fetchPages()
+    } catch { /* ignore */ }
+  }, [bid, fetchPages])
+
+  const handleDeletePage = useCallback(async (pageSlug) => {
+    if (!bid || pageSlug === slug) return
+    try {
+      await api.delete(`/website/business/${bid}/pages/${pageSlug}`)
+      await fetchPages()
+    } catch { /* ignore */ }
+  }, [bid, slug, fetchPages])
+
   // Loading state
   if (loading) {
     return (
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', fontFamily: FONT, background: '#F0F0F0' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', fontFamily: FONT, background: T.canvas }}>
         <div style={{ textAlign: 'center' }}>
-          <div style={{ width: '40px', height: '40px', border: '3px solid #e5e5e5', borderTopColor: GOLD, borderRadius: '50%', animation: 'wbSpin 0.8s linear infinite', margin: '0 auto 16px' }} />
-          <p style={{ color: '#888', fontSize: '0.9rem' }}>Loading editor...</p>
+          <div style={{ width: '40px', height: '40px', border: `3px solid ${T.border}`, borderTopColor: T.gold, borderRadius: '50%', animation: 'wbSpin 0.8s linear infinite', margin: '0 auto 16px' }} />
+          <p style={{ color: T.muted, fontSize: '0.9rem' }}>Loading editor...</p>
           <style>{`@keyframes wbSpin { to { transform: rotate(360deg) } }`}</style>
         </div>
       </div>
@@ -1363,12 +1595,12 @@ export default function WebsiteBuilder() {
   // Error state
   if (error) {
     return (
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', fontFamily: FONT, background: '#F0F0F0' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', fontFamily: FONT, background: T.canvas }}>
         <div style={{ textAlign: 'center', maxWidth: '400px' }}>
-          <svg width="48" height="48" viewBox="0 0 48 48" fill="none" stroke="#ccc" strokeWidth="2"><circle cx="24" cy="24" r="20" /><path d="M24 16v8M24 30v1" strokeLinecap="round" /></svg>
-          <h2 style={{ fontSize: '1.3rem', fontWeight: 700, color: '#333', margin: '16px 0 8px' }}>Page Not Found</h2>
-          <p style={{ color: '#888', fontSize: '0.9rem', margin: '0 0 24px' }}>{error}</p>
-          <a href="/dashboard/website" style={{ fontFamily: FONT, fontWeight: 600, color: GOLD, textDecoration: 'none' }}>Back to Website</a>
+          <svg width="48" height="48" viewBox="0 0 48 48" fill="none" stroke={T.muted} strokeWidth="2"><circle cx="24" cy="24" r="20" /><path d="M24 16v8M24 30v1" strokeLinecap="round" /></svg>
+          <h2 style={{ fontSize: '1.3rem', fontWeight: 700, color: T.text, margin: '16px 0 8px' }}>Page Not Found</h2>
+          <p style={{ color: T.muted, fontSize: '0.9rem', margin: '0 0 24px' }}>{error}</p>
+          <a href="/dashboard/website" style={{ fontFamily: FONT, fontWeight: 600, color: T.gold, textDecoration: 'none' }}>Back to Website</a>
         </div>
       </div>
     )
@@ -1377,13 +1609,13 @@ export default function WebsiteBuilder() {
   return (
     <>
       <style>{`
+        /* Hide default Puck chrome — we render our own shell */
         .puck-fields-wrapper .Puck-header,
         .puck-fields-wrapper [class*="PuckHeader"],
         [class*="Puck-root"] > header,
         [class*="Puck-root"] > [class*="header"] {
           display: none !important;
         }
-        /* Hide default puck chrome — we render our own shell */
         .Puck [class*="leftSideBar"],
         .Puck [class*="rightSideBar"],
         .Puck > header,
@@ -1391,6 +1623,39 @@ export default function WebsiteBuilder() {
         .Puck-header {
           display: none !important;
         }
+        /* Dark theme Puck field overrides */
+        .puck-fields-wrapper input,
+        .puck-fields-wrapper textarea,
+        .puck-fields-wrapper select {
+          background: ${T.input} !important;
+          color: ${T.text} !important;
+          border: 1px solid ${T.border} !important;
+          border-radius: 6px !important;
+          font-family: ${FONT} !important;
+          padding: 8px 12px !important;
+        }
+        .puck-fields-wrapper input:focus,
+        .puck-fields-wrapper textarea:focus,
+        .puck-fields-wrapper select:focus {
+          border-color: ${T.gold} !important;
+          outline: none !important;
+        }
+        .puck-fields-wrapper label {
+          color: ${T.muted} !important;
+          font-family: ${FONT} !important;
+          font-weight: 600 !important;
+          font-size: 0.75rem !important;
+          text-transform: uppercase !important;
+          letter-spacing: 0.5px !important;
+        }
+        .puck-fields-wrapper [class*="Field"] {
+          margin-bottom: 12px !important;
+        }
+        /* Scrollbar styling */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: ${T.panel}; }
+        ::-webkit-scrollbar-thumb { background: ${T.border}; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: #555; }
       `}</style>
       <Puck
         config={puckConfig}
@@ -1407,13 +1672,14 @@ export default function WebsiteBuilder() {
           currentSlug={slug}
           onChangePage={handleChangePage}
           onAddPage={() => setShowAddPage(true)}
+          onRenamePage={() => {}}
+          onDeletePage={handleDeletePage}
+          onDuplicatePage={handleDuplicatePage}
           onSaveDraft={handleSaveDraft}
           onPublish={() => handlePublish(latestDataRef.current)}
           saving={saving}
           previewWidth={previewWidth}
           setPreviewWidth={setPreviewWidth}
-          settingsOpen={settingsOpen}
-          setSettingsOpen={setSettingsOpen}
         />
       </Puck>
       <AddPageModal open={showAddPage} onClose={() => setShowAddPage(false)} onSubmit={handleAddPage} />
