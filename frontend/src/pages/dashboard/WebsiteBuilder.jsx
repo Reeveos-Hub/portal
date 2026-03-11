@@ -1098,7 +1098,7 @@ function EditorInner({ pages, currentSlug, onChangePage, onAddPage, onRenamePage
   const sectionTitle = (text) => <div style={{ ...dkLabel, fontSize: '0.7rem', padding: '10px 0 6px', borderBottom: `1px solid ${T.border}`, marginBottom: '12px' }}>{text}</div>
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', fontFamily: FONT, overflow: 'hidden', background: T.bg }} onContextMenu={e => { if (selectedIndex !== undefined) { e.preventDefault(); setCtxMenu({ x: e.clientX, y: e.clientY }) } }}>
+    <div style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', zIndex: 9999, display: 'flex', flexDirection: 'column', fontFamily: FONT, overflow: 'hidden', background: T.bg }} onContextMenu={e => { if (selectedIndex !== undefined) { e.preventDefault(); setCtxMenu({ x: e.clientX, y: e.clientY }) } }}>
 
       {/* ── TOP BAR (48px) ── */}
       <div style={{ height: '48px', background: T.bg, display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 12px', flexShrink: 0, zIndex: 50, borderBottom: `1px solid ${T.border}` }}>
