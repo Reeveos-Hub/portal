@@ -398,9 +398,65 @@ def _render_generic(props: dict) -> str:
 
 
 # Component type -> renderer mapping
+def _render_hero_banner(props: dict) -> str:
+    """Render HeroBanner component (Puck editor version with different prop names)."""
+    bg_image = props.get("bgImage", "")
+    bg_color = props.get("bgColor", "#111111")
+    heading = _esc(props.get("heading", ""))
+    subheading = _esc(props.get("subheading", ""))
+    btn_text = _esc(props.get("buttonText", ""))
+    btn_url = _esc(props.get("buttonUrl", "#"))
+    overlay = props.get("overlayOpacity", "0")
+    min_height = _esc(props.get("minHeight", "500px"))
+    text_color = _esc(props.get("textColor", "#ffffff"))
+
+    bg_style = f"background-image:url('{_esc(bg_image)}');background-size:cover;background-position:center;" if bg_image else f"background-color:{_esc(bg_color)};"
+    overlay_html = f'<div style="position:absolute;inset:0;background:rgba(0,0,0,{overlay})"></div>' if bg_image and float(overlay) > 0 else ""
+
+    cta_html = f'<a href="{btn_url}" style="display:inline-block;margin-top:1.5rem;padding:0.875rem 2rem;background:var(--brand-accent);color:#fff;text-decoration:none;border-radius:6px;font-weight:600;font-family:var(--font-body)">{btn_text}</a>' if btn_text else ""
+
+    return f'''<section style="position:relative;{bg_style}padding:6rem 1.5rem;min-height:{min_height};display:flex;align-items:center;justify-content:center;text-align:center">
+  {overlay_html}
+  <div style="position:relative;z-index:1;max-width:800px">
+    <h1 style="font-family:var(--font-heading);font-size:3rem;font-weight:700;color:{text_color};margin:0 0 1rem">{heading}</h1>
+    {f'<p style="font-size:1.25rem;color:{text_color};opacity:0.9;margin:0;line-height:1.6">{subheading}</p>' if subheading else ''}
+    {cta_html}
+  </div>
+</section>'''
+
+
+def _render_section(props: dict) -> str:
+    """Render a Section wrapper component."""
+    bg_color = _esc(props.get("bgColor", "#ffffff"))
+    padding_map = {"none": "0", "s": "16px 24px", "m": "32px 24px", "l": "48px 24px", "xl": "80px 24px"}
+    padding = padding_map.get(props.get("padding", "l"), "48px 24px")
+    max_width = _esc(props.get("maxWidth", "1200px"))
+    return f'<section style="background:{bg_color};padding:{padding}"><div style="max-width:{max_width};margin:0 auto">'
+
+
+def _render_icon_text(props: dict) -> str:
+    """Render an IconText component."""
+    text = _esc(props.get("text", ""))
+    icon_size = _esc(props.get("iconSize", "24"))
+    icon = props.get("icon", "check")
+    svg_paths = {
+        "star": '<path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.86L12 17.77 5.82 21l1.18-6.86-5-4.87 6.91-1.01z" fill="currentColor"/>',
+        "heart": '<path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78L12 21.23l8.84-8.84a5.5 5.5 0 000-7.78z" fill="currentColor"/>',
+        "check": '<polyline points="20 6 9 17 4 12" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/>',
+        "clock": '<circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2" fill="none"/><path d="M12 6v6l4 2" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/>',
+        "location": '<path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z" fill="currentColor"/><circle cx="12" cy="9" r="2.5" fill="#fff"/>',
+        "phone": '<path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6A19.79 19.79 0 012.12 4.18 2 2 0 014.11 2h3a2 2 0 012 1.72c.13.84.37 1.66.7 2.44a2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.78.33 1.6.57 2.44.7A2 2 0 0122 16.92z" fill="none" stroke="currentColor" stroke-width="2"/>',
+    }
+    svg = svg_paths.get(icon, svg_paths["check"])
+    return f'<div style="display:flex;align-items:center;gap:12px;font-family:var(--font-body);padding:0.25rem 1.5rem"><svg width="{icon_size}" height="{icon_size}" viewBox="0 0 24 24" style="flex-shrink:0;color:var(--brand-accent)">{svg}</svg><span style="font-size:1rem;color:#333">{text}</span></div>'
+
+
 COMPONENT_RENDERERS = {
     "HeroSection": _render_hero_section,
     "Hero": _render_hero_section,
+    "HeroBanner": _render_hero_banner,
+    "Section": _render_section,
+    "IconText": _render_icon_text,
     "Heading": _render_heading,
     "TextBlock": _render_text_block,
     "Text": _render_text_block,
@@ -488,7 +544,7 @@ def build_page_html(
     full_title = f"{page_title} | {title_suffix}" if title_suffix else page_title
     meta_desc = _esc(page.get("meta_description", ""))
     og_image = _esc(page.get("og_image") or seo.get("default_og_image", ""))
-    canonical = f"https://{_esc(subdomain)}.reevenow.com/{_esc(slug)}"
+    canonical = f"https://{_esc(subdomain)}.reeveos.site/{_esc(slug)}"
 
     font_heading = _esc(brand.get("font_heading", "Cormorant Garamond"))
     font_body = _esc(brand.get("font_body", "DM Sans"))
@@ -596,7 +652,7 @@ function rnLoadThirdParty(){{
         "@context": "https://schema.org",
         "@type": "LocalBusiness",
         "name": footer.get("business_name", ""),
-        "url": f"https://{subdomain}.reevenow.com",
+        "url": f"https://{subdomain}.reeveos.site",
     }
     if footer.get("address"):
         jsonld["address"] = footer["address"]
@@ -883,7 +939,7 @@ async def sitemap(subdomain: str):
         slug = _esc(page.get("slug", ""))
         published = page.get("published_at")
         lastmod = published.strftime("%Y-%m-%d") if published else datetime.utcnow().strftime("%Y-%m-%d")
-        loc = f"https://{_esc(subdomain)}.reevenow.com/{slug}"
+        loc = f"https://{_esc(subdomain)}.reeveos.site/{slug}"
         urls += f"  <url><loc>{loc}</loc><lastmod>{lastmod}</lastmod></url>\n"
 
     xml = f'''<?xml version="1.0" encoding="UTF-8"?>
@@ -899,7 +955,7 @@ async def robots(subdomain: str):
     content = f"""User-agent: *
 Allow: /
 
-Sitemap: https://{subdomain}.reevenow.com/sitemap.xml
+Sitemap: https://{subdomain}.reeveos.site/sitemap.xml
 """
     return Response(content=content, media_type="text/plain")
 
@@ -1054,7 +1110,7 @@ async def blog_rss_feed(subdomain: str):
 
     footer = settings.get("footer", {})
     biz_name = _esc(footer.get("business_name", subdomain))
-    base_url = f"https://{subdomain}.reevenow.com"
+    base_url = f"https://{subdomain}.reeveos.site"
 
     items = ""
     for post in posts:
@@ -1137,7 +1193,7 @@ async def blog_single_post(subdomain: str, post_slug: str):
   <meta property="og:title" content="{title}">
   <meta property="og:description" content="{meta_desc}">
   {f'<meta property="og:image" content="{_esc(featured_image)}">' if featured_image else ''}
-  <link rel="canonical" href="https://{_esc(subdomain)}.reevenow.com/blog/{_esc(post.get('slug', ''))}">
+  <link rel="canonical" href="https://{_esc(subdomain)}.reeveos.site/blog/{_esc(post.get('slug', ''))}">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family={font_heading.replace(' ', '+')}:wght@400;700&family={font_body.replace(' ', '+')}:wght@400;500&display=swap" rel="stylesheet">
   <style>
