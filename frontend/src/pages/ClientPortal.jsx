@@ -168,6 +168,8 @@ export default function ClientPortal(){
   const[loading,setLoading]=useState(false),[err,setErr]=useState('')
   const[authMode,setAuthMode]=useState('login'),[email,setEmail]=useState(''),[password,setPassword]=useState('')
   const[signupName,setSignupName]=useState(''),[signupPhone,setSignupPhone]=useState(''),[showPw,setShowPw]=useState(false)
+  const[resetStatus,setResetStatus]=useState('idle'),[newPw,setNewPw]=useState(''),[confirmPw,setConfirmPw]=useState('')
+  const[resetToken,setResetToken]=useState(null)
   const[step,setStep]=useState(0),[fd,setFd]=useState({}),[cs,setCs]=useState(null),[myData,setMyData]=useState(null)
   const[activeTab,setActiveTab]=useState('home')
   const topRef=useRef(null)
@@ -180,8 +182,11 @@ export default function ClientPortal(){
   const upcoming=myData?.upcoming_bookings||[]
 
   useEffect(()=>{if(!slug)return;apiFetch(`/client/${slug}/info`).then(d=>{setBiz(d.business||d);if(sessionStorage.getItem('client_token'))loadUser()}).catch(()=>{})},[slug])
+  useEffect(()=>{const params=new URLSearchParams(window.location.search);const rt=params.get('reset');if(rt){setResetToken(rt);setAuthMode('reset')}},[])
   const loadUser=async()=>{try{const p=await apiFetch('/client/auth/me');const d=await apiFetch(`/client/${slug}/my-data`);setUser(p.user||p);setCs(d.consultation||null);setMyData(d);setView('home');try{const svc=await apiFetch(`/client/${slug}/services`);setServices(svc.services||[])}catch(e){}}catch(e){sessionStorage.removeItem('client_token')}}
   const doAuth=async()=>{setLoading(true);setErr('');try{const body=authMode==='login'?{email,password}:{name:signupName,email,phone:signupPhone,password,business_id:biz?.business_id||''};const d=await apiFetch(`/client/auth/${authMode==='login'?'login':'signup'}`,{method:'POST',body:JSON.stringify(body)});sessionStorage.setItem('client_token',d.token);await loadUser()}catch(e){setErr(e.message)}setLoading(false)}
+  const doForgot=async()=>{setLoading(true);setErr('');try{await apiFetch('/client/auth/password-reset-request',{method:'POST',body:JSON.stringify({email,slug})});setResetStatus('sent')}catch(e){}setResetStatus('sent');setLoading(false)}
+  const doReset=async()=>{if(newPw!==confirmPw){setErr("Passwords don't match");return}if(newPw.length<8){setErr("Password must be at least 8 characters");return}setLoading(true);setErr('');try{await apiFetch('/client/auth/password-reset-confirm',{method:'POST',body:JSON.stringify({token:resetToken,new_password:newPw})});setResetStatus('done')}catch(e){setErr(e.message)}setLoading(false)}
   const logout=()=>{sessionStorage.removeItem('client_token');setUser(null);setView('login')}
   const submitForm=async()=>{setLoading(true);try{await apiFetch(`/consultation/public/${slug}/submit`,{method:'POST',body:JSON.stringify({form_data:fd,alerts})});setCs({status:'submitted'});setView('submitted')}catch(e){setErr(e.message)}setLoading(false)}
   const canProceed=()=>{if(step===0)return fd.fullName&&fd.dob&&fd.mobile&&fd.email&&fd.emergencyName&&fd.emergencyPhone&&fd.gpName;if(step===5)return fd.consent1&&fd.consent2&&fd.consent3&&fd.consent4&&fd.signed;return true}
@@ -244,6 +249,7 @@ export default function ClientPortal(){
           {desk&&<div style={{flex:1,paddingTop:28}}><h2 style={{fontSize:22,fontWeight:700,color:$.acc,margin:'0 0 16px'}}>Welcome Back</h2><p style={{fontSize:13,color:$.txtM,lineHeight:'22px',margin:'0 0 16px',maxWidth:380}}>Access your personalized skincare dashboard, manage appointments, and explore exclusive member treatments designed for your unique glow.</p><div style={{display:'flex',alignItems:'center',gap:8}}>{I.shield($.acc,14)}<span style={{fontSize:11,fontWeight:700,color:$.acc,textTransform:'uppercase',letterSpacing:'0.5px'}}>Secure Luxury Gateway</span></div></div>}
           <div style={{width:desk?440:'100%',flexShrink:0}}>
             <div style={{background:$.card,borderRadius:12,border:`1px solid ${$.bdr}`,padding:desk?24:20,boxShadow:'0 8px 32px rgba(0,0,0,0.05)'}}>
+              {(authMode==='login'||authMode==='signup')&&<>
               <h2 style={{fontSize:desk?17:20,fontWeight:700,color:$.h,margin:desk?'0 0 4px':'0 0 6px'}}>{authMode==='login'?'Member Login':'Create Account'}</h2>
               <p style={{fontSize:desk?12:15,color:$.txtM,margin:desk?'0 0 20px':'0 0 24px'}}>{authMode==='login'?'Please enter your credentials to continue.':'Start your journey to radiant skin today.'}</p>
               {authMode==='signup'&&<F label="Full Name" icon={I.user($.txtL,12)} name="sn" value={signupName} onChange={(_,v)=>setSignupName(v)} placeholder="Your full name" d={desk}/>}
@@ -252,13 +258,55 @@ export default function ClientPortal(){
               <div style={{marginBottom:desk?14:18}}>
                 <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:desk?4:6}}>
                   <div style={{display:'flex',alignItems:'center',gap:5}}>{I.lock($.txtL,desk?12:14)}<label style={{fontSize:desk?12:15,fontWeight:600,color:$.txt}}>Password</label></div>
-                  {authMode==='login'&&<button style={{background:'none',border:'none',color:$.acc,fontSize:desk?11:13,fontWeight:500,cursor:'pointer',fontFamily:$.f}}>Forgot password?</button>}
+                  {authMode==='login'&&<button onClick={()=>{setAuthMode('forgot');setErr('');setResetStatus('idle')}} style={{background:'none',border:'none',color:$.acc,fontSize:desk?11:13,fontWeight:500,cursor:'pointer',fontFamily:$.f}}>Forgot password?</button>}
                 </div>
                 <div style={{position:'relative'}}><input type={showPw?'text':'password'} value={password} onChange={e=>setPassword(e.target.value)} placeholder={authMode==='login'?'••••••••':'Create a strong password'} style={{width:'100%',padding:desk?'9px 40px 9px 12px':'14px 48px 14px 16px',borderRadius:desk?8:12,border:`1px solid ${$.bdr}`,fontSize:desk?12:16,outline:'none',background:$.card,color:$.h,boxSizing:'border-box',fontFamily:$.f}}/><button type="button" onClick={()=>setShowPw(!showPw)} style={{position:'absolute',right:12,top:'50%',transform:'translateY(-50%)',background:'none',border:'none',cursor:'pointer'}}>{I.eye($.txtL,14)}</button></div>
               </div>
               {err&&<p style={{fontSize:11,color:$.err,margin:'0 0 10px'}}>{err}</p>}
               <button onClick={doAuth} disabled={loading} style={{width:'100%',padding:desk?'9px 0':'12px 0',borderRadius:99,border:'none',background:$.acc,color:'#fff',fontSize:desk?13:15,fontWeight:700,cursor:loading?'wait':'pointer',fontFamily:$.f,opacity:loading?0.6:1,textTransform:'uppercase',marginBottom:14}}>{loading?'Please wait...':authMode==='login'?'Log In':'Create Account'}</button>
               <p style={{textAlign:'center',fontSize:desk?12:15,color:$.txtM,margin:0}}>{authMode==='login'?'Not a member yet? ':'Already have an account? '}<button onClick={()=>{setAuthMode(authMode==='login'?'signup':'login');setErr('')}} style={{background:'none',border:'none',color:$.acc,fontWeight:600,cursor:'pointer',fontSize:12,fontFamily:$.f}}>{authMode==='login'?'Apply for Membership':'Sign In'}</button></p>
+              </>}
+              {authMode==='forgot'&&<>
+              <h2 style={{fontSize:desk?17:20,fontWeight:700,color:$.h,margin:desk?'0 0 4px':'0 0 6px'}}>Forgot Password</h2>
+              {resetStatus==='idle'&&<>
+                <p style={{fontSize:desk?12:15,color:$.txtM,margin:desk?'0 0 20px':'0 0 24px'}}>Enter your email and we'll send you a reset link.</p>
+                <F label="Email Address" icon={I.mail($.txtL,12)} type="email" name="em" value={email} onChange={(_,v)=>setEmail(v)} placeholder="name@example.com" d={desk}/>
+                {err&&<p style={{fontSize:11,color:$.err,margin:'0 0 10px'}}>{err}</p>}
+                <button onClick={doForgot} disabled={loading} style={{width:'100%',padding:desk?'9px 0':'12px 0',borderRadius:99,border:'none',background:$.acc,color:'#fff',fontSize:desk?13:15,fontWeight:700,cursor:loading?'wait':'pointer',fontFamily:$.f,opacity:loading?0.6:1,textTransform:'uppercase',marginBottom:14}}>{loading?'Sending...':'Send Reset Link'}</button>
+              </>}
+              {resetStatus==='sent'&&<>
+                <div style={{textAlign:'center',padding:'16px 0'}}>
+                  <div style={{width:48,height:48,borderRadius:24,background:'#f0fdf4',display:'inline-flex',alignItems:'center',justifyContent:'center',marginBottom:12}}><span style={{fontSize:24}}>&#10003;</span></div>
+                  <p style={{fontSize:desk?13:16,color:$.h,fontWeight:600,margin:'0 0 8px'}}>Check your inbox</p>
+                  <p style={{fontSize:desk?12:14,color:$.txtM,margin:'0 0 16px'}}>If <b>{email}</b> is registered, you'll receive a reset link shortly. Check spam if you don't see it.</p>
+                </div>
+              </>}
+              <p style={{textAlign:'center',fontSize:desk?12:15,color:$.txtM,margin:0}}><button onClick={()=>{setAuthMode('login');setErr('');setResetStatus('idle')}} style={{background:'none',border:'none',color:$.acc,fontWeight:600,cursor:'pointer',fontSize:12,fontFamily:$.f}}>Back to Sign In</button></p>
+              </>}
+              {authMode==='reset'&&<>
+              <h2 style={{fontSize:desk?17:20,fontWeight:700,color:$.h,margin:desk?'0 0 4px':'0 0 6px'}}>Set New Password</h2>
+              {resetStatus!=='done'&&<>
+                <p style={{fontSize:desk?12:15,color:$.txtM,margin:desk?'0 0 20px':'0 0 24px'}}>Choose a strong password for your account.</p>
+                <div style={{marginBottom:desk?14:18}}>
+                  <label style={{display:'block',fontSize:desk?12:15,fontWeight:600,color:$.txt,marginBottom:desk?4:6}}>New Password</label>
+                  <input type="password" value={newPw} onChange={e=>setNewPw(e.target.value)} placeholder="At least 8 characters" style={{width:'100%',padding:desk?'9px 12px':'14px 16px',borderRadius:desk?8:12,border:`1px solid ${$.bdr}`,fontSize:desk?12:16,outline:'none',background:$.card,color:$.h,boxSizing:'border-box',fontFamily:$.f}}/>
+                </div>
+                <div style={{marginBottom:desk?14:18}}>
+                  <label style={{display:'block',fontSize:desk?12:15,fontWeight:600,color:$.txt,marginBottom:desk?4:6}}>Confirm Password</label>
+                  <input type="password" value={confirmPw} onChange={e=>setConfirmPw(e.target.value)} placeholder="Type it again" style={{width:'100%',padding:desk?'9px 12px':'14px 16px',borderRadius:desk?8:12,border:`1px solid ${$.bdr}`,fontSize:desk?12:16,outline:'none',background:$.card,color:$.h,boxSizing:'border-box',fontFamily:$.f}}/>
+                </div>
+                {err&&<p style={{fontSize:11,color:$.err,margin:'0 0 10px'}}>{err}</p>}
+                <button onClick={doReset} disabled={loading||newPw.length<8||newPw!==confirmPw} style={{width:'100%',padding:desk?'9px 0':'12px 0',borderRadius:99,border:'none',background:$.acc,color:'#fff',fontSize:desk?13:15,fontWeight:700,cursor:loading?'wait':'pointer',fontFamily:$.f,opacity:(loading||newPw.length<8||newPw!==confirmPw)?0.5:1,textTransform:'uppercase',marginBottom:14}}>{loading?'Updating...':'Set New Password'}</button>
+              </>}
+              {resetStatus==='done'&&<>
+                <div style={{textAlign:'center',padding:'16px 0'}}>
+                  <div style={{width:48,height:48,borderRadius:24,background:'#f0fdf4',display:'inline-flex',alignItems:'center',justifyContent:'center',marginBottom:12}}><span style={{fontSize:24}}>&#10003;</span></div>
+                  <p style={{fontSize:desk?13:16,color:$.h,fontWeight:600,margin:'0 0 8px'}}>Password Updated</p>
+                  <p style={{fontSize:desk?12:14,color:$.txtM,margin:'0 0 16px'}}>You can now sign in with your new password.</p>
+                </div>
+              </>}
+              <p style={{textAlign:'center',fontSize:desk?12:15,color:$.txtM,margin:0}}><button onClick={()=>{setAuthMode('login');setErr('');setResetStatus('idle');setResetToken(null);window.history.replaceState({},'',window.location.pathname)}} style={{background:'none',border:'none',color:$.acc,fontWeight:600,cursor:'pointer',fontSize:12,fontFamily:$.f}}>Back to Sign In</button></p>
+              </>}
             </div>
           </div>
         </div>

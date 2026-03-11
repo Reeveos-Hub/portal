@@ -267,6 +267,115 @@ async def consumer_login(data: dict = Body(...)):
 
 
 # ═══════════════════════════════════════════════════════════════
+# PASSWORD RESET — consumer accounts
+# ═══════════════════════════════════════════════════════════════
+
+@router.post("/auth/password-reset-request")
+async def consumer_password_reset_request(data: dict = Body(...)):
+    """
+    Request a password reset link for a consumer account.
+    Always returns success to prevent email enumeration.
+    """
+    db = get_database()
+    email = (data.get("email") or "").strip().lower()
+    slug = data.get("slug", "")
+
+    if not email:
+        return {"detail": "If the email exists, a reset link has been sent"}
+
+    account = await db.consumer_accounts.find_one({"email": email})
+    if not account:
+        return {"detail": "If the email exists, a reset link has been sent"}
+
+    # Generate reset token (1 hour expiry)
+    reset_payload = {
+        "sub": str(account["_id"]),
+        "type": "consumer_password_reset",
+        "exp": datetime.utcnow() + timedelta(hours=1),
+        "iat": datetime.utcnow(),
+    }
+    reset_token = jwt.encode(reset_payload, JWT_SECRET, algorithm=JWT_ALGORITHM)
+
+    # Build reset URL — include slug so they land back on the right business portal
+    reset_url = f"https://portal.reeveos.app/client/{slug}?reset={reset_token}" if slug else f"https://portal.reeveos.app/reset-password?token={reset_token}&portal=client"
+
+    # Send email via new template system
+    try:
+        import asyncio
+        from helpers.notifications import send_templated_email
+
+        # Get business info for branding if slug provided
+        business = {"business_name": "ReeveOS", "name": "ReeveOS", "address": "reeveos.app", "_id": "system"}
+        if slug:
+            biz = await db.businesses.find_one({"slug": slug})
+            if biz:
+                business = biz
+
+        asyncio.ensure_future(send_templated_email(
+            to=email,
+            template="password_reset",
+            business=business,
+            data={
+                "reset_url": reset_url,
+                "link": reset_url,
+            },
+            dedup_key=f"client_reset_{email}",
+            dedup_window_hours=1,
+        ))
+    except Exception:
+        pass  # Never reveal whether email exists
+
+    return {"detail": "If the email exists, a reset link has been sent"}
+
+
+@router.post("/auth/password-reset-confirm")
+async def consumer_password_reset_confirm(data: dict = Body(...)):
+    """Verify reset token and update consumer password."""
+    db = get_database()
+    token = data.get("token", "")
+    new_password = data.get("new_password", "")
+
+    if not token or not new_password:
+        raise HTTPException(400, "Token and new password required")
+
+    if len(new_password) < 8:
+        raise HTTPException(400, "Password must be at least 8 characters")
+
+    # Decode and validate token
+    try:
+        payload = jwt.decode(token, JWT_SECRET, algorithms=[JWT_ALGORITHM])
+        if payload.get("type") != "consumer_password_reset":
+            raise HTTPException(400, "Invalid reset token")
+        user_id = payload.get("sub")
+        if not user_id:
+            raise HTTPException(400, "Invalid reset token")
+    except jwt.ExpiredSignatureError:
+        raise HTTPException(400, "Reset link has expired. Please request a new one.")
+    except jwt.InvalidTokenError:
+        raise HTTPException(400, "Invalid reset token")
+
+    # Find consumer account
+    try:
+        account = await db.consumer_accounts.find_one({"_id": ObjectId(user_id)})
+    except Exception:
+        account = None
+
+    if not account:
+        raise HTTPException(400, "Invalid reset token")
+
+    # Update password
+    await db.consumer_accounts.update_one(
+        {"_id": account["_id"]},
+        {"$set": {
+            "password_hash": _hash(new_password),
+            "updated_at": datetime.utcnow(),
+        }}
+    )
+
+    return {"detail": "Password updated successfully"}
+
+
+# ═══════════════════════════════════════════════════════════════
 # PROFILE
 # ═══════════════════════════════════════════════════════════════
 

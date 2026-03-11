@@ -435,6 +435,7 @@ export default function AdminLayout() {
             </button>
           </div>
           <p style={{ textAlign: 'center', fontSize: 10, color: '#555', marginTop: 24 }}>Authorized personnel only</p>
+          <p style={{ textAlign: 'center', marginTop: 12 }}><a href="/forgot-password" style={{ fontSize: 12, color: '#C9A84C', textDecoration: 'none', fontFamily: FIG }}>Forgot password?</a></p>
         </form>
         <style>{`@keyframes spin { to { transform: rotate(360deg) } }`}</style>
       </div>
