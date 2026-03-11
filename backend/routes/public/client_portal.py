@@ -12,9 +12,10 @@ Routes:
 """
 
 from datetime import datetime, timedelta
-from fastapi import APIRouter, HTTPException, Depends, Body
+from fastapi import APIRouter, HTTPException, Depends, Body, Request, Header
 from middleware.medical_audit import log_medical_access
 from middleware.encryption import TenantEncryption
+from middleware.rate_limit import limiter
 from database import get_database
 from bson import ObjectId
 import bcrypt
@@ -103,9 +104,6 @@ async def get_current_consumer(authorization: str = None):
     pass
 
 
-from fastapi import Header
-
-
 async def _get_consumer(authorization: str = Header(None)):
     if not authorization or not authorization.startswith("Bearer "):
         raise HTTPException(401, "Authentication required")
@@ -152,7 +150,8 @@ async def get_business_info(slug: str):
 # ═══════════════════════════════════════════════════════════════
 
 @router.post("/auth/signup")
-async def consumer_signup(data: dict = Body(...)):
+@limiter.limit("5/minute")
+async def consumer_signup(request: Request, data: dict = Body(...)):
     """Create consumer account, link to business, return JWT."""
     db = get_database()
 
@@ -238,7 +237,8 @@ async def consumer_signup(data: dict = Body(...)):
 
 
 @router.post("/auth/login")
-async def consumer_login(data: dict = Body(...)):
+@limiter.limit("5/minute")
+async def consumer_login(request: Request, data: dict = Body(...)):
     """Consumer login — returns JWT."""
     db = get_database()
     email = (data.get("email") or "").strip().lower()
@@ -271,7 +271,8 @@ async def consumer_login(data: dict = Body(...)):
 # ═══════════════════════════════════════════════════════════════
 
 @router.post("/auth/password-reset-request")
-async def consumer_password_reset_request(data: dict = Body(...)):
+@limiter.limit("3/minute")
+async def consumer_password_reset_request(request: Request, data: dict = Body(...)):
     """
     Request a password reset link for a consumer account.
     Always returns success to prevent email enumeration.
@@ -329,7 +330,8 @@ async def consumer_password_reset_request(data: dict = Body(...)):
 
 
 @router.post("/auth/password-reset-confirm")
-async def consumer_password_reset_confirm(data: dict = Body(...)):
+@limiter.limit("5/minute")
+async def consumer_password_reset_confirm(request: Request, data: dict = Body(...)):
     """Verify reset token and update consumer password."""
     db = get_database()
     token = data.get("token", "")
@@ -1055,8 +1057,36 @@ async def send_client_email(business_id: str, data: dict = Body(...), authorizat
         "sent_at": now,
     })
 
-    # TODO: Actually send via Resend/Sendly when configured
-    return {"sent": True, "recipient_count": len(recipients)}
+    # Send emails via Resend
+    sent = 0
+    business = await db.businesses.find_one({"_id": business_id})
+    if not business:
+        from bson import ObjectId as OID
+        try:
+            business = await db.businesses.find_one({"_id": OID(business_id)})
+        except Exception:
+            pass
+    business = business or {"business_name": "ReeveOS", "name": "ReeveOS", "address": "", "_id": business_id}
+
+    try:
+        from helpers.email import send_email, wrap_html
+        html = wrap_html(f"<p>{body}</p>")
+        for r in recipients:
+            try:
+                from_name = business.get("name", business.get("business_name", "ReeveOS"))
+                await send_email(
+                    to=r["email"],
+                    subject=subject,
+                    html=html,
+                    from_email=f"{from_name} <notifications@reeveos.app>",
+                )
+                sent += 1
+            except Exception:
+                pass
+    except Exception:
+        pass
+
+    return {"sent": True, "recipient_count": len(recipients), "actually_sent": sent}
 
 
 @router.get("/business/{business_id}/email-history")

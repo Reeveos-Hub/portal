@@ -120,9 +120,29 @@ async def invite_operator(
     }
     await db.operators.insert_one(operator)
 
-    # TODO: Send invite email via Resend
-    # For now, return the invite link
-    invite_link = f"https://portal.rezvo.app/operator-invite/{invite_token}"
+    # Send invite email
+    invite_link = f"https://portal.reeveos.app/operator-invite/{invite_token}"
+    try:
+        import asyncio
+        from helpers.notifications import send_templated_email
+        business = await db.businesses.find_one({"_id": op_ctx.tenant.business_id})
+        if not business:
+            from bson import ObjectId
+            business = await db.businesses.find_one({"_id": ObjectId(op_ctx.tenant.business_id)})
+        business = business or {"business_name": "A business", "name": "A business", "address": "", "_id": ""}
+        asyncio.ensure_future(send_templated_email(
+            to=email,
+            template="partner_invite",
+            business=business,
+            data={
+                "inviter_name": name,
+                "business_name": business.get("name", business.get("business_name", "")),
+                "link": invite_link,
+            },
+            dedup_key=f"op_invite_{email}_{op_ctx.tenant.business_id}",
+        ))
+    except Exception as e:
+        logger.warning(f"Operator invite email failed: {e}")
 
     logger.info(f"OPERATOR INVITED: {email} to business={business_id} by user={op_ctx.tenant.user_id}")
     operator = _sanitize_operator(operator, for_owner=True)

@@ -71,6 +71,7 @@ async def register(user_data: UserCreate):
         "role": safe_role,
         "password_hash": get_password_hash(user_data.password),
         "avatar": None,
+        "email_verified": False,
         "saved_businesses": [],
         "booking_history": [],
         "review_history": [],
@@ -82,6 +83,25 @@ async def register(user_data: UserCreate):
     
     result = await db.users.insert_one(user_dict)
     user_id = str(result.inserted_id)
+
+    # Send verification email
+    try:
+        import asyncio
+        from helpers.notifications import send_templated_email
+        verify_token = create_access_token(
+            data={"sub": user_id, "type": "email_verify"},
+            expires_delta=timedelta(hours=24)
+        )
+        verify_url = f"https://portal.reeveos.app/verify-email?token={verify_token}"
+        asyncio.ensure_future(send_templated_email(
+            to=user_data.email,
+            template="email_verification",
+            business={"business_name": "ReeveOS", "name": "ReeveOS", "address": "reeveos.app", "_id": "system"},
+            data={"verify_url": verify_url, "link": verify_url},
+            dedup_key=f"verify_{user_id}",
+        ))
+    except Exception:
+        pass  # Don't block registration
     
     access_token = create_access_token(data={"sub": user_id})
     refresh_token = create_refresh_token(data={"sub": user_id})
@@ -286,3 +306,39 @@ async def admin_login(request: Request, login_data: LoginRequest):
             "avatar": user.get("avatar"),
         },
     }
+
+
+@router.get("/verify-email")
+async def verify_email(token: str):
+    """Verify email address from the link in the verification email."""
+    from jose import JWTError, jwt as jose_jwt
+
+    try:
+        payload = jose_jwt.decode(
+            token, settings.jwt_secret_key,
+            algorithms=[settings.jwt_algorithm]
+        )
+        if payload.get("type") != "email_verify":
+            raise HTTPException(400, "Invalid verification token")
+        user_id = payload.get("sub")
+        if not user_id:
+            raise HTTPException(400, "Invalid verification token")
+    except JWTError:
+        raise HTTPException(400, "Invalid or expired verification link")
+
+    db = get_database()
+    try:
+        result = await db.users.update_one(
+            {"_id": ObjectId(user_id)},
+            {"$set": {"email_verified": True, "updated_at": datetime.utcnow()}}
+        )
+    except Exception:
+        result = await db.users.update_one(
+            {"_id": user_id},
+            {"$set": {"email_verified": True, "updated_at": datetime.utcnow()}}
+        )
+
+    if result.modified_count == 0:
+        raise HTTPException(400, "Invalid verification token")
+
+    return {"detail": "Email verified successfully"}

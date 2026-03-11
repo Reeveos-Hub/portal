@@ -12,8 +12,11 @@ import Login from './pages/auth/Login'
 import Register from './pages/auth/Register'
 import ForgotPassword from './pages/auth/ForgotPassword'
 import ResetPassword from './pages/auth/ResetPassword'
+import VerifyEmail from './pages/auth/VerifyEmail'
 import BusinessTypeSelector from './pages/auth/BusinessTypeSelector'
 import RestaurantWelcome from './pages/auth/RestaurantWelcome'
+import Unsubscribe from './pages/Unsubscribe'
+import NotFound from './pages/NotFound'
 
 /* Customer dashboard pages */
 import Dashboard from './pages/dashboard/Dashboard'
@@ -188,6 +191,8 @@ const App = () => {
             <Route path="/register" element={<Register />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/reset-password" element={<ResetPassword />} />
+            <Route path="/verify-email" element={<VerifyEmail />} />
+            <Route path="/unsubscribe" element={<Unsubscribe />} />
             <Route path="/auth/login" element={<Login />} />
             <Route path="/auth/register" element={<Register />} />
 
@@ -297,7 +302,7 @@ const App = () => {
 
             {/* Root → dashboard (marketing is served as static HTML by Nginx) */}
             <Route path="/" element={<Navigate to="/dashboard" replace />} />
-            <Route path="*" element={<Navigate to="/dashboard" replace />} />
+            <Route path="*" element={<NotFound />} />
           </Routes>
         </TierProvider>
       </AuthProvider>

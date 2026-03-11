@@ -100,9 +100,9 @@ async def _run_scheduler():
 
 
 async def _send_booking_reminders():
-    """Send 24h and 2h booking reminders via email AND SMS."""
+    """Send 24h and 2h booking reminders via new template system."""
     from database import get_database
-    from helpers.email import send_booking_reminder
+    from helpers.notifications import send_templated_email, send_templated_sms
 
     db = get_database()
     if not db:
@@ -120,7 +120,7 @@ async def _send_booking_reminders():
         "reminder_24h_sent": {"$ne": True},
     }).to_list(100)
 
-    sms_sent = 0
+    sent_count = 0
     for booking in bookings_24h:
         from models.normalize import normalize_booking
         nb = normalize_booking(booking)
@@ -128,7 +128,6 @@ async def _send_booking_reminders():
         phone = nb["customer"].get("phone", "")
         client_name = nb["customer"]["name"] or "there"
 
-        # Get business name
         business = await db.businesses.find_one({"_id": nb["businessId"]})
         if not business:
             from bson import ObjectId
@@ -136,61 +135,60 @@ async def _send_booking_reminders():
                 business = await db.businesses.find_one({"_id": ObjectId(nb["businessId"])})
             except Exception:
                 pass
-        business_name = business.get("name", "") if business else ""
+        if not business:
+            continue
 
-        # Email reminder
+        svc = booking.get("service", {})
+        svc_name = svc.get("name", "") if isinstance(svc, dict) else str(svc)
+        biz_type = business.get("business_type", business.get("category", ""))
+        template = "reminder_24h"
+
+        data = {
+            "client_name": client_name.split()[0] if client_name != "there" else "there",
+            "business_name": business.get("name", ""),
+            "service": svc_name or "your appointment",
+            "date": nb["date"],
+            "time": nb["time"],
+            "link": f"https://portal.reeveos.app/book/{business.get('slug', '')}",
+        }
+
+        booking_id = str(booking["_id"])
+
         if email:
             try:
-                await send_booking_reminder(
-                    to=email,
-                    client_name=client_name,
-                    business_name=business_name,
-                    booking_date=nb["date"],
-                    booking_time=nb["time"],
-                    hours_until=24,
-                    manage_url=f"https://reeveos.app/bookings/{booking['_id']}",
+                await send_templated_email(
+                    to=email, template=template, business=business,
+                    data=data, dedup_key=f"reminder24_{booking_id}",
                 )
+                sent_count += 1
             except Exception as e:
-                logger.error(f"Email reminder failed for {email}: {e}")
+                logger.error(f"24h email reminder failed: {e}")
 
-        # SMS reminder (parallel to email)
         if phone:
             try:
-                from helpers.sms import send_sms, booking_reminder_sms
-                sms_body = booking_reminder_sms(
-                    client_name=client_name.split()[0] if client_name != "there" else "there",
-                    business_name=business_name,
-                    booking_date=nb["date"],
-                    booking_time=nb["time"],
+                await send_templated_sms(
+                    to=phone, template=template, business=business,
+                    data=data, dedup_key=f"sms_reminder24_{booking_id}",
                 )
-                await send_sms(phone, sms_body)
-                sms_sent += 1
             except Exception as e:
-                logger.error(f"SMS reminder failed for {phone}: {e}")
+                logger.error(f"24h SMS reminder failed: {e}")
 
         await db.bookings.update_one(
             {"_id": booking["_id"]},
             {"$set": {"reminder_24h_sent": True}},
         )
 
-    # 2-hour reminders (similar logic)
-    window_2h_start = now + timedelta(hours=1, minutes=30)
-    window_2h_end = now + timedelta(hours=2, minutes=30)
-
-    # For 2h reminders we'd need datetime comparison, not just date
-    # This is simplified — in production you'd combine date + time fields
-
-    if bookings_24h:
-        logger.info(f"Sent {len(bookings_24h)} booking reminders (24h email + {sms_sent} SMS)")
+    if sent_count:
+        logger.info(f"Sent {sent_count} booking reminders (24h)")
 
 
 async def _process_aftercare_queue():
     """
     Process queued aftercare emails — sent 15-30 min after appointment completion.
-    Templates per treatment type: microneedling, peel, rf, polynucleotides, lymphatic, dermaplaning.
+    Now uses new template system.
     """
     from database import get_database
-    from scripts.send_aftercare import AFTERCARE_CONTENT
+    from helpers.notifications import send_templated_email
 
     db = get_database()
     if not db:
@@ -207,26 +205,37 @@ async def _process_aftercare_queue():
 
     sent_count = 0
     for item in queue:
-        treatment_type = item.get("treatment_type", "")
-        content = AFTERCARE_CONTENT.get(treatment_type)
-        if not content:
-            await db.aftercare_queue.update_one({"_id": item["_id"]}, {"$set": {"sent": True, "skipped": True}})
-            continue
-
         client_email = item.get("client_email")
         client_name = item.get("client_name", "")
         business_id = item.get("business_id")
+        treatment_name = item.get("treatment_name", "your treatment")
 
         biz = await db.businesses.find_one({"_id": business_id}) if business_id else None
-        biz_name = (biz or {}).get("name", "Your Clinic")
+        if not biz:
+            from bson import ObjectId
+            try:
+                biz = await db.businesses.find_one({"_id": ObjectId(business_id)})
+            except Exception:
+                pass
+        biz = biz or {"business_name": "Your Clinic", "name": "Your Clinic", "address": "", "_id": ""}
+
+        if not client_email:
+            await db.aftercare_queue.update_one({"_id": item["_id"]}, {"$set": {"sent": True, "skipped": True}})
+            continue
 
         try:
-            from helpers.email import send_email
-            await send_email(
+            await send_templated_email(
                 to=client_email,
-                subject=content["subject"],
-                body=f"Hi {client_name},\n\n{content['body']}\n\nWarm regards,\n{biz_name}",
-                from_name=biz_name,
+                template="aftercare",
+                business=biz,
+                data={
+                    "client_name": client_name.split()[0] if client_name else "there",
+                    "service": treatment_name,
+                    "instructions": [],
+                    "next_session": "",
+                    "rebook_url": f"https://portal.reeveos.app/book/{biz.get('slug', '')}",
+                },
+                dedup_key=f"aftercare_{item.get('booking_id', '')}",
             )
             sent_count += 1
         except Exception as e:
@@ -243,10 +252,9 @@ async def _process_aftercare_queue():
             "booking_id": item.get("booking_id"),
             "client_email": client_email,
             "client_name": client_name,
-            "treatment_type": treatment_type,
-            "treatment_name": item.get("treatment_name", treatment_type),
+            "treatment_type": item.get("treatment_type", ""),
+            "treatment_name": treatment_name,
             "sent_at": now,
-            "template_subject": content["subject"],
         })
 
     if sent_count:
