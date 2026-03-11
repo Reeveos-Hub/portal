@@ -104,6 +104,9 @@ def render_email(body_html: str, business: dict, show_powered: bool = True, show
               </table>
             </td>
           </tr>
+          <tr>
+            <td style="height:2px;background-color:{GOLD};font-size:0;line-height:0;">&nbsp;</td>
+          </tr>
           
           <!-- BODY -->
           <tr>
