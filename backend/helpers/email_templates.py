@@ -358,7 +358,7 @@ def order_confirmed(d: dict) -> str:
             {"label": "Order Number", "value": d.get("ref", "")},
             {"label": "Date", "value": d.get("date", "")},
         ])
-        + f'<table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="margin:20px 0;">{items_html}{total_row("Total", f"£{d["""total"""]}")}</table>'
+        + '<table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="margin:20px 0;">' + items_html + total_row("Total", "£" + str(d.get("total", "0"))) + '</table>'
         + button("Track My Order", d.get("track_url", "#"))
         + paragraph("If you have any questions about your order, reply to this email.", muted=True, small=True)
     )
