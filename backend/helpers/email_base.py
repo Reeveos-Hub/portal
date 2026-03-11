@@ -44,14 +44,14 @@ def render_email(body_html: str, business: dict, show_powered: bool = True, show
     biz_address = business.get("address", "")
     logo_url = business.get("logo_url")
     
-    # Header: white-label with logo, or ReeveOS branding
+    # Header: white-label with logo, or ReeveOS branding (all on black background)
     if logo_url:
         header_content = f'''
             <img src="{logo_url}" alt="{biz_name}" style="max-width:120px;max-height:40px;display:block;" />
-            <span style="font-family:Arial,Helvetica,sans-serif;font-size:13px;color:{BLACK};font-weight:bold;margin-top:4px;display:block;">{biz_name}</span>
+            <span style="font-family:Arial,Helvetica,sans-serif;font-size:13px;color:{WHITE};font-weight:bold;margin-top:4px;display:block;">{biz_name}</span>
         '''
     elif biz_name != "ReeveOS":
-        # White-label without logo — show initial + name
+        # White-label without logo — show initial + name on dark header
         initial = biz_name[0].upper() if biz_name else "R"
         header_content = f'''
             <table role="presentation" cellspacing="0" cellpadding="0" border="0"><tr>
@@ -61,21 +61,21 @@ def render_email(body_html: str, business: dict, show_powered: bool = True, show
                     </div>
                 </td>
                 <td style="vertical-align:middle;">
-                    <span style="font-family:Arial,Helvetica,sans-serif;font-size:14px;color:{BLACK};font-weight:bold;">{biz_name}</span>
+                    <span style="font-family:Arial,Helvetica,sans-serif;font-size:14px;color:{WHITE};font-weight:bold;">{biz_name}</span>
                 </td>
             </tr></table>
         '''
     else:
-        # ReeveOS branding
+        # ReeveOS branding — gold R mark + gold text on black
         header_content = f'''
             <table role="presentation" cellspacing="0" cellpadding="0" border="0"><tr>
                 <td style="padding-right:8px;vertical-align:middle;">
-                    <div style="width:16px;height:16px;background-color:{GOLD};border-radius:2px;text-align:center;line-height:16px;">
-                        <span style="font-family:Arial,Helvetica,sans-serif;font-size:11px;color:{BLACK};font-weight:bold;">R</span>
+                    <div style="width:20px;height:20px;background-color:{GOLD};border-radius:3px;text-align:center;line-height:20px;">
+                        <span style="font-family:Arial,Helvetica,sans-serif;font-size:12px;color:{BLACK};font-weight:bold;">R</span>
                     </div>
                 </td>
                 <td style="vertical-align:middle;">
-                    <span style="font-family:Arial,Helvetica,sans-serif;font-size:13px;color:{GOLD};font-weight:bold;">ReeveOS</span>
+                    <span style="font-family:Arial,Helvetica,sans-serif;font-size:14px;color:{GOLD};font-weight:bold;">ReeveOS</span>
                 </td>
             </tr></table>
         '''
@@ -98,12 +98,9 @@ def render_email(body_html: str, business: dict, show_powered: bool = True, show
           
           <!-- HEADER -->
           <tr>
-            <td style="padding:20px 0;background-color:{BG};">
+            <td style="padding:16px 40px;background-color:{BLACK};border-radius:8px 8px 0 0;">
               <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
-                <tr><td align="left" style="padding:0 40px;">{header_content}</td></tr>
-              </table>
-              <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="margin-top:20px;">
-                <tr><td style="border-top:1px solid {GOLD};"></td></tr>
+                <tr><td align="left">{header_content}</td></tr>
               </table>
             </td>
           </tr>
