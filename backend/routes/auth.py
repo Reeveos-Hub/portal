@@ -193,10 +193,24 @@ async def request_password_reset(request: Request, reset_req: PasswordResetReque
         expires_delta=timedelta(hours=1)
     )
     
-    # TODO: Send reset email with token via Resend/SendGrid
-    # For now, log it server-side only — NEVER return token in HTTP response
-    import logging
-    logging.getLogger("auth").info(f"Password reset requested for {reset_req.email}")
+    # Send reset email
+    try:
+        import asyncio
+        from helpers.notifications import send_templated_email
+        reset_url = f"https://portal.reeveos.app/reset-password?token={reset_token}"
+        asyncio.ensure_future(send_templated_email(
+            to=reset_req.email,
+            template="password_reset",
+            business={"business_name": "ReeveOS", "name": "ReeveOS", "address": "reeveos.app", "_id": "system"},
+            data={
+                "reset_url": reset_url,
+                "link": reset_url,
+            },
+            dedup_key=f"reset_{reset_req.email}",
+            dedup_window_hours=1,
+        ))
+    except Exception:
+        pass  # Don't reveal whether email exists
     
     return {"detail": "If the email exists, a reset link has been sent"}
 

@@ -307,21 +307,56 @@ async def submit_form_public(slug: str, data: dict = Body(...)):
 
     # G8: Notify staff when form is submitted (especially if flagged/blocked)
     try:
-        from helpers.email import send_staff_form_notification
-        # Get business owner email
+        import asyncio
+        from helpers.notifications import send_templated_email
+
+        # Staff notification — flagged or blocked forms
         owner = await db.users.find_one({"business_id": biz_id, "role": {"$in": ["business_owner", "owner"]}})
-        if owner and owner.get("email"):
-            import asyncio
-            asyncio.ensure_future(send_staff_form_notification(
+        if owner and owner.get("email") and status in ("flagged", "blocked"):
+            staff_name = owner.get("name", "").split()[0] if owner.get("name") else "there"
+
+            # Build flag reason text from alerts
+            flag_reasons = []
+            for block in alerts.get("blocks", []):
+                flag_reasons.append(f"BLOCKED: {block.get('treatment', '')} — {block.get('condition', '')}")
+            for flag in alerts.get("flags", []):
+                flag_reasons.append(f"FLAG: {flag.get('treatment', '')} — {flag.get('condition', '')}")
+
+            asyncio.ensure_future(send_templated_email(
                 to=owner["email"],
-                staff_name=owner.get("name", "").split()[0] if owner.get("name") else "there",
-                client_name=client_name,
-                client_email=client_email,
-                form_status=status,
-                business_name=biz.get("name", ""),
-                flags=alerts.get("flags", []),
-                blocks=alerts.get("blocks", []),
+                template="form_flagged",
+                business=biz,
+                data={
+                    "client_name": client_name,
+                    "service": "Consultation Form",
+                    "date": now.strftime("%A %d %B %Y"),
+                    "time": now.strftime("%H:%M"),
+                    "flag_reason": "; ".join(flag_reasons) if flag_reasons else "Review required",
+                    "review_url": f"https://portal.reeveos.app/dashboard/clients/{client_id}/form",
+                    "contact_url": f"tel:{client_phone}" if client_phone else "",
+                },
+                dedup_key=f"form_flagged_{client_id}_{str(result.inserted_id)}",
             ))
+
+        # Client notification — if treatment BLOCKED, tell them
+        if status == "blocked" and client_email:
+            svc_name = "your requested treatment"
+            blocked_treatments = [b.get("treatment", "") for b in alerts.get("blocks", [])]
+            if blocked_treatments:
+                svc_name = ", ".join(blocked_treatments)
+
+            asyncio.ensure_future(send_templated_email(
+                to=client_email,
+                template="form_blocked",
+                business=biz,
+                data={
+                    "client_name": client_name.split()[0] if client_name else "there",
+                    "service": svc_name,
+                    "contact_url": f"https://portal.reeveos.app/book/{slug}/contact",
+                },
+                dedup_key=f"form_blocked_{client_id}_{str(result.inserted_id)}",
+            ))
+
     except Exception as notify_err:
         import logging
         logging.getLogger(__name__).warning(f"Staff form notification failed: {notify_err}")

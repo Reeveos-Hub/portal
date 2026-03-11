@@ -438,6 +438,50 @@ async def update_booking_status(
                     {"$set": {"patchTestWarning": True}}
                 )
 
+    # ── NOTIFICATIONS — no-show + cancellation by business ──
+    if new_status in ("no_show", "cancelled"):
+        try:
+            import asyncio
+            from helpers.notifications import send_templated_email, send_templated_sms
+            cust_email = nb["customer"].get("email")
+            cust_phone = nb["customer"].get("phone")
+            cust_name = nb["customer"]["name"] or "Guest"
+            biz_name = business.get("name", "")
+            slug = business.get("slug", "")
+
+            svc = b.get("service", {})
+            svc_name = svc.get("name", "") if isinstance(svc, dict) else str(svc)
+
+            if new_status == "no_show":
+                template = "no_show"
+            else:
+                template = "cancelled_by_business"
+
+            data = {
+                "client_name": cust_name.split()[0] if cust_name != "Guest" else "there",
+                "service": svc_name or "your appointment",
+                "date": nb.get("date", ""),
+                "time": nb.get("time", ""),
+                "booking_fee": str(b.get("deposit_amount", 0)),
+                "within_window": False,
+                "reason": payload.get("reason", ""),
+                "rebook_url": f"https://portal.reeveos.app/book/{slug}",
+                "link": f"https://portal.reeveos.app/book/{slug}",
+            }
+
+            if cust_email:
+                asyncio.ensure_future(send_templated_email(
+                    to=cust_email, template=template, business=business,
+                    data=data, dedup_key=f"{template}_{doc_id}",
+                ))
+            if cust_phone:
+                asyncio.ensure_future(send_templated_sms(
+                    to=cust_phone, template=template, business=business,
+                    data=data, dedup_key=f"sms_{template}_{doc_id}",
+                ))
+        except Exception as notify_err:
+            logger.warning(f"Status change notification failed: {notify_err}")
+
     updated = await sdb.bookings.find_one({"_id": doc_id})
     staff_map = {st.get("id"): st for st in business.get("staff", [])}
     return booking_to_list_item(updated, staff_map)

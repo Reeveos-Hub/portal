@@ -507,22 +507,35 @@ async def place_online_order(
     if customer_email:
         try:
             import asyncio
-            from helpers.email import send_order_confirmation
+            from helpers.notifications import send_templated_email
             est_mins = biz.get("avg_delivery_time", 35) if order_type == "delivery" else biz.get("avg_collection_time", 20)
-            addr_str = ""
-            if delivery_address:
-                addr_str = delivery_address.get("line1", "") if isinstance(delivery_address, dict) else str(delivery_address)
-            asyncio.ensure_future(send_order_confirmation(
+
+            # Build items list for template
+            template_items = []
+            for item in order_items:
+                item_name = item.get("name", "Item")
+                item_qty = item.get("quantity", 1)
+                item_price = item.get("price", 0)
+                template_items.append({
+                    "name": f"{item_qty}x {item_name}",
+                    "price": f"£{item_price:.2f}",
+                })
+
+            asyncio.ensure_future(send_templated_email(
                 to=customer_email,
-                customer_name=customer_name,
-                business_name=biz.get("name", "Restaurant"),
-                order_number=str(order["order_number"]),
-                order_type=order_type,
-                items=order_items,
-                total=round(total_with_delivery, 2),
-                estimated_minutes=est_mins,
-                delivery_address=addr_str,
-                track_url=f"https://reevenow.com/track/{order_id}",
+                template="order_confirmed",
+                business=biz,
+                data={
+                    "client_name": customer_name.split()[0] if customer_name else "there",
+                    "ref": str(order["order_number"]),
+                    "date": datetime.utcnow().strftime("%A %d %B %Y"),
+                    "items": template_items,
+                    "total": f"{round(total_with_delivery, 2):.2f}",
+                    "item_count": str(len(order_items)),
+                    "track_url": f"https://reevenow.com/track/{order_id}",
+                    "link": f"https://reevenow.com/track/{order_id}",
+                },
+                dedup_key=f"order_{order_id}",
             ))
         except Exception as email_err:
             logger.warning(f"Order confirmation email failed: {email_err}")

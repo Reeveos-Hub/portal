@@ -114,14 +114,19 @@ async def create_business(
     # Send welcome email
     try:
         import asyncio
-        from helpers.email import send_welcome_business
+        from helpers.notifications import send_templated_email
         owner_email = current_user.get("email")
         owner_name = current_user.get("name", "there")
         if owner_email:
-            asyncio.ensure_future(send_welcome_business(
+            asyncio.ensure_future(send_templated_email(
                 to=owner_email,
-                owner_name=owner_name,
-                business_name=business_dict["name"],
+                template="biz_welcome",
+                business=business_dict,
+                data={
+                    "owner_name": owner_name.split()[0] if owner_name != "there" else "there",
+                    "dashboard_url": "https://portal.reeveos.app",
+                },
+                dedup_key=f"biz_welcome_{business_id}",
             ))
     except Exception:
         pass  # Don't block business creation if email fails
