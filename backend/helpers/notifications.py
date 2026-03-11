@@ -228,7 +228,7 @@ async def send_templated_email(
 
     # From config
     from_name = "ReeveOS" if is_biz_facing else business.get("business_name", business.get("name", "ReeveOS"))
-    from_email = "notifications@mail.reeveos.app"
+    from_email = "notifications@send.reeveos.app"
     reply_to = business.get("email", "support@reeveos.app")
 
     # Send via Resend
