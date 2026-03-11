@@ -134,6 +134,11 @@ const Icon = {
       <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" /><polyline points="14 2 14 8 20 8" /><line x1="12" y1="12" x2="12" y2="18" /><line x1="9" y1="15" x2="15" y2="15" />
     </svg>
   ),
+  eye: (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" /><circle cx="12" cy="12" r="3" />
+    </svg>
+  ),
 }
 
 /* ───────────────────────────── HELPERS ───────────────────────────── */
@@ -518,17 +523,92 @@ function Dashboard({ bid, pages, settings, onRefresh, onOpenSettings, onOpenTemp
     if (pageSlug) navigate(`/dashboard/website/edit/${pageSlug}`)
   }
 
-  return (
-    <div style={{ padding: '32px 32px', maxWidth: 1100, margin: '0 auto', fontFamily: F }}>
-      {/* Header */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 28, flexWrap: 'wrap', gap: 16 }}>
-        <div>
-          <h1 style={{ margin: '0 0 4px', fontSize: 28, fontWeight: 700, color: DARK }}>Website</h1>
-          <p style={{ margin: 0, fontSize: 14, color: MUTED }}>Manage your pages, templates, and website settings</p>
+  const bizName = settings?.brand?.business_name || 'Your Business'
+  const subdomain = settings?.subdomain || 'your-site'
+  const publishedCount = pages.filter(p => p.is_published || p.status === 'published').length
+  const hasSettings = !!settings?.brand?.business_name
+  const hasLogo = !!settings?.brand?.logo_url
+  const hasSEO = !!settings?.seo?.meta_description
+  const hasDomain = !!settings?.custom_domain
+  const hasHomePage = pages.some(p => p.slug === 'home')
+  const hasServices = pages.some(p => p.slug === 'services' || p.slug === 'treatments')
+
+  const checklist = [
+    { label: 'Connect domain', done: hasDomain },
+    { label: 'Create Home page', done: hasHomePage },
+    { label: 'Configure SEO settings', done: hasSEO },
+    { label: 'Upload logo', done: hasLogo },
+    { label: 'Add Services', done: hasServices },
+  ]
+  const doneCount = checklist.filter(c => c.done).length
+  const progressPct = Math.round((doneCount / checklist.length) * 100)
+
+  // Wireframe shapes for page previews
+  const wireframes = {
+    home: (
+      <div style={{ padding: 24 }}>
+        <div style={{ width: 96, height: 14.5, background: '#E2E8F0', borderRadius: 4, marginBottom: 12 }} />
+        <div style={{ width: '100%', height: 43.5, background: '#E2E8F0', borderRadius: 4, marginBottom: 12 }} />
+        <div style={{ display: 'flex', gap: 8 }}>
+          <div style={{ width: 58, height: 40, background: '#E2E8F0', borderRadius: 4 }} />
+          <div style={{ width: 58, height: 40, background: '#E2E8F0', borderRadius: 4 }} />
+          <div style={{ width: 58, height: 40, background: '#E2E8F0', borderRadius: 4 }} />
         </div>
-        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-          <button onClick={onOpenSettings} style={btnOutline}>{Icon.settings} Settings</button>
-          <button onClick={onOpenTemplates} style={btnSecondary}>{Icon.template} Templates</button>
+      </div>
+    ),
+    about: (
+      <div style={{ padding: 24 }}>
+        <div style={{ width: 64, height: 8.5, background: '#E2E8F0', borderRadius: 4, marginBottom: 12 }} />
+        <div style={{ display: 'flex', gap: 16, alignItems: 'flex-start' }}>
+          <div style={{ width: 64, height: 64, background: '#E2E8F0', borderRadius: 8 }} />
+          <div>
+            <div style={{ width: 112, height: 12, background: '#E2E8F0', borderRadius: 4, marginBottom: 8 }} />
+            <div style={{ width: 89, height: 12, background: '#E2E8F0', borderRadius: 4 }} />
+          </div>
+        </div>
+        <div style={{ width: '100%', height: 25, background: '#E2E8F0', borderRadius: 4, marginTop: 12 }} />
+      </div>
+    ),
+    services: (
+      <div style={{ padding: 24 }}>
+        <div style={{ width: '100%', height: 16, background: '#E2E8F0', borderRadius: 4, marginBottom: 12 }} />
+        <div style={{ display: 'flex', gap: 16 }}>
+          {[0, 1].map(i => (
+            <div key={i} style={{ flex: 1, background: '#F1F5F9', borderRadius: 8, padding: 8 }}>
+              <div style={{ width: '100%', height: 48, background: '#E2E8F0', borderRadius: 4, marginBottom: 8 }} />
+              <div style={{ width: '100%', height: 8, background: '#E2E8F0', borderRadius: 4 }} />
+            </div>
+          ))}
+        </div>
+      </div>
+    ),
+    default: (
+      <div style={{ padding: 24 }}>
+        <div style={{ width: 80, height: 10, background: '#E2E8F0', borderRadius: 4, marginBottom: 12 }} />
+        <div style={{ width: '100%', height: 40, background: '#E2E8F0', borderRadius: 4, marginBottom: 12 }} />
+        <div style={{ width: '60%', height: 10, background: '#E2E8F0', borderRadius: 4 }} />
+      </div>
+    ),
+  }
+
+  return (
+    <div style={{ padding: '24px 32px', maxWidth: 1100, margin: '0 auto', fontFamily: F }}>
+
+      {/* ── SITE OVERVIEW BAR ── */}
+      <div style={{ background: '#fff', border: `1px solid ${BORDER}`, borderRadius: 12, padding: '16px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24, boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
+        <div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 4 }}>
+            <span style={{ fontSize: 20, fontWeight: 700, color: DARK }}>{bizName}</span>
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 12, fontWeight: 600, color: publishedCount > 0 ? '#16A34A' : MUTED, background: publishedCount > 0 ? '#DCFCE7' : '#F1F5F9', padding: '2px 10px', borderRadius: 100 }}>
+              <span style={{ width: 6, height: 6, borderRadius: '50%', background: publishedCount > 0 ? '#16A34A' : MUTED }} />
+              {publishedCount > 0 ? 'Live' : 'Draft'}
+            </span>
+          </div>
+          <span style={{ fontSize: 14, color: MUTED }}>{subdomain}.reeveos.site</span>
+        </div>
+        <div style={{ display: 'flex', gap: 8 }}>
+          <a href={`https://${subdomain}.reeveos.site`} target="_blank" rel="noopener noreferrer" style={{ ...btnOutline, textDecoration: 'none' }}>{Icon.eye} View Site</a>
+          <button onClick={onOpenSettings} style={btnOutline}>{Icon.settings} Website Settings</button>
           <button onClick={() => setShowNewPage(true)} style={btnPrimary}>{Icon.plus} New Page</button>
         </div>
       </div>
@@ -537,61 +617,95 @@ function Dashboard({ bid, pages, settings, onRefresh, onOpenSettings, onOpenTemp
         <div style={{ background: '#FEF2F2', color: '#DC2626', padding: '10px 14px', borderRadius: 8, fontSize: 13, marginBottom: 16, fontFamily: F }}>{error}</div>
       )}
 
-      {pages.length === 0 ? (
-        <div style={{ ...cardStyle, textAlign: 'center', padding: '64px 32px' }}>
-          <div style={{ margin: '0 auto 20px', width: 80, height: 80, borderRadius: 16, background: BG, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{Icon.page}</div>
-          <p style={{ fontSize: 16, fontWeight: 600, color: DARK, margin: '0 0 6px' }}>No pages yet</p>
-          <p style={{ fontSize: 14, color: MUTED, margin: '0 0 20px' }}>Create your first page or start with a template.</p>
-          <div style={{ display: 'flex', gap: 8, justifyContent: 'center' }}>
-            <button onClick={onOpenTemplates} style={btnOutline}>{Icon.template} Browse Templates</button>
-            <button onClick={() => setShowNewPage(true)} style={btnPrimary}>{Icon.plus} Create Page</button>
+      {/* ── SETUP PROGRESS CARD ── */}
+      {progressPct < 100 && (
+        <div style={{ background: '#fff', border: `1px solid ${BORDER}`, borderRadius: 12, padding: '28px 32px', marginBottom: 32, boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
+          <div style={{ display: 'flex', gap: 48, flexWrap: 'wrap' }}>
+            {/* Left: Progress info */}
+            <div style={{ minWidth: 280, flex: '0 0 320px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+                <span style={{ fontSize: 18, fontWeight: 700, color: DARK }}>Setup Progress</span>
+                <span style={{ fontSize: 14, fontWeight: 600, color: GOLD }}>{progressPct}% Complete</span>
+              </div>
+              <div style={{ height: 8, background: '#E2E8F0', borderRadius: 4, marginBottom: 16 }}>
+                <div style={{ height: 8, background: GOLD, borderRadius: 4, width: `${progressPct}%`, transition: 'width 0.5s ease' }} />
+              </div>
+              <p style={{ fontSize: 14, color: MUTED, lineHeight: 1.6, margin: 0 }}>
+                Your website is almost ready to go live. Complete the remaining steps to optimize your SEO and launch your services.
+              </p>
+            </div>
+            {/* Right: Checklist grid */}
+            <div style={{ flex: 1, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px 48px', alignContent: 'start' }}>
+              {checklist.map((item, i) => (
+                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                  {item.done ? (
+                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                      <circle cx="10" cy="10" r="10" fill={GOLD} fillOpacity="0.15" />
+                      <path d="M6 10l3 3 5-5" stroke={GOLD} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                  ) : (
+                    <div style={{ width: 20, height: 20, borderRadius: '50%', border: `2px solid ${BORDER}` }} />
+                  )}
+                  <span style={{ fontSize: 14, color: item.done ? DARK : MUTED, fontWeight: item.done ? 500 : 400 }}>{item.label}</span>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
-      ) : (
-        <div style={{ ...cardStyle, padding: 0, overflow: 'hidden' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse', fontFamily: F }}>
-            <thead>
-              <tr style={{ borderBottom: `1px solid ${BORDER}` }}>
-                {['Page Name', 'Slug', 'Status', 'Last Updated', 'Actions'].map(col => (
-                  <th key={col} style={{ textAlign: 'left', padding: '12px 16px', fontSize: 11, fontWeight: 600, color: MUTED, textTransform: 'uppercase', letterSpacing: '0.5px' }}>{col}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {pages.map(page => {
-                const slug = page.slug
-                const isPublished = page.status === 'published'
-                return (
-                  <tr key={slug} style={{ borderBottom: `1px solid #F1F5F9`, transition: 'background 0.1s' }}
-                    onMouseEnter={e => e.currentTarget.style.background = '#FAFBFC'}
-                    onMouseLeave={e => e.currentTarget.style.background = '#fff'}>
-                    <td style={{ padding: '12px 16px', fontSize: 14, fontWeight: 500, color: DARK }}>{page.title}</td>
-                    <td style={{ padding: '12px 16px' }}>
-                      <span style={{ fontFamily: 'monospace', fontSize: 13, color: MUTED, background: BG, padding: '2px 8px', borderRadius: 4 }}>/{slug}</span>
-                    </td>
-                    <td style={{ padding: '12px 16px' }}>
-                      <span style={{ display: 'inline-block', fontSize: 12, fontWeight: 600, padding: '3px 10px', borderRadius: 100, background: isPublished ? '#DCFCE7' : '#F1F5F9', color: isPublished ? '#166534' : MUTED }}>{isPublished ? 'Published' : 'Draft'}</span>
-                    </td>
-                    <td style={{ padding: '12px 16px', fontSize: 13, color: MUTED }}>{timeAgo(page.updated_at || page.updatedAt)}</td>
-                    <td style={{ padding: '12px 16px' }}>
-                      <div style={{ display: 'flex', gap: 6 }}>
-                        {[
-                          { icon: Icon.edit, title: 'Edit', onClick: () => navigate(`/dashboard/website/edit/${slug}`), color: DARK },
-                          { icon: Icon.duplicate, title: 'Duplicate', onClick: () => handleDuplicate(slug), color: DARK, disabled: duplicating === slug },
-                          { icon: Icon.qr, title: 'QR Code', onClick: () => setQrSlug(slug), color: DARK },
-                          { icon: Icon.trash, title: 'Delete', onClick: () => setDeleteConfirm(slug), color: '#DC2626' },
-                        ].map((btn, i) => (
-                          <button key={i} onClick={btn.onClick} disabled={btn.disabled} title={btn.title} style={{ background: BG, border: 'none', borderRadius: 6, padding: '6px 8px', cursor: 'pointer', color: btn.color, display: 'inline-flex', alignItems: 'center', opacity: btn.disabled ? 0.5 : 1, transition: 'background 0.15s' }} onMouseEnter={e => e.currentTarget.style.background = '#E2E8F0'} onMouseLeave={e => e.currentTarget.style.background = BG}>{btn.icon}</button>
-                        ))}
-                      </div>
-                    </td>
-                  </tr>
-                )
-              })}
-            </tbody>
-          </table>
-        </div>
       )}
+
+      {/* ── YOUR PAGES ── */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+        <h2 style={{ margin: 0, fontSize: 22, fontWeight: 700, color: DARK }}>Your Pages</h2>
+        <span style={{ fontSize: 14, color: MUTED }}>{publishedCount} page{publishedCount !== 1 ? 's' : ''} published</span>
+      </div>
+
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 20 }}>
+        {pages.map(page => {
+          const slug = page.slug
+          const isPublished = page.is_published || page.status === 'published'
+          const wireframe = wireframes[slug] || wireframes.default
+          return (
+            <div key={slug} style={{ background: '#fff', border: `1px solid ${BORDER}`, borderRadius: 12, overflow: 'hidden', cursor: 'pointer', transition: 'border-color 0.2s, box-shadow 0.2s' }}
+              onMouseEnter={e => { e.currentTarget.style.borderColor = GOLD; e.currentTarget.style.boxShadow = '0 4px 12px rgba(201,168,76,0.1)' }}
+              onMouseLeave={e => { e.currentTarget.style.borderColor = BORDER; e.currentTarget.style.boxShadow = 'none' }}
+              onClick={() => navigate(`/dashboard/website/edit/${slug}`)}
+            >
+              {/* Preview area */}
+              <div style={{ height: 180, background: '#F8FAFC', borderBottom: `1px solid ${BORDER}`, display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
+                {wireframe}
+              </div>
+              {/* Info area */}
+              <div style={{ padding: '16px 16px 14px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
+                  <span style={{ fontSize: 16, fontWeight: 600, color: DARK }}>{page.title || slug}</span>
+                  <span style={{ fontSize: 11, fontWeight: 700, padding: '2px 10px', borderRadius: 4, letterSpacing: '0.5px', textTransform: 'uppercase', background: isPublished ? '#DCFCE7' : '#F1F5F9', color: isPublished ? '#166534' : MUTED }}>{isPublished ? 'Published' : 'Draft'}</span>
+                </div>
+                <span style={{ fontSize: 13, color: MUTED }}>Last edited {timeAgo(page.updated_at || page.updatedAt)}</span>
+              </div>
+            </div>
+          )
+        })}
+
+        {/* Add New Page card */}
+        <div
+          onClick={() => setShowNewPage(true)}
+          style={{ background: '#fff', border: `2px dashed ${BORDER}`, borderRadius: 12, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: 260, cursor: 'pointer', transition: 'border-color 0.2s' }}
+          onMouseEnter={e => e.currentTarget.style.borderColor = GOLD}
+          onMouseLeave={e => e.currentTarget.style.borderColor = BORDER}
+        >
+          <div style={{ width: 48, height: 48, borderRadius: '50%', background: `${GOLD}15`, display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 12 }}>
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke={GOLD} strokeWidth="2" strokeLinecap="round"><line x1="10" y1="4" x2="10" y2="16" /><line x1="4" y1="10" x2="16" y2="10" /></svg>
+          </div>
+          <span style={{ fontSize: 15, fontWeight: 600, color: DARK, marginBottom: 4 }}>Add New Page</span>
+          <span style={{ fontSize: 13, color: MUTED }}>Choose from templates</span>
+        </div>
+      </div>
+
+      {/* Footer */}
+      <div style={{ textAlign: 'center', marginTop: 48, paddingTop: 24, borderTop: `1px solid ${BORDER}` }}>
+        <span style={{ fontSize: 13, color: '#94A3B8' }}>Powered by ReeveOS Dashboard &middot; 2026</span>
+      </div>
 
       {/* Modals */}
       {showNewPage && <NewPageModal bid={bid} onClose={() => setShowNewPage(false)} onCreated={handlePageCreated} />}
