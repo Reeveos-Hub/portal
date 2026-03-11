@@ -158,6 +158,7 @@ def render_email(body_html: str, business: dict, show_powered: bool = True, show
                 <!-- Support + Company details -->
                 <tr><td style="padding-bottom:16px;">
                   <p style="margin:0 0 6px;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:rgba(255,255,255,0.5);">Need help? <a href="https://reeveos.app/support.html" style="color:{GOLD};text-decoration:none;">Visit our Support Centre</a></p>
+                  <p style="margin:0 0 6px;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:rgba(255,255,255,0.5);">Earn with us? <a href="https://partners.reeveos.app" style="color:{GOLD};text-decoration:none;">Join our Partner Programme</a></p>
                   <p style="margin:0 0 6px;font-family:Arial,Helvetica,sans-serif;font-size:11px;color:rgba(255,255,255,0.35);">{biz_name}, {biz_address}</p>
                   <p style="margin:0;font-family:Arial,Helvetica,sans-serif;font-size:11px;color:rgba(255,255,255,0.35);">You received this because you have an account with {biz_name}</p>
                 </td></tr>
