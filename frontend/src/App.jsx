@@ -10,6 +10,8 @@ import AdminLayout from './layouts/AdminLayout'
 
 import Login from './pages/auth/Login'
 import Register from './pages/auth/Register'
+import ForgotPassword from './pages/auth/ForgotPassword'
+import ResetPassword from './pages/auth/ResetPassword'
 import BusinessTypeSelector from './pages/auth/BusinessTypeSelector'
 import RestaurantWelcome from './pages/auth/RestaurantWelcome'
 
@@ -184,6 +186,8 @@ const App = () => {
             <Route path="/login/restaurant" element={<Navigate to="/login" replace />} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
+            <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/auth/login" element={<Login />} />
             <Route path="/auth/register" element={<Register />} />
 
