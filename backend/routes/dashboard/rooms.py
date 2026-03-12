@@ -68,7 +68,8 @@ async def _find_business(db, business_id: str, owner_id: str, role: str = ""):
         raise HTTPException(status_code=404, detail="Business not found")
     if role in ("business_owner", "platform_admin", "super_admin"):
         return biz
-    if biz.get("owner_id") != owner_id and str(biz.get("owner_id")) != owner_id:
+    biz_owner = str(biz.get("owner_id", ""))
+    if biz_owner != owner_id and biz_owner != str(owner_id):
         raise HTTPException(status_code=403, detail="Not authorized")
     return biz
 
@@ -81,7 +82,7 @@ async def _find_business(db, business_id: str, owner_id: str, role: str = ""):
 async def list_rooms(business_id: str, user=Depends(get_current_owner)):
     """List all active rooms for a business."""
     db = get_database()
-    await _find_business(db, business_id, user["id"], user.get("role", ""))
+    await _find_business(db, business_id, str(user["_id"]), user.get("role", ""))
 
     rooms = []
     cursor = db.rooms.find({
@@ -99,7 +100,7 @@ async def list_rooms(business_id: str, user=Depends(get_current_owner)):
 async def create_room(business_id: str, data: RoomCreate, user=Depends(get_current_owner)):
     """Create a new treatment room."""
     db = get_database()
-    await _find_business(db, business_id, user["id"], user.get("role", ""))
+    await _find_business(db, business_id, str(user["_id"]), user.get("role", ""))
 
     # Validate modes
     invalid_modes = set(data.enabled_modes) - VALID_MODES
@@ -143,7 +144,7 @@ async def create_room(business_id: str, data: RoomCreate, user=Depends(get_curre
 async def update_room(business_id: str, room_id: str, data: RoomUpdate, user=Depends(get_current_owner)):
     """Update a treatment room."""
     db = get_database()
-    await _find_business(db, business_id, user["id"], user.get("role", ""))
+    await _find_business(db, business_id, str(user["_id"]), user.get("role", ""))
 
     # Find room (tenant-scoped)
     room = await db.rooms.find_one({
@@ -204,7 +205,7 @@ async def update_room(business_id: str, room_id: str, data: RoomUpdate, user=Dep
 async def delete_room(business_id: str, room_id: str, user=Depends(get_current_owner)):
     """Soft-delete a room (set is_active=False). We never hard-delete — GDPR audit trail."""
     db = get_database()
-    await _find_business(db, business_id, user["id"], user.get("role", ""))
+    await _find_business(db, business_id, str(user["_id"]), user.get("role", ""))
 
     room = await db.rooms.find_one({
         "_id": ObjectId(room_id),

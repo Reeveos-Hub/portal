@@ -336,14 +336,19 @@ export default function RoomBuilder() {
   const [rooms, setRooms] = useState([])
   const [selectedId, setSelectedId] = useState(null)
   const [creating, setCreating] = useState(false)
+  const [error, setError] = useState(null)
 
   const loadRooms = useCallback(async () => {
     if (!bid) { setLoading(false); return }
     try {
       const res = await api.get(`/rooms/business/${bid}`)
       setRooms(res.rooms || [])
+      setError(null)
     } catch (e) {
       console.error('Failed to load rooms:', e)
+      // If 404 (no rooms endpoint yet) or empty, just show empty state
+      setRooms([])
+      setError(null)
     }
     setLoading(false)
   }, [bid])
@@ -356,12 +361,14 @@ export default function RoomBuilder() {
     if (!bid || creating) return
     setCreating(true)
     try {
+      const priorityMap = ['1', '2', '3', 'low', 'last']
+      const priority = priorityMap[Math.min(rooms.length, priorityMap.length - 1)]
       const res = await api.post(`/rooms/business/${bid}`, {
         name: `Room ${rooms.length + 1}`,
         wing: '',
         num_beds: 1,
         enabled_modes: ['solo'],
-        solo_priority: String(rooms.length + 1),
+        solo_priority: priority,
         equipment: [],
       })
       const newRoom = res.room
@@ -369,6 +376,7 @@ export default function RoomBuilder() {
       setSelectedId(newRoom.id)
     } catch (e) {
       console.error('Failed to create room:', e)
+      alert('Failed to create room: ' + (e?.response?.data?.detail || e?.message || 'Unknown error'))
     }
     setCreating(false)
   }
@@ -451,20 +459,6 @@ export default function RoomBuilder() {
           onClose={() => setSelectedId(null)}
         />
       )}
-
-      {/* Quick Action FAB */}
-      <button onClick={createRoom} style={{
-        position: 'fixed', bottom: 24, right: selectedRoom ? 344 : 24,
-        display: 'flex', alignItems: 'center', gap: 6,
-        padding: '12px 22px', borderRadius: T.radiusPill, border: 'none',
-        background: T.gold, color: T.dark, fontSize: 13, fontWeight: 700,
-        cursor: 'pointer', fontFamily: T.font,
-        boxShadow: '0 4px 16px rgba(201,168,76,0.35)',
-        zIndex: 100, transition: 'right 0.2s',
-        textTransform: 'uppercase', letterSpacing: 0.5,
-      }}>
-        <Plus size={14} /> Quick Action
-      </button>
     </div>
   )
 }
