@@ -53,14 +53,14 @@ const NOTIFICATION_EVENTS = [
   { key: 'paymentReceived', label: 'Payment received' },
   { key: 'noShow', label: 'No-show' },
   { key: 'dailySummary', label: 'Daily summary' },
-  { key: 'newOrder', label: 'New order (restaurant)' },
+  { key: 'newOrder', label: 'New order', for: 'restaurant' },
 ]
 
 const INTEGRATIONS = [
   { type: 'stripe', name: 'Stripe Connect', desc: 'Payment processing', tier: 'free' },
   { type: 'googleBusiness', name: 'Google Business Profile', desc: 'Reviews sync', tier: 'growth' },
   { type: 'customEmailDomain', name: 'Custom Email Domain', desc: 'Send from your domain', tier: 'growth' },
-  { type: 'uberDirect', name: 'Uber Direct', desc: 'Delivery dispatch', tier: 'scale' },
+  { type: 'uberDirect', name: 'Uber Direct', desc: 'Delivery dispatch', tier: 'scale', for: 'restaurant' },
   { type: 'zapier', name: 'Zapier', desc: 'Connect to 5000+ apps', tier: 'scale' },
   { type: 'googleAnalytics', name: 'Google Analytics', desc: 'Website tracking', tier: 'scale' },
 ]
@@ -866,7 +866,7 @@ const Settings = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {NOTIFICATION_EVENTS.filter((e) => e.key !== 'dailySummary').map((ev) => (
+                  {NOTIFICATION_EVENTS.filter((e) => e.key !== 'dailySummary' && (!e.for || e.for === businessType)).map((ev) => (
                     <tr key={ev.key} className="border-b border-border/50">
                       <td className="py-2">{ev.label}</td>
                       <td className="text-center">
@@ -916,7 +916,7 @@ const Settings = () => {
           <div className="bg-white border border-gray-100 rounded-2xl shadow-[0_2px_10px_rgba(0,0,0,0.03)] p-6">
             <h2 className="text-xl font-heading font-semibold mb-4">Integrations</h2>
             <div className="space-y-4">
-              {INTEGRATIONS.map((int) => {
+              {INTEGRATIONS.filter((int) => !int.for || int.for === businessType).map((int) => {
                 const locked = !isFeatureUnlocked(tier, int.tier)
                 const connected = int.type === 'stripe' ? stripeConnected : integrations[int.type]?.connected
                 return (

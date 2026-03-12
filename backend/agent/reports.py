@@ -37,6 +37,7 @@ def register_report(
     max_rows: int = 5000,
     sort_field: str = None,
     sort_direction: int = -1,
+    business_types: List[str] = None,
 ):
     """
     Register a report definition.
@@ -56,6 +57,8 @@ def register_report(
         max_rows: Safety cap on rows returned
         sort_field: Default sort field
         sort_direction: 1=asc, -1=desc
+        business_types: List of business types this report applies to (default: all)
+                       Values: "services" (salons, clinics), "restaurant"
     """
     REPORT_REGISTRY[report_id] = {
         "id": report_id,
@@ -72,6 +75,7 @@ def register_report(
         "max_rows": max_rows,
         "sort_field": sort_field,
         "sort_direction": sort_direction,
+        "business_types": business_types or ["services", "restaurant"],
     }
 
 
@@ -79,11 +83,14 @@ def get_report(report_id: str) -> Optional[Dict]:
     return REPORT_REGISTRY.get(report_id)
 
 
-def list_reports(category: str = None) -> List[Dict]:
-    """List available reports, optionally filtered by category."""
+def list_reports(category: str = None, business_type: str = None) -> List[Dict]:
+    """List available reports, optionally filtered by category and business type."""
     reports = []
     for r in REPORT_REGISTRY.values():
         if category and r["category"] != category:
+            continue
+        # Filter by business type — only show reports relevant to this business
+        if business_type and business_type not in r.get("business_types", ["services", "restaurant"]):
             continue
         reports.append({
             "id": r["id"],
@@ -92,6 +99,7 @@ def list_reports(category: str = None) -> List[Dict]:
             "category": r["category"],
             "formats": r["formats"],
             "requires_date_range": r["requires_date_range"],
+            "business_types": r.get("business_types", ["services", "restaurant"]),
         })
     return reports
 
@@ -850,6 +858,7 @@ def register_all_reports():
         ],
         requires_date_range=False,
         sort_field="submitted_at",
+        business_types=["services"],
     )
 
     register_report(
@@ -868,6 +877,7 @@ def register_all_reports():
         ],
         requires_date_range=False,
         sort_field="submitted_at",
+        business_types=["services"],
     )
 
     # ─── ACTIVITY / AUDIT REPORTS ───
@@ -986,6 +996,7 @@ def register_all_reports():
         ],
         summary_builder=_orders_summary,
         sort_field="created_at",
+        business_types=["restaurant"],
     )
 
     register_report(
@@ -1006,6 +1017,7 @@ def register_all_reports():
         ],
         formats=["csv"],
         sort_field="created_at",
+        business_types=["restaurant"],
     )
 
     # ─── MARKETING / CAMPAIGNS REPORTS ───
@@ -1050,6 +1062,7 @@ def register_all_reports():
         requires_date_range=False,
         sort_field="name",
         sort_direction=1,
+        business_types=["services"],
     )
 
     register_report(
@@ -1070,6 +1083,7 @@ def register_all_reports():
         ],
         requires_date_range=False,
         sort_field="purchased_at",
+        business_types=["services"],
     )
 
     # ─── CONSUMABLES / INVENTORY REPORTS ───
@@ -1093,6 +1107,7 @@ def register_all_reports():
         requires_date_range=False,
         sort_field="name",
         sort_direction=1,
+        business_types=["services"],
     )
 
     register_report(
@@ -1110,6 +1125,7 @@ def register_all_reports():
             {"key": "service_name", "label": "Service", "format": "text"},
         ],
         sort_field="timestamp",
+        business_types=["services"],
     )
 
     # ─── SHOP REPORTS ───
@@ -1272,9 +1288,8 @@ def register_all_reports():
             {"key": "platform", "label": "Platform", "format": "text"},
         ],
         sort_field="created_at",
+        business_types=["restaurant"],
     )
-
-    # ─── ABANDONED CART REPORTS ───
 
     register_report(
         "abandoned_carts",
@@ -1312,6 +1327,7 @@ def register_all_reports():
             {"key": "status", "label": "Status", "format": "status"},
         ],
         sort_field="created_at",
+        business_types=["restaurant"],
     )
 
     # ─── VIDEO MEETING REPORTS ───
@@ -1332,6 +1348,7 @@ def register_all_reports():
         ],
         requires_date_range=False,
         sort_field="scheduled_at",
+        business_types=["services"],
     )
 
 

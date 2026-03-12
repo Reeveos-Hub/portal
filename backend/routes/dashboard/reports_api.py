@@ -45,8 +45,22 @@ async def list_available_reports(
     category: Optional[str] = Query(None),
     tenant: TenantContext = Depends(verify_business_access),
 ):
-    """List all available report types for this business."""
-    reports = list_reports(category)
+    """List all available report types for this business, filtered by business type."""
+    db = get_database()
+    bid = tenant.business_id
+
+    # Look up business type to filter reports
+    business = await db.businesses.find_one({"_id": bid})
+    if not business and ObjectId.is_valid(bid):
+        business = await db.businesses.find_one({"_id": ObjectId(bid)})
+
+    business_type = "services"  # default
+    if business:
+        btype = business.get("type", business.get("category", ""))
+        if btype == "restaurant" or business.get("subcategory") == "turkish":
+            business_type = "restaurant"
+
+    reports = list_reports(category, business_type=business_type)
     return {"reports": reports, "total": len(reports)}
 
 
