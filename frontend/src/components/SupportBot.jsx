@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import { useBusiness } from "../contexts/BusinessContext";
 import { useAuth } from "../contexts/AuthContext";
 import api from "../utils/api";
+import theme from "../config/theme";
 
 const API_BASE = import.meta.env.VITE_API_URL || "https://portal.rezvo.app/api";
 // AI calls routed through backend — never expose API keys client-side

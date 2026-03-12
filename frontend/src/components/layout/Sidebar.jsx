@@ -18,11 +18,13 @@ import {
   Box, FlaskConical, CalendarCheck, FileText
 } from 'lucide-react'
 
-/* ── Color tokens ── */
+import theme from '../../config/theme'
+
+/* ── Color tokens (mapped from global theme) ── */
 const T = {
-  forest: '#111111', fern: '#1a1a1a', sage: '#333333', mint: '#E0E0E0',
-  cream: '#FAF7F2', ink: '#141413', text: '#2C2C2A',
-  muted: '#7A776F', border: '#E8E4DD', borderLight: '#F0EDE7', white: '#FFFFFF',
+  forest: theme.brand.primary, fern: theme.bg.darkHover, sage: theme.text.secondary, mint: theme.border.light,
+  cream: theme.sidebar.text, ink: theme.brand.primary, text: theme.text.primary,
+  muted: theme.text.muted, border: theme.sidebar.border, borderLight: theme.sidebar.borderLight, white: theme.brand.white,
 }
 
 const RAIL_W = 64

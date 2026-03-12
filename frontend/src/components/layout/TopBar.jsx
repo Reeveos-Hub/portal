@@ -8,6 +8,7 @@ import { useAuth } from '../../contexts/AuthContext'
 import { useBusiness } from '../../contexts/BusinessContext'
 import { getNavItems } from '../../config/navigation'
 import api from '../../utils/api'
+import theme from '../../config/theme'
 import { useWalkthrough } from '../../contexts/WalkthroughContext'
 
 const PAGE_TITLES = {
@@ -133,7 +134,7 @@ const TopBar = ({ onMenuClick, sidebarOpen }) => {
           onClick={() => navigate('/dashboard/notifications')}
         >
           <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>
-          {unreadCount > 0 && <span style={{ position: 'absolute', top: 4, right: 4, minWidth: 16, height: 16, borderRadius: 8, background: '#EF4444', color: '#fff', fontSize: 9, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 4px', fontFamily: "'Figtree', sans-serif" }}>{unreadCount > 99 ? '99+' : unreadCount}</span>}
+          {unreadCount > 0 && <span style={{ position: 'absolute', top: 4, right: 4, minWidth: 16, height: 16, borderRadius: 8, background: theme.status.error, color: theme.text.inverse, fontSize: 9, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 4px', fontFamily: theme.font.family }}>{unreadCount > 99 ? '99+' : unreadCount}</span>}
         </button>
 
         <div className="relative flex items-center gap-3 pl-2 border-l border-border">
@@ -146,23 +147,23 @@ const TopBar = ({ onMenuClick, sidebarOpen }) => {
           >
             {initials}
           </div>
-          <div id="profile-dropdown" style={{ display: 'none', position: 'absolute', top: '100%', right: 0, marginTop: 8, background: '#fff', border: '1px solid #EBEBEB', borderRadius: 12, boxShadow: '0 8px 24px rgba(0,0,0,0.1)', zIndex: 200, width: 200, padding: 8, fontFamily: "'Figtree', sans-serif" }}>
-            <div style={{ padding: '8px 12px', fontSize: 14, fontWeight: 600, color: '#111111', borderBottom: '1px solid #F5F5F5', marginBottom: 4 }}>
+          <div id="profile-dropdown" style={{ display: 'none', position: 'absolute', top: '100%', right: 0, marginTop: 8, background: theme.bg.card, border: `1px solid ${theme.border.light}`, borderRadius: 12, boxShadow: theme.shadow.lg, zIndex: 200, width: 200, padding: 8, fontFamily: theme.font.family }}>
+            <div style={{ padding: '8px 12px', fontSize: 14, fontWeight: 600, color: theme.text.primary, borderBottom: `1px solid ${theme.bg.muted}`, marginBottom: 4 }}>
               {user?.name || 'User'}
-              <div style={{ fontSize: 11, fontWeight: 400, color: '#666', marginTop: 2 }}>{user?.email || ''}</div>
+              <div style={{ fontSize: 11, fontWeight: 400, color: theme.text.muted, marginTop: 2 }}>{user?.email || ''}</div>
             </div>
             <button 
               onClick={() => navigate('/dashboard/settings')}
-              style={{ width: '100%', padding: '10px 12px', fontSize: 13, color: '#374151', background: 'transparent', border: 'none', borderRadius: 8, cursor: 'pointer', textAlign: 'left', fontFamily: "'Figtree', sans-serif" }}
-              onMouseOver={e => e.currentTarget.style.background='#F5F5F5'}
+              style={{ width: '100%', padding: '10px 12px', fontSize: 13, color: theme.text.secondary, background: 'transparent', border: 'none', borderRadius: 8, cursor: 'pointer', textAlign: 'left', fontFamily: theme.font.family }}
+              onMouseOver={e => e.currentTarget.style.background=theme.interactive.hover}
               onMouseOut={e => e.currentTarget.style.background='transparent'}
             >
               ⚙️ Settings
             </button>
             <button 
               onClick={() => { logout?.(); navigate('/login') }}
-              style={{ width: '100%', padding: '10px 12px', fontSize: 13, color: '#EF4444', background: 'transparent', border: 'none', borderRadius: 8, cursor: 'pointer', textAlign: 'left', fontFamily: "'Figtree', sans-serif" }}
-              onMouseOver={e => e.currentTarget.style.background='#FEF2F2'}
+              style={{ width: '100%', padding: '10px 12px', fontSize: 13, color: theme.status.error, background: 'transparent', border: 'none', borderRadius: 8, cursor: 'pointer', textAlign: 'left', fontFamily: theme.font.family }}
+              onMouseOver={e => e.currentTarget.style.background=theme.status.errorBg}
               onMouseOut={e => e.currentTarget.style.background='transparent'}
             >
               🚪 Log out
