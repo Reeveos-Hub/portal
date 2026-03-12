@@ -8,9 +8,9 @@ export default {
       colors: {
         primary: '#111111',
         'primary-hover': '#0a0a0a',
-        background: '#FAFAFA',
+        background: '#FFFFFF',
         card: '#FFFFFF',
-        border: '#E8E0D4',
+        border: '#E5E7EB',
         success: '#22C55E',
         warning: '#F59E0B',
         error: '#EF4444',
@@ -40,8 +40,8 @@ export default {
         amber: '#B8860B',
         coral: '#E8634A',
         'off-white': '#F4F5F0',
-        border: '#E2E5DF',
-        'warm-border': '#DDD5C5',
+        border: '#E5E7EB',
+        'warm-border': '#E5E7EB',
         text: '#2A2A28',
         muted: '#6B706D',
         subtle: '#9CA09E'
