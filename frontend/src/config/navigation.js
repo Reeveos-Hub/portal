@@ -39,6 +39,7 @@ export const getNavItems = (businessType) => {
     ],
     advanced: [
       ...(isRestaurant ? [{ id: 'floor-plan', label: 'Floor Plan', icon: 'fa-table-cells-large', path: '/dashboard/floor-plan', minTier: 'scale' }] : []),
+      ...(!isRestaurant ? [{ id: 'rooms', label: 'Room Builder', icon: 'fa-door-open', path: '/dashboard/rooms', minTier: 'growth' }] : []),
       { id: 'marketing', label: 'Marketing', icon: 'fa-bullhorn', path: '/dashboard/marketing', minTier: 'growth' },
     ],
     system: [

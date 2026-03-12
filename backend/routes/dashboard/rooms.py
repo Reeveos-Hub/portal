@@ -219,3 +219,87 @@ async def delete_room(business_id: str, room_id: str, user=Depends(get_current_o
     )
 
     return {"deleted": True, "room_id": room_id}
+
+
+# ═══════════════════════════════════════════════════════════════
+# ROOM ALLOCATION — called by book.py during booking creation
+# ═══════════════════════════════════════════════════════════════
+def _time_to_mins(t: str) -> int:
+    """Convert HH:MM to minutes since midnight."""
+    parts = t.split(":")
+    return int(parts[0]) * 60 + int(parts[1])
+
+
+async def find_best_room(db, business_id: str, date_str: str, time_str: str, duration_minutes: int, required_equipment: list = None):
+    """
+    Auto-allocate the best available room for a services booking.
+    Same pattern as _find_best_table in book.py but for treatment rooms.
+    
+    Logic:
+    1. Get all active rooms for the business
+    2. Filter rooms that have ALL required equipment (if any)
+    3. Check time conflicts with existing bookings on same date
+    4. Return the highest-priority available room
+    
+    Returns: (room_id, room_name) or (None, None) if no room available.
+    """
+    required_equipment = required_equipment or []
+
+    # Get all active rooms, sorted by priority
+    rooms = []
+    cursor = db.rooms.find({
+        "business_id": business_id,
+        "is_active": True
+    })
+    async for room in cursor:
+        rooms.append(room)
+
+    if not rooms:
+        return None, None
+
+    # Sort by priority: 1, 2, 3, low, last
+    priority_order = {"1": 0, "2": 1, "3": 2, "low": 3, "last": 4}
+    rooms.sort(key=lambda r: priority_order.get(r.get("solo_priority", "last"), 5))
+
+    # Filter by equipment — room must have ALL required equipment
+    if required_equipment:
+        rooms = [r for r in rooms if all(eq in (r.get("equipment") or []) for eq in required_equipment)]
+
+    if not rooms:
+        return None, None
+
+    # Get all non-cancelled bookings for this business on this date that have a roomId
+    day_bookings = []
+    cursor = db.bookings.find({
+        "businessId": business_id,
+        "date": date_str,
+        "status": {"$nin": ["cancelled", "no_show"]},
+        "roomId": {"$ne": None},
+    })
+    async for b in cursor:
+        day_bookings.append(b)
+
+    # Calculate requested time range
+    req_start = _time_to_mins(time_str)
+    req_end = req_start + duration_minutes
+
+    # Check each room for conflicts
+    for room in rooms:
+        room_id = str(room["_id"])
+        has_conflict = False
+
+        for b in day_bookings:
+            if b.get("roomId") != room_id:
+                continue
+            b_start = _time_to_mins(b.get("time", "12:00"))
+            b_end = b_start + (b.get("duration") or 60)
+            # Check overlap
+            if req_start < b_end and req_end > b_start:
+                has_conflict = True
+                break
+
+        if not has_conflict:
+            return room_id, room.get("name", "Room")
+
+    # All rooms occupied at this time
+    return None, None

@@ -93,6 +93,7 @@ async def get_services_grouped(business_id: str, tenant: TenantContext = Depends
             "active": s.get("active", True),
             "sortOrder": s.get("sortOrder", 0),
             "color": color,
+            "required_equipment": s.get("required_equipment", []),
         })
 
     categories = []
@@ -152,6 +153,7 @@ async def create_service(business_id: str, payload: dict = Body(...), tenant: Te
         "active": True,
         "sortOrder": len(menu),
         "color": color,
+        "required_equipment": payload.get("required_equipment") or [],
         "createdAt": datetime.utcnow(),
         "updatedAt": datetime.utcnow(),
     }
@@ -192,6 +194,8 @@ async def update_service(business_id: str, service_id: str, payload: dict = Body
         s["online"] = bool(payload["online"])
     if "color" in payload:
         s["color"] = (payload["color"] or "")[:7]
+    if "required_equipment" in payload:
+        s["required_equipment"] = payload["required_equipment"] if isinstance(payload["required_equipment"], list) else []
     s["updatedAt"] = datetime.utcnow()
     menu[idx] = s
     await db.businesses.update_one(

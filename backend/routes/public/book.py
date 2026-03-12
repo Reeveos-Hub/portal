@@ -657,6 +657,29 @@ async def create_booking(request: Request, business_slug: str, payload: dict):
         doc["endTime"] = _add_minutes(booking_time, (svc or {}).get("duration_minutes", 60))
         doc["duration"] = (svc or {}).get("duration_minutes", 60)
 
+    # ── Room auto-allocation (services businesses only) ──
+    # Same pattern as table auto-assignment for restaurants.
+    # Picks highest-priority room with the right equipment and no time conflict.
+    doc["roomId"] = None
+    doc["roomName"] = None
+    if biz_type == "services":
+        try:
+            from routes.dashboard.rooms import find_best_room
+            svc_equipment = (svc or {}).get("required_equipment") or []
+            svc_duration = (svc or {}).get("duration_minutes", 60)
+            room_id, room_name = await find_best_room(
+                db, biz_id, payload.get("date", ""),
+                booking_time, svc_duration, svc_equipment
+            )
+            doc["roomId"] = room_id
+            doc["roomName"] = room_name
+            if room_id:
+                logger.info(f"Room auto-assigned: {room_name} ({room_id}) for {reference}")
+            else:
+                logger.info(f"No room auto-assigned for {reference} — none available or none configured")
+        except Exception as e:
+            logger.warning(f"Room allocation skipped for {reference}: {e}")
+
     # ── Contraindication check (services businesses with consultation forms) ──
     # Natalie's pregnant client story: the engine exists but was never called at booking time.
     # This block maps the booked service to a treatment key, runs the check, and BLOCK/FLAG.
