@@ -8,7 +8,7 @@ import { useState, useEffect, useCallback, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   Users, CalendarCheck, Clock, PoundSterling, Armchair, ArrowRight,
-  Filter, Search, Download, MoreVertical, TrendingUp, TrendingDown, RefreshCw,
+  Search, TrendingUp, TrendingDown, RefreshCw,
   LayoutGrid, Plus, RotateCcw, Lock, Unlock, EyeOff, X, Move, Grip,
   FileText, ClipboardList
 } from 'lucide-react'
@@ -83,6 +83,8 @@ const Dashboard = () => {
   const [activity, setActivity] = useState([])
   const [loading, setLoading] = useState(true)
   const [searchFilter, setSearchFilter] = useState('')
+  const [waitlistCount, setWaitlistCount] = useState(0)
+  const [consultationStats, setConsultationStats] = useState({ total: 0, pending_review: 0, expiring_soon: 0, blocked: 0, clear: 0 })
 
   /* ── Grid state ── */
   const containerRef = useRef(null)
@@ -141,6 +143,24 @@ const Dashboard = () => {
           timestamp: b.createdAt || b.created_at,
         })))
       }
+
+      // Waitlist count (silent fail — not all businesses have this)
+      api.get(`/tables-epos/business/${bid}/waitlist`).then(r => setWaitlistCount(r?.count || 0)).catch(() => {})
+
+      // Consultation form stats (silent fail)
+      api.get(`/consultation/business/${bid}/submissions?limit=200`).then(r => {
+        const subs = r?.submissions || []
+        const blocked = subs.filter(s => s.status === 'blocked').length
+        const flagged = subs.filter(s => s.status === 'flagged').length
+        const clear = subs.filter(s => s.status === 'clear' || s.status === 'signed').length
+        setConsultationStats({
+          total: r?.total || subs.length,
+          pending_review: r?.pending_review || flagged,
+          expiring_soon: r?.expiring_soon || 0,
+          blocked,
+          clear,
+        })
+      }).catch(() => {})
     } catch (e) { console.error('Dashboard load error:', e) }
     setLoading(false)
   }, [bid])
@@ -261,7 +281,7 @@ const Dashboard = () => {
   const statCards = [
     { label: isRestaurant ? 'Total Covers' : 'Appointments Today', value: totalCovers, icon: <Users className="w-4 h-4" />, trend: summary?.period?.bookingsChange ? `${Math.abs(summary.period.bookingsChange)}%` : null, trendUp: (summary?.period?.bookingsChange || 0) >= 0, sub: 'vs last week', link: '/dashboard/bookings' },
     { label: 'Upcoming', value: t.upcomingBookings || 0, icon: <CalendarCheck className="w-4 h-4" />, sub: nextBkg ? `Next: ${nextBkg.time || ''}` : 'No upcoming', link: '/dashboard/calendar' },
-    { label: 'Waitlist', value: 0, icon: <Clock className="w-4 h-4" />, sub: 'No waitlist active' },
+    { label: 'Waitlist', value: waitlistCount, icon: <Clock className="w-4 h-4" />, sub: waitlistCount > 0 ? `${waitlistCount} client${waitlistCount !== 1 ? 's' : ''} waiting` : 'No waitlist active' },
     { label: 'Revenue Today', value: `£${revenue.toLocaleString()}`, icon: <PoundSterling className="w-4 h-4" />, trend: summary?.period?.revenueChange ? `${Math.abs(summary.period.revenueChange)}%` : null, trendUp: (summary?.period?.revenueChange || 0) >= 0, sub: 'vs yesterday', link: '/dashboard/payments' },
   ]
 
@@ -343,22 +363,26 @@ const Dashboard = () => {
       case 'quickActions':
         return (
           <div style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
-            <div style={{ fontSize: 15, fontWeight: 700, marginBottom: 12 }}>Quick Actions</div>
+            <div style={{ fontSize: 15, fontWeight: 700, color: '#fff', marginBottom: 12 }}>Quick Actions</div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, flex: 1 }}>
               {[
-                { icon: CalendarCheck, label: isRestaurant ? 'Reserve' : 'New Appt', action: isRestaurant ? 'Reserve' : 'New Appointment', primary: true },
-                { icon: Users, label: 'Walk-in', action: 'Walk-in' },
-                { icon: Clock, label: 'Schedule', action: 'Schedule' },
-                { icon: FileText, label: 'Forms', action: 'Forms' },
+                { icon: CalendarCheck, label: isRestaurant ? 'Reserve' : 'New Appointment', action: isRestaurant ? 'Reserve' : 'New Appointment' },
+                { icon: Users, label: 'Walk-in Client', action: 'Walk-in' },
+                { icon: Clock, label: "Today's Schedule", action: 'Schedule' },
+                { icon: FileText, label: 'Consultation Forms', action: 'Forms' },
               ].map((a, i) => {
                 const Icon = a.icon
                 return (
                   <div key={i} onClick={() => handleQuickAction(a.action)} style={{
-                    background: a.primary ? '#111' : '#F9FAFB', color: a.primary ? '#fff' : '#111',
-                    borderRadius: 10, padding: 12, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-                    gap: 6, cursor: 'pointer', border: `1px solid ${a.primary ? '#111' : '#E5E7EB'}`, fontSize: 11, fontWeight: 600,
-                  }}>
-                    <Icon size={18} />{a.label}
+                    background: 'rgba(255,255,255,0.08)', color: '#fff',
+                    borderRadius: 12, padding: 14, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+                    gap: 8, cursor: 'pointer', border: '1px solid rgba(255,255,255,0.12)', fontSize: 12, fontWeight: 600,
+                    transition: 'all 0.15s',
+                  }}
+                    onMouseOver={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.15)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.25)' }}
+                    onMouseOut={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.08)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.12)' }}
+                  >
+                    <Icon size={20} />{a.label}
                   </div>
                 )
               })}
@@ -371,7 +395,6 @@ const Dashboard = () => {
           <div style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 12 }}>
               <div style={{ fontSize: 15, fontWeight: 700 }}>Live Activity</div>
-              <Filter size={14} color="#9CA3AF" />
             </div>
             <div style={{ flex: 1, overflowY: 'auto' }}>
               {activityList.length > 0 ? activityList.map((a, i) => (
@@ -497,12 +520,12 @@ const Dashboard = () => {
         return (
           <div>
             <div style={{ fontSize: 15, fontWeight: 700, marginBottom: 4 }}>Consultation Forms</div>
-            <div style={{ fontSize: 11, color: '#9CA3AF', marginBottom: 12 }}>Requiring attention</div>
+            <div style={{ fontSize: 11, color: '#9CA3AF', marginBottom: 12 }}>{consultationStats.total} total submissions</div>
             <div style={{ display: 'flex', gap: 8 }}>
               {[
-                { label: 'Pending', value: '2', bg: '#FFFBEB', color: '#D97706' },
-                { label: 'Flagged', value: '1', bg: '#FEF2F2', color: '#DC2626' },
-                { label: 'Clear', value: '6', bg: '#F0FDF4', color: '#059669' },
+                { label: 'Pending', value: consultationStats.pending_review, bg: '#FFFBEB', color: '#D97706' },
+                { label: 'Blocked', value: consultationStats.blocked, bg: '#FEF2F2', color: '#DC2626' },
+                { label: 'Clear', value: consultationStats.clear, bg: '#F0FDF4', color: '#059669' },
               ].map((c, i) => (
                 <div key={i} onClick={() => navigate('/dashboard/consultation-forms')} style={{ flex: 1, padding: 10, borderRadius: 8, background: c.bg, cursor: 'pointer' }}>
                   <div style={{ fontSize: 22, fontWeight: 800, color: c.color }}>{c.value}</div>
@@ -510,6 +533,11 @@ const Dashboard = () => {
                 </div>
               ))}
             </div>
+            {consultationStats.expiring_soon > 0 && (
+              <div style={{ marginTop: 8, fontSize: 11, color: '#D97706', fontWeight: 600 }}>
+                {consultationStats.expiring_soon} expiring within 30 days
+              </div>
+            )}
           </div>
         )
 
@@ -609,11 +637,13 @@ const Dashboard = () => {
                 ? { left: dragPos.x, top: dragPos.y, width: calcPosition(item, containerWidth).width, height: calcPosition(item, containerWidth).height }
                 : calcPosition(item, containerWidth)
 
+              const isDark = item.i === 'quickActions'
+
               return (
                 <div key={item.i} style={{
                   position: 'absolute', left: pos.left, top: pos.top, width: pos.width, height: pos.height,
-                  background: '#fff', borderRadius: 14, padding: 16,
-                  border: `1px solid ${isDragging ? '#C9A84C' : editMode ? '#C4C8CF' : '#E5E7EB'}`,
+                  background: isDark ? '#111111' : '#fff', color: isDark ? '#fff' : '#111', borderRadius: 14, padding: 16,
+                  border: `1px solid ${isDragging ? '#C9A84C' : editMode ? '#C4C8CF' : isDark ? '#111' : '#E5E7EB'}`,
                   boxShadow: isDragging ? '0 16px 48px rgba(0,0,0,0.15), 0 0 0 2px #C9A84C' : '0 1px 3px rgba(0,0,0,0.04)',
                   transition: isDragging ? 'none' : 'all 0.25s ease',
                   zIndex: isDragging ? 50 : 1, opacity: isDragging ? 0.95 : 1,
@@ -624,12 +654,12 @@ const Dashboard = () => {
                   {/* Edit controls */}
                   {editMode && (
                     <div data-no-drag style={{ position: 'absolute', top: 6, right: 6, display: 'flex', gap: 4, zIndex: 10 }}>
-                      <button onClick={() => toggleLock(item.i)} style={{ width: 24, height: 24, borderRadius: 6, background: isLocked ? '#C9A84C' : '#F3F4F6', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                        {isLocked ? <Lock size={11} color="#fff" /> : <Unlock size={11} color="#9CA3AF" />}
+                      <button onClick={() => toggleLock(item.i)} style={{ width: 24, height: 24, borderRadius: 6, background: isLocked ? '#C9A84C' : isDark ? 'rgba(255,255,255,0.15)' : '#F3F4F6', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        {isLocked ? <Lock size={11} color="#fff" /> : <Unlock size={11} color={isDark ? '#fff' : '#9CA3AF'} />}
                       </button>
                       {widget?.removable && (
-                        <button onClick={() => hideWidget(item.i)} style={{ width: 24, height: 24, borderRadius: 6, background: '#F3F4F6', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                          <EyeOff size={11} color="#9CA3AF" />
+                        <button onClick={() => hideWidget(item.i)} style={{ width: 24, height: 24, borderRadius: 6, background: isDark ? 'rgba(255,255,255,0.15)' : '#F3F4F6', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                          <EyeOff size={11} color={isDark ? '#fff' : '#9CA3AF'} />
                         </button>
                       )}
                     </div>
@@ -637,7 +667,7 @@ const Dashboard = () => {
 
                   {/* Drag handle */}
                   {editMode && !isLocked && (
-                    <div style={{ position: 'absolute', top: 6, left: '50%', transform: 'translateX(-50%)', width: 32, height: 4, borderRadius: 2, background: '#C4C8CF' }} />
+                    <div style={{ position: 'absolute', top: 6, left: '50%', transform: 'translateX(-50%)', width: 32, height: 4, borderRadius: 2, background: isDark ? 'rgba(255,255,255,0.3)' : '#C4C8CF' }} />
                   )}
 
                   {/* Content */}
