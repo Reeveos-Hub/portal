@@ -77,12 +77,28 @@ async def submit_survey(request: Request, body: dict):
     contact_instagram = (body.get("contact_instagram") or "").strip()
     gdpr_consent = body.get("gdpr_consent", False)
 
-    if not name:
-        raise HTTPException(status_code=400, detail="Name is required")
-    if not business_name:
-        raise HTTPException(status_code=400, detail="Business name is required")
-    if not contact and not contact_phone and not contact_email and not contact_instagram:
-        raise HTTPException(status_code=400, detail="At least one contact method is required")
+    if not name or len(name) < 2:
+        raise HTTPException(status_code=400, detail="Name is required (at least 2 characters)")
+    if not business_name or len(business_name) < 2:
+        raise HTTPException(status_code=400, detail="Business name is required (at least 2 characters)")
+
+    # Phone validation — UK mobile (07) or landline (01/02/03)
+    if contact_phone:
+        phone_clean = re.sub(r'[\s\-\+]', '', contact_phone)
+        uk_phone_re = re.compile(r'^(?:(?:44|0)7\d{9}|(?:44|0)[123]\d{8,9})$')
+        if not uk_phone_re.match(phone_clean):
+            raise HTTPException(status_code=400, detail="Please enter a valid UK phone number")
+
+    # Email validation
+    email_re = re.compile(r'^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$')
+    if contact_email and not email_re.match(contact_email):
+        raise HTTPException(status_code=400, detail="Please enter a valid email address")
+
+    # Must have phone + at least email or instagram
+    if not contact and not contact_phone:
+        raise HTTPException(status_code=400, detail="A UK phone number is required")
+    if not contact and not contact_email and not contact_instagram:
+        raise HTTPException(status_code=400, detail="Please provide email or Instagram alongside your phone number")
     if not gdpr_consent:
         raise HTTPException(status_code=400, detail="GDPR consent is required")
 
