@@ -30,7 +30,7 @@ export default {
         mint: '#555555',
         'light-green': '#666666',
         'pale-green': '#F0F0F0',
-        cream: '#FAFAF7',
+        cream: '#F5F5F5',
         warm: '#F4F0E8',
         sand: '#E8E0D0',
         latte: '#D4C5A9',

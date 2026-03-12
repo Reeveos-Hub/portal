@@ -818,7 +818,7 @@ This is a local services business (salon/clinic/spa), NOT a restaurant. Use "app
             zIndex: 9998,
             boxShadow: "0 25px 60px rgba(0,0,0,0.15), 0 8px 20px rgba(0,0,0,0.08)",
             border: "1px solid #E2E5DF",
-            background: "#FAFAF7",
+            background: "#F5F5F5",
           }}
         >
           {/* Header */}
@@ -1029,7 +1029,7 @@ This is a local services business (salon/clinic/spa), NOT a restaurant. Use "app
                   padding: "12px 16px",
                   borderRadius: 14,
                   border: "1px solid #DDD5C5",
-                  background: "#FAFAF7",
+                  background: "#F5F5F5",
                   fontSize: 14,
                   fontFamily: "inherit",
                   color: "#2A2A28",
