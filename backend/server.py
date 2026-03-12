@@ -367,6 +367,10 @@ app.include_router(forms_router)
 app.include_router(survey_router)
 app.include_router(survey_admin_router)
 
+# Dashboard Layout (drag-and-drop widget positions per user)
+from routes.dashboard.layout import router as layout_router
+app.include_router(layout_router)
+
 # Static uploads for booking page logo/cover
 static_dir = Path("/opt/rezvo-app/uploads")
 try:
