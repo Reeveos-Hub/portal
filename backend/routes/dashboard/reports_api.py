@@ -185,7 +185,7 @@ async def generate_report(
         file_bytes=file_bytes,
         format=output_format,
         type="report" if report_def["category"] != "exports" else "export",
-        tag=_map_category_to_tag(report_def["category"]),
+        tag=_map_category_to_tag(report_def["category"], report_id),
         created_by=tenant.user_email or "Unknown",
         created_by_type="user",
         report_id=report_id,
@@ -602,12 +602,38 @@ def _generate_docx(data: list, fields: list, summary: dict, title: str, business
     return buffer.getvalue()
 
 
-def _map_category_to_tag(category: str) -> str:
-    """Map report framework categories to document tags."""
-    mapping = {
-        "reports": "bookings",
-        "exports": "bookings",
-        "financial": "financial",
-        "forms": "forms",
+def _map_category_to_tag(category: str, report_id: str = "") -> str:
+    """Map report to a document tag based on report ID and category."""
+    # Try report-specific mapping first
+    prefix_map = {
+        "bookings": "bookings",
+        "daily": "bookings",
+        "revenue": "financial",
+        "tax": "financial",
+        "clients": "clients",
+        "staff": "staff",
+        "services": "services",
+        "consultation": "forms",
+        "activity": "audit",
+        "reviews": "reviews",
+        "orders": "orders",
+        "campaigns": "marketing",
+        "packages": "services",
+        "consumables": "inventory",
+        "shop": "shop",
+        "loyalty": "clients",
+        "rota": "staff",
+        "crm": "clients",
+        "blog": "marketing",
+        "notifications": "audit",
+        "delivery": "orders",
+        "abandoned": "bookings",
+        "waitlist": "bookings",
+        "video": "services",
     }
-    return mapping.get(category, category)
+    for prefix, tag in prefix_map.items():
+        if report_id.startswith(prefix):
+            return tag
+    # Fallback to category
+    cat_map = {"reports": "bookings", "exports": "bookings", "financial": "financial", "forms": "forms"}
+    return cat_map.get(category, category)

@@ -203,6 +203,263 @@ async def _activity_query(db, business_id, params):
     return q
 
 
+# ─── NO-SHOW / CANCELLATION QUERIES ───
+
+async def _no_show_query(db, business_id, params):
+    q = {"business_id": business_id, "status": {"$in": ["no_show", "no-show"]}}
+    if params.get("date_from"):
+        q["date"] = {"$gte": params["date_from"]}
+    if params.get("date_to"):
+        q.setdefault("date", {})["$lte"] = params["date_to"]
+    return q
+
+
+async def _no_show_summary(db, business_id, data):
+    total = len(data)
+    lost_revenue = sum(d.get("price", 0) for d in data)
+    return {
+        "Total No-Shows": total,
+        "Lost Revenue": f"£{lost_revenue:,.2f}",
+        "Avg Booking Value": f"£{lost_revenue / max(total, 1):,.2f}",
+    }
+
+
+async def _cancellation_query(db, business_id, params):
+    q = {"business_id": business_id, "status": "cancelled"}
+    if params.get("date_from"):
+        q["date"] = {"$gte": params["date_from"]}
+    if params.get("date_to"):
+        q.setdefault("date", {})["$lte"] = params["date_to"]
+    return q
+
+
+async def _cancellation_summary(db, business_id, data):
+    total = len(data)
+    lost_revenue = sum(d.get("price", 0) for d in data)
+    return {
+        "Total Cancellations": total,
+        "Lost Revenue": f"£{lost_revenue:,.2f}",
+        "Avg Booking Value": f"£{lost_revenue / max(total, 1):,.2f}",
+    }
+
+
+# ─── REVIEWS QUERIES ───
+
+async def _reviews_query(db, business_id, params):
+    q = {"business_id": business_id}
+    if params.get("min_rating"):
+        q["rating"] = {"$gte": params["min_rating"]}
+    return q
+
+
+async def _reviews_summary(db, business_id, data):
+    total = len(data)
+    avg_rating = sum(d.get("rating", 0) for d in data) / max(total, 1)
+    replied = sum(1 for d in data if d.get("owner_reply"))
+    five_star = sum(1 for d in data if d.get("rating") == 5)
+    return {
+        "Total Reviews": total,
+        "Average Rating": f"{avg_rating:.1f} / 5",
+        "5-Star Reviews": five_star,
+        "Replied To": replied,
+        "Reply Rate": f"{(replied / max(total, 1)) * 100:.0f}%",
+    }
+
+
+# ─── ORDER QUERIES (RESTAURANT) ───
+
+async def _orders_query(db, business_id, params):
+    q = {"business_id": business_id}
+    if params.get("date_from"):
+        q["created_at"] = {"$gte": params["date_from"]}
+    if params.get("date_to"):
+        q.setdefault("created_at", {})["$lte"] = params["date_to"]
+    if params.get("order_type"):
+        q["order_type"] = params["order_type"]
+    if params.get("status"):
+        q["status"] = params["status"]
+    return q
+
+
+async def _orders_summary(db, business_id, data):
+    total = len(data)
+    revenue = sum(d.get("total", 0) for d in data)
+    types = {}
+    for d in data:
+        t = d.get("order_type", "unknown")
+        types[t] = types.get(t, 0) + 1
+    return {
+        "Total Orders": total,
+        "Total Revenue": f"£{revenue:,.2f}",
+        "Avg Order Value": f"£{revenue / max(total, 1):,.2f}",
+        **{f"{k.replace('_', ' ').title()} Orders": v for k, v in types.items()},
+    }
+
+
+# ─── CAMPAIGNS QUERIES ───
+
+async def _campaigns_query(db, business_id, params):
+    q = {"business_id": business_id}
+    if params.get("status"):
+        q["status"] = params["status"]
+    return q
+
+
+# ─── PACKAGE QUERIES ───
+
+async def _packages_query(db, business_id, params):
+    q = {"business_id": business_id}
+    if params.get("active_only", False):
+        q["active"] = True
+    return q
+
+
+async def _client_packages_query(db, business_id, params):
+    q = {"business_id": business_id}
+    if params.get("status"):
+        q["status"] = params["status"]
+    return q
+
+
+# ─── CONSUMABLES QUERIES ───
+
+async def _consumables_query(db, business_id, params):
+    q = {"business_id": business_id}
+    if params.get("category"):
+        q["category"] = params["category"]
+    return q
+
+
+async def _consumable_log_query(db, business_id, params):
+    q = {"business_id": business_id}
+    if params.get("date_from"):
+        q["timestamp"] = {"$gte": params["date_from"]}
+    if params.get("date_to"):
+        q.setdefault("timestamp", {})["$lte"] = params["date_to"]
+    return q
+
+
+# ─── SHOP QUERIES ───
+
+async def _shop_products_query(db, business_id, params):
+    q = {"business_id": business_id}
+    if params.get("category"):
+        q["category"] = params["category"]
+    if params.get("status"):
+        q["status"] = params["status"]
+    return q
+
+
+async def _shop_orders_query(db, business_id, params):
+    q = {"business_id": business_id}
+    if params.get("date_from"):
+        q["created_at"] = {"$gte": params["date_from"]}
+    if params.get("date_to"):
+        q.setdefault("created_at", {})["$lte"] = params["date_to"]
+    if params.get("status"):
+        q["status"] = params["status"]
+    return q
+
+
+# ─── LOYALTY QUERIES ───
+
+async def _loyalty_query(db, business_id, params):
+    q = {"business_id": business_id}
+    if params.get("tier"):
+        q["tier"] = params["tier"]
+    return q
+
+
+# ─── SHIFTS / ROTA QUERIES ───
+
+async def _shifts_query(db, business_id, params):
+    q = {"business_id": business_id}
+    if params.get("date_from"):
+        q["date"] = {"$gte": params["date_from"]}
+    if params.get("date_to"):
+        q.setdefault("date", {})["$lte"] = params["date_to"]
+    if params.get("staff_name"):
+        q["staff_name"] = params["staff_name"]
+    return q
+
+
+# ─── CRM / LEADS QUERIES ───
+
+async def _leads_query(db, business_id, params):
+    q = {"business_id": business_id}
+    if params.get("status"):
+        q["status"] = params["status"]
+    if params.get("source"):
+        q["source"] = params["source"]
+    return q
+
+
+# ─── BLOG QUERIES ───
+
+async def _blog_query(db, business_id, params):
+    q = {"business_id": business_id}
+    if params.get("status"):
+        q["status"] = params["status"]
+    return q
+
+
+# ─── NOTIFICATIONS QUERIES ───
+
+async def _notifications_query(db, business_id, params):
+    q = {"business_id": business_id}
+    if params.get("date_from"):
+        q["created_at"] = {"$gte": params["date_from"]}
+    if params.get("date_to"):
+        q.setdefault("created_at", {})["$lte"] = params["date_to"]
+    if params.get("type"):
+        q["type"] = params["type"]
+    return q
+
+
+# ─── DELIVERY QUERIES ───
+
+async def _delivery_query(db, business_id, params):
+    q = {"business_id": business_id}
+    if params.get("date_from"):
+        q["created_at"] = {"$gte": params["date_from"]}
+    if params.get("date_to"):
+        q.setdefault("created_at", {})["$lte"] = params["date_to"]
+    if params.get("status"):
+        q["status"] = params["status"]
+    return q
+
+
+# ─── ABANDONED CART QUERIES ───
+
+async def _abandoned_cart_query(db, business_id, params):
+    q = {"business_id": business_id}
+    if params.get("date_from"):
+        q["created_at"] = {"$gte": params["date_from"]}
+    if params.get("date_to"):
+        q.setdefault("created_at", {})["$lte"] = params["date_to"]
+    return q
+
+
+# ─── WAITLIST QUERIES ───
+
+async def _waitlist_query(db, business_id, params):
+    q = {"business_id": business_id}
+    if params.get("date_from"):
+        q["created_at"] = {"$gte": params["date_from"]}
+    if params.get("date_to"):
+        q.setdefault("created_at", {})["$lte"] = params["date_to"]
+    return q
+
+
+# ─── VIDEO MEETING QUERIES ───
+
+async def _video_meetings_query(db, business_id, params):
+    q = {"business_id": business_id}
+    if params.get("status"):
+        q["status"] = params["status"]
+    return q
+
+
 # ═══════════════════════════════════════
 # SUMMARY BUILDERS
 # ═══════════════════════════════════════
@@ -629,6 +886,452 @@ def register_all_reports():
             {"key": "user_email", "label": "By", "format": "email"},
         ],
         sort_field="timestamp",
+    )
+
+    # ─── BOOKING SUBSET REPORTS ───
+
+    register_report(
+        "bookings_no_shows",
+        "No-Show Report",
+        "Clients who booked but didn't attend. Useful for enforcing booking fee policies.",
+        "reports",
+        "bookings",
+        _no_show_query,
+        [
+            {"key": "date", "label": "Date", "format": "date"},
+            {"key": "time", "label": "Time", "format": "time"},
+            {"key": "customerName", "label": "Client", "format": "text"},
+            {"key": "service_name", "label": "Service", "format": "text"},
+            {"key": "staffName", "label": "Staff", "format": "text"},
+            {"key": "price", "label": "Lost Revenue", "format": "currency"},
+            {"key": "phone", "label": "Phone", "format": "phone"},
+        ],
+        summary_builder=_no_show_summary,
+        sort_field="date",
+    )
+
+    register_report(
+        "bookings_cancellations",
+        "Cancellations Report",
+        "All cancelled bookings with reason and timing. Track cancellation patterns.",
+        "reports",
+        "bookings",
+        _cancellation_query,
+        [
+            {"key": "date", "label": "Date", "format": "date"},
+            {"key": "time", "label": "Time", "format": "time"},
+            {"key": "customerName", "label": "Client", "format": "text"},
+            {"key": "service_name", "label": "Service", "format": "text"},
+            {"key": "staffName", "label": "Staff", "format": "text"},
+            {"key": "price", "label": "Lost Revenue", "format": "currency"},
+            {"key": "cancelled_at", "label": "Cancelled", "format": "datetime"},
+        ],
+        summary_builder=_cancellation_summary,
+        sort_field="date",
+    )
+
+    register_report(
+        "bookings_by_source",
+        "Bookings by Source",
+        "Where bookings come from — online, phone, walk-in, Google, Instagram.",
+        "reports",
+        "bookings",
+        _bookings_query,
+        [
+            {"key": "source", "label": "Source", "format": "status"},
+            {"key": "date", "label": "Date", "format": "date"},
+            {"key": "customerName", "label": "Client", "format": "text"},
+            {"key": "service_name", "label": "Service", "format": "text"},
+            {"key": "price", "label": "Amount", "format": "currency"},
+        ],
+        sort_field="date",
+    )
+
+    # ─── REVIEWS REPORTS ───
+
+    register_report(
+        "reviews_full",
+        "Reviews Report",
+        "All customer reviews with ratings, comments, and response status.",
+        "reports",
+        "reviews",
+        _reviews_query,
+        [
+            {"key": "created_at", "label": "Date", "format": "datetime"},
+            {"key": "rating", "label": "Rating", "format": "number"},
+            {"key": "body", "label": "Comment", "format": "text"},
+            {"key": "owner_reply", "label": "Reply", "format": "text"},
+            {"key": "user_id", "label": "Reviewer", "format": "text"},
+        ],
+        summary_builder=_reviews_summary,
+        requires_date_range=False,
+        sort_field="created_at",
+    )
+
+    # ─── ORDER REPORTS (RESTAURANT) ───
+
+    register_report(
+        "orders_full",
+        "Orders Report",
+        "All restaurant orders with items, totals, type, and status.",
+        "reports",
+        "orders",
+        _orders_query,
+        [
+            {"key": "created_at", "label": "Date", "format": "datetime"},
+            {"key": "order_number", "label": "Order #", "format": "text"},
+            {"key": "order_type", "label": "Type", "format": "status"},
+            {"key": "status", "label": "Status", "format": "status"},
+            {"key": "total", "label": "Total", "format": "currency"},
+        ],
+        summary_builder=_orders_summary,
+        sort_field="created_at",
+    )
+
+    register_report(
+        "orders_export",
+        "Orders Export",
+        "Raw order data export with all fields for spreadsheets.",
+        "exports",
+        "orders",
+        _orders_query,
+        [
+            {"key": "_id", "label": "Order ID", "format": "text"},
+            {"key": "order_number", "label": "Order #", "format": "text"},
+            {"key": "created_at", "label": "Date", "format": "datetime"},
+            {"key": "order_type", "label": "Type", "format": "status"},
+            {"key": "status", "label": "Status", "format": "status"},
+            {"key": "total", "label": "Total", "format": "currency"},
+            {"key": "items", "label": "Items", "format": "list"},
+        ],
+        formats=["csv"],
+        sort_field="created_at",
+    )
+
+    # ─── MARKETING / CAMPAIGNS REPORTS ───
+
+    register_report(
+        "campaigns_full",
+        "Marketing Campaigns",
+        "All email campaigns with send count, open rate, and click rate.",
+        "reports",
+        "campaigns",
+        _campaigns_query,
+        [
+            {"key": "created_at", "label": "Date", "format": "datetime"},
+            {"key": "name", "label": "Campaign", "format": "text"},
+            {"key": "subject", "label": "Subject", "format": "text"},
+            {"key": "type", "label": "Type", "format": "status"},
+            {"key": "status", "label": "Status", "format": "status"},
+            {"key": "sent_count", "label": "Sent", "format": "number"},
+            {"key": "open_count", "label": "Opened", "format": "number"},
+            {"key": "click_count", "label": "Clicked", "format": "number"},
+        ],
+        requires_date_range=False,
+        sort_field="created_at",
+    )
+
+    # ─── PACKAGE REPORTS ───
+
+    register_report(
+        "packages_list",
+        "Packages List",
+        "All service packages with pricing, sessions, and active status.",
+        "reports",
+        "package_templates",
+        _packages_query,
+        [
+            {"key": "name", "label": "Package", "format": "text"},
+            {"key": "price", "label": "Price", "format": "currency"},
+            {"key": "sessions", "label": "Sessions", "format": "number"},
+            {"key": "active", "label": "Active", "format": "status"},
+            {"key": "created_at", "label": "Created", "format": "datetime"},
+        ],
+        requires_date_range=False,
+        sort_field="name",
+        sort_direction=1,
+    )
+
+    register_report(
+        "packages_sold",
+        "Packages Sold",
+        "Client package purchases with usage and remaining sessions.",
+        "reports",
+        "client_packages",
+        _client_packages_query,
+        [
+            {"key": "client_name", "label": "Client", "format": "text"},
+            {"key": "package_name", "label": "Package", "format": "text"},
+            {"key": "sessions_total", "label": "Total", "format": "number"},
+            {"key": "sessions_used", "label": "Used", "format": "number"},
+            {"key": "sessions_remaining", "label": "Remaining", "format": "number"},
+            {"key": "purchased_at", "label": "Purchased", "format": "datetime"},
+            {"key": "status", "label": "Status", "format": "status"},
+        ],
+        requires_date_range=False,
+        sort_field="purchased_at",
+    )
+
+    # ─── CONSUMABLES / INVENTORY REPORTS ───
+
+    register_report(
+        "consumables_list",
+        "Consumables Inventory",
+        "Full stock list with quantities, costs, and reorder levels.",
+        "reports",
+        "consumables",
+        _consumables_query,
+        [
+            {"key": "name", "label": "Item", "format": "text"},
+            {"key": "category", "label": "Category", "format": "text"},
+            {"key": "quantity", "label": "Qty", "format": "number"},
+            {"key": "unit", "label": "Unit", "format": "text"},
+            {"key": "cost", "label": "Cost", "format": "currency"},
+            {"key": "supplier", "label": "Supplier", "format": "text"},
+            {"key": "reorder_level", "label": "Reorder At", "format": "number"},
+        ],
+        requires_date_range=False,
+        sort_field="name",
+        sort_direction=1,
+    )
+
+    register_report(
+        "consumables_usage",
+        "Consumables Usage Log",
+        "Track what was used, when, and by whom. Identify waste and usage patterns.",
+        "reports",
+        "consumable_log",
+        _consumable_log_query,
+        [
+            {"key": "timestamp", "label": "Date", "format": "datetime"},
+            {"key": "item_name", "label": "Item", "format": "text"},
+            {"key": "quantity", "label": "Qty Used", "format": "number"},
+            {"key": "used_by", "label": "Staff", "format": "text"},
+            {"key": "service_name", "label": "Service", "format": "text"},
+        ],
+        sort_field="timestamp",
+    )
+
+    # ─── SHOP REPORTS ───
+
+    register_report(
+        "shop_products",
+        "Shop Products",
+        "Full product catalogue with pricing, stock levels, and status.",
+        "reports",
+        "shop_products",
+        _shop_products_query,
+        [
+            {"key": "name", "label": "Product", "format": "text"},
+            {"key": "category", "label": "Category", "format": "text"},
+            {"key": "price", "label": "Price", "format": "currency"},
+            {"key": "stock", "label": "Stock", "format": "number"},
+            {"key": "sku", "label": "SKU", "format": "text"},
+            {"key": "status", "label": "Status", "format": "status"},
+        ],
+        requires_date_range=False,
+        sort_field="name",
+        sort_direction=1,
+    )
+
+    register_report(
+        "shop_orders",
+        "Shop Orders",
+        "All shop/product orders with customer, items, and totals.",
+        "reports",
+        "shop_orders",
+        _shop_orders_query,
+        [
+            {"key": "created_at", "label": "Date", "format": "datetime"},
+            {"key": "customer_name", "label": "Customer", "format": "text"},
+            {"key": "items", "label": "Items", "format": "list"},
+            {"key": "total", "label": "Total", "format": "currency"},
+            {"key": "status", "label": "Status", "format": "status"},
+            {"key": "payment_status", "label": "Payment", "format": "status"},
+        ],
+        sort_field="created_at",
+    )
+
+    # ─── LOYALTY REPORTS ───
+
+    register_report(
+        "loyalty_members",
+        "Loyalty Members",
+        "All loyalty programme members with points, tier, and activity.",
+        "reports",
+        "loyalty_accounts",
+        _loyalty_query,
+        [
+            {"key": "customer_name", "label": "Client", "format": "text"},
+            {"key": "points", "label": "Points", "format": "number"},
+            {"key": "tier", "label": "Tier", "format": "status"},
+            {"key": "total_earned", "label": "Total Earned", "format": "number"},
+            {"key": "total_redeemed", "label": "Redeemed", "format": "number"},
+            {"key": "created_at", "label": "Joined", "format": "datetime"},
+        ],
+        requires_date_range=False,
+        sort_field="points",
+    )
+
+    # ─── ROTA / LABOUR REPORTS ───
+
+    register_report(
+        "rota_shifts",
+        "Staff Shifts / Rota",
+        "All scheduled shifts with staff, times, and hours worked.",
+        "reports",
+        "shifts",
+        _shifts_query,
+        [
+            {"key": "date", "label": "Date", "format": "date"},
+            {"key": "staff_name", "label": "Staff", "format": "text"},
+            {"key": "start", "label": "Start", "format": "time"},
+            {"key": "end", "label": "End", "format": "time"},
+            {"key": "hours", "label": "Hours", "format": "number"},
+            {"key": "role", "label": "Role", "format": "text"},
+        ],
+        sort_field="date",
+    )
+
+    # ─── CRM / PIPELINE REPORTS ───
+
+    register_report(
+        "crm_leads",
+        "CRM Leads",
+        "All leads in the pipeline with status, source, and contact details.",
+        "reports",
+        "leads",
+        _leads_query,
+        [
+            {"key": "created_at", "label": "Date", "format": "datetime"},
+            {"key": "name", "label": "Name", "format": "text"},
+            {"key": "email", "label": "Email", "format": "email"},
+            {"key": "phone", "label": "Phone", "format": "phone"},
+            {"key": "status", "label": "Status", "format": "status"},
+            {"key": "source", "label": "Source", "format": "status"},
+            {"key": "score", "label": "Score", "format": "number"},
+        ],
+        requires_date_range=False,
+        sort_field="created_at",
+    )
+
+    # ─── BLOG REPORTS ───
+
+    register_report(
+        "blog_posts",
+        "Blog Posts",
+        "All blog posts with status, publish date, and view count.",
+        "reports",
+        "blog_posts",
+        _blog_query,
+        [
+            {"key": "title", "label": "Title", "format": "text"},
+            {"key": "status", "label": "Status", "format": "status"},
+            {"key": "published_at", "label": "Published", "format": "datetime"},
+            {"key": "views", "label": "Views", "format": "number"},
+            {"key": "author", "label": "Author", "format": "text"},
+        ],
+        requires_date_range=False,
+        sort_field="published_at",
+    )
+
+    # ─── NOTIFICATION REPORTS ───
+
+    register_report(
+        "notifications_log",
+        "Notifications Log",
+        "All system notifications with type, status, and read state.",
+        "reports",
+        "notifications",
+        _notifications_query,
+        [
+            {"key": "created_at", "label": "Date", "format": "datetime"},
+            {"key": "title", "label": "Title", "format": "text"},
+            {"key": "type", "label": "Type", "format": "status"},
+            {"key": "read", "label": "Read", "format": "status"},
+        ],
+        sort_field="created_at",
+    )
+
+    # ─── DELIVERY REPORTS ───
+
+    register_report(
+        "delivery_orders",
+        "Delivery Orders",
+        "All delivery orders with status, driver, and delivery times.",
+        "reports",
+        "delivery_orders",
+        _delivery_query,
+        [
+            {"key": "created_at", "label": "Ordered", "format": "datetime"},
+            {"key": "order_number", "label": "Order #", "format": "text"},
+            {"key": "customer_name", "label": "Customer", "format": "text"},
+            {"key": "status", "label": "Status", "format": "status"},
+            {"key": "total", "label": "Total", "format": "currency"},
+            {"key": "delivery_fee", "label": "Delivery Fee", "format": "currency"},
+            {"key": "platform", "label": "Platform", "format": "text"},
+        ],
+        sort_field="created_at",
+    )
+
+    # ─── ABANDONED CART REPORTS ───
+
+    register_report(
+        "abandoned_carts",
+        "Abandoned Carts",
+        "Bookings or orders started but not completed. Recovery opportunities.",
+        "reports",
+        "abandoned_carts",
+        _abandoned_cart_query,
+        [
+            {"key": "created_at", "label": "Date", "format": "datetime"},
+            {"key": "customer_name", "label": "Customer", "format": "text"},
+            {"key": "customer_email", "label": "Email", "format": "email"},
+            {"key": "service_name", "label": "Service", "format": "text"},
+            {"key": "value", "label": "Value", "format": "currency"},
+            {"key": "recovered", "label": "Recovered", "format": "status"},
+        ],
+        sort_field="created_at",
+    )
+
+    # ─── WAITLIST REPORTS ───
+
+    register_report(
+        "waitlist",
+        "Waitlist Report",
+        "All waitlist entries with party size, wait time, and outcome.",
+        "reports",
+        "epos_waitlist",
+        _waitlist_query,
+        [
+            {"key": "created_at", "label": "Date", "format": "datetime"},
+            {"key": "customer_name", "label": "Name", "format": "text"},
+            {"key": "party_size", "label": "Party", "format": "number"},
+            {"key": "phone", "label": "Phone", "format": "phone"},
+            {"key": "wait_time", "label": "Wait (min)", "format": "number"},
+            {"key": "status", "label": "Status", "format": "status"},
+        ],
+        sort_field="created_at",
+    )
+
+    # ─── VIDEO MEETING REPORTS ───
+
+    register_report(
+        "video_meetings",
+        "Video Meetings",
+        "All video consultation sessions with duration and status.",
+        "reports",
+        "video_meetings",
+        _video_meetings_query,
+        [
+            {"key": "scheduled_at", "label": "Date", "format": "datetime"},
+            {"key": "client_name", "label": "Client", "format": "text"},
+            {"key": "staff_name", "label": "Staff", "format": "text"},
+            {"key": "duration", "label": "Duration (min)", "format": "number"},
+            {"key": "status", "label": "Status", "format": "status"},
+        ],
+        requires_date_range=False,
+        sort_field="scheduled_at",
     )
 
 

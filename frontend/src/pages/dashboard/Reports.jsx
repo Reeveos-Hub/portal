@@ -21,6 +21,7 @@ const ICON_MAP = {
 
 const REPORT_ICONS = {
   bookings_full: Calendar, bookings_export: Download, daily_summary: BarChart3,
+  bookings_no_shows: AlertTriangle, bookings_cancellations: X, bookings_by_source: TrendingUp,
   revenue_summary: PoundSterling, revenue_by_service: TrendingUp,
   revenue_by_staff: Users, tax_summary: Receipt,
   clients_full: Users, clients_export: Download, clients_inactive: AlertTriangle,
@@ -28,6 +29,14 @@ const REPORT_ICONS = {
   services_list: ClipboardList, services_popularity: TrendingUp,
   consultation_submissions: ClipboardList, consultation_flagged: AlertTriangle,
   activity_log: Clock,
+  reviews_full: Star, orders_full: FileText, orders_export: Download,
+  campaigns_full: FileText, packages_list: FileText, packages_sold: FileText,
+  consumables_list: FileText, consumables_usage: Clock,
+  shop_products: FileText, shop_orders: FileText,
+  loyalty_members: Star, rota_shifts: Clock,
+  crm_leads: Users, blog_posts: FileText, notifications_log: FileText,
+  delivery_orders: FileText, abandoned_carts: AlertTriangle,
+  waitlist: Clock, video_meetings: FileText,
 }
 
 const CAT_ORDER = ['all', 'reports', 'financial', 'exports', 'forms']
