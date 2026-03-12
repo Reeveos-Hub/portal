@@ -4,6 +4,7 @@
  * and auto-save to Documents.
  */
 import { useState, useEffect } from 'react'
+import { createPortal } from 'react-dom'
 import {
   Calendar, BarChart3, TrendingUp, Users, Download, Search,
   ChevronRight, Sparkles, Clock, ClipboardList, AlertTriangle,
@@ -236,8 +237,8 @@ const Reports = () => {
       )}
 
       {/* ═══ GENERATE MODAL ═══ */}
-      {modal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: T.bg.overlay }}
+      {modal && createPortal(
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4" style={{ background: T.bg.overlay }}
           onClick={(e) => e.target === e.currentTarget && !generating && setModal(null)}>
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden" onClick={e => e.stopPropagation()}>
             {/* Modal header */}
@@ -323,7 +324,8 @@ const Reports = () => {
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   )
