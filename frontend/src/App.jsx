@@ -35,6 +35,7 @@ import Clients from './pages/dashboard/Clients'
 import ClientPipeline from './pages/dashboard/ClientPipeline'
 import CRMPage from './pages/dashboard/CRM'
 import ClientProfile from './pages/dashboard/ClientProfile'
+import RoomBuilder from './pages/dashboard/RoomBuilder'
 import ShopManager from './pages/dashboard/ShopManager'
 import VideoMeetings from './pages/dashboard/VideoMeetings'
 import ConsultationForms from './pages/dashboard/ConsultationForms'
@@ -245,6 +246,7 @@ const App = () => {
               <Route path="pipeline" element={<ClientPipeline />} />
               <Route path="crm" element={<CRMPage />} />
               <Route path="crm/client/:clientId" element={<ClientProfile />} />
+              <Route path="rooms" element={<RoomBuilder />} />
               <Route path="shop" element={<ShopManager />} />
               <Route path="video-meetings" element={<VideoMeetings />} />
               <Route path="consultation-forms" element={<ConsultationForms />} />

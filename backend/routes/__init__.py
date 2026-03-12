@@ -58,6 +58,7 @@ from .dashboard.calendar import router as calendar_router
 from .dashboard.users import router as users_router
 from .dashboard.businesses import router as businesses_router
 from .dashboard.tables import router as tables_router
+from .dashboard.rooms import router as rooms_router
 from .dashboard.staff import router as staff_router
 from .dashboard.services import router as services_router
 from .dashboard.reviews import router as reviews_router
@@ -116,7 +117,7 @@ __all__ = [
     "admin_partners_router",
     "directory_router", "book_router", "voice_search_router", "email_webhooks_router",
     "dashboard_router", "bookings_router", "calendar_router", "users_router",
-    "businesses_router", "tables_router", "staff_router", "services_router",
+    "businesses_router", "tables_router", "rooms_router", "staff_router", "services_router",
     "reviews_router", "analytics_router", "reputation_router", "growth_router",
     "payments_router", "settings_router", "support_router", "notifications_router",
     "insights_router", "marketing_router", "chatbot_router", "studio_router",

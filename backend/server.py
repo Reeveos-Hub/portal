@@ -22,6 +22,7 @@ from routes import (
     bookings_router,
     directory_router,
     tables_router,
+    rooms_router,
     staff_router,
     services_router,
     reviews_router,
@@ -245,6 +246,7 @@ app.include_router(businesses_router)
 app.include_router(bookings_router)
 app.include_router(directory_router)
 app.include_router(tables_router)
+app.include_router(rooms_router)
 app.include_router(staff_router)
 app.include_router(services_router)
 app.include_router(reviews_router)
