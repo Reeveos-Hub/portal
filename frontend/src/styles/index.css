@@ -255,27 +255,68 @@ input[type="time"] {
 
 
 /* ═══════════════════════════════════════════════════════
-   LIGHT SCROLLBAR — Dashboard / public pages
+   SCROLLBAR SYSTEM
+   Main page scroll = invisible (clean, no distraction)
+   Inner widget/frame scroll = subtle grey (shows content is scrollable)
    ═══════════════════════════════════════════════════════ */
+
+/* Main page scrollbar — invisible */
 ::-webkit-scrollbar {
-  width: 7px;
-  height: 7px;
-}
-::-webkit-scrollbar-track {
-  background: transparent;
-}
-::-webkit-scrollbar-thumb {
-  background: rgba(17, 17, 17, 0.18);
-  border-radius: 999px;
-}
-::-webkit-scrollbar-thumb:hover {
-  background: rgba(17, 17, 17, 0.3);
+  width: 0px;
+  height: 0px;
 }
 
-/* Firefox scrollbar */
+/* Firefox — hide main scrollbar */
 * {
+  scrollbar-width: none;
+}
+
+/* Inner frame scrollbar — subtle grey, only on elements that need it */
+.inner-scroll::-webkit-scrollbar,
+[style*="overflowY: auto"]::-webkit-scrollbar,
+[style*="overflow-y: auto"]::-webkit-scrollbar,
+.overflow-y-auto::-webkit-scrollbar,
+.overflow-auto::-webkit-scrollbar,
+table::-webkit-scrollbar,
+.flex-1.overflow-y-auto::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+.inner-scroll::-webkit-scrollbar-track,
+[style*="overflowY: auto"]::-webkit-scrollbar-track,
+[style*="overflow-y: auto"]::-webkit-scrollbar-track,
+.overflow-y-auto::-webkit-scrollbar-track,
+.overflow-auto::-webkit-scrollbar-track,
+table::-webkit-scrollbar-track,
+.flex-1.overflow-y-auto::-webkit-scrollbar-track {
+  background: transparent;
+}
+.inner-scroll::-webkit-scrollbar-thumb,
+[style*="overflowY: auto"]::-webkit-scrollbar-thumb,
+[style*="overflow-y: auto"]::-webkit-scrollbar-thumb,
+.overflow-y-auto::-webkit-scrollbar-thumb,
+.overflow-auto::-webkit-scrollbar-thumb,
+table::-webkit-scrollbar-thumb,
+.flex-1.overflow-y-auto::-webkit-scrollbar-thumb {
+  background: rgba(17, 17, 17, 0.15);
+  border-radius: 999px;
+}
+.inner-scroll::-webkit-scrollbar-thumb:hover,
+[style*="overflowY: auto"]::-webkit-scrollbar-thumb:hover,
+[style*="overflow-y: auto"]::-webkit-scrollbar-thumb:hover,
+.overflow-y-auto::-webkit-scrollbar-thumb:hover,
+.overflow-auto::-webkit-scrollbar-thumb:hover,
+table::-webkit-scrollbar-thumb:hover,
+.flex-1.overflow-y-auto::-webkit-scrollbar-thumb:hover {
+  background: rgba(17, 17, 17, 0.25);
+}
+
+/* Firefox inner scroll — re-enable thin scrollbar on inner elements */
+.inner-scroll,
+.overflow-y-auto,
+.overflow-auto {
   scrollbar-width: thin;
-  scrollbar-color: rgba(17, 17, 17, 0.18) transparent;
+  scrollbar-color: rgba(17, 17, 17, 0.15) transparent;
 }
 
 
