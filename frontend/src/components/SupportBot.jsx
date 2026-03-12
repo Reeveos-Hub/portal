@@ -808,9 +808,8 @@ This is a local services business (salon/clinic/spa), NOT a restaurant. Use "app
         <div
           className={chatMode === 'popup' ? "chat-window-enter" : ""}
           style={chatMode === 'fullpage' ? {
-            position: "fixed", top: 0, right: 0, bottom: 0, left: 0,
-            zIndex: 9998, display: "flex", flexDirection: "column",
-            background: "#F5F5F5",
+            flex: 1, display: "flex", flexDirection: "column",
+            background: "#F5F5F5", minHeight: 0,
           } : chatMode === 'inpage' ? {
             position: "fixed", top: 56, right: 0, bottom: 0,
             width: 400, maxWidth: "50vw",
