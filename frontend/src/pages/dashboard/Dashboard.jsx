@@ -6,9 +6,9 @@ import AppLoader from "../../components/shared/AppLoader"
  * /dashboard/business/{id}/activity — live feed
  * /tables/business/{id}/floor-plan — floor status
  */
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Users, CalendarCheck, Clock, PoundSterling, Armchair, CalendarPlus, Ban, FileText, ClipboardList, ArrowRight, Filter, Search, Download, MoreVertical, TrendingUp, TrendingDown, RefreshCw } from 'lucide-react'
+import { Users, CalendarCheck, Clock, PoundSterling, Armchair, CalendarPlus, Ban, FileText, ClipboardList, ArrowRight, Filter, Search, Download, MoreVertical, TrendingUp, TrendingDown, RefreshCw, GripVertical, LayoutGrid, RotateCcw } from 'lucide-react'
 import { useBusiness } from '../../contexts/BusinessContext'
 import api from '../../utils/api'
 
@@ -204,6 +204,71 @@ const Dashboard = () => {
   const [loading, setLoading] = useState(true)
   const [searchFilter, setSearchFilter] = useState('')
 
+  // ── Drag-and-drop layout state ──
+  const DEFAULT_ORDER = ['trends', 'weekGlance', 'services', 'staffToday']
+  const DEFAULT_RIGHT = ['quickActions', 'activity']
+  const [editMode, setEditMode] = useState(false)
+  const [leftOrder, setLeftOrder] = useState(DEFAULT_ORDER)
+  const [rightOrder, setRightOrder] = useState(DEFAULT_RIGHT)
+  const [upcomingPosition, setUpcomingPosition] = useState('bottom') // 'top' or 'bottom'
+  const dragItem = useRef(null)
+  const dragOverItem = useRef(null)
+  const dragColumn = useRef(null)
+
+  // Load saved layout
+  useEffect(() => {
+    api.get('/dashboard/layout').then(data => {
+      if (data && !data.is_default && data.layout) {
+        const saved = data.layout
+        if (saved.leftOrder) setLeftOrder(saved.leftOrder)
+        if (saved.rightOrder) setRightOrder(saved.rightOrder)
+        if (saved.upcomingPosition) setUpcomingPosition(saved.upcomingPosition)
+      }
+    }).catch(() => {})
+  }, [])
+
+  // Save layout
+  const saveLayout = (left, right, upcoming) => {
+    api.put('/dashboard/layout', {
+      layout: { leftOrder: left, rightOrder: right, upcomingPosition: upcoming },
+      hidden_widgets: [],
+      locked_widgets: [],
+    }).catch(() => {})
+  }
+
+  // Drag handlers
+  const handleDragStart = (e, column, index) => {
+    dragItem.current = index
+    dragColumn.current = column
+    e.dataTransfer.effectAllowed = 'move'
+    e.currentTarget.style.opacity = '0.5'
+  }
+  const handleDragEnd = (e) => { e.currentTarget.style.opacity = '1' }
+  const handleDragOver = (e) => { e.preventDefault(); e.dataTransfer.dropEffect = 'move' }
+  const handleDrop = (e, column, index) => {
+    e.preventDefault()
+    if (dragColumn.current !== column) return // Only reorder within same column
+    const items = column === 'left' ? [...leftOrder] : [...rightOrder]
+    const draggedItem = items[dragItem.current]
+    items.splice(dragItem.current, 1)
+    items.splice(index, 0, draggedItem)
+    if (column === 'left') { setLeftOrder(items); saveLayout(items, rightOrder, upcomingPosition) }
+    else { setRightOrder(items); saveLayout(leftOrder, items, upcomingPosition) }
+    dragItem.current = null
+    dragOverItem.current = null
+  }
+  const toggleUpcomingPosition = () => {
+    const next = upcomingPosition === 'bottom' ? 'top' : 'bottom'
+    setUpcomingPosition(next)
+    saveLayout(leftOrder, rightOrder, next)
+  }
+  const resetLayout = () => {
+    setLeftOrder(DEFAULT_ORDER)
+    setRightOrder(DEFAULT_RIGHT)
+    setUpcomingPosition('bottom')
+    api.delete('/dashboard/layout').catch(() => {})
+  }
+
   const loadDashboard = useCallback(async () => {
     if (!bid) return // Don't clear loading — wait for bid
     try {
@@ -362,6 +427,107 @@ const Dashboard = () => {
     }
   }
 
+  // ── Drag wrapper — adds handle + reorder to each section ──
+  const DragWrap = ({ id, column, children }) => {
+    const order = column === 'left' ? leftOrder : rightOrder
+    const idx = order.indexOf(id)
+    return (
+      <div
+        style={{ order: idx >= 0 ? idx : 99 }}
+        draggable={editMode}
+        onDragStart={(e) => handleDragStart(e, column, idx)}
+        onDragEnd={handleDragEnd}
+        onDragOver={handleDragOver}
+        onDrop={(e) => handleDrop(e, column, idx)}
+        className={editMode ? 'relative group' : ''}
+      >
+        {editMode && (
+          <div className="absolute top-3 right-3 z-10 opacity-0 group-hover:opacity-100 transition-opacity cursor-grab active:cursor-grabbing bg-white rounded-lg shadow-md border border-gray-200 p-1.5 flex items-center gap-1">
+            <GripVertical size={14} className="text-gray-400" />
+            <span className="text-[10px] font-semibold text-gray-400 pr-1">Drag</span>
+          </div>
+        )}
+        <div className={editMode ? 'ring-2 ring-transparent hover:ring-[#C9A84C]/30 rounded-2xl transition-all' : ''}>
+          {children}
+        </div>
+      </div>
+    )
+  }
+
+  // ── Upcoming table JSX (rendered at top or bottom based on user preference) ──
+  const upcomingTable = (
+    <section className="bg-white rounded-2xl border border-gray-100 shadow-[0_2px_10px_rgba(0,0,0,0.03)] overflow-hidden">
+      <div className="p-6 border-b border-gray-100 flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <h2 className="text-lg font-bold text-gray-900">{isRestaurant ? 'Upcoming Arrivals' : 'Upcoming Appointments'}</h2>
+          <p className="text-sm text-gray-500">{arrivals.length > 0 ? `${arrivals.length} ${isRestaurant ? 'reservations' : 'appointments'}` : 'Next 2 hours'}</p>
+        </div>
+        <div className="flex items-center gap-3">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400" />
+            <input type="text" placeholder={isRestaurant ? "Filter guests..." : "Filter clients..."} value={searchFilter} onChange={e => setSearchFilter(e.target.value)} className="pl-8 pr-4 py-2 bg-white border border-gray-200 rounded-full text-xs font-medium focus:outline-none focus:ring-2 focus:ring-[#111111]/15 focus:border-[#111111]/30 shadow-sm w-48 transition-all" style={{ fontFamily: "'Figtree', sans-serif" }} />
+          </div>
+          <button className="bg-gray-50 hover:bg-gray-100 text-gray-600 px-3 py-2 rounded-lg border border-gray-200 text-sm font-medium transition-colors flex items-center gap-1">
+            <Download className="w-3.5 h-3.5" /> Export
+          </button>
+        </div>
+      </div>
+      <div className="overflow-x-auto">
+        <table className="w-full text-left border-collapse">
+          <thead>
+            <tr className="bg-gray-50 border-b border-gray-200 text-xs font-bold text-gray-500 uppercase tracking-wider">
+              <th className="px-6 py-4">Time</th>
+              <th className="px-6 py-4">{isRestaurant ? 'Guest' : 'Client'}</th>
+              <th className="px-6 py-4">{isRestaurant ? 'Size' : 'Service'}</th>
+              <th className="px-6 py-4">{isRestaurant ? 'Table' : 'Therapist'}</th>
+              <th className="px-6 py-4">Status</th>
+              <th className="px-6 py-4">Notes</th>
+              <th className="px-6 py-4 text-right">Actions</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-gray-100">
+            {arrivals.length > 0 ? arrivals.map(a => (
+              <tr key={a.id} className="hover:bg-gray-50/50 group transition-colors">
+                <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-900">{a.time}</td>
+                <td className="px-6 py-4 whitespace-nowrap">
+                  <div className="flex items-center gap-3">
+                    <div className={`w-8 h-8 rounded-full ${getAv(a.name)} font-bold text-xs flex items-center justify-center`}>{getInit(a.name)}</div>
+                    <div>
+                      <div className="flex items-center gap-1">
+                        <p className="text-sm font-bold text-gray-900">{a.name}</p>
+                        {a.vip && <span className="text-[10px] bg-[#D4A373] text-white px-1.5 rounded font-bold">VIP</span>}
+                      </div>
+                      {a.phone && <p className="text-xs text-gray-500">{a.phone}</p>}
+                    </div>
+                  </div>
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                  {isRestaurant ? <div className="flex items-center gap-2"><Users className="w-3.5 h-3.5 text-gray-400" /> {a.guests}</div> : <span className="text-gray-700 font-medium">{a.service || '—'}</span>}
+                </td>
+                <td className={`px-6 py-4 whitespace-nowrap text-sm font-medium ${(isRestaurant ? a.table : a.staffName) ? 'text-gray-600' : 'text-gray-400 italic'}`}>
+                  {isRestaurant ? (a.table || 'Unassigned') : (a.staffName || 'Any available')}
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap"><span className={`px-2.5 py-1 rounded-full text-xs font-bold border ${a.statusBg}`}>{a.statusLabel}</span></td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 truncate max-w-[150px]">{a.notes}</td>
+                <td className="px-6 py-4 whitespace-nowrap text-right">
+                  <button className="text-primary hover:text-emerald-700 font-bold text-xs bg-gray-50 hover:bg-white border border-transparent hover:border-primary/30 px-3 py-1.5 rounded transition-all shadow-sm">{a.action}</button>
+                  <button className="text-gray-400 hover:text-gray-600 ml-2"><MoreVertical className="w-4 h-4 inline" /></button>
+                </td>
+              </tr>
+            )) : (
+              <tr><td colSpan={7} className="px-6 py-12 text-center text-sm text-gray-400">{isRestaurant ? 'No upcoming arrivals.' : 'No upcoming appointments.'}</td></tr>
+            )}
+          </tbody>
+        </table>
+      </div>
+      <div className="px-6 py-4 border-t border-gray-100 bg-gray-50 flex justify-center">
+        <button onClick={() => navigate('/dashboard/bookings')} className="text-sm font-medium text-gray-600 hover:text-primary flex items-center gap-2">
+          View All Upcoming <ArrowRight className="w-3.5 h-3.5" />
+        </button>
+      </div>
+    </section>
+  )
+
   return (
     <div className="-m-6 lg:-m-8 flex flex-col h-[calc(100vh-4rem)] overflow-y-auto" style={{ fontFamily: "'Figtree', sans-serif" }}>
       <div className="p-6 lg:p-8 max-w-7xl mx-auto w-full space-y-8 pb-12">
@@ -389,6 +555,18 @@ const Dashboard = () => {
             <button onClick={() => { setLoading(true); loadDashboard() }} className="p-2 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-primary transition-colors" title="Refresh">
               <RefreshCw className="w-4 h-4" />
             </button>
+            <button onClick={() => setEditMode(!editMode)}
+              className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-bold transition-all ${
+                editMode ? 'bg-primary text-white shadow-md' : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
+              }`}>
+              <LayoutGrid className="w-3.5 h-3.5" />
+              {editMode ? 'Done' : 'Customise'}
+            </button>
+            {editMode && (
+              <button onClick={resetLayout} className="flex items-center gap-1 px-3 py-2 rounded-lg text-xs font-medium text-gray-400 hover:text-red-500 hover:bg-red-50 transition-all">
+                <RotateCcw className="w-3.5 h-3.5" /> Reset
+              </button>
+            )}
           </div>
         </div>
 
@@ -417,9 +595,23 @@ const Dashboard = () => {
           ))}
         </section>
 
+        {/* Edit mode banner */}
+        {editMode && (
+          <div className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-medium" style={{ background: '#C9A84C15', border: '1px solid #C9A84C30', color: '#374151' }}>
+            <GripVertical className="w-3.5 h-3.5" style={{ color: '#C9A84C' }} />
+            <span><strong>Customise mode</strong> — Drag sections by the grip handle to reorder. Click "Done" when finished.</span>
+            <button onClick={toggleUpcomingPosition} className="ml-auto px-3 py-1 rounded-lg bg-white border border-gray-200 text-xs font-semibold hover:bg-gray-50">
+              Upcoming: {upcomingPosition === 'bottom' ? 'Move to Top' : 'Move to Bottom'}
+            </button>
+          </div>
+        )}
+
+        {/* Upcoming Appointments — TOP position */}
+        {upcomingPosition === 'top' && upcomingTable}
+
         {/* Main Grid */}
         <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
-          <div className="xl:col-span-2 space-y-8">
+          <div className="xl:col-span-2 flex flex-col gap-8">
 
             {/* Occupancy Chart — wired to real booking data */}
             <div className="bg-white rounded-2xl border border-gray-100 shadow-[0_2px_10px_rgba(0,0,0,0.03)] p-6">
@@ -609,80 +801,8 @@ const Dashboard = () => {
           </div>
         </div>
 
-        {/* Upcoming Arrivals Table */}
-        <section className="bg-white rounded-2xl border border-gray-100 shadow-[0_2px_10px_rgba(0,0,0,0.03)] overflow-hidden">
-          <div className="p-6 border-b border-gray-100 flex flex-col md:flex-row md:items-center justify-between gap-4">
-            <div>
-              <h2 className="text-lg font-bold text-gray-900">{isRestaurant ? 'Upcoming Arrivals' : 'Upcoming Appointments'}</h2>
-              <p className="text-sm text-gray-500">{arrivals.length > 0 ? `${arrivals.length} ${isRestaurant ? 'reservations' : 'appointments'}` : 'Next 2 hours'}</p>
-            </div>
-            <div className="flex items-center gap-3">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400" />
-                <input type="text" placeholder={isRestaurant ? "Filter guests..." : "Filter clients..."} value={searchFilter} onChange={e => setSearchFilter(e.target.value)} className="pl-8 pr-4 py-2 bg-white border border-gray-200 rounded-full text-xs font-medium focus:outline-none focus:ring-2 focus:ring-[#111111]/15 focus:border-[#111111]/30 shadow-sm w-48 transition-all" style={{ fontFamily: "'Figtree', sans-serif" }} />
-              </div>
-              <button className="bg-gray-50 hover:bg-gray-100 text-gray-600 px-3 py-2 rounded-lg border border-gray-200 text-sm font-medium transition-colors flex items-center gap-1">
-                <Download className="w-3.5 h-3.5" /> Export
-              </button>
-            </div>
-          </div>
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse">
-              <thead>
-                <tr className="bg-gray-50 border-b border-gray-200 text-xs font-bold text-gray-500 uppercase tracking-wider">
-                  <th className="px-6 py-4">Time</th>
-                  <th className="px-6 py-4">{isRestaurant ? 'Guest' : 'Client'}</th>
-                  <th className="px-6 py-4">{isRestaurant ? 'Size' : 'Service'}</th>
-                  <th className="px-6 py-4">{isRestaurant ? 'Table' : 'Therapist'}</th>
-                  <th className="px-6 py-4">Status</th>
-                  <th className="px-6 py-4">Notes</th>
-                  <th className="px-6 py-4 text-right">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-100">
-                {arrivals.length > 0 ? arrivals.map(a => (
-                  <tr key={a.id} className="hover:bg-gray-50/50 group transition-colors">
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-900">{a.time}</td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="flex items-center gap-3">
-                        <div className={`w-8 h-8 rounded-full ${getAv(a.name)} font-bold text-xs flex items-center justify-center`}>{getInit(a.name)}</div>
-                        <div>
-                          <div className="flex items-center gap-1">
-                            <p className="text-sm font-bold text-gray-900">{a.name}</p>
-                            {a.vip && <span className="text-[10px] bg-[#D4A373] text-white px-1.5 rounded font-bold">VIP</span>}
-                          </div>
-                          {a.phone && <p className="text-xs text-gray-500">{a.phone}</p>}
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                      {isRestaurant
-                        ? <div className="flex items-center gap-2"><Users className="w-3.5 h-3.5 text-gray-400" /> {a.guests}</div>
-                        : <span className="text-gray-700 font-medium">{a.service || '—'}</span>
-                      }
-                    </td>
-                    <td className={`px-6 py-4 whitespace-nowrap text-sm font-medium ${(isRestaurant ? a.table : a.staffName) ? 'text-gray-600' : 'text-gray-400 italic'}`}>
-                      {isRestaurant ? (a.table || 'Unassigned') : (a.staffName || 'Any available')}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap"><span className={`px-2.5 py-1 rounded-full text-xs font-bold border ${a.statusBg}`}>{a.statusLabel}</span></td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 truncate max-w-[150px]">{a.notes}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-right">
-                      <button className="text-primary hover:text-emerald-700 font-bold text-xs bg-gray-50 hover:bg-white border border-transparent hover:border-primary/30 px-3 py-1.5 rounded transition-all shadow-sm">{a.action}</button>
-                      <button className="text-gray-400 hover:text-gray-600 ml-2"><MoreVertical className="w-4 h-4 inline" /></button>
-                    </td>
-                  </tr>
-                )) : (
-                  <tr><td colSpan={7} className="px-6 py-12 text-center text-sm text-gray-400">{isRestaurant ? 'No upcoming arrivals. Bookings will appear here as they come in.' : 'No upcoming appointments. Bookings will appear here as they come in.'}</td></tr>
-                )}
-              </tbody>
-            </table>
-          </div>
-          <div className="px-6 py-4 border-t border-gray-100 bg-gray-50 flex justify-center">
-            <button onClick={() => navigate('/dashboard/bookings')} className="text-sm font-medium text-gray-600 hover:text-primary flex items-center gap-2">
-              View All Upcoming <ArrowRight className="w-3.5 h-3.5" />
-            </button>
-          </div>
-        </section>
+        {/* Upcoming Arrivals — bottom position */}
+        {upcomingPosition === 'bottom' && upcomingTable}
       </div>
     </div>
   )
