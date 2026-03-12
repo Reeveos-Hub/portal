@@ -1,5 +1,6 @@
 /**
- * Run 1: Dashboard shell — sidebar + top bar + content
+ * Dashboard shell — sidebar + top bar + content
+ * Portal targets for SupportBot inpage/fullpage modes sit IN the flex tree
  */
 
 import { useState } from 'react'
@@ -14,77 +15,102 @@ import UpgradeModal from '../components/layout/UpgradeModal'
 import SupportBot from '../components/SupportBot'
 import WalkthroughOverlay from '../components/WalkthroughOverlay'
 import { WalkthroughProvider } from '../contexts/WalkthroughContext'
+import { AssistantModeProvider, useAssistantMode } from '../contexts/AssistantModeContext'
 import WelcomeBanner from '../components/shared/WelcomeBanner'
 import AppLoader from '../components/shared/AppLoader'
 import { TIERS } from '../config/tiers'
 import { useEffect } from 'react'
 
-const DashboardLayout = () => {
+const DashboardInner = () => {
   const { user } = useAuth()
   const { business, businessType, tier, loading } = useBusiness()
   const navigate = useNavigate()
   const location = useLocation()
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [upgradeModal, setUpgradeModal] = useState(null)
+  const { mode: chatMode } = useAssistantMode()
 
   useEffect(() => {
-    if (!user) {
-      navigate('/login')
-      return
-    }
+    if (!user) { navigate('/login'); return }
   }, [user, navigate])
 
-  // Route protection disabled — all features unlocked for all tiers
-  // useEffect(() => { ... }, [location.pathname, businessType, tier, navigate])
+  if (!user) return null
+  if (loading) return (
+    <div className="min-h-screen flex items-center justify-center bg-background">
+      <AppLoader message="Loading dashboard..." size="lg" />
+    </div>
+  )
 
-  if (!user) {
-    return null
-  }
-
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <AppLoader message="Loading dashboard..." size="lg" />
-      </div>
-    )
-  }
+  const isFullpage = chatMode === 'fullpage'
+  const isInpage = chatMode === 'inpage'
+  const fullWidthPages = ['/dashboard', '/dashboard/calendar', '/dashboard/floor-plan', '/dashboard/client-messages', '/dashboard/pipeline', '/dashboard/crm', '/dashboard/shop']
 
   return (
-    <WalkthroughProvider>
     <div className="h-screen flex overflow-hidden bg-background">
       <Sidebar open={sidebarOpen} onNavigate={() => setSidebarOpen(false)} />
 
-      <div className="flex-1 flex flex-col overflow-hidden min-w-0 transition-all duration-300 ease-[cubic-bezier(0.25,0.1,0.25,1)]">
-        <TopBar
-          onMenuClick={() => setSidebarOpen((o) => !o)}
-          sidebarOpen={sidebarOpen}
-        />
-        <main className="flex-1 overflow-hidden">
-          {['/dashboard', '/dashboard/calendar', '/dashboard/floor-plan', '/dashboard/client-messages', '/dashboard/pipeline', '/dashboard/crm', '/dashboard/shop'].includes(location.pathname) ? (
-            <Outlet />
-          ) : (
-            <div className="h-full overflow-y-auto">
-              <div className="max-w-7xl mx-auto p-6 lg:p-8">
-                <Outlet />
+      {/* Content area — hidden in fullpage mode */}
+      {!isFullpage && (
+        <div className="flex-1 flex flex-col overflow-hidden min-w-0 transition-all duration-300 ease-[cubic-bezier(0.25,0.1,0.25,1)]">
+          <TopBar
+            onMenuClick={() => setSidebarOpen((o) => !o)}
+            sidebarOpen={sidebarOpen}
+          />
+          <main className="flex-1 overflow-hidden">
+            {fullWidthPages.includes(location.pathname) ? (
+              <Outlet />
+            ) : (
+              <div className="h-full overflow-y-auto">
+                <div className="max-w-7xl mx-auto p-6 lg:p-8">
+                  <Outlet />
+                </div>
               </div>
-            </div>
-          )}
-        </main>
-      </div>
+            )}
+          </main>
+        </div>
+      )}
 
-      {upgradeModal && (
-        <UpgradeModal
-          tierName={upgradeModal}
-          onClose={() => setUpgradeModal(null)}
-          onViewPlans={() => setUpgradeModal(null)}
+      {/* Portal target: in-page panel (400px, right side, IN the flex row) */}
+      {isInpage && (
+        <div
+          id="assistant-inpage-portal"
+          style={{
+            width: 400, flexShrink: 0,
+            borderLeft: '1px solid #E5E7EB',
+            display: 'flex', flexDirection: 'column',
+            overflow: 'hidden',
+          }}
         />
       )}
+
+      {/* Portal target: full page (takes all content space) */}
+      {isFullpage && (
+        <div
+          id="assistant-fullpage-portal"
+          style={{
+            flex: 1, minWidth: 0,
+            display: 'flex', flexDirection: 'column',
+            overflow: 'hidden',
+          }}
+        />
+      )}
+
+      {upgradeModal && (
+        <UpgradeModal tierName={upgradeModal} onClose={() => setUpgradeModal(null)} onViewPlans={() => setUpgradeModal(null)} />
+      )}
       <SupportBot />
-      <WelcomeBanner />
+      {!isFullpage && <WelcomeBanner />}
       <WalkthroughOverlay />
     </div>
-    </WalkthroughProvider>
   )
 }
+
+const DashboardLayout = () => (
+  <AssistantModeProvider>
+    <WalkthroughProvider>
+      <DashboardInner />
+    </WalkthroughProvider>
+  </AssistantModeProvider>
+)
 
 export default DashboardLayout
