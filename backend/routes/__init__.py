@@ -48,6 +48,7 @@ from .public.book import router as book_router
 from .public.voice_search import router as voice_search_router
 from .public.webhooks import router as email_webhooks_router
 from .public.client_portal import router as client_portal_router
+from .public.survey import router as survey_router, admin_router as survey_admin_router
 
 # ─── Dashboard ───
 from .dashboard.overview import router as dashboard_router
@@ -126,4 +127,5 @@ __all__ = [
     "delivery_aggregation_router", "allergen_management_router", "accounting_router",
     "agent_router", "outreach_router", "outreach_webhook_router", "linkedin_router",
     "consultation_router", "client_portal_router",
+    "survey_router", "survey_admin_router",
 ]

@@ -26,6 +26,9 @@ def setup_cors(app: FastAPI):
         "https://www.reevenow.com",
         "https://www.reeveos.app",
         "https://webportal.reeveos.app",
+        # Survey / link shortener
+        "https://reeveos.link",
+        "https://www.reeveos.link",
         "https://adminportal.reeveos.app",
         "https://book.reeveos.app",
         "https://staging.reeveos.app",

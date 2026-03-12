@@ -69,6 +69,8 @@ from routes import (
     consultation_router,
     client_portal_router,
     packages_router,
+    survey_router,
+    survey_admin_router,
 )
 
 
@@ -360,6 +362,10 @@ app.include_router(blog_router)
 # Public Contact Form Submissions
 from routes.public.forms import router as forms_router
 app.include_router(forms_router)
+
+# Public Survey (Beautician Market Research) + Admin view
+app.include_router(survey_router)
+app.include_router(survey_admin_router)
 
 # Static uploads for booking page logo/cover
 static_dir = Path("/opt/rezvo-app/uploads")
