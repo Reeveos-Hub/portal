@@ -369,30 +369,35 @@ const Dashboard = () => {
 
       case 'quickActions':
         return (
-          <div style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
-            <div style={{ fontSize: 15, fontWeight: 700, color: '#fff', marginBottom: 12 }}>Quick Actions</div>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, flex: 1 }}>
-              {[
-                { icon: CalendarCheck, label: isRestaurant ? 'Reserve' : 'New Appointment', action: isRestaurant ? 'Reserve' : 'New Appointment' },
-                { icon: Users, label: 'Walk-in Client', action: 'Walk-in' },
-                { icon: Clock, label: "Today's Schedule", action: 'Schedule' },
-                { icon: FileText, label: 'Consultation Forms', action: 'Forms' },
-              ].map((a, i) => {
-                const Icon = a.icon
-                return (
-                  <div key={i} onClick={() => handleQuickAction(a.action)} style={{
-                    background: 'rgba(255,255,255,0.08)', color: '#fff',
-                    borderRadius: 12, padding: 14, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-                    gap: 8, cursor: 'pointer', border: '1px solid rgba(255,255,255,0.12)', fontSize: 12, fontWeight: 600,
-                    transition: 'all 0.15s',
-                  }}
-                    onMouseOver={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.15)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.25)' }}
-                    onMouseOut={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.08)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.12)' }}
-                  >
-                    <Icon size={20} />{a.label}
-                  </div>
-                )
-              })}
+          <div style={{ height: '100%', display: 'flex', flexDirection: 'column', position: 'relative' }}>
+            <div style={{ position: 'absolute', top: -16, right: -16, width: 120, height: 120, background: '#fff', opacity: 0.05, borderRadius: '50%', filter: 'blur(30px)' }} />
+            <div style={{ position: 'absolute', bottom: -16, left: -16, width: 90, height: 90, background: '#10B981', opacity: 0.1, borderRadius: '50%', filter: 'blur(20px)' }} />
+            <div style={{ fontSize: 16, fontWeight: 700, color: '#fff', marginBottom: 14, position: 'relative', zIndex: 1 }}>Quick Actions</div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, flex: 1, position: 'relative', zIndex: 1 }}>
+              {(isRestaurant ? [
+                { icon: <Armchair size={20} color="#10B981" />, label: 'Walk-In', action: 'Walk-in' },
+                { icon: <CalendarCheck size={20} color="#D4A373" />, label: 'Reserve', action: 'Reserve' },
+                { icon: <Clock size={20} color="#EF4444" style={{ opacity: 0.7 }} />, label: 'Block Tbl', action: 'Schedule' },
+                { icon: <FileText size={20} color="#93C5FD" />, label: 'Run Sheet', action: 'Schedule' },
+              ] : [
+                { icon: <CalendarCheck size={20} color="#C9A84C" />, label: 'New Appointment', action: 'New Appointment' },
+                { icon: <Armchair size={20} color="#10B981" />, label: 'Walk-in Client', action: 'Walk-in' },
+                { icon: <FileText size={20} color="#93C5FD" />, label: "Today's Schedule", action: 'Schedule' },
+                { icon: <ClipboardList size={20} color="#C4B5FD" />, label: 'Consultation Forms', action: 'Forms' },
+              ]).map((a, i) => (
+                <div key={i} onClick={() => handleQuickAction(a.action)} style={{
+                  background: 'rgba(255,255,255,0.1)', borderRadius: 12, padding: 14,
+                  display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+                  gap: 8, cursor: 'pointer', border: '1px solid rgba(255,255,255,0.1)',
+                  fontSize: 12, fontWeight: 600, color: '#fff', transition: 'all 0.15s',
+                }}
+                  onMouseOver={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.2)'; e.currentTarget.style.transform = 'scale(1.03)' }}
+                  onMouseOut={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.1)'; e.currentTarget.style.transform = 'scale(1)' }}
+                >
+                  <span>{a.icon}</span>
+                  <span>{a.label}</span>
+                </div>
+              ))}
             </div>
           </div>
         )
