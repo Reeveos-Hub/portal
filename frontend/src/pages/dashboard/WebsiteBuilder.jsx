@@ -204,7 +204,7 @@ const COMPONENT_LABELS = {
 const FONT = 'Figtree, sans-serif'
 const GOLD = '#C9A84C'
 const DARK = '#111111'
-const T = { bg: '#111111', panel: '#1A1A1A', input: '#222222', border: '#333333', hover: '#2A2A2A', canvas: '#0A0A0A', text: '#FFFFFF', muted: '#999999', gold: '#C9A84C' }
+const T = { bg: '#FFFFFF', panel: '#FAF7F2', input: '#FFFFFF', border: '#E8E4DD', hover: '#F5F0E8', canvas: '#FFFFFF', text: '#111111', muted: '#7A776F', gold: '#C9A84C' }
 const placeholderBg = (w, h, label) =>
   `data:image/svg+xml,${encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}"><rect fill="#e5e5e5" width="${w}" height="${h}"/><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="#999" font-family="sans-serif" font-size="14">${label}</text></svg>`)}`
 
@@ -980,7 +980,7 @@ function CtxMenu({ x, y, onClose, onAction }) {
     return () => window.removeEventListener('click', h)
   }, [onClose])
   return (
-    <div style={{ position: 'fixed', top: y, left: x, zIndex: 9999, background: T.panel, border: `1px solid ${T.border}`, borderRadius: '8px', padding: '4px 0', minWidth: '180px', boxShadow: '0 8px 24px rgba(0,0,0,0.5)' }} onClick={e => e.stopPropagation()}>
+    <div style={{ position: 'fixed', top: y, left: x, zIndex: 9999, background: T.panel, border: `1px solid ${T.border}`, borderRadius: '8px', padding: '4px 0', minWidth: '180px', boxShadow: '0 8px 24px rgba(0,0,0,0.12)' }} onClick={e => e.stopPropagation()}>
       {items.map(it => (
         <button key={it.key} onClick={() => { onAction(it.key); onClose() }} style={{ display: 'flex', alignItems: 'center', gap: '10px', width: '100%', padding: '8px 14px', border: 'none', background: 'transparent', color: T.text, fontFamily: FONT, fontSize: '0.82rem', cursor: 'pointer', transition: 'background 0.15s' }} onMouseEnter={e => e.currentTarget.style.background = T.hover} onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
           <span style={{ display: 'flex', color: T.muted }}>{it.icon}</span>{it.label}
@@ -1048,7 +1048,7 @@ function EditorInner({ pages, currentSlug, onChangePage, onAddPage, onRenamePage
   }, [selectedItem, selectedIndex])
 
   const layers = appState?.data?.content || []
-  const brandPalette = [T.bg, T.gold, '#ffffff', '#f9f9f9', T.border, '#666666', '#e5e5e5', '#25D366']
+  const brandPalette = ['#ffffff', T.gold, DARK, '#FAF7F2', T.border, '#666666', '#2C3E2D', '#25D366']
 
   // Keyboard shortcuts
   useEffect(() => {
@@ -1130,15 +1130,15 @@ function EditorInner({ pages, currentSlug, onChangePage, onAddPage, onRenamePage
 
         {/* Right: Actions */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-          <Tip text="Undo (Ctrl+Z)"><button onClick={() => history.back?.()} disabled={!history.hasPast} style={{ background: 'transparent', border: 'none', color: history.hasPast ? T.text : '#444', cursor: history.hasPast ? 'pointer' : 'default', padding: '6px', display: 'flex', transition: 'color 0.2s' }}>{icons.undo}</button></Tip>
-          <Tip text="Redo (Ctrl+Y)"><button onClick={() => history.forward?.()} disabled={!history.hasFuture} style={{ background: 'transparent', border: 'none', color: history.hasFuture ? T.text : '#444', cursor: history.hasFuture ? 'pointer' : 'default', padding: '6px', display: 'flex', transition: 'color 0.2s' }}>{icons.redo}</button></Tip>
+          <Tip text="Undo (Ctrl+Z)"><button onClick={() => history.back?.()} disabled={!history.hasPast} style={{ background: 'transparent', border: 'none', color: history.hasPast ? T.text : T.border, cursor: history.hasPast ? 'pointer' : 'default', padding: '6px', display: 'flex', transition: 'color 0.2s' }}>{icons.undo}</button></Tip>
+          <Tip text="Redo (Ctrl+Y)"><button onClick={() => history.forward?.()} disabled={!history.hasFuture} style={{ background: 'transparent', border: 'none', color: history.hasFuture ? T.text : T.border, cursor: history.hasFuture ? 'pointer' : 'default', padding: '6px', display: 'flex', transition: 'color 0.2s' }}>{icons.redo}</button></Tip>
           <div style={{ width: '1px', height: '20px', background: T.border, margin: '0 4px' }} />
           <Tip text="Preview"><button onClick={() => setShowPreview(!showPreview)} style={{ background: 'transparent', border: 'none', color: showPreview ? T.gold : '#666', cursor: 'pointer', padding: '6px', display: 'flex', transition: 'color 0.2s' }}>{icons.preview}</button></Tip>
           <Tip text="Fullscreen"><button onClick={toggleFullscreen} style={{ background: 'transparent', border: 'none', color: isFullscreen ? T.gold : '#666', cursor: 'pointer', padding: '6px', display: 'flex', transition: 'color 0.2s' }}>{icons.fullscreen}</button></Tip>
           <div style={{ width: '1px', height: '20px', background: T.border, margin: '0 4px' }} />
           {saving && <span style={{ color: T.muted, fontSize: '0.75rem', marginRight: '4px' }}>Saving...</span>}
           <button onClick={onSaveDraft} style={{ background: 'transparent', color: T.text, border: 'none', padding: '6px 12px', fontFamily: FONT, fontWeight: 600, fontSize: '0.8rem', cursor: 'pointer', transition: 'color 0.2s' }} onMouseEnter={e => e.currentTarget.style.color = T.gold} onMouseLeave={e => e.currentTarget.style.color = T.text}>Save Draft</button>
-          <button onClick={onPublish} style={{ background: T.gold, color: T.bg, border: 'none', borderRadius: '6px', padding: '6px 16px', fontFamily: FONT, fontWeight: 700, fontSize: '0.8rem', cursor: 'pointer', transition: 'opacity 0.2s' }} onMouseEnter={e => e.currentTarget.style.opacity = '0.85'} onMouseLeave={e => e.currentTarget.style.opacity = '1'}>Publish</button>
+          <button onClick={onPublish} style={{ background: T.gold, color: DARK, border: 'none', borderRadius: '6px', padding: '6px 16px', fontFamily: FONT, fontWeight: 700, fontSize: '0.8rem', cursor: 'pointer', transition: 'opacity 0.2s' }} onMouseEnter={e => e.currentTarget.style.opacity = '0.85'} onMouseLeave={e => e.currentTarget.style.opacity = '1'}>Publish</button>
         </div>
       </div>
 
@@ -1170,7 +1170,7 @@ function EditorInner({ pages, currentSlug, onChangePage, onAddPage, onRenamePage
                     <div style={{ position: 'relative' }}>
                       <button onClick={(e) => { e.stopPropagation(); setPageMenuSlug(pageMenuSlug === p.slug ? null : p.slug) }} style={{ background: 'transparent', border: 'none', color: T.muted, cursor: 'pointer', padding: '8px', display: 'flex', transition: 'color 0.2s' }} onMouseEnter={e => e.currentTarget.style.color = T.text} onMouseLeave={e => e.currentTarget.style.color = T.muted}>{icons.dots}</button>
                       {pageMenuSlug === p.slug && (
-                        <div style={{ position: 'absolute', right: 0, top: '100%', zIndex: 100, background: T.input, border: `1px solid ${T.border}`, borderRadius: '8px', padding: '4px 0', minWidth: '140px', boxShadow: '0 8px 24px rgba(0,0,0,0.5)' }}>
+                        <div style={{ position: 'absolute', right: 0, top: '100%', zIndex: 100, background: T.input, border: `1px solid ${T.border}`, borderRadius: '8px', padding: '4px 0', minWidth: '140px', boxShadow: '0 8px 24px rgba(0,0,0,0.12)' }}>
                           <button onClick={() => { onRenamePage?.(p.slug); setPageMenuSlug(null) }} style={{ display: 'flex', alignItems: 'center', gap: '8px', width: '100%', padding: '8px 12px', border: 'none', background: 'transparent', color: T.text, fontFamily: FONT, fontSize: '0.82rem', cursor: 'pointer', transition: 'background 0.15s' }} onMouseEnter={e => e.currentTarget.style.background = T.hover} onMouseLeave={e => e.currentTarget.style.background = 'transparent'}><span style={{ display: 'flex', color: T.muted }}>{icons.rename}</span>Rename</button>
                           <button onClick={() => { onDuplicatePage?.(p.slug); setPageMenuSlug(null) }} style={{ display: 'flex', alignItems: 'center', gap: '8px', width: '100%', padding: '8px 12px', border: 'none', background: 'transparent', color: T.text, fontFamily: FONT, fontSize: '0.82rem', cursor: 'pointer', transition: 'background 0.15s' }} onMouseEnter={e => e.currentTarget.style.background = T.hover} onMouseLeave={e => e.currentTarget.style.background = 'transparent'}><span style={{ display: 'flex', color: T.muted }}>{icons.duplicate}</span>Duplicate</button>
                           <button onClick={() => { onDeletePage?.(p.slug); setPageMenuSlug(null) }} style={{ display: 'flex', alignItems: 'center', gap: '8px', width: '100%', padding: '8px 12px', border: 'none', background: 'transparent', color: '#e55', fontFamily: FONT, fontSize: '0.82rem', cursor: 'pointer', transition: 'background 0.15s' }} onMouseEnter={e => e.currentTarget.style.background = T.hover} onMouseLeave={e => e.currentTarget.style.background = 'transparent'}><span style={{ display: 'flex' }}>{icons.trash}</span>Delete</button>
