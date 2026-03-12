@@ -99,20 +99,34 @@ const Dashboard = () => {
   const [dragPos, setDragPos] = useState({ x: 0, y: 0 })
   const [resizing, setResizing] = useState(null)
 
-  /* ── Measure container — ResizeObserver tracks actual size changes ── */
+  /* ── Measure container — ref callback + RAF for reliable width ── */
+  const measureWidth = useCallback(() => {
+    if (containerRef.current) {
+      const w = containerRef.current.getBoundingClientRect().width
+      if (w > 100) setContainerWidth(w)
+    }
+  }, [])
+
   useEffect(() => {
-    if (!containerRef.current) return
-    const ro = new ResizeObserver(entries => {
-      for (const entry of entries) {
-        const w = entry.contentRect.width
-        if (w > 0) setContainerWidth(w)
-      }
-    })
-    ro.observe(containerRef.current)
-    // Also measure immediately
-    setContainerWidth(containerRef.current.offsetWidth || 900)
-    return () => ro.disconnect()
-  }, [showLibrary])
+    measureWidth()
+    // Measure again after paint (catches flex layout settling)
+    const raf1 = requestAnimationFrame(measureWidth)
+    const raf2 = requestAnimationFrame(() => requestAnimationFrame(measureWidth))
+    // Also on window resize
+    window.addEventListener('resize', measureWidth)
+    // ResizeObserver as backup
+    let ro
+    if (containerRef.current) {
+      ro = new ResizeObserver(() => measureWidth())
+      ro.observe(containerRef.current)
+    }
+    return () => {
+      cancelAnimationFrame(raf1)
+      cancelAnimationFrame(raf2)
+      window.removeEventListener('resize', measureWidth)
+      ro?.disconnect()
+    }
+  }, [measureWidth, showLibrary, loading])
 
   /* ── Load dashboard data ── */
   const loadDashboard = useCallback(async () => {
@@ -175,13 +189,24 @@ const Dashboard = () => {
   useEffect(() => { loadDashboard() }, [loadDashboard])
   useEffect(() => { if (!bid) return; const iv = setInterval(() => loadDashboard(), 20000); return () => clearInterval(iv) }, [loadDashboard, bid])
 
-  /* ── Load saved layout ── */
+  /* ── Load saved layout (with validation) ── */
   useEffect(() => {
     api.get('/dashboard/layout').then(data => {
       if (data && data.layout && Array.isArray(data.layout) && data.layout.length > 0 && data.layout[0]?.i) {
-        setLayout(data.layout)
-        setHiddenWidgets(new Set(data.hidden_widgets || []))
-        setLockedWidgets(new Set(data.locked_widgets || []))
+        // Validate: every item must have i, x, y, w, h and be a known widget
+        const valid = data.layout.every(l => 
+          l.i && typeof l.x === 'number' && typeof l.y === 'number' && 
+          typeof l.w === 'number' && typeof l.h === 'number' && WIDGETS[l.i]
+        )
+        if (valid) {
+          setLayout(data.layout)
+          setHiddenWidgets(new Set(data.hidden_widgets || []))
+          setLockedWidgets(new Set(data.locked_widgets || []))
+        } else {
+          // Stale layout from old dashboard version — reset
+          console.warn('Invalid saved layout, resetting to defaults')
+          api.delete('/dashboard/layout').catch(() => {})
+        }
       }
     }).catch(() => {})
   }, [])
@@ -562,7 +587,7 @@ const Dashboard = () => {
   const totalH = Math.max(...visibleLayout.map(l => l.y + l.h), 0)
 
   return (
-    <div className="flex flex-col h-[calc(100vh-4rem)] overflow-hidden" style={{ fontFamily: "'Figtree', sans-serif" }}>
+    <div className="flex flex-col h-full overflow-hidden" style={{ fontFamily: "'Figtree', sans-serif" }}>
 
       {/* ── Toolbar ── */}
       <div style={{ padding: '12px 24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #E5E7EB', flexShrink: 0, background: '#fff' }}>
