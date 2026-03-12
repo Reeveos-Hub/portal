@@ -8,7 +8,7 @@ export default {
       colors: {
         primary: '#111111',
         'primary-hover': '#0a0a0a',
-        background: '#FEFBF4',
+        background: '#F5F5F5',
         card: '#FFFFFF',
         border: '#E8E0D4',
         success: '#22C55E',
