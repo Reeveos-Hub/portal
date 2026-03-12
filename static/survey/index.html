@@ -1,0 +1,1133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>ReeveOS — Help Us Build Something Better</title>
+<meta name="description" content="Quick survey for beauty & wellness professionals. Tell us what's missing from your current platform.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --black: #111111;
+    --gold: #C9A84C;
+    --gold-light: #E8D5A0;
+    --gold-glow: rgba(201, 168, 76, 0.15);
+    --white: #FFFFFF;
+    --off-white: #FAFAF8;
+    --grey-50: #F7F7F5;
+    --grey-100: #EDEDEB;
+    --grey-200: #D4D4D0;
+    --grey-400: #9C9C96;
+    --grey-600: #6B6B65;
+    --grey-800: #333330;
+    --error: #C44C4C;
+    --success: #4CAF50;
+  }
+
+  html, body {
+    height: 100%;
+    font-family: 'Figtree', sans-serif;
+    background: var(--black);
+    color: var(--white);
+    overflow: hidden;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* ── App Container ── */
+  .app {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+  }
+
+  /* ── Header ── */
+  .header {
+    padding: 20px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: relative;
+    z-index: 10;
+    flex-shrink: 0;
+  }
+
+  .logo {
+    font-weight: 800;
+    font-size: 22px;
+    letter-spacing: -0.5px;
+    color: var(--white);
+  }
+  .logo span { color: var(--gold); }
+
+  .progress-wrap {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .progress-text {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--grey-400);
+    min-width: 36px;
+    text-align: right;
+  }
+  .progress-bar {
+    width: 80px;
+    height: 3px;
+    background: var(--grey-800);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%;
+    background: var(--gold);
+    border-radius: 3px;
+    transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  /* ── Slide Container ── */
+  .slides-viewport {
+    flex: 1;
+    overflow: hidden;
+    position: relative;
+  }
+
+  .slide {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 24px 28px 100px;
+    opacity: 0;
+    transform: translateY(40px);
+    pointer-events: none;
+    transition: opacity 0.45s ease, transform 0.45s cubic-bezier(0.4, 0, 0.2, 1);
+    max-width: 640px;
+    margin: 0 auto;
+    width: 100%;
+  }
+  .slide.active {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+  }
+  .slide.exit-up {
+    opacity: 0;
+    transform: translateY(-40px);
+    pointer-events: none;
+  }
+
+  /* ── Welcome Slide ── */
+  .welcome-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--gold-glow);
+    border: 1px solid rgba(201, 168, 76, 0.25);
+    padding: 6px 14px;
+    border-radius: 100px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--gold);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 28px;
+    width: fit-content;
+  }
+  .welcome-badge svg {
+    width: 14px;
+    height: 14px;
+    fill: var(--gold);
+  }
+
+  .slide-question {
+    font-size: clamp(26px, 5vw, 38px);
+    font-weight: 700;
+    line-height: 1.2;
+    letter-spacing: -0.5px;
+    margin-bottom: 12px;
+    color: var(--white);
+  }
+
+  .slide-sub {
+    font-size: 16px;
+    font-weight: 400;
+    color: var(--grey-400);
+    line-height: 1.5;
+    margin-bottom: 32px;
+    max-width: 480px;
+  }
+
+  /* ── Inputs ── */
+  .text-input {
+    width: 100%;
+    background: transparent;
+    border: none;
+    border-bottom: 2px solid var(--grey-800);
+    padding: 14px 0;
+    font-family: 'Figtree', sans-serif;
+    font-size: 20px;
+    font-weight: 400;
+    color: var(--white);
+    outline: none;
+    transition: border-color 0.3s;
+    caret-color: var(--gold);
+  }
+  .text-input::placeholder { color: var(--grey-600); }
+  .text-input:focus { border-bottom-color: var(--gold); }
+
+  .textarea-input {
+    width: 100%;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid var(--grey-800);
+    border-radius: 12px;
+    padding: 16px;
+    font-family: 'Figtree', sans-serif;
+    font-size: 16px;
+    color: var(--white);
+    outline: none;
+    resize: none;
+    min-height: 100px;
+    transition: border-color 0.3s;
+    caret-color: var(--gold);
+  }
+  .textarea-input::placeholder { color: var(--grey-600); }
+  .textarea-input:focus { border-color: var(--gold); }
+
+  /* ── Choice Buttons ── */
+  .choices {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .choice-btn {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    width: 100%;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid var(--grey-800);
+    border-radius: 12px;
+    padding: 16px 18px;
+    cursor: pointer;
+    transition: all 0.25s;
+    text-align: left;
+    font-family: 'Figtree', sans-serif;
+    color: var(--white);
+  }
+  .choice-btn:hover, .choice-btn:focus-visible {
+    background: var(--gold-glow);
+    border-color: var(--gold);
+  }
+  .choice-btn.selected {
+    background: var(--gold-glow);
+    border-color: var(--gold);
+  }
+
+  .choice-key {
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
+    border: 1px solid var(--grey-600);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--grey-400);
+    flex-shrink: 0;
+    transition: all 0.25s;
+  }
+  .choice-btn.selected .choice-key,
+  .choice-btn:hover .choice-key {
+    border-color: var(--gold);
+    background: var(--gold);
+    color: var(--black);
+  }
+
+  .choice-label {
+    font-size: 16px;
+    font-weight: 500;
+  }
+
+  /* multi-select hint */
+  .multi-hint {
+    font-size: 12px;
+    color: var(--grey-600);
+    margin-bottom: 14px;
+    font-weight: 500;
+  }
+
+  /* ── Checkbox style for multi ── */
+  .choice-btn .check-box {
+    width: 20px;
+    height: 20px;
+    border-radius: 4px;
+    border: 2px solid var(--grey-600);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: all 0.25s;
+  }
+  .choice-btn.selected .check-box {
+    border-color: var(--gold);
+    background: var(--gold);
+  }
+  .check-box svg {
+    width: 12px;
+    height: 12px;
+    stroke: var(--black);
+    stroke-width: 3;
+    fill: none;
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+  .choice-btn.selected .check-box svg { opacity: 1; }
+
+  /* ── Rating ── */
+  .rating-row {
+    display: flex;
+    gap: 8px;
+    margin-top: 4px;
+  }
+  .rating-btn {
+    width: 52px;
+    height: 52px;
+    border-radius: 10px;
+    border: 1px solid var(--grey-800);
+    background: rgba(255,255,255,0.04);
+    font-family: 'Figtree', sans-serif;
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--grey-400);
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .rating-btn:hover { border-color: var(--gold); color: var(--white); }
+  .rating-btn.selected {
+    background: var(--gold);
+    border-color: var(--gold);
+    color: var(--black);
+  }
+  .rating-labels {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 8px;
+    font-size: 11px;
+    color: var(--grey-600);
+    font-weight: 500;
+  }
+
+  /* ── Footer / Nav ── */
+  .footer {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 16px 24px;
+    padding-bottom: max(16px, env(safe-area-inset-bottom));
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    z-index: 10;
+    background: linear-gradient(transparent, var(--black) 40%);
+  }
+
+  .btn-back {
+    background: none;
+    border: none;
+    color: var(--grey-400);
+    font-family: 'Figtree', sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    padding: 10px 16px;
+    border-radius: 8px;
+    transition: color 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .btn-back:hover { color: var(--white); }
+  .btn-back svg { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 2; }
+
+  .btn-next {
+    background: var(--gold);
+    color: var(--black);
+    border: none;
+    font-family: 'Figtree', sans-serif;
+    font-size: 15px;
+    font-weight: 700;
+    padding: 12px 28px;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.25s;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .btn-next:hover { background: var(--gold-light); transform: translateY(-1px); }
+  .btn-next:disabled { opacity: 0.3; cursor: not-allowed; transform: none; }
+  .btn-next svg { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 2.5; }
+
+  .btn-submit {
+    background: var(--gold);
+    color: var(--black);
+    border: none;
+    font-family: 'Figtree', sans-serif;
+    font-size: 16px;
+    font-weight: 700;
+    padding: 14px 36px;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.25s;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 24px;
+  }
+  .btn-submit:hover { background: var(--gold-light); transform: translateY(-2px); }
+
+  /* ── Thank You ── */
+  .thankyou-icon {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    background: var(--gold-glow);
+    border: 2px solid var(--gold);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 24px;
+  }
+  .thankyou-icon svg {
+    width: 28px;
+    height: 28px;
+    stroke: var(--gold);
+    fill: none;
+    stroke-width: 2.5;
+  }
+
+  .pilot-card {
+    background: rgba(201, 168, 76, 0.08);
+    border: 1px solid rgba(201, 168, 76, 0.2);
+    border-radius: 16px;
+    padding: 24px;
+    margin-top: 28px;
+  }
+  .pilot-card h3 {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--gold);
+    margin-bottom: 8px;
+  }
+  .pilot-card p {
+    font-size: 14px;
+    color: var(--grey-400);
+    line-height: 1.6;
+  }
+  .pilot-card .highlight {
+    color: var(--white);
+    font-weight: 600;
+  }
+
+  /* ── Background Grain ── */
+  .grain {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.03;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    background-repeat: repeat;
+    background-size: 256px;
+  }
+
+  /* ── Ambient Glow ── */
+  .ambient {
+    position: fixed;
+    top: -200px;
+    right: -200px;
+    width: 500px;
+    height: 500px;
+    background: radial-gradient(circle, rgba(201,168,76,0.06) 0%, transparent 70%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* ── Keyboard Enter Hint ── */
+  .enter-hint {
+    display: none;
+    align-items: center;
+    gap: 6px;
+    margin-top: 16px;
+    font-size: 13px;
+    color: var(--grey-600);
+    font-weight: 500;
+  }
+  .enter-hint kbd {
+    background: var(--grey-800);
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-family: 'Figtree', sans-serif;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--grey-400);
+  }
+  @media (min-width: 768px) {
+    .enter-hint { display: flex; }
+  }
+
+  /* ── Accessibility ── */
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0,0,0,0);
+    border: 0;
+  }
+
+  /* ── Consent checkbox ── */
+  .consent-label {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    cursor: pointer;
+    padding: 18px;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid var(--grey-800);
+    border-radius: 12px;
+    transition: all 0.25s;
+  }
+  .consent-label:hover { border-color: var(--gold); }
+  .consent-label.checked { background: var(--gold-glow); border-color: var(--gold); }
+  .consent-box {
+    width: 24px;
+    height: 24px;
+    min-width: 24px;
+    border-radius: 6px;
+    border: 2px solid var(--grey-600);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.25s;
+    margin-top: 2px;
+  }
+  .consent-label.checked .consent-box {
+    border-color: var(--gold);
+    background: var(--gold);
+  }
+  .consent-box svg {
+    width: 14px;
+    height: 14px;
+    stroke: var(--black);
+    stroke-width: 3;
+    fill: none;
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+  .consent-label.checked .consent-box svg { opacity: 1; }
+  .consent-text {
+    font-size: 14px;
+    color: var(--grey-400);
+    line-height: 1.6;
+  }
+  .consent-text strong { color: var(--white); }
+
+  /* ── Optional Other input ── */
+  .other-input-wrap {
+    margin-top: 10px;
+    overflow: hidden;
+    max-height: 0;
+    transition: max-height 0.3s ease;
+  }
+  .other-input-wrap.show { max-height: 60px; }
+</style>
+</head>
+<body>
+
+<div class="grain"></div>
+<div class="ambient"></div>
+
+<div class="app" id="app">
+  <!-- Header -->
+  <header class="header">
+    <div class="logo">R<span>.</span></div>
+    <div class="progress-wrap" id="progressWrap" style="opacity:0">
+      <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+      <div class="progress-text" id="progressText">0%</div>
+    </div>
+  </header>
+
+  <!-- Slides -->
+  <div class="slides-viewport" id="viewport"></div>
+
+  <!-- Footer Nav -->
+  <div class="footer" id="footerNav">
+    <button class="btn-back" id="btnBack" style="visibility:hidden" aria-label="Go back">
+      <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+      Back
+    </button>
+    <button class="btn-next" id="btnNext" disabled>
+      OK
+      <svg viewBox="0 0 24 24"><polyline points="9 6 15 12 9 18"/></svg>
+    </button>
+  </div>
+</div>
+
+<script>
+(function() {
+  'use strict';
+
+  // ── Question Data ──
+  const questions = [
+    {
+      id: 'welcome',
+      type: 'welcome',
+      badge: 'Takes 2 minutes',
+      question: "We're building something\nbetter for beauty.",
+      sub: "Help shape the future of booking, payments and business management for beauty & wellness professionals.",
+      buttonText: "Let's go"
+    },
+    {
+      id: 'name',
+      type: 'text',
+      question: "First, what's your name?",
+      sub: "Just your first name is fine.",
+      placeholder: "Type your name…",
+      required: true
+    },
+    {
+      id: 'business_name',
+      type: 'text',
+      question: "What's your business called?",
+      sub: "Salon, clinic, studio — whatever it is, we'd love to know.",
+      placeholder: "e.g. Glow Studio, The Beauty Room…",
+      required: true
+    },
+    {
+      id: 'business_type',
+      type: 'choice',
+      question: "What best describes you?",
+      sub: "",
+      choices: [
+        'Hair Salon',
+        'Beauty Salon',
+        'Aesthetics Clinic',
+        'Barbershop',
+        'Nail Salon / Tech',
+        'Spa & Wellness',
+        'Mobile / Freelance',
+        'Other'
+      ],
+      hasOther: true
+    },
+    {
+      id: 'team_size',
+      type: 'choice',
+      question: "How big is your team?",
+      sub: "Including yourself.",
+      choices: [
+        'Just me',
+        '2–3 people',
+        '4–6 people',
+        '7–10 people',
+        '10+'
+      ]
+    },
+    {
+      id: 'current_platform',
+      type: 'choice',
+      question: "What booking platform do you currently use?",
+      sub: "Pick the main one you rely on day to day.",
+      choices: [
+        'Fresha',
+        'Treatwell',
+        'Timely',
+        'Square Appointments',
+        'Booksy',
+        'Pen & paper / none',
+        'Other'
+      ],
+      hasOther: true
+    },
+    {
+      id: 'platform_cost',
+      type: 'text',
+      question: "Roughly, what do you pay per month?",
+      sub: "For your booking system, processing fees — the lot. A rough figure is fine.",
+      placeholder: "e.g. £50, £120, not sure…",
+      required: false
+    },
+    {
+      id: 'platform_rating',
+      type: 'rating',
+      question: "How happy are you with your current setup?",
+      sub: "1 = frustrated, 5 = love it.",
+      min: 1,
+      max: 5,
+      minLabel: 'Frustrated',
+      maxLabel: 'Love it'
+    },
+    {
+      id: 'pain_points',
+      type: 'multi',
+      question: "What frustrates you most?",
+      sub: "Pick as many as apply.",
+      choices: [
+        'No-shows & late cancellations',
+        'High fees / poor value',
+        'Clunky or outdated software',
+        'No proper client records',
+        'Can\'t take deposits or booking fees',
+        'Poor reporting / no insights',
+        'No website or online presence tools',
+        'Card processing is separate / awkward',
+        'Other'
+      ],
+      hasOther: true
+    },
+    {
+      id: 'wishlist',
+      type: 'textarea',
+      question: "If you could wave a magic wand, what would your dream platform do?",
+      sub: "No wrong answers. We're genuinely listening.",
+      placeholder: "Type anything that comes to mind…",
+      required: false
+    },
+    {
+      id: 'payment_processing',
+      type: 'choice',
+      question: "Who handles your card payments?",
+      sub: "The company that processes your card transactions.",
+      choices: [
+        'SumUp',
+        'Zettle (PayPal)',
+        'Square',
+        'Dojo',
+        'Worldpay',
+        'Stripe',
+        'Don\'t take cards yet',
+        'Other'
+      ],
+      hasOther: true
+    },
+    {
+      id: 'interest',
+      type: 'multi',
+      question: "Would any of these interest you?",
+      sub: "Tick all that sound useful.",
+      choices: [
+        'Free trial of a new all-in-one platform',
+        'Lower card processing rates',
+        'Built-in consultation forms (GDPR compliant)',
+        'Automated SMS & email reminders',
+        'Client booking app with your branding',
+        'A proper website included in your plan'
+      ]
+    },
+    {
+      id: 'contact',
+      type: 'text',
+      question: "Last one — how can we reach you?",
+      sub: "Phone number, email or Instagram handle. Whatever's easiest for you.",
+      placeholder: "e.g. 07700 900000 or @yourstudio",
+      required: true
+    },
+    {
+      id: 'gdpr_consent',
+      type: 'consent',
+      question: "Nearly there — just one legal bit.",
+      sub: "We need your permission to store your answers and contact you about ReeveOS.",
+    },
+    {
+      id: 'thankyou',
+      type: 'thankyou'
+    }
+  ];
+
+  // ── State ──
+  let current = 0;
+  const answers = {};
+
+  // ── DOM ──
+  const viewport = document.getElementById('viewport');
+  const btnNext = document.getElementById('btnNext');
+  const btnBack = document.getElementById('btnBack');
+  const progressFill = document.getElementById('progressFill');
+  const progressText = document.getElementById('progressText');
+  const progressWrap = document.getElementById('progressWrap');
+  const footerNav = document.getElementById('footerNav');
+
+  // ── Render All Slides ──
+  function buildSlides() {
+    questions.forEach((q, i) => {
+      const div = document.createElement('div');
+      div.className = 'slide' + (i === 0 ? ' active' : '');
+      div.id = 'slide-' + i;
+      div.setAttribute('role', 'group');
+      div.setAttribute('aria-label', 'Question ' + (i + 1));
+      div.innerHTML = renderSlide(q, i);
+      viewport.appendChild(div);
+    });
+  }
+
+  function renderSlide(q, idx) {
+    switch(q.type) {
+      case 'welcome':
+        return `
+          <div class="welcome-badge">
+            <svg viewBox="0 0 24 24"><path d="M12 2L14.09 8.26L21 9.27L16 14.14L17.18 21.02L12 17.77L6.82 21.02L8 14.14L3 9.27L9.91 8.26L12 2Z"/></svg>
+            ${q.badge}
+          </div>
+          <h1 class="slide-question" style="white-space:pre-line">${q.question}</h1>
+          <p class="slide-sub">${q.sub}</p>
+        `;
+
+      case 'text':
+        return `
+          <h2 class="slide-question">${q.question}</h2>
+          ${q.sub ? `<p class="slide-sub">${q.sub}</p>` : ''}
+          <input type="text" class="text-input" id="input-${q.id}" placeholder="${q.placeholder || ''}" autocomplete="off" aria-label="${q.question}">
+          <div class="enter-hint"><kbd>Enter</kbd> to continue</div>
+        `;
+
+      case 'textarea':
+        return `
+          <h2 class="slide-question">${q.question}</h2>
+          ${q.sub ? `<p class="slide-sub">${q.sub}</p>` : ''}
+          <textarea class="textarea-input" id="input-${q.id}" placeholder="${q.placeholder || ''}" rows="4" aria-label="${q.question}"></textarea>
+        `;
+
+      case 'choice':
+        return `
+          <h2 class="slide-question">${q.question}</h2>
+          ${q.sub ? `<p class="slide-sub">${q.sub}</p>` : ''}
+          <div class="choices" id="choices-${q.id}">
+            ${q.choices.map((c, ci) => `
+              <button class="choice-btn" data-value="${c}" data-idx="${ci}" aria-label="${c}">
+                <span class="choice-key">${String.fromCharCode(65 + ci)}</span>
+                <span class="choice-label">${c}</span>
+              </button>
+            `).join('')}
+          </div>
+          ${q.hasOther ? `<div class="other-input-wrap" id="other-wrap-${q.id}"><input type="text" class="text-input" id="other-${q.id}" placeholder="Please specify…" autocomplete="off"></div>` : ''}
+        `;
+
+      case 'multi':
+        return `
+          <h2 class="slide-question">${q.question}</h2>
+          ${q.sub ? `<p class="slide-sub">${q.sub}</p>` : ''}
+          <p class="multi-hint">Select all that apply</p>
+          <div class="choices" id="choices-${q.id}">
+            ${q.choices.map((c, ci) => `
+              <button class="choice-btn" data-value="${c}" data-idx="${ci}" aria-label="${c}">
+                <span class="check-box"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></span>
+                <span class="choice-label">${c}</span>
+              </button>
+            `).join('')}
+          </div>
+          ${q.hasOther ? `<div class="other-input-wrap" id="other-wrap-${q.id}"><input type="text" class="text-input" id="other-${q.id}" placeholder="Please specify…" autocomplete="off"></div>` : ''}
+        `;
+
+      case 'rating':
+        return `
+          <h2 class="slide-question">${q.question}</h2>
+          ${q.sub ? `<p class="slide-sub">${q.sub}</p>` : ''}
+          <div class="rating-row" id="rating-${q.id}">
+            ${Array.from({length: q.max - q.min + 1}, (_, i) => i + q.min).map(n => `
+              <button class="rating-btn" data-value="${n}" aria-label="Rate ${n}">${n}</button>
+            `).join('')}
+          </div>
+          <div class="rating-labels">
+            <span>${q.minLabel}</span>
+            <span>${q.maxLabel}</span>
+          </div>
+        `;
+
+      case 'consent':
+        return `
+          <h2 class="slide-question">${q.question}</h2>
+          ${q.sub ? `<p class="slide-sub">${q.sub}</p>` : ''}
+          <label class="consent-label" id="consent-${q.id}">
+            <span class="consent-box" id="consentBox"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></span>
+            <span class="consent-text">I agree to ReeveOS storing my responses and contacting me about their platform. I understand I can request deletion of my data at any time by emailing <strong>hello@reeveos.app</strong>.</span>
+          </label>
+        `;
+
+      case 'thankyou':
+        return `
+          <div class="thankyou-icon">
+            <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+          </div>
+          <h2 class="slide-question">You're a star. Thank you!</h2>
+          <p class="slide-sub">Your answers are shaping something genuinely built for people like you — not another one-size-fits-all platform.</p>
+          <div class="pilot-card">
+            <h3>Free Pilot Programme</h3>
+            <p>We're offering a <span class="highlight">free trial</span> to a small group of beauty & wellness professionals who want to help shape the platform before public launch. <span class="highlight">No commitment, no card details.</span></p>
+            <p style="margin-top:12px">If you left your details, we'll be in touch soon.</p>
+          </div>
+        `;
+    }
+  }
+
+  // ── Navigation ──
+  function goTo(idx) {
+    if (idx < 0 || idx >= questions.length) return;
+    const prev = document.getElementById('slide-' + current);
+    const next = document.getElementById('slide-' + idx);
+
+    if (idx > current) {
+      prev.className = 'slide exit-up';
+    } else {
+      prev.className = 'slide';
+    }
+
+    setTimeout(() => { next.className = 'slide active'; }, 50);
+    current = idx;
+    updateUI();
+    focusInput();
+  }
+
+  function updateUI() {
+    const q = questions[current];
+    const totalQ = questions.length - 2; // exclude welcome + thankyou
+    const currentQ = Math.max(0, current - 1);
+    const pct = q.type === 'thankyou' ? 100 : Math.round((currentQ / totalQ) * 100);
+
+    progressFill.style.width = pct + '%';
+    progressText.textContent = pct + '%';
+    progressWrap.style.opacity = (q.type === 'welcome' || q.type === 'thankyou') ? '0' : '1';
+
+    btnBack.style.visibility = current > 0 && q.type !== 'thankyou' ? 'visible' : 'hidden';
+
+    if (q.type === 'welcome') {
+      btnNext.textContent = q.buttonText;
+      btnNext.innerHTML = q.buttonText + ' <svg viewBox="0 0 24 24"><polyline points="9 6 15 12 9 18"/></svg>';
+      btnNext.disabled = false;
+    } else if (q.type === 'thankyou') {
+      footerNav.style.display = 'none';
+    } else {
+      btnNext.innerHTML = 'OK <svg viewBox="0 0 24 24"><polyline points="9 6 15 12 9 18"/></svg>';
+      validateCurrent();
+    }
+  }
+
+  function focusInput() {
+    const q = questions[current];
+    if (q.type === 'text') {
+      const inp = document.getElementById('input-' + q.id);
+      if (inp) setTimeout(() => inp.focus(), 300);
+    } else if (q.type === 'textarea') {
+      const ta = document.getElementById('input-' + q.id);
+      if (ta) setTimeout(() => ta.focus(), 300);
+    }
+  }
+
+  function validateCurrent() {
+    const q = questions[current];
+    let valid = true;
+
+    if (q.type === 'text' && q.required) {
+      const v = (document.getElementById('input-' + q.id)?.value || '').trim();
+      valid = v.length > 0;
+    } else if (q.type === 'choice') {
+      valid = !!answers[q.id];
+    } else if (q.type === 'multi') {
+      // multi is optional — always valid
+      valid = true;
+    } else if (q.type === 'rating') {
+      valid = !!answers[q.id];
+    } else if (q.type === 'consent') {
+      valid = answers[q.id] === true;
+    }
+
+    btnNext.disabled = !valid;
+  }
+
+  function saveCurrent() {
+    const q = questions[current];
+    if (q.type === 'text') {
+      answers[q.id] = (document.getElementById('input-' + q.id)?.value || '').trim();
+    } else if (q.type === 'textarea') {
+      answers[q.id] = (document.getElementById('input-' + q.id)?.value || '').trim();
+    }
+    // choice, multi, rating saved on click
+  }
+
+  // ── Event Listeners ──
+  function init() {
+    buildSlides();
+    updateUI();
+
+    btnNext.addEventListener('click', () => {
+      saveCurrent();
+      if (current === questions.length - 2) {
+        // Before thank you — submit
+        submitForm();
+      }
+      goTo(current + 1);
+    });
+
+    btnBack.addEventListener('click', () => {
+      goTo(current - 1);
+    });
+
+    // Delegate clicks for choices/ratings/consent
+    viewport.addEventListener('click', (e) => {
+      // Consent checkbox
+      const consentLabel = e.target.closest('.consent-label');
+      if (consentLabel) {
+        consentLabel.classList.toggle('checked');
+        const q = questions[current];
+        answers[q.id] = consentLabel.classList.contains('checked');
+        validateCurrent();
+        return;
+      }
+
+      const btn = e.target.closest('.choice-btn');
+      if (!btn) {
+        const rBtn = e.target.closest('.rating-btn');
+        if (rBtn) handleRating(rBtn);
+        return;
+      }
+      handleChoice(btn);
+    });
+
+    // Text input listeners
+    viewport.addEventListener('input', () => validateCurrent());
+
+    // Enter to advance on text/textarea
+    viewport.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        const q = questions[current];
+        if (q.type === 'textarea' && !e.metaKey && !e.ctrlKey) return; // allow newlines
+        if (!btnNext.disabled) {
+          e.preventDefault();
+          btnNext.click();
+        }
+      }
+    });
+
+    // Keyboard shortcuts for choices
+    document.addEventListener('keydown', (e) => {
+      const q = questions[current];
+      if (q.type === 'choice' || q.type === 'multi') {
+        const idx = e.key.toUpperCase().charCodeAt(0) - 65;
+        const choices = document.querySelectorAll('#choices-' + q.id + ' .choice-btn');
+        if (idx >= 0 && idx < choices.length) {
+          choices[idx].click();
+        }
+      }
+    });
+  }
+
+  function handleChoice(btn) {
+    const q = questions[current];
+    const value = btn.dataset.value;
+    const container = btn.parentElement;
+
+    if (q.type === 'multi') {
+      btn.classList.toggle('selected');
+      const selected = Array.from(container.querySelectorAll('.selected')).map(b => b.dataset.value);
+      answers[q.id] = selected;
+
+      // Show/hide other input
+      if (q.hasOther) {
+        const wrap = document.getElementById('other-wrap-' + q.id);
+        const hasOther = selected.includes('Other');
+        wrap.classList.toggle('show', hasOther);
+        if (hasOther) {
+          setTimeout(() => document.getElementById('other-' + q.id)?.focus(), 200);
+        }
+      }
+    } else {
+      container.querySelectorAll('.choice-btn').forEach(b => b.classList.remove('selected'));
+      btn.classList.add('selected');
+      answers[q.id] = value;
+
+      // Show/hide other input
+      if (q.hasOther) {
+        const wrap = document.getElementById('other-wrap-' + q.id);
+        wrap.classList.toggle('show', value === 'Other');
+        if (value === 'Other') {
+          setTimeout(() => document.getElementById('other-' + q.id)?.focus(), 200);
+        } else {
+          // Auto-advance for single choice (unless Other)
+          setTimeout(() => { if (!btnNext.disabled) btnNext.click(); }, 400);
+        }
+      } else {
+        // Auto-advance for single choice
+        setTimeout(() => { if (!btnNext.disabled) btnNext.click(); }, 400);
+      }
+    }
+    validateCurrent();
+  }
+
+  function handleRating(btn) {
+    const q = questions[current];
+    const container = btn.parentElement;
+    container.querySelectorAll('.rating-btn').forEach(b => b.classList.remove('selected'));
+    btn.classList.add('selected');
+    answers[q.id] = btn.dataset.value;
+    validateCurrent();
+    // Auto-advance
+    setTimeout(() => { if (!btnNext.disabled) btnNext.click(); }, 400);
+  }
+
+  function submitForm() {
+    // Gather any "other" text inputs
+    questions.forEach(q => {
+      if (q.hasOther && answers[q.id]) {
+        const otherInput = document.getElementById('other-' + q.id);
+        if (otherInput && otherInput.value.trim()) {
+          if (Array.isArray(answers[q.id])) {
+            answers[q.id] = answers[q.id].map(v => v === 'Other' ? 'Other: ' + otherInput.value.trim() : v);
+          } else if (answers[q.id] === 'Other') {
+            answers[q.id] = 'Other: ' + otherInput.value.trim();
+          }
+        }
+      }
+    });
+
+    // POST to backend API
+    const API_URL = 'https://portal.rezvo.app/api/public/survey';
+
+    fetch(API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(answers),
+    })
+    .then(res => {
+      if (!res.ok) return res.json().then(d => { throw new Error(d.detail || 'Submission failed'); });
+      return res.json();
+    })
+    .then(data => {
+      console.log('Survey submitted:', data.id);
+    })
+    .catch(err => {
+      console.error('Survey submit error:', err);
+      // Don't disrupt UX — they already see the thank you page
+    });
+  }
+
+  init();
+})();
+</script>
+</body>
+</html>
