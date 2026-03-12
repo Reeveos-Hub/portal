@@ -7,7 +7,9 @@
 import AppLoader from "../../components/shared/AppLoader"
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Responsive, WidthProvider } from 'react-grid-layout'
+import ReactGridLayout from 'react-grid-layout'
+const Responsive = ReactGridLayout.Responsive
+const WidthProvider = ReactGridLayout.WidthProvider
 import {
   Users, CalendarCheck, Clock, PoundSterling, TrendingUp, TrendingDown,
   Search, Download, Filter, MoreVertical, ArrowRight, RefreshCw,
