@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { useBusiness } from "../contexts/BusinessContext";
 import { useAuth } from "../contexts/AuthContext";
+import { useAssistantMode } from "../contexts/AssistantModeContext";
 import api from "../utils/api";
 import theme from "../config/theme";
 
@@ -190,6 +191,8 @@ This is a local services business (salon/clinic/spa), NOT a restaurant. Use "app
   /* ── FAB & Panel State ── */
   const [fabOpen, setFabOpen] = useState(false);
   const [activePanel, setActivePanel] = useState(null); // null | 'booking' | 'walkin'
+  const { mode: chatMode, setMode: setChatMode } = useAssistantMode()
+  // chatMode: null = not open via assistant, 'popup' | 'inpage' | 'fullpage'
   const [bookingForm, setBookingForm] = useState({ name: '', phone: '', email: '', party: 2, date: '', time: '', table: '', notes: '' });
   const [walkinForm, setWalkinForm] = useState({ name: '', party: 2, table: '', notes: '' });
   const [bookingTableDrop, setBookingTableDrop] = useState(false);
@@ -530,14 +533,14 @@ This is a local services business (salon/clinic/spa), NOT a restaurant. Use "app
       `}</style>
 
       {/* Fan-out Menu Pills */}
-      {fabOpen && !isOpen && !activePanel && (
+      {fabOpen && !isOpen && !activePanel && chatMode !== 'inpage' && chatMode !== 'fullpage' && (
         <>
           <div onClick={() => setFabOpen(false)} style={{ position:'fixed', inset:0, zIndex:51 }} />
           <div style={{ position:'fixed', bottom:154, right:20, zIndex:52, display:'flex', flexDirection:'column', gap:8, alignItems:'flex-end' }}>
             {[
               { label: isRestaurant ? 'New Booking' : 'New Appointment', icon: 'M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z', action: () => { setActivePanel('booking'); setFabOpen(false); } },
               { label: isRestaurant ? 'Walk-in' : 'Walk-in Client', icon: 'M13 10V3L4 14h7v7l9-11h-7z', action: () => { setActivePanel('walkin'); setFabOpen(false); } },
-              { label: 'Chat Support', icon: 'M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z', action: () => { setIsOpen(true); setFabOpen(false); } },
+              { label: 'Chat Support', icon: 'M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z', action: () => { setIsOpen(true); setChatMode('popup'); setFabOpen(false); } },
             ].map((item, i) => (
               <button key={i} onClick={item.action} style={{
                 display:'flex', alignItems:'center', gap:8, padding:'10px 18px', borderRadius:999,
@@ -554,10 +557,10 @@ This is a local services business (salon/clinic/spa), NOT a restaurant. Use "app
       )}
 
       {/* FAB Button */}
-      {!hideBubble && <button
+      {!hideBubble && chatMode !== 'inpage' && chatMode !== 'fullpage' && <button
         className={`reeveos-chat-bubble ${(isOpen || fabOpen || activePanel) ? "open" : ""}`}
         onClick={() => {
-          if (isOpen) { setIsOpen(false); if (onExternalClose) onExternalClose(); return; }
+          if (isOpen) { setIsOpen(false); setChatMode(null); if (onExternalClose) onExternalClose(); return; }
           if (activePanel) { setActivePanel(null); return; }
           setFabOpen(!fabOpen);
         }}
@@ -803,78 +806,93 @@ This is a local services business (salon/clinic/spa), NOT a restaurant. Use "app
       {/* Chat Window */}
       {isOpen && (
         <div
-          className="chat-window-enter"
-          style={{
-            position: "fixed",
-            bottom: 100,
-            right: 24,
-            width: 400,
-            maxWidth: "calc(100vw - 48px)",
-            height: 560,
-            maxHeight: "calc(100vh - 140px)",
-            borderRadius: 20,
-            overflow: "hidden",
-            display: "flex",
-            flexDirection: "column",
+          className={chatMode === 'popup' ? "chat-window-enter" : ""}
+          style={chatMode === 'fullpage' ? {
+            position: "fixed", top: 0, right: 0, bottom: 0, left: 0,
+            zIndex: 9998, display: "flex", flexDirection: "column",
+            background: "#F5F5F5",
+          } : chatMode === 'inpage' ? {
+            position: "fixed", top: 56, right: 0, bottom: 0,
+            width: 400, maxWidth: "50vw",
+            borderLeft: "1px solid #E2E5DF",
+            display: "flex", flexDirection: "column",
+            zIndex: 9998, background: "#F5F5F5",
+          } : {
+            position: "fixed", bottom: 100, right: 24,
+            width: 400, maxWidth: "calc(100vw - 48px)",
+            height: 560, maxHeight: "calc(100vh - 140px)",
+            borderRadius: 20, overflow: "hidden",
+            display: "flex", flexDirection: "column",
             zIndex: 9998,
             boxShadow: "0 25px 60px rgba(0,0,0,0.15), 0 8px 20px rgba(0,0,0,0.08)",
-            border: "1px solid #E2E5DF",
-            background: "#F5F5F5",
+            border: "1px solid #E2E5DF", background: "#F5F5F5",
           }}
         >
           {/* Header */}
           <div
             style={{
               background: "#111111",
-              padding: "20px 20px 16px",
+              padding: "14px 16px",
               flexShrink: 0,
             }}
           >
-            <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-              <div
-                style={{
-                  width: 42,
-                  height: 42,
-                  borderRadius: 12,
-                  background: "#111111",
-                  border: "2px solid #C9A84C",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  color: "#C9A84C",
-                  fontFamily: '"Figtree", sans-serif',
-                  fontWeight: 800,
-                  fontSize: 20,
-                }}
-              >
-                R
-              </div>
-              <div>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                 <div
                   style={{
-                    color: "white",
+                    width: 36,
+                    height: 36,
+                    borderRadius: 10,
+                    background: "#111111",
+                    border: "2px solid #C9A84C",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    color: "#C9A84C",
                     fontFamily: '"Figtree", sans-serif',
                     fontWeight: 800,
-                    fontSize: 18,
-                    letterSpacing: "0.02em",
+                    fontSize: 17,
                   }}
                 >
-                  ReeveOS Assistant
+                  R
                 </div>
-                <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 2 }}>
-                  <div
-                    style={{
-                      width: 7,
-                      height: 7,
-                      borderRadius: "50%",
-                      background: "#C9A84C",
-                      boxShadow: "0 0 8px rgba(201,168,76,0.5)",
-                    }}
-                  />
-                  <span style={{ color: "#C9A84C", fontSize: 12, fontWeight: 500 }}>
-                    {business?.category || (isRestaurant ? 'Restaurant' : 'Business')} assistant
-                  </span>
+                <div>
+                  <div style={{ color: "white", fontFamily: '"Figtree", sans-serif', fontWeight: 800, fontSize: 15, letterSpacing: "0.02em" }}>
+                    ReeveOS Assistant
+                  </div>
+                  <div style={{ display: "flex", alignItems: "center", gap: 5, marginTop: 1 }}>
+                    <div style={{ width: 6, height: 6, borderRadius: "50%", background: "#C9A84C", boxShadow: "0 0 8px rgba(201,168,76,0.5)" }} />
+                    <span style={{ color: "#C9A84C", fontSize: 11, fontWeight: 500 }}>
+                      {business?.category || (isRestaurant ? 'Restaurant' : 'Clinic')} assistant
+                    </span>
+                  </div>
                 </div>
+              </div>
+              {/* Mode buttons */}
+              <div style={{ display: "flex", alignItems: "center", gap: 2 }}>
+                {chatMode === 'popup' && (
+                  <button onClick={() => setChatMode('inpage')} title="Open in page" style={{ background: "none", border: "none", color: "#888", cursor: "pointer", padding: 6, borderRadius: 6 }}>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg>
+                  </button>
+                )}
+                {chatMode === 'inpage' && (
+                  <>
+                    <button onClick={() => setChatMode('fullpage')} title="Full page" style={{ background: "none", border: "none", color: "#888", cursor: "pointer", padding: 6, borderRadius: 6 }}>
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg>
+                    </button>
+                    <button onClick={() => setChatMode('popup')} title="Popup mode" style={{ background: "none", border: "none", color: "#888", cursor: "pointer", padding: 6, borderRadius: 6 }}>
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="4 14 10 14 10 20"/><polyline points="20 10 14 10 14 4"/><line x1="14" y1="10" x2="21" y2="3"/><line x1="3" y1="21" x2="10" y2="14"/></svg>
+                    </button>
+                  </>
+                )}
+                {chatMode === 'fullpage' && (
+                  <button onClick={() => setChatMode('inpage')} title="Side panel" style={{ background: "none", border: "none", color: "#888", cursor: "pointer", padding: 6, borderRadius: 6 }}>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="4 14 10 14 10 20"/><polyline points="20 10 14 10 14 4"/><line x1="14" y1="10" x2="21" y2="3"/><line x1="3" y1="21" x2="10" y2="14"/></svg>
+                    </button>
+                )}
+                <button onClick={() => { setIsOpen(false); setChatMode(null); }} title="Close" style={{ background: "none", border: "none", color: "#666", cursor: "pointer", padding: 6, borderRadius: 6 }}>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                </button>
               </div>
             </div>
           </div>
