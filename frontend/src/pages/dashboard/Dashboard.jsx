@@ -300,6 +300,33 @@ const Dashboard = () => {
     api.delete('/dashboard/layout').catch(() => {})
   }
 
+  /* ── Auto-reset from URL param ?reset=true ── */
+  const hasAutoReset = useRef(false)
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    if (params.get('reset') === 'true') {
+      setLayout([...DEFAULT_LAYOUT]); setHiddenWidgets(new Set()); setLockedWidgets(new Set())
+      api.delete('/dashboard/layout').catch(() => {})
+      window.history.replaceState({}, '', window.location.pathname)
+      hasAutoReset.current = true
+    }
+  }, [])
+
+  /* ── Sanity check: if required widgets missing, reset once ── */
+  useEffect(() => {
+    if (hasAutoReset.current || loading) return
+    if (layout.length > 0) {
+      const hasStats = layout.some(l => l.i === 'stats')
+      const hasUpcoming = layout.some(l => l.i === 'upcoming')
+      if (!hasStats || !hasUpcoming) {
+        console.warn('Required widgets missing from layout, resetting')
+        setLayout([...DEFAULT_LAYOUT]); setHiddenWidgets(new Set()); setLockedWidgets(new Set())
+        api.delete('/dashboard/layout').catch(() => {})
+        hasAutoReset.current = true
+      }
+    }
+  }, [loading])
+
   /* ── Loading ── */
   if (loading || bizLoading) return <AppLoader message="Loading dashboard..." />
 
@@ -336,6 +363,7 @@ const Dashboard = () => {
     }))
 
   const handleQuickAction = (action) => {
+    if (editMode) return
     switch (action) {
       case 'New Appointment': case 'Reserve': navigate('/dashboard/calendar'); break
       case 'Walk-in': navigate('/dashboard/calendar'); break
@@ -351,9 +379,9 @@ const Dashboard = () => {
         return (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12, height: '100%' }}>
             {statCards.map((c, i) => (
-              <div key={i} onClick={() => c.link && navigate(c.link)} style={{
+              <div key={i} onClick={() => !editMode && c.link && navigate(c.link)} style={{
                 background: '#fff', borderRadius: 12, padding: 14, border: '1px solid #E5E7EB',
-                display: 'flex', flexDirection: 'column', justifyContent: 'center', cursor: c.link ? 'pointer' : 'default',
+                display: 'flex', flexDirection: 'column', justifyContent: 'center', cursor: editMode ? 'grab' : c.link ? 'pointer' : 'default',
               }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 6 }}>
                   <span style={{ fontSize: 11, color: '#6B7280', fontWeight: 500 }}>{c.label}</span>
@@ -707,8 +735,8 @@ const Dashboard = () => {
                     <div style={{ position: 'absolute', top: 6, left: '50%', transform: 'translateX(-50%)', width: 32, height: 4, borderRadius: 2, background: isDark ? 'rgba(255,255,255,0.3)' : '#C4C8CF' }} />
                   )}
 
-                  {/* Content */}
-                  <div style={{ height: '100%', overflow: 'hidden' }}>
+                  {/* Content — pointer events disabled in edit mode to prevent click-through */}
+                  <div style={{ height: '100%', overflow: 'hidden', pointerEvents: editMode ? 'none' : 'auto' }}>
                     {renderWidget(item.i)}
                   </div>
 
