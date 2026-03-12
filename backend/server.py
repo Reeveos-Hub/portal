@@ -99,13 +99,8 @@ async def lifespan(app: FastAPI):
     except Exception as e:
         import logging
         logging.getLogger("library").error(f"Library index init error: {e}")
-    # Create website builder indexes (TTL for analytics, etc.)
-    try:
-        from routes.dashboard.website_builder import ensure_website_indexes
-        await ensure_website_indexes()
-    except Exception as e:
-        import logging
-        logging.getLogger("website_builder").error(f"Website builder index init error: {e}")
+    # Website builder indexes (old) — now handled by Payload CMS
+    # Payload manages its own indexes in reeveos_cms database
     yield
     stop_scheduler()
     await database.close_mongo_connection()
@@ -350,9 +345,9 @@ app.include_router(rota_router)
 from routes.dashboard.consumables import router as consumables_router
 app.include_router(consumables_router)
 
-# Website Builder (Pages, Settings, Images, Templates, AI, Domains, Analytics)
-from routes.dashboard.website_builder import router as website_builder_router
-app.include_router(website_builder_router)
+# Website Builder — CMS Bridge (reads from Payload CMS / reeveos_cms database)
+from routes.dashboard.cms_bridge import router as cms_bridge_router
+app.include_router(cms_bridge_router)
 
 # Public Website Renderer (SSR pages at /site/{subdomain}/{slug})
 from routes.public.website_renderer import router as website_renderer_router

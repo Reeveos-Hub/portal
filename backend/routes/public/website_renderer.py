@@ -8,12 +8,26 @@ SEO meta tags, structured data, and analytics tracking.
 from fastapi import APIRouter, Request
 from fastapi.responses import HTMLResponse, Response, RedirectResponse
 from database import get_database
+from motor.motor_asyncio import AsyncIOMotorClient
 from datetime import datetime
 import logging
 import html as html_lib
+import os
 
 logger = logging.getLogger("website_renderer")
 router = APIRouter(prefix="/site", tags=["Public Website"])
+
+# CMS Database (separate from main app)
+_cms_client = None
+_cms_db = None
+
+def _get_cms_db():
+    global _cms_client, _cms_db
+    if _cms_db is None:
+        uri = os.getenv("CMS_DATABASE_URI", "mongodb://127.0.0.1:27017")
+        _cms_client = AsyncIOMotorClient(uri)
+        _cms_db = _cms_client["reeveos_cms"]
+    return _cms_db
 
 
 # ─────────────────────────────────────────────────────
@@ -905,9 +919,34 @@ def build_404_html(settings: dict, subdomain: str) -> str:
 # ─────────────────────────────────────────────────────
 
 async def _get_settings_by_subdomain(subdomain: str):
-    """Lookup website settings by subdomain."""
-    db = get_database()
-    return await db.website_settings.find_one({"subdomain": subdomain})
+    """Lookup website settings by subdomain from CMS database."""
+    cms = _get_cms_db()
+    tenant = await cms.tenants.find_one({"subdomain": subdomain})
+    if not tenant:
+        return None
+    # Map CMS tenant fields to the format the renderer expects
+    colors = tenant.get("brandColors", {})
+    fonts = tenant.get("fonts", {})
+    return {
+        "_id": tenant["_id"],
+        "tenant_id": tenant["_id"],
+        "business_id": str(tenant.get("businessId", tenant["_id"])),
+        "subdomain": tenant.get("subdomain", ""),
+        "brand": {
+            "primary_color": colors.get("primary", "#111111"),
+            "secondary_color": colors.get("background", "#F5F0E8"),
+            "accent_color": colors.get("accent", colors.get("secondary", "#C4A882")),
+            "font_heading": fonts.get("heading", "Cormorant Garamond"),
+            "font_body": fonts.get("body", "DM Sans"),
+            "logo_url": tenant.get("logo", ""),
+            "logo": tenant.get("logo", ""),
+        },
+        "navigation": tenant.get("navigation", []),
+        "footer": tenant.get("footer", {}),
+        "seo_defaults": tenant.get("seoDefaults", {}),
+        "maintenance_mode": tenant.get("maintenanceMode", {}),
+        "integrations": tenant.get("integrations", {}),
+    }
 
 
 async def _check_redirect(business_id: str, slug: str):
@@ -927,17 +966,17 @@ async def sitemap(subdomain: str):
     if not settings:
         return Response(content="Not found", status_code=404)
 
-    db = get_database()
-    business_id = settings["business_id"]
-    pages = await db.website_pages.find(
-        {"business_id": business_id, "status": "published", "deleted": {"$ne": True}},
-        {"slug": 1, "published_at": 1},
+    cms = _get_cms_db()
+    tid = settings["tenant_id"]
+    pages = await cms.pages.find(
+        {"tenant": tid, "status": "published"},
+        {"slug": 1, "publishedAt": 1},
     ).to_list(500)
 
     urls = ""
     for page in pages:
         slug = _esc(page.get("slug", ""))
-        published = page.get("published_at")
+        published = page.get("publishedAt")
         lastmod = published.strftime("%Y-%m-%d") if published else datetime.utcnow().strftime("%Y-%m-%d")
         loc = f"https://{_esc(subdomain)}.reeveos.site/{slug}"
         urls += f"  <url><loc>{loc}</loc><lastmod>{lastmod}</lastmod></url>\n"
@@ -987,14 +1026,19 @@ async def render_page(subdomain: str, slug: str = "home"):
             to_path = f"/site/{subdomain}/{to_path.lstrip('/')}"
         return RedirectResponse(url=to_path, status_code=status_code)
 
-    # Find published page
-    db = get_database()
-    page = await db.website_pages.find_one({
-        "business_id": business_id,
+    # Find published page from CMS database
+    cms = _get_cms_db()
+    tid = settings["tenant_id"]
+    page = await cms.pages.find_one({
+        "tenant": tid,
         "slug": slug,
         "status": "published",
-        "deleted": {"$ne": True},
     })
+
+    if page:
+        # Map CMS field names to what the renderer expects
+        if "puckData" in page and "puck_data" not in page:
+            page["puck_data"] = page.pop("puckData")
 
     if not page:
         return HTMLResponse(
