@@ -55,7 +55,6 @@ def _safe_doc(doc: dict) -> dict:
         "created_by": doc.get("created_by", ""),
         "created_by_type": doc.get("created_by_type", "user"),  # user | ai
         "created_at": doc.get("created_at", ""),
-        "file_path": doc.get("file_path", ""),
         "report_id": doc.get("report_id", ""),
         "query_text": doc.get("query_text", ""),  # AI query that created it
         "deleted": doc.get("deleted", False),

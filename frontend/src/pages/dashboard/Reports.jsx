@@ -3,7 +3,7 @@
  * 16 report types across 7 categories. Click to configure, generate,
  * and auto-save to Documents.
  */
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect } from 'react'
 import {
   Calendar, BarChart3, TrendingUp, Users, Download, Search,
   ChevronRight, Sparkles, Clock, ClipboardList, AlertTriangle,

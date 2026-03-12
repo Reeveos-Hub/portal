@@ -2,13 +2,13 @@
  * Accounts — Revenue, transactions, tax & accountant tools
  * All data pulled live from bookings. QuickBooks is a genuine Coming Soon.
  */
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect } from 'react'
 import {
   PoundSterling, TrendingUp, TrendingDown, Receipt, CreditCard,
   Download, Clock, Building2, Loader2
 } from 'lucide-react'
 import { useBusiness } from '../../contexts/BusinessContext'
-import api, { API_BASE_URL } from '../../utils/api'
+import api from '../../utils/api'
 import AppLoader from '../../components/shared/AppLoader'
 import { theme as T } from '../../config/theme'
 

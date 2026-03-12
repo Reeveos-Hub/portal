@@ -5,8 +5,8 @@
  */
 import { useState, useEffect, useCallback } from 'react'
 import {
-  FileText, Download, Search, Eye, Share2, Tag, Sparkles,
-  Trash2, RefreshCw, FolderOpen, AlertTriangle
+  FileText, Download, Search, Share2, Tag, Sparkles,
+  Trash2, RefreshCw, FolderOpen
 } from 'lucide-react'
 import { useBusiness } from '../../contexts/BusinessContext'
 import api, { API_BASE_URL } from '../../utils/api'

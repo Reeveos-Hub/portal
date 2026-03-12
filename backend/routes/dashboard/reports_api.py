@@ -109,8 +109,14 @@ async def generate_report(
 
     # Handle businessId/business_id variants in the query
     if "business_id" in query:
-        bid_val = query.pop("business_id")
-        query["$or"] = [{"businessId": {"$in": bids}}, {"business_id": {"$in": bids}}]
+        query.pop("business_id")
+        biz_filter = {"$or": [{"businessId": {"$in": bids}}, {"business_id": {"$in": bids}}]}
+        # If query already has $or (e.g. staff filter), use $and to combine
+        if "$or" in query:
+            existing_or = query.pop("$or")
+            query["$and"] = [biz_filter, {"$or": existing_or}]
+        else:
+            query.update(biz_filter)
 
     # Fetch data
     collection = db[report_def["collection"]]
