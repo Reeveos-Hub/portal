@@ -54,7 +54,8 @@ VALID_FIELDS = {
     "team_size", "current_platform", "current_platform_other",
     "platform_cost", "platform_rating", "pain_points", "pain_points_other",
     "wishlist", "payment_processing", "payment_processing_other",
-    "interest", "contact", "gdpr_consent",
+    "interest", "contact", "contact_phone", "contact_email", "contact_instagram",
+    "gdpr_consent",
 }
 
 
@@ -71,14 +72,17 @@ async def submit_survey(request: Request, body: dict):
     name = (body.get("name") or "").strip()
     business_name = (body.get("business_name") or "").strip()
     contact = (body.get("contact") or "").strip()
+    contact_phone = (body.get("contact_phone") or "").strip()
+    contact_email = (body.get("contact_email") or "").strip()
+    contact_instagram = (body.get("contact_instagram") or "").strip()
     gdpr_consent = body.get("gdpr_consent", False)
 
     if not name:
         raise HTTPException(status_code=400, detail="Name is required")
     if not business_name:
         raise HTTPException(status_code=400, detail="Business name is required")
-    if not contact:
-        raise HTTPException(status_code=400, detail="Contact details are required")
+    if not contact and not contact_phone and not contact_email and not contact_instagram:
+        raise HTTPException(status_code=400, detail="At least one contact method is required")
     if not gdpr_consent:
         raise HTTPException(status_code=400, detail="GDPR consent is required")
 
@@ -165,8 +169,16 @@ async def submit_survey(request: Request, body: dict):
                         <td style="padding:10px 0;color:#fff;">{clean.get('payment_processing', '—')}</td>
                     </tr>
                     <tr style="border-bottom:1px solid #333;">
-                        <td style="padding:10px 0;color:#999;">Contact</td>
-                        <td style="padding:10px 0;color:#C9A84C;font-weight:600;">{clean.get('contact', '—')}</td>
+                        <td style="padding:10px 0;color:#999;">Phone</td>
+                        <td style="padding:10px 0;color:#C9A84C;font-weight:600;">{clean.get('contact_phone', '—')}</td>
+                    </tr>
+                    <tr style="border-bottom:1px solid #333;">
+                        <td style="padding:10px 0;color:#999;">Email</td>
+                        <td style="padding:10px 0;color:#C9A84C;font-weight:600;">{clean.get('contact_email', '—')}</td>
+                    </tr>
+                    <tr style="border-bottom:1px solid #333;">
+                        <td style="padding:10px 0;color:#999;">Instagram</td>
+                        <td style="padding:10px 0;color:#C9A84C;font-weight:600;">{clean.get('contact_instagram', '—')}</td>
                     </tr>
                 </table>
 
@@ -336,6 +348,7 @@ async def export_surveys_csv():
         "created_at", "name", "business_name", "business_type", "team_size",
         "current_platform", "platform_cost", "platform_rating",
         "pain_points", "wishlist", "payment_processing", "interest",
+        "contact_phone", "contact_email", "contact_instagram",
         "contact", "status", "notes",
     ]
     writer = csv.DictWriter(output, fieldnames=fields, extrasaction="ignore")
