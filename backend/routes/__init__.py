@@ -83,6 +83,9 @@ from .dashboard.meet import router as meet_router
 from .dashboard.settings_v2 import router as run13_settings_router
 from .dashboard.calendar_routes import router as calendar_routes_router
 from .dashboard.packages import router as packages_router
+from .dashboard.documents import router as documents_router
+from .dashboard.reports_api import router as reports_api_router
+from .dashboard.accounts import router as accounts_router
 
 # ─── EPOS ───
 from .epos.orders import router as orders_router
@@ -121,6 +124,7 @@ __all__ = [
     "run6_booking_page_router", "run7_clients_router", "crm_router", "shop_router", "meet_router", "run13_settings_router",
     "calendar_routes_router",
     "packages_router",
+    "documents_router", "reports_api_router", "accounts_router",
     "orders_router", "kds_router", "inventory_router", "epos_ai_router",
     "labour_router", "online_ordering_router", "pay_at_table_router",
     "cash_and_tax_router", "ops_router", "table_management_router", "tronc_router",

@@ -59,6 +59,11 @@ import Packages from './pages/dashboard/Packages'
 import RotaBuilder from './pages/dashboard/RotaBuilder'
 import Consumables from './pages/dashboard/Consumables'
 
+/* Accounts, Reports, Documents */
+import Accounts from './pages/dashboard/Accounts'
+import Reports from './pages/dashboard/Reports'
+import Documents from './pages/dashboard/Documents'
+
 /* Website Builder */
 import WebsitePages from './pages/dashboard/WebsitePages'
 import WebsiteBuilder from './pages/dashboard/WebsiteBuilder'
@@ -267,6 +272,10 @@ const App = () => {
               <Route path="kds" element={<EposKDS />} />
               <Route path="labour" element={<EposLabour />} />
               <Route path="cash" element={<EposCash />} />
+              {/* Accounts, Reports, Documents */}
+              <Route path="accounts" element={<Accounts />} />
+              <Route path="reports" element={<Reports />} />
+              <Route path="documents" element={<Documents />} />
             </Route>
 
             {/* Admin — internal ops portal (PIN protected) */}

@@ -1,0 +1,276 @@
+/**
+ * Documents — CRM document library
+ * All reports, exports & AI-generated files in one place.
+ * Download, send to accountant, preview, search, filter.
+ */
+import { useState, useEffect, useCallback } from 'react'
+import {
+  FileText, Download, Search, Eye, Share2, Tag, Sparkles,
+  Trash2, RefreshCw, FolderOpen, AlertTriangle
+} from 'lucide-react'
+import { useBusiness } from '../../contexts/BusinessContext'
+import api, { API_BASE_URL } from '../../utils/api'
+import AppLoader from '../../components/shared/AppLoader'
+import { theme as T } from '../../config/theme'
+
+const TABS = [
+  { key: 'all', label: 'All' },
+  { key: 'report', label: 'Reports' },
+  { key: 'export', label: 'Exports' },
+  { key: 'financial', label: 'Financial' },
+  { key: 'forms', label: 'Forms' },
+]
+
+const FORMAT_STYLES = {
+  pdf:  { bg: '#FEF2F2', color: '#DC2626' },
+  docx: { bg: '#EFF6FF', color: '#2563EB' },
+  csv:  { bg: '#F0FDF4', color: '#059669' },
+}
+
+const Documents = () => {
+  const { business, loading: bizLoading } = useBusiness()
+  const [loading, setLoading] = useState(true)
+  const [docs, setDocs] = useState([])
+  const [total, setTotal] = useState(0)
+  const [activeTab, setActiveTab] = useState('all')
+  const [search, setSearch] = useState('')
+  const [sending, setSending] = useState(null)
+  const [deleting, setDeleting] = useState(null)
+  const [toast, setToast] = useState(null)
+
+  const bid = business?.id ?? business?._id
+
+  const fetchDocs = useCallback(async () => {
+    if (!bid) { setLoading(false); return }
+    setLoading(true)
+    try {
+      const params = new URLSearchParams()
+      if (activeTab === 'report' || activeTab === 'export') params.set('type', activeTab)
+      if (activeTab === 'financial' || activeTab === 'forms') params.set('tag', activeTab)
+      if (search.trim()) params.set('search', search.trim())
+
+      const qs = params.toString()
+      const data = await api.get(`/documents/business/${bid}${qs ? `?${qs}` : ''}`)
+      setDocs(data.documents || [])
+      setTotal(data.total || 0)
+    } catch (e) {
+      console.error('Failed to load documents:', e)
+      setDocs([])
+    }
+    setLoading(false)
+  }, [bid, activeTab, search])
+
+  useEffect(() => { fetchDocs() }, [fetchDocs])
+
+  const showToast = (msg, type = 'success') => {
+    setToast({ msg, type })
+    setTimeout(() => setToast(null), 3000)
+  }
+
+  const handleDownload = async (doc) => {
+    try {
+      const token = localStorage.getItem('token')
+      const res = await fetch(`${API_BASE_URL}/documents/business/${bid}/${doc.id}/download`, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      if (!res.ok) throw new Error('Download failed')
+      const blob = await res.blob()
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `${doc.name}.${doc.format}`
+      document.body.appendChild(a)
+      a.click()
+      a.remove()
+      URL.revokeObjectURL(url)
+    } catch (e) {
+      showToast('Download failed', 'error')
+    }
+  }
+
+  const handleSendToAccountant = async (doc) => {
+    setSending(doc.id)
+    try {
+      await api.post(`/documents/business/${bid}/${doc.id}/send`)
+      showToast('Sent to accountant')
+    } catch (e) {
+      const msg = e.message?.includes('No accountant email')
+        ? 'Set your accountant email in Accounts first'
+        : 'Failed to send'
+      showToast(msg, 'error')
+    }
+    setSending(null)
+  }
+
+  const handleDelete = async (doc) => {
+    if (!window.confirm(`Delete "${doc.name}"? It won't appear in your documents anymore.`)) return
+    setDeleting(doc.id)
+    try {
+      await api.delete(`/documents/business/${bid}/${doc.id}`)
+      showToast('Document deleted')
+      fetchDocs()
+    } catch {
+      showToast('Failed to delete', 'error')
+    }
+    setDeleting(null)
+  }
+
+  const formatDate = (iso) => {
+    if (!iso) return ''
+    try {
+      const d = new Date(iso)
+      return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
+    } catch { return iso }
+  }
+
+  if (bizLoading || loading) return <AppLoader message="Loading documents..." />
+
+  return (
+    <div className="space-y-5" style={{ fontFamily: "'Figtree', sans-serif" }}>
+      {/* Toast */}
+      {toast && (
+        <div className={`fixed top-4 right-4 z-50 px-4 py-3 rounded-xl text-sm font-semibold shadow-lg transition-all ${
+          toast.type === 'error' ? 'bg-red-50 text-red-700 border border-red-200' : 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+        }`}>
+          {toast.msg}
+        </div>
+      )}
+
+      {/* Header */}
+      <div className="flex justify-between items-center">
+        <div>
+          <h1 className="text-xl font-extrabold" style={{ color: T.text.primary }}>Documents</h1>
+          <p className="text-xs mt-0.5" style={{ color: T.text.muted }}>
+            Reports, exports & files generated by you and the AI
+          </p>
+        </div>
+        <div className="flex gap-2 items-center">
+          <div className="relative">
+            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none" size={14} style={{ color: T.text.light }} />
+            <input
+              placeholder="Search documents..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="pl-8 pr-3 py-2 text-xs rounded-lg border outline-none focus:ring-1"
+              style={{
+                width: 200, fontFamily: "'Figtree', sans-serif",
+                borderColor: T.border.light, background: T.bg.subtle,
+              }}
+            />
+          </div>
+          <button onClick={fetchDocs} className="p-2 rounded-lg border hover:bg-gray-50 transition-colors" style={{ borderColor: T.border.light }}>
+            <RefreshCw size={14} style={{ color: T.text.muted }} />
+          </button>
+        </div>
+      </div>
+
+      {/* Tabs */}
+      <div className="flex gap-1.5 flex-wrap">
+        {TABS.map(t => (
+          <button
+            key={t.key}
+            onClick={() => setActiveTab(t.key)}
+            className="px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all"
+            style={{
+              background: activeTab === t.key ? T.brand.primary : T.bg.subtle,
+              color: activeTab === t.key ? '#fff' : T.text.muted,
+              border: `1px solid ${activeTab === t.key ? T.brand.primary : T.border.light}`,
+            }}
+          >
+            {t.key === 'all' ? `All (${total})` : t.label}
+          </button>
+        ))}
+      </div>
+
+      {/* Documents table */}
+      {docs.length === 0 ? (
+        <div className="bg-white rounded-2xl border p-12 text-center" style={{ borderColor: T.border.light }}>
+          <FolderOpen size={40} className="mx-auto mb-3" style={{ color: T.text.light }} />
+          <p className="text-sm font-semibold" style={{ color: T.text.muted }}>No documents yet</p>
+          <p className="text-xs mt-1" style={{ color: T.text.light }}>
+            Generate a report from the Reports page or ask the ReeveOS Assistant
+          </p>
+        </div>
+      ) : (
+        <div className="bg-white rounded-2xl border overflow-hidden" style={{ borderColor: T.border.light }}>
+          <table className="w-full text-xs" style={{ borderCollapse: 'collapse' }}>
+            <thead>
+              <tr style={{ borderBottom: `1px solid ${T.border.light}` }}>
+                {['Document', 'Format', 'Size', 'Date', 'Created By', 'Actions'].map(h => (
+                  <th key={h} className="text-left px-4 py-3 font-semibold uppercase tracking-wider"
+                    style={{ fontSize: 10, color: T.text.light, background: T.bg.subtle }}>
+                    {h}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {docs.map(d => {
+                const fStyle = FORMAT_STYLES[d.format] || FORMAT_STYLES.csv
+                return (
+                  <tr key={d.id}
+                    className="group hover:bg-gray-50 transition-colors"
+                    style={{ borderBottom: `1px solid ${T.bg.muted}` }}>
+                    <td className="px-4 py-3">
+                      <div className="flex items-center gap-2.5">
+                        <FileText size={16} style={{ color: T.text.muted }} />
+                        <div>
+                          <div className="font-semibold text-xs" style={{ color: T.text.primary }}>{d.name}</div>
+                          <div className="flex items-center gap-1 mt-0.5" style={{ fontSize: 10, color: T.text.light }}>
+                            <Tag size={8} /> {d.tag || d.type}
+                          </div>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-4 py-3">
+                      <span className="font-bold uppercase tracking-wider px-2 py-0.5 rounded"
+                        style={{ fontSize: 9, background: fStyle.bg, color: fStyle.color }}>
+                        {d.format}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3" style={{ color: T.text.muted }}>{d.size_display}</td>
+                    <td className="px-4 py-3" style={{ color: T.text.muted }}>{formatDate(d.created_at)}</td>
+                    <td className="px-4 py-3">
+                      <div className="flex items-center gap-1">
+                        {d.created_by_type === 'ai' && <Sparkles size={10} style={{ color: T.brand.gold }} />}
+                        <span className="text-xs" style={{
+                          color: d.created_by_type === 'ai' ? T.brand.gold : T.text.primary,
+                          fontWeight: d.created_by_type === 'ai' ? 600 : 400,
+                        }}>
+                          {d.created_by_type === 'ai' ? 'ReeveOS AI' : d.created_by}
+                        </span>
+                      </div>
+                    </td>
+                    <td className="px-4 py-3">
+                      <div className="flex gap-1.5">
+                        <button onClick={() => handleDownload(d)} title="Download"
+                          className="w-7 h-7 rounded-md flex items-center justify-center hover:bg-gray-100 transition-colors"
+                          style={{ background: T.bg.subtle }}>
+                          <Download size={12} style={{ color: T.text.muted }} />
+                        </button>
+                        <button onClick={() => handleSendToAccountant(d)} title="Send to Accountant"
+                          disabled={sending === d.id}
+                          className="w-7 h-7 rounded-md flex items-center justify-center hover:bg-gray-100 transition-colors disabled:opacity-50"
+                          style={{ background: T.bg.subtle }}>
+                          <Share2 size={12} style={{ color: T.text.muted }} />
+                        </button>
+                        <button onClick={() => handleDelete(d)} title="Delete"
+                          disabled={deleting === d.id}
+                          className="w-7 h-7 rounded-md flex items-center justify-center hover:bg-red-50 transition-colors disabled:opacity-50"
+                          style={{ background: T.bg.subtle }}>
+                          <Trash2 size={12} style={{ color: T.text.muted }} />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                )
+              })}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </div>
+  )
+}
+
+export default Documents

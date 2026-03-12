@@ -71,6 +71,9 @@ from routes import (
     packages_router,
     survey_router,
     survey_admin_router,
+    documents_router,
+    reports_api_router,
+    accounts_router,
 )
 
 
@@ -103,6 +106,14 @@ async def lifespan(app: FastAPI):
         logging.getLogger("library").error(f"Library index init error: {e}")
     # Website builder indexes (old) — now handled by Payload CMS
     # Payload manages its own indexes in reeveos_cms database
+    # Documents indexes (crm_documents collection)
+    try:
+        from routes.dashboard.documents import ensure_indexes as ensure_documents_indexes
+        db = database.get_database()
+        await ensure_documents_indexes(db)
+    except Exception as e:
+        import logging
+        logging.getLogger("documents").error(f"Documents index init error: {e}")
     yield
     stop_scheduler()
     await database.close_mongo_connection()
@@ -282,6 +293,9 @@ app.include_router(tronc_router)
 app.include_router(consultation_router)
 app.include_router(client_portal_router)
 app.include_router(packages_router)
+app.include_router(documents_router)
+app.include_router(reports_api_router)
+app.include_router(accounts_router)
 
 # Public support chat (no auth required — marketing site AI)
 from routes.support_chat import router as public_support_chat_router
