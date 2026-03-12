@@ -232,7 +232,8 @@ export default function CRM() {
             <ClientDetailPanel detail={clientDetail} timeline={timeline} onClose={closeClient} bid={bid}
               onInteraction={() => setInteractionModal(true)} onReload={() => loadClientDetail(selectedClient.id || selectedClient)}
               onBook={() => navigate('/dashboard/calendar')}
-              onMessage={() => navigate('/dashboard/client-messages')} />
+              onMessage={() => navigate('/dashboard/client-messages')}
+              onViewProfile={() => { const cid = clientDetail?.client?.id || selectedClient?.id || selectedClient; navigate(`/dashboard/crm/client/${cid}`) }} />
           </>
         )}
       </div>
@@ -592,7 +593,7 @@ function AnalyticsView({ data }) {
 // ═══════════════════════════════════════════════════════════════
 // CLIENT DETAIL PANEL
 // ═══════════════════════════════════════════════════════════════
-function ClientDetailPanel({ detail, timeline, onClose, bid, onInteraction, onReload, onBook, onMessage }) {
+function ClientDetailPanel({ detail, timeline, onClose, bid, onInteraction, onReload, onBook, onMessage, onViewProfile }) {
   if (!detail) return (
     <div style={{ position: 'fixed', top: 0, right: 0, bottom: 0, width: 420, maxWidth: '90vw', background: '#fff', zIndex: 201, display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '-4px 0 30px rgba(0,0,0,0.1)' }}>
       <AppLoader message="Loading client..." />
@@ -674,6 +675,13 @@ function ClientDetailPanel({ detail, timeline, onClose, bid, onInteraction, onRe
             </button>
           ))}
         </div>
+
+        {/* View Full Profile */}
+        {onViewProfile && (
+          <button onClick={onViewProfile} style={{ width: '100%', padding: '11px 0', borderRadius: 12, border: '2px solid #C9A84C', background: 'rgba(201,168,76,0.03)', color: '#C9A84C', fontSize: 14, fontWeight: 700, cursor: 'pointer', fontFamily: "'Figtree', sans-serif", marginBottom: 16, transition: 'all 0.15s' }}>
+            View Full Profile →
+          </button>
+        )}
 
         {/* Tasks */}
         {tasks && tasks.length > 0 && (
