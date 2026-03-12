@@ -258,18 +258,24 @@ input[type="time"] {
    LIGHT SCROLLBAR — Dashboard / public pages
    ═══════════════════════════════════════════════════════ */
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 7px;
+  height: 7px;
 }
 ::-webkit-scrollbar-track {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: rgba(17, 17, 17, 0.15);
+  background: rgba(17, 17, 17, 0.18);
   border-radius: 999px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(17, 17, 17, 0.25);
+  background: rgba(17, 17, 17, 0.3);
+}
+
+/* Firefox scrollbar */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(17, 17, 17, 0.18) transparent;
 }
 
 

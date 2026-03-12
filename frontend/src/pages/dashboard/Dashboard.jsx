@@ -32,7 +32,7 @@ const timeAgo = (d) => {
 
 /* ═══ Grid Engine ═══ */
 const COLS = 4
-const ROW_H = 90
+const ROW_H = 100
 const GAP = 16
 
 function calcPosition(item, containerWidth) {
@@ -99,13 +99,20 @@ const Dashboard = () => {
   const [dragPos, setDragPos] = useState({ x: 0, y: 0 })
   const [resizing, setResizing] = useState(null)
 
-  /* ── Measure container ── */
+  /* ── Measure container — ResizeObserver tracks actual size changes ── */
   useEffect(() => {
-    const measure = () => { if (containerRef.current) setContainerWidth(containerRef.current.offsetWidth) }
-    measure()
-    window.addEventListener('resize', measure)
-    return () => window.removeEventListener('resize', measure)
-  }, [])
+    if (!containerRef.current) return
+    const ro = new ResizeObserver(entries => {
+      for (const entry of entries) {
+        const w = entry.contentRect.width
+        if (w > 0) setContainerWidth(w)
+      }
+    })
+    ro.observe(containerRef.current)
+    // Also measure immediately
+    setContainerWidth(containerRef.current.offsetWidth || 900)
+    return () => ro.disconnect()
+  }, [showLibrary])
 
   /* ── Load dashboard data ── */
   const loadDashboard = useCallback(async () => {
@@ -614,7 +621,7 @@ const Dashboard = () => {
         )}
 
         {/* ── Grid Area ── */}
-        <div style={{ flex: 1, overflowY: 'auto', padding: 24 }}>
+        <div style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', padding: '24px 24px 24px 24px', minWidth: 0 }}>
           {editMode && (
             <div style={{ marginBottom: 16, padding: '10px 16px', borderRadius: 8, background: '#C9A84C15', border: '1px solid #C9A84C30', fontSize: 12, color: '#374151', display: 'flex', alignItems: 'center', gap: 8 }}>
               <Move size={14} color="#C9A84C" />
@@ -622,7 +629,7 @@ const Dashboard = () => {
             </div>
           )}
 
-          <div ref={containerRef} style={{ position: 'relative', height: (totalH + 2) * (ROW_H + GAP), minHeight: 400 }}>
+          <div ref={containerRef} style={{ position: 'relative', width: '100%', height: (totalH + 2) * (ROW_H + GAP), minHeight: 400 }}>
             {/* Grid guides */}
             {editMode && Array.from({ length: COLS }).map((_, i) => {
               const colW = (containerWidth - GAP * (COLS - 1)) / COLS
