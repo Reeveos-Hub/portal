@@ -1623,7 +1623,34 @@ export default function WebsiteBuilder() {
         .Puck-header {
           display: none !important;
         }
-        /* Dark theme Puck field overrides */
+        /* FORCE LIGHT THEME on all Puck internals */
+        [class*="Puck"], [class*="puck"] {
+          --puck-color-white: #FFFFFF;
+          --puck-color-black: #111111;
+          --puck-color-grey-01: #FAF7F2;
+          --puck-color-grey-02: #F5F0E8;
+          --puck-color-grey-03: #E8E4DD;
+          --puck-color-grey-04: #C9C5BE;
+          --puck-color-grey-05: #7A776F;
+          --puck-color-grey-06: #555;
+          --puck-color-grey-07: #333;
+          --puck-color-grey-08: #222;
+          --puck-color-grey-09: #111;
+          --puck-color-grey-10: #080808;
+          --puck-color-grey-11: #F5F0E8;
+          --puck-color-grey-12: #E8E4DD;
+          --puck-color-azure-01: #C9A84C;
+          --puck-color-azure-02: #C9A84C;
+          --puck-color-azure-03: #C9A84C22;
+          --puck-color-azure-04: #C9A84C;
+          --puck-color-azure-05: #C9A84C;
+          --puck-color-azure-06: #C9A84C;
+          --puck-color-azure-07: #C9A84C;
+          --puck-color-azure-08: #C9A84C;
+          --puck-color-azure-09: #C9A84C;
+          color-scheme: light !important;
+        }
+        /* Light theme field overrides */
         .puck-fields-wrapper input,
         .puck-fields-wrapper textarea,
         .puck-fields-wrapper select {
@@ -1655,7 +1682,7 @@ export default function WebsiteBuilder() {
         ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-track { background: ${T.panel}; }
         ::-webkit-scrollbar-thumb { background: ${T.border}; border-radius: 3px; }
-        ::-webkit-scrollbar-thumb:hover { background: #555; }
+        ::-webkit-scrollbar-thumb:hover { background: #999; }
       `}</style>
       <Puck
         config={puckConfig}
