@@ -562,7 +562,7 @@ const Dashboard = () => {
   const totalH = Math.max(...visibleLayout.map(l => l.y + l.h), 0)
 
   return (
-    <div className="-m-6 lg:-m-8 flex flex-col h-[calc(100vh-4rem)] overflow-hidden" style={{ fontFamily: "'Figtree', sans-serif" }}>
+    <div className="flex flex-col h-[calc(100vh-4rem)] overflow-hidden" style={{ fontFamily: "'Figtree', sans-serif" }}>
 
       {/* ── Toolbar ── */}
       <div style={{ padding: '12px 24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #E5E7EB', flexShrink: 0, background: '#fff' }}>

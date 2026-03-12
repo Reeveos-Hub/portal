@@ -61,7 +61,7 @@ const DashboardLayout = () => {
           sidebarOpen={sidebarOpen}
         />
         <main className="flex-1 overflow-hidden">
-          {['/dashboard/calendar', '/dashboard/floor-plan', '/dashboard/client-messages', '/dashboard/pipeline', '/dashboard/crm', '/dashboard/shop'].includes(location.pathname) ? (
+          {['/dashboard', '/dashboard/calendar', '/dashboard/floor-plan', '/dashboard/client-messages', '/dashboard/pipeline', '/dashboard/crm', '/dashboard/shop'].includes(location.pathname) ? (
             <Outlet />
           ) : (
             <div className="h-full overflow-y-auto">
@@ -80,6 +80,7 @@ const DashboardLayout = () => {
           onViewPlans={() => setUpgradeModal(null)}
         />
       )}
+      <SupportBot />
       <AssistantChat />
       <WelcomeBanner />
       <WalkthroughOverlay />

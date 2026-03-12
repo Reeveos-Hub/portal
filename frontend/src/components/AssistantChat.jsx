@@ -4,7 +4,7 @@
  * Connects to /assistant/chat backend endpoint
  */
 import { useState, useRef, useEffect } from 'react'
-import { Sparkles, X, Send, Mic, ChevronRight, Loader2 } from 'lucide-react'
+import { Sparkles, X, Send, Mic, ChevronRight, Loader2, Maximize2, Minimize2 } from 'lucide-react'
 import { useBusiness } from '../contexts/BusinessContext'
 import api from '../utils/api'
 
@@ -27,7 +27,13 @@ const AssistantChat = () => {
   const scrollRef = useRef(null)
   const inputRef = useRef(null)
 
+  const [expanded, setExpanded] = useState(false)
+
   const businessName = business?.name || 'your business'
+
+  // Chat window dimensions
+  const chatW = expanded ? 520 : 380
+  const chatH = expanded ? 620 : 520
 
   // Auto-scroll to bottom
   useEffect(() => {
@@ -106,7 +112,7 @@ const AssistantChat = () => {
       <button
         onClick={() => setIsOpen(!isOpen)}
         style={{
-          position: 'fixed', bottom: 20, right: 20, zIndex: 9999,
+          position: 'fixed', bottom: 20, left: 20, zIndex: 9999,
           width: 52, height: 52, borderRadius: '50%',
           background: isOpen ? '#111' : 'linear-gradient(135deg, #C9A84C, #B8860B)',
           color: '#fff', border: 'none', cursor: 'pointer',
@@ -124,7 +130,7 @@ const AssistantChat = () => {
       {/* ── Pulse ring on FAB ── */}
       {!isOpen && messages.length === 0 && (
         <div style={{
-          position: 'fixed', bottom: 20, right: 20, zIndex: 9998,
+          position: 'fixed', bottom: 20, left: 20, zIndex: 9998,
           width: 52, height: 52, borderRadius: '50%',
           border: '2px solid #C9A84C',
           animation: 'assistantPulse 2s ease-out infinite',
@@ -135,8 +141,8 @@ const AssistantChat = () => {
       {/* ── Chat Window ── */}
       {isOpen && (
         <div style={{
-          position: 'fixed', bottom: 84, right: 20, zIndex: 9998,
-          width: 380, maxHeight: 560,
+          position: 'fixed', bottom: 84, left: 20, zIndex: 9998,
+          width: chatW, maxHeight: chatH,
           background: '#fff', borderRadius: 16,
           boxShadow: '0 25px 60px rgba(0,0,0,0.15), 0 8px 20px rgba(0,0,0,0.08)',
           border: '1px solid #E5E7EB',
@@ -144,6 +150,7 @@ const AssistantChat = () => {
           overflow: 'hidden',
           animation: 'assistantSlideUp 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)',
           fontFamily: "'Figtree', system-ui, sans-serif",
+          transition: 'width 0.3s ease, max-height 0.3s ease',
         }}>
 
           {/* Header */}
@@ -168,15 +175,21 @@ const AssistantChat = () => {
                 </div>
               </div>
             </div>
-            <button onClick={() => setIsOpen(false)} style={{ background: 'none', border: 'none', color: '#9CA3AF', cursor: 'pointer', padding: 4 }}>
-              <X size={16} />
-            </button>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+              <button onClick={() => setExpanded(!expanded)} style={{ background: 'none', border: 'none', color: '#666', cursor: 'pointer', padding: 4, borderRadius: 4 }}
+                title={expanded ? 'Shrink' : 'Expand'}>
+                {expanded ? <Minimize2 size={14} /> : <Maximize2 size={14} />}
+              </button>
+              <button onClick={() => setIsOpen(false)} style={{ background: 'none', border: 'none', color: '#9CA3AF', cursor: 'pointer', padding: 4 }}>
+                <X size={16} />
+              </button>
+            </div>
           </div>
 
           {/* Messages */}
           <div ref={scrollRef} style={{
             flex: 1, overflowY: 'auto', padding: '12px 16px',
-            minHeight: 300, maxHeight: 380,
+            minHeight: expanded ? 420 : 300, maxHeight: expanded ? 480 : 380,
           }}>
             {/* Welcome message */}
             {messages.length === 0 && (
