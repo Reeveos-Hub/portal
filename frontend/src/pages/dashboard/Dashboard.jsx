@@ -571,13 +571,13 @@ const Dashboard = () => {
             <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" /></svg>
             Booking Link
           </button>
-          <div style={{ position: 'relative' }}>
-            <Search style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', width: 14, height: 14, color: '#9CA3AF' }} />
-            <input type="text" value={searchFilter} onChange={e => setSearchFilter(e.target.value)} placeholder="Search clients..." style={{ paddingLeft: 30, paddingRight: 12, padding: '8px 12px 8px 30px', width: 200, background: '#F9FAFB', border: '1px solid #E5E7EB', borderRadius: 10, fontSize: 12, fontFamily: 'inherit', outline: 'none' }} />
-          </div>
-          <button onClick={() => { setLoading(true); loadDashboard() }} style={{ padding: 8, borderRadius: 8, background: 'none', border: 'none', cursor: 'pointer', color: '#9CA3AF' }}><RefreshCw size={16} /></button>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <div style={{ position: 'relative' }}>
+            <Search style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', width: 14, height: 14, color: '#9CA3AF', pointerEvents: 'none' }} />
+            <input type="text" value={searchFilter} onChange={e => setSearchFilter(e.target.value)} placeholder="Search clients, appointments..." style={{ paddingLeft: 30, paddingRight: 12, padding: '8px 12px 8px 30px', width: 240, background: '#F9FAFB', border: '1px solid #E5E7EB', borderRadius: 10, fontSize: 12, fontFamily: 'inherit', outline: 'none' }} />
+          </div>
+          <button onClick={() => { setLoading(true); loadDashboard() }} style={{ padding: 8, borderRadius: 8, background: 'none', border: 'none', cursor: 'pointer', color: '#9CA3AF' }}><RefreshCw size={16} /></button>
           <button onClick={() => { setEditMode(!editMode); if (editMode) setShowLibrary(false) }} style={{
             display: 'flex', alignItems: 'center', gap: 6, padding: '8px 16px', borderRadius: 8, fontSize: 12, fontWeight: 600,
             background: editMode ? '#111' : '#F3F4F6', color: editMode ? '#fff' : '#374151',

@@ -11,3 +11,4 @@ frontend/.env.local
 *.pyc
 *.bak
 .DS_Store
+.backup2

@@ -12,6 +12,7 @@ import Sidebar from '../components/layout/Sidebar'
 import TopBar from '../components/layout/TopBar'
 import UpgradeModal from '../components/layout/UpgradeModal'
 import SupportBot from '../components/SupportBot'
+import AssistantChat from '../components/AssistantChat'
 import WalkthroughOverlay from '../components/WalkthroughOverlay'
 import { WalkthroughProvider } from '../contexts/WalkthroughContext'
 import WelcomeBanner from '../components/shared/WelcomeBanner'
@@ -79,7 +80,7 @@ const DashboardLayout = () => {
           onViewPlans={() => setUpgradeModal(null)}
         />
       )}
-      <SupportBot />
+      <AssistantChat />
       <WelcomeBanner />
       <WalkthroughOverlay />
     </div>

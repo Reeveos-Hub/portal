@@ -371,6 +371,10 @@ app.include_router(survey_admin_router)
 from routes.dashboard.layout import router as layout_router
 app.include_router(layout_router)
 
+# ReeveOS Assistant (AI business operator)
+from routes.dashboard.assistant import router as assistant_router
+app.include_router(assistant_router)
+
 # Static uploads for booking page logo/cover
 static_dir = Path("/opt/rezvo-app/uploads")
 try:
