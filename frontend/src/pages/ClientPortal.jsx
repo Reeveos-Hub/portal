@@ -183,8 +183,8 @@ export default function ClientPortal({overrideSlug}={}){
   const upcoming=myData?.upcoming_bookings||[]
 
   useEffect(()=>{if(!slug)return;apiFetch(`/client/${slug}/info`).then(d=>{setBiz(d.business||d);if(sessionStorage.getItem('client_token'))loadUser()}).catch(()=>{})},[slug])
-  useEffect(()=>{const params=new URLSearchParams(window.location.search);const rt=params.get('reset');if(rt){setResetToken(rt);setAuthMode('reset')};const vw=params.get('view');if(vw==='form'){setStep(0);setView('form')}},[])
-  const returnUrl=new URLSearchParams(window.location.search).get('returnUrl')||null
+  useEffect(()=>{const params=new URLSearchParams(window.location.search);const rt=params.get('reset');if(rt){setResetToken(rt);setAuthMode('reset')};const vw=params.get('view');const pathHasForm=window.location.pathname.endsWith('/form');if(vw==='form'||pathHasForm){setStep(0);setView('form')}},[])
+  const returnUrl=new URLSearchParams(window.location.search).get('returnUrl')||(window.location.pathname.endsWith('/form')?window.location.pathname.replace(/\/form$/,''):null)
   const loadUser=async()=>{try{const p=await apiFetch('/client/auth/me');const d=await apiFetch(`/client/${slug}/my-data`);setUser(p.user||p);setCs(d.consultation||null);setMyData(d);setView('home');try{const svc=await apiFetch(`/client/${slug}/services`);setServices(svc.services||[])}catch(e){}}catch(e){sessionStorage.removeItem('client_token')}}
   const doAuth=async()=>{setLoading(true);setErr('');try{const body=authMode==='login'?{email,password}:{name:signupName,email,phone:signupPhone,password,business_id:biz?.business_id||''};const d=await apiFetch(`/client/auth/${authMode==='login'?'login':'signup'}`,{method:'POST',body:JSON.stringify(body)});sessionStorage.setItem('client_token',d.token);await loadUser()}catch(e){setErr(e.message)}setLoading(false)}
   const doForgot=async()=>{setLoading(true);setErr('');try{await apiFetch('/client/auth/password-reset-request',{method:'POST',body:JSON.stringify({email,slug})});setResetStatus('sent')}catch(e){}setResetStatus('sent');setLoading(false)}

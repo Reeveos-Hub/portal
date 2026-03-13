@@ -129,7 +129,7 @@ const App = () => {
       <Router>
         <ScrollToTop />
         <Routes>
-          <Route path="/:businessSlug/form" element={<BookingFormRedirect />} />
+          <Route path="/:businessSlug/form" element={<ClientPortal />} />
           <Route path="/:businessSlug" element={<BookingFlow />} />
           <Route path="/:businessSlug/confirm/:bookingId" element={<BookingConfirmation />} />
           <Route path="/:businessSlug/manage/:bookingId" element={<BookingManage />} />
