@@ -1384,14 +1384,35 @@ const Calendar = () => {
                     {profileOpen === s.id && (() => {
                       const staffBookings = filteredBookings.filter(b => b.staffId === s.id)
                       const staffRevenue = staffBookings.reduce((sum, b) => sum + (b.price || 0), 0)
+                      // Calculate position to avoid clipping off screen edges
+                      const iconEl = profileIconRefs.current[s.id]
+                      let popLeft = '50%'
+                      let popTransform = 'translateX(-50%)'
+                      let arrowLeft = '50%'
+                      if (iconEl) {
+                        const rect = iconEl.getBoundingClientRect()
+                        const center = rect.left + rect.width / 2
+                        const popW = 280
+                        const margin = 8
+                        if (center - popW / 2 < margin) {
+                          popLeft = `${margin - rect.left + (iconEl.offsetParent?.getBoundingClientRect()?.left || 0)}px`
+                          popTransform = 'none'
+                          arrowLeft = `${center - margin}px`
+                        } else if (center + popW / 2 > window.innerWidth - margin) {
+                          const rightOverflow = (center + popW / 2) - (window.innerWidth - margin)
+                          popLeft = `calc(50% - ${rightOverflow}px)`
+                          popTransform = 'translateX(-50%)'
+                          arrowLeft = `calc(50% + ${rightOverflow}px)`
+                        }
+                      }
                       return (
                         <div ref={profileRef} style={{
-                          position: 'absolute', top: 50, left: '50%', transform: 'translateX(-50%)',
+                          position: 'absolute', top: 50, left: popLeft, transform: popTransform,
                           width: 280, background: '#fff', borderRadius: 16,
                           boxShadow: '0 8px 32px rgba(0,0,0,0.14), 0 2px 8px rgba(0,0,0,0.06)',
                           border: '1px solid #EBEBEB', zIndex: 100,
                         }}>
-                          <div style={{ position: 'absolute', top: -6, left: '50%', width: 12, height: 12, background: '#fff', border: '1px solid #EBEBEB', borderRight: 'none', borderBottom: 'none', transform: 'translateX(-50%) rotate(45deg)' }} />
+                          <div style={{ position: 'absolute', top: -6, left: arrowLeft, width: 12, height: 12, background: '#fff', border: '1px solid #EBEBEB', borderRight: 'none', borderBottom: 'none', transform: 'translateX(-50%) rotate(45deg)' }} />
 
                           <div style={{ padding: '16px 18px 12px', borderBottom: '1px solid #F5F5F3' }}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
