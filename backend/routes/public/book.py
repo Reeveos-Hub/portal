@@ -522,7 +522,7 @@ async def create_booking(request: Request, business_slug: str, payload: dict):
                 # G4: Instead of dead-end error, return structured response
                 # Frontend shows inline form instead of bouncing the client
                 slug = business.get("slug", "")
-                form_url = f"/client/{slug}?view=form"
+                form_url = f"https://portal.rezvo.app/client/{slug}?view=form"
                 if expired_form:
                     raise HTTPException(422, detail={
                         "form_required": True,
