@@ -127,6 +127,7 @@ const Calendar = () => {
   const [hovA, setHovA] = useState(null)
   const [hovSlot, setHovSlot] = useState(null)
   const [selA, setSelA] = useState(null)
+  const selAOpenedAt = useRef(0)
   const [showKPI, setShowKPI] = useState(false)
   const [fabOpen, setFabOpen] = useState(false)
   const [hoverCol, setHoverCol] = useState(null)
@@ -818,10 +819,6 @@ const Calendar = () => {
     }
 
     const isNarrow = isFullscreen || (typeof window !== 'undefined' && window.innerWidth < 1024)
-    const [sheetReady, setSheetReady] = useState(false)
-    useEffect(() => {
-      if (isNarrow) { const t = setTimeout(() => setSheetReady(true), 300); return () => clearTimeout(t) }
-    }, [])
 
     const panelContent = (
       <>
@@ -1076,10 +1073,9 @@ const Calendar = () => {
 
     if (isNarrow) {
       return createPortal(
-        <div onClick={e => { e.stopPropagation(); if (sheetReady) setSelA(null) }} style={{
+        <div onClick={e => { e.stopPropagation(); if (Date.now() - selAOpenedAt.current > 400) setSelA(null) }} style={{
           position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.3)', zIndex: 10001,
           display: 'flex', alignItems: 'flex-end', justifyContent: 'center',
-          pointerEvents: sheetReady ? 'auto' : 'none',
         }}>
           <div data-po="1" onClick={e => e.stopPropagation()} style={{
             width: '100%', maxWidth: 480, maxHeight: '80vh', overflowY: 'auto',
@@ -1155,7 +1151,7 @@ const Calendar = () => {
             if (drag) return
             e.stopPropagation()
             if (isFullscreen || window.innerWidth < 1024) {
-              if (!sel) setSelA(a.id)
+              if (!sel) { selAOpenedAt.current = Date.now(); setSelA(a.id) }
             } else {
               setSelA(sel ? null : a.id)
             }
