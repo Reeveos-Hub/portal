@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>ReeveOS Calendar Grid Demo</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Figtree',system-ui,-apple-system,sans-serif;background:#F5F5F5;padding:8px;overflow-x:hidden}
+.cw{border:1px solid #EBEBEB;border-radius:12px;overflow:hidden;background:#fff;position:relative}
+.cg{display:grid;gap:0;overflow-y:auto;max-height:calc(100vh - 140px);position:relative;-webkit-overflow-scrolling:touch}
+.tl{grid-column:1;padding:2px 4px 0 0;text-align:right;font-size:10px;font-weight:500;color:#999;border-right:1px solid #EBEBEB;background:#fff;z-index:2;position:sticky;left:0}
+.hl{border-top:1px solid #E5E5E5;border-left:1px solid #EBEBEB}
+.hfl{border-top:1px dashed #F0F0F0;border-left:1px solid #EBEBEB}
+.card{border-radius:5px;padding:5px 7px;margin:1px 3px;color:#111;cursor:grab;z-index:5;user-select:none;touch-action:none}
+.cn{font-size:12px;font-weight:700;line-height:1.25}
+.cv{font-size:10px;opacity:0.75;line-height:1.2;margin-top:1px}
+.ctm{font-size:9px;font-weight:500;opacity:0.8;display:flex;justify-content:space-between}
+.cb{font-size:7px;font-weight:700;padding:2px 5px;border-radius:8px;display:inline-block;margin-top:3px;margin-right:2px}
+.sh{display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 2px;border-left:1px solid #EBEBEB;background:#fff}
+.sa{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;color:#fff}
+.ghost{position:fixed;border-radius:6px;padding:5px 7px;z-index:100;pointer-events:none;opacity:0.92;border:2px solid #C9A84C;color:#111;width:130px}
+.hdr{padding:10px 12px;font-size:14px;font-weight:700;color:#111;border-bottom:1px solid #EBEBEB;display:flex;justify-content:space-between;align-items:center}
+.log{font-size:11px;padding:8px 10px;border-top:1px solid #EBEBEB;color:#666;min-height:36px;display:flex;align-items:center}
+.log b{color:#111;font-weight:600}
+.drop-hi{background:rgba(201,168,76,0.15)!important}
+.badge{display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:600;padding:3px 8px;border-radius:8px;margin:4px 4px 0 0}
+</style>
+</head>
+<body>
+
+<div style="display:flex;gap:4px;margin-bottom:8px;flex-wrap:wrap">
+<span class="badge" style="background:#F0FDF4;color:#22C55E">Touch drag works</span>
+<span class="badge" style="background:#FEF9E7;color:#C9A84C">Cards auto-size</span>
+<span class="badge" style="background:#EFF6FF;color:#3B82F6">Grid rows expand</span>
+</div>
+
+<div class="cw" id="cw">
+<div class="hdr">
+<span>Friday 13 March</span>
+<span style="font-size:11px;font-weight:500;color:#999">CSS Grid Demo</span>
+</div>
+<div style="display:grid;grid-template-columns:36px repeat(4,minmax(0,1fr));border-bottom:1px solid #EBEBEB">
+<div style="background:#fff"></div>
+<div class="sh"><div class="sa" style="background:#D4A574">N</div><div style="font-size:9px;font-weight:600;color:#111">Natalie</div><div style="font-size:8px;color:#999" id="c0">-</div></div>
+<div class="sh"><div class="sa" style="background:#6BA3C7">G</div><div style="font-size:9px;font-weight:600;color:#111">Grace</div><div style="font-size:8px;color:#999" id="c1">-</div></div>
+<div class="sh"><div class="sa" style="background:#A87BBF">E</div><div style="font-size:9px;font-weight:600;color:#111">Emily</div><div style="font-size:8px;color:#999" id="c2">-</div></div>
+<div class="sh"><div class="sa" style="background:#6BC7A3">J</div><div style="font-size:9px;font-weight:600;color:#111">Jen</div><div style="font-size:8px;color:#999" id="c3">-</div></div>
+</div>
+<div class="cg" id="g"></div>
+<div class="log" id="log">Press and drag any appointment to move it</div>
+</div>
+<div id="gh" class="ghost" style="display:none"></div>
+
+<script>
+const ST=[{id:'natalie',col:2,clr:'#D4A574'},{id:'grace',col:3,clr:'#6BA3C7'},{id:'emily',col:4,clr:'#A87BBF'},{id:'jen',col:5,clr:'#6BC7A3'}];
+const SH=8,EH=17,SL=15;
+const slots=[];
+for(let h=SH;h<EH;h++)for(let m=0;m<60;m+=SL)slots.push({h,m});
+const si=(h,m)=>'s'+h+'_'+String(m).padStart(2,'0');
+const ft=(h,m)=>h+':'+String(m).padStart(2,'0');
+const fap=h=>h>12?(h-12)+'pm':h===12?'12pm':h+'am';
+const esi=(h,m,d)=>{let em=m+d,eh=h;while(em>=60){em-=60;eh++}return si(eh,em)};
+const sc=id=>ST.find(s=>s.id===id)?.col||2;
+const sr=id=>ST.find(s=>s.id===id)?.clr||'#999';
+
+let bks=[
+{id:'b1',st:'natalie',sh:10,sm:0,dur:30,cl:'Hannah Price',sv:'Polynucleotides — Full Face',pr:200,stat:'confirmed',tg:['VIP']},
+{id:'b2',st:'grace',sh:10,sm:0,dur:75,cl:'Chloe Griffiths',sv:'Luxury Lymphatic Lift',pr:85,stat:'confirmed',tg:['Package 3/6']},
+{id:'b3',st:'emily',sh:10,sm:0,dur:15,cl:'Sophie Williams',sv:'Quick Consultation',pr:15,stat:'pending',tg:[]},
+{id:'b4',st:'natalie',sh:11,sm:0,dur:30,cl:'Sophie Thomas',sv:'BioRePeelCI3',pr:95,stat:'confirmed',tg:[]},
+{id:'b5',st:'emily',sh:11,sm:0,dur:45,cl:'Sophie Thomas',sv:'Express Lymphatic Lift',pr:55,stat:'completed',tg:[]},
+{id:'b6',st:'jen',sh:11,sm:0,dur:60,cl:'Hannah Price',sv:'Dermaplaning Facial',pr:65,stat:'pending',tg:['New client']},
+{id:'b7',st:'grace',sh:12,sm:0,dur:30,cl:'Gemma Taylor',sv:'Polynucleotides — Under Eye',pr:200,stat:'confirmed',tg:['Medical flag']},
+{id:'b8',st:'emily',sh:14,sm:30,dur:60,cl:'Hannah Price',sv:'Dermaplaning Facial',pr:65,stat:'confirmed',tg:[]},
+{id:'b9',st:'natalie',sh:13,sm:0,dur:15,cl:'Walk-in',sv:'Patch Test',pr:0,stat:'pending',tg:[]},
+];
+
+const g=document.getElementById('g');
+const gh=document.getElementById('gh');
+const logEl=document.getElementById('log');
+let drag=null,hiCell=null;
+
+function build(){
+const rd=slots.map(s=>si(s.h,s.m)).join('] minmax(20px,auto) [');
+g.style.gridTemplateRows='['+rd+'] minmax(20px,auto) [tend]';
+g.style.gridTemplateColumns='36px repeat(4,minmax(0,1fr))';
+g.innerHTML='';
+slots.forEach(s=>{
+const isH=s.m===0;
+const t=document.createElement('div');
+t.className='tl';t.style.gridRow=si(s.h,s.m);
+if(isH){t.textContent=fap(s.h);t.style.borderTop='1px solid #E5E5E5'}
+g.appendChild(t);
+for(let c=2;c<=5;c++){
+const cl=document.createElement('div');
+cl.className=isH?'hl':'hfl';
+cl.style.gridRow=si(s.h,s.m);cl.style.gridColumn=c;cl.style.minHeight='20px';
+cl.dataset.sh=s.h;cl.dataset.sm=s.m;cl.dataset.col=c;
+g.appendChild(cl);
+}
+});
+render();
+}
+
+function render(){
+g.querySelectorAll('.card').forEach(c=>c.remove());
+ST.forEach((s,i)=>{
+const n=bks.filter(b=>b.st===s.id).length;
+document.getElementById('c'+i).textContent=n+' booking'+(n!==1?'s':'');
+});
+bks.forEach(bk=>{
+const cd=document.createElement('div');
+cd.className='card';cd.dataset.bid=bk.id;
+cd.style.gridRow=si(bk.sh,bk.sm)+'/'+esi(bk.sh,bk.sm,bk.dur);
+cd.style.gridColumn=sc(bk.st);
+cd.style.background=bk.stat==='completed'?'#D1D5DB':sr(bk.st);
+const em=bk.sm+bk.dur,eH=bk.sh+Math.floor(em/60),eM=em%60;
+let h='<div class="ctm"><span>'+ft(bk.sh,bk.sm)+' - '+ft(eH,eM)+'</span>';
+if(bk.pr>0)h+='<span style="background:rgba(0,0,0,0.1);border-radius:3px;padding:1px 4px;font-weight:700">£'+bk.pr+'</span>';
+h+='</div><div class="cn">'+bk.cl+'</div><div class="cv">'+bk.sv+'</div>';
+bk.tg.forEach(t=>{
+const bg=t==='VIP'?'#C9A84C':t==='New client'?'#3B82F6':t.startsWith('Pack')?'#22C55E':t==='Medical flag'?'#EF4444':'rgba(0,0,0,0.08)';
+h+='<span class="cb" style="background:'+bg+';color:'+(bg.startsWith('rgba')?'#555':'#fff')+'">'+t+'</span>';
+});
+const sl=bk.stat==='completed'?'Completed':bk.stat==='pending'?'Pending':'Confirmed';
+h+='<span class="cb" style="background:rgba(0,0,0,0.08);color:#555">'+sl+'</span>';
+cd.innerHTML=h;
+cd.addEventListener('pointerdown',startDrag);
+g.appendChild(cd);
+});
+}
+
+function startDrag(e){
+const cd=e.currentTarget;
+const bk=bks.find(b=>b.id===cd.dataset.bid);
+if(!bk)return;
+e.preventDefault();
+cd.setPointerCapture(e.pointerId);
+const r=cd.getBoundingClientRect();
+drag={bk,ox:e.clientX-r.left,oy:e.clientY-r.top,pid:e.pointerId,active:false,sx:e.clientX,sy:e.clientY};
+
+const mv=ev=>{
+if(!drag)return;
+if(!drag.active){
+if(Math.abs(ev.clientX-drag.sx)<8&&Math.abs(ev.clientY-drag.sy)<8)return;
+drag.active=true;
+cd.style.opacity='0.35';
+gh.style.display='block';
+gh.style.background=bk.stat==='completed'?'#D1D5DB':sr(bk.st);
+gh.innerHTML='<div class="cn">'+bk.cl+'</div><div class="cv">'+bk.sv+'</div>';
+logEl.innerHTML='Moving <b>'+bk.cl+'</b>';
+}
+gh.style.left=(ev.clientX-drag.ox)+'px';
+gh.style.top=(ev.clientY-drag.oy)+'px';
+if(hiCell)hiCell.classList.remove('drop-hi');
+const el=document.elementFromPoint(ev.clientX,ev.clientY);
+if(el&&el.dataset&&el.dataset.sh!=null){hiCell=el;el.classList.add('drop-hi')}
+else hiCell=null;
+};
+
+const up=ev=>{
+cd.removeEventListener('pointermove',mv);
+cd.removeEventListener('pointerup',up);
+cd.removeEventListener('pointercancel',up);
+if(hiCell)hiCell.classList.remove('drop-hi');
+gh.style.display='none';cd.style.opacity='1';
+if(drag&&drag.active&&hiCell&&hiCell.dataset.sh!=null){
+const nh=parseInt(hiCell.dataset.sh),nm=parseInt(hiCell.dataset.sm),nc=parseInt(hiCell.dataset.col);
+const ns=ST.find(s=>s.col===nc);
+if(ns){bk.st=ns.id;bk.sh=nh;bk.sm=nm;
+logEl.innerHTML='Moved <b>'+bk.cl+'</b> → <b>'+ns.id+'</b> at <b>'+ft(nh,nm)+'</b>';
+render();}
+}else if(drag&&!drag.active){
+logEl.innerHTML='Tapped <b>'+bk.cl+'</b> — opens detail panel';
+}
+drag=null;hiCell=null;
+};
+cd.addEventListener('pointermove',mv);
+cd.addEventListener('pointerup',up);
+cd.addEventListener('pointercancel',up);
+}
+
+build();
+</script>
+</body>
+</html>
