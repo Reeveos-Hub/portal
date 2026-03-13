@@ -462,20 +462,37 @@ const Calendar = () => {
   useEffect(() => {
     if (!selA || !bid) { setSelPackages([]); setSelClient(null); setSelAlerts([]); return }
     const booking = (data?.bookings || []).find(b => b.id === selA)
-    if (!booking?.customerId) { setSelPackages([]); setSelClient(null); setSelAlerts([]); return }
-    // Packages
-    api.get(`/packages/business/${bid}/client/${booking.customerId}`).then(r => {
-      setSelPackages(r.packages || [])
-    }).catch(() => setSelPackages([]))
-    // CRM client detail — notes, visit history, consultation status
-    api.get(`/crm/business/${bid}/client/${booking.customerId}`).then(r => {
-      setSelClient(r)
-    }).catch(() => setSelClient(null))
-    // Staff alerts
-    api.get(`/notes/business/${bid}/client/${booking.customerId}/alerts`).then(r => {
-      setSelAlerts((r.alerts || []).filter(a => a.active !== false))
-    }).catch(() => setSelAlerts([]))
-  }, [selA, bid, data])
+    if (!booking) { setSelPackages([]); setSelClient(null); setSelAlerts([]); return }
+
+    const fetchCrmData = (clientId) => {
+      api.get(`/packages/business/${bid}/client/${clientId}`).then(r => {
+        setSelPackages(r.packages || [])
+      }).catch(() => setSelPackages([]))
+      api.get(`/crm/business/${bid}/client/${clientId}`).then(r => {
+        setSelClient(r)
+      }).catch(() => setSelClient(null))
+      api.get(`/notes/business/${bid}/client/${clientId}/alerts`).then(r => {
+        setSelAlerts((r.alerts || []).filter(a => a.active !== false))
+      }).catch(() => setSelAlerts([]))
+    }
+
+    if (booking.customerId) {
+      // Direct lookup — booking has linked client
+      fetchCrmData(booking.customerId)
+    } else if (booking.customerName && booking.customerName !== 'Walk-in') {
+      // Fallback — search CRM by name to find the client
+      api.get(`/clients/business/${bid}?search=${encodeURIComponent(booking.customerName)}&limit=1`).then(r => {
+        const clients = r.clients || []
+        if (clients.length > 0 && clients[0].id) {
+          fetchCrmData(clients[0].id)
+        } else {
+          setSelPackages([]); setSelClient(null); setSelAlerts([])
+        }
+      }).catch(() => { setSelPackages([]); setSelClient(null); setSelAlerts([]) })
+    } else {
+      setSelPackages([]); setSelClient(null); setSelAlerts([])
+    }
+  }, [selA, bid])
 
   /* ── Time updater ── */
   useEffect(() => { const iv = setInterval(() => { setTp(gtp()); setTs(gts()) }, 30000); return () => clearInterval(iv) }, [])
