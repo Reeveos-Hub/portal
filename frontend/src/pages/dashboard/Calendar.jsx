@@ -1065,7 +1065,7 @@ const Calendar = () => {
     const cardH = Math.max(h - 2, 24)
     const isShort = cardH < 50
     const tiny = cardH <= 32, sm = cardH <= 44
-    const cardPad = tiny ? '1px 6px' : sm ? '3px 8px' : '6px 10px'
+    const cardPad = hasOverride ? '2px 6px' : tiny ? '1px 6px' : sm ? '3px 8px' : '6px 10px'
 
     if (isDragging && drag.type === 'move' && drag.ghostStaffId !== a.staffId) return null
 
@@ -1101,14 +1101,22 @@ const Calendar = () => {
               : hov ? `0 8px 24px ${bg}30` : `0 2px 6px ${bg}12`,
             zIndex: isDragging ? 40 : sel ? 30 : isActive ? 25 : hov ? 20 : isShort ? 5 : 2,
             padding: cardPad,
-            display: 'flex', flexDirection: 'column',
+            display: 'flex', flexDirection: hasOverride ? 'row' : 'column', alignItems: hasOverride ? 'center' : 'stretch', gap: hasOverride ? 4 : 0,
           }}>
-          {!tiny && !isDragging && (
+          {!tiny && !hasOverride && !isDragging && (
             <div style={{ position: 'absolute', top: 4, left: 6, opacity: hov ? 0.6 : 0, transition: 'opacity 0.15s' }}>
               <GripIcon />
             </div>
           )}
-          {!tiny && <div style={{ position: 'absolute', top: 6, right: 7, opacity: 0.7 }}>{(a.status === 'confirmed' || a.status === 'completed') ? <SICheck s={10} c="#111" /> : a.status === 'pending' ? <SIClock s={10} c="#111" /> : null}</div>}
+          {!tiny && !hasOverride && <div style={{ position: 'absolute', top: 6, right: 7, opacity: 0.7 }}>{(a.status === 'confirmed' || a.status === 'completed') ? <SICheck s={10} c="#111" /> : a.status === 'pending' ? <SIClock s={10} c="#111" /> : null}</div>}
+          {hasOverride ? (
+            /* Shrunk card — single row: time + name + price */
+            <>
+              <span style={{ fontSize: 9, fontWeight: 600, opacity: 0.8, flexShrink: 0 }}>{fmt(a.start)}</span>
+              <span style={{ fontSize: 10, fontWeight: 700, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1 }}>{a.customerName}</span>
+              {(a.price || 0) > 0 && <span style={{ fontSize: 9, fontWeight: 700, opacity: 0.8, background: 'rgba(0,0,0,0.08)', borderRadius: 4, padding: '1px 5px', flexShrink: 0 }}>£{a.price}</span>}
+            </>
+          ) : (
           <div style={{ position: 'relative', zIndex: 2, display: 'flex', flexDirection: 'column', height: '100%', minWidth: 0, overflow: 'hidden' }}>
             {tiny ? (
               <div style={{ display: 'flex', alignItems: 'center', gap: 4, height: '100%' }}>
@@ -1142,6 +1150,7 @@ const Calendar = () => {
               </>
             )}
           </div>
+          )}
           <div data-resize="1" onMouseDown={e => startDragResize(e, a)} style={{
             position: 'absolute', bottom: 0, left: 0, right: 0, height: 8,
             cursor: 'ns-resize', zIndex: 5,
