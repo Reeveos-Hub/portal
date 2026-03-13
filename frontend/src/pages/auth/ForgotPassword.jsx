@@ -5,7 +5,8 @@
  */
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Mail, ArrowLeft, AlertCircle, CheckCircle2, Shield } from 'lucide-react'
+import { Mail, ArrowLeft, CheckCircle2, Shield } from 'lucide-react'
+import Alert from '../../components/ui/Alert'
 
 const API = import.meta.env.VITE_API_URL || ''
 
@@ -97,9 +98,7 @@ const ForgotPassword = () => {
               </div>
 
               {error && (
-                <div className="bg-red-50 border border-red-200 rounded-lg p-3 text-sm text-red-700 flex items-center gap-2">
-                  <AlertCircle className="w-4 h-4 shrink-0" /> {error}
-                </div>
+                <Alert variant="error" message={error} onDismiss={() => setError('')} />
               )}
 
               <form className="space-y-6" onSubmit={handleSubmit}>

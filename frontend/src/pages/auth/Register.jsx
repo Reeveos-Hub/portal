@@ -6,6 +6,7 @@ import { useState } from 'react'
 import { useNavigate, Link, useSearchParams } from 'react-router-dom'
 import { useAuth } from '../../contexts/AuthContext'
 import { Eye, EyeOff, UtensilsCrossed, User, Building2, ArrowRight, ArrowLeft } from 'lucide-react'
+import Alert from '../../components/ui/Alert'
 
 const TESTIMONIALS = {
   hospitality: {
@@ -140,9 +141,7 @@ const Register = () => {
           </p>
 
           {error && (
-            <div className="mb-6 px-4 py-3 bg-red-50 border border-red-200 rounded-xl text-red-700 text-sm font-medium">
-              {error}
-            </div>
+            <Alert variant="error" message={error} onDismiss={() => setError('')} className="mb-6" />
           )}
 
           <form onSubmit={handleSubmit} className="space-y-5">

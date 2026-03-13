@@ -5,7 +5,8 @@
  */
 import { useState, useEffect } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
-import { Lock, Eye, EyeOff, ArrowLeft, AlertCircle, CheckCircle2, Shield, XCircle } from 'lucide-react'
+import { Lock, Eye, EyeOff, ArrowLeft, CheckCircle2, Shield, XCircle } from 'lucide-react'
+import Alert from '../../components/ui/Alert'
 
 const API = import.meta.env.VITE_API_URL || ''
 
@@ -225,9 +226,7 @@ const ResetPassword = () => {
                 )}
 
                 {confirm && !passwordsMatch && (
-                  <div className="bg-red-50 border border-red-200 rounded-lg p-3 text-sm text-red-700 flex items-center gap-2">
-                    <AlertCircle className="w-4 h-4 shrink-0" /> Passwords don't match
-                  </div>
+                  <Alert variant="warning" message="Passwords don't match" />
                 )}
 
                 <button

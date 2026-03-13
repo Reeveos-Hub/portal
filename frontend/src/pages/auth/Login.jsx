@@ -5,7 +5,8 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../contexts/AuthContext'
-import { Mail, Lock, Eye, EyeOff, ArrowLeft, AlertCircle, Star, UtensilsCrossed, Scissors } from 'lucide-react'
+import { Mail, Lock, Eye, EyeOff, ArrowLeft, Star, UtensilsCrossed, Scissors } from 'lucide-react'
+import Alert from '../../components/ui/Alert'
 
 const MODES = {
   hospitality: {
@@ -160,9 +161,12 @@ const Login = () => {
               </div>
 
               {error && (
-                <div className="bg-red-50 border border-red-200 rounded-lg p-3 text-sm text-red-700 flex items-center gap-2">
-                  <AlertCircle className="w-4 h-4 shrink-0" /> {error}
-                </div>
+                <Alert
+                  variant={error.includes('locked') || error.includes('Too many') ? 'warning' : 'error'}
+                  message={error}
+                  detail={error.includes('locked') ? 'This is a security measure to protect your account.' : null}
+                  onDismiss={() => setError('')}
+                />
               )}
 
               <form className="space-y-6" onSubmit={handleSubmit}>
