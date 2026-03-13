@@ -1154,7 +1154,11 @@ const Calendar = () => {
           onClick={e => {
             if (drag) return
             e.stopPropagation()
-            setSelA(sel ? null : a.id)
+            if (isFullscreen || window.innerWidth < 1024) {
+              if (!sel) setSelA(a.id)
+            } else {
+              setSelA(sel ? null : a.id)
+            }
           }}
           style={{
             position: 'absolute', top: top + 1, left: 4, right: 4, height: cardH,
