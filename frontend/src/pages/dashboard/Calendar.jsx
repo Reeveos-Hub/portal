@@ -571,6 +571,32 @@ const Calendar = () => {
     return true
   })
 
+  /* ── Auto-size layout: minimum card height + separator gaps between adjacent bookings ── */
+  const MIN_CARD = 52
+  const layoutMap = useMemo(() => {
+    const map = {}
+    staffColumns.forEach(staff => {
+      const col = filteredBookings
+        .filter(b => b.staffId === staff.id)
+        .sort((a, b) => a.start - b.start)
+      col.forEach((b, i) => {
+        const next = col[i + 1]
+        const topPx = (b.start - SH) * HH
+        const natH = b.dur * HH
+        const usedH = Math.max(natH, MIN_CARD)
+        let h = usedH
+        if (next) {
+          const nextTop = (next.start - SH) * HH
+          if (usedH > nextTop - topPx - 2) {
+            h = Math.max(nextTop - topPx - 2, 24)
+          }
+        }
+        map[b.id] = { h, isExpanded: usedH > natH }
+      })
+    })
+    return map
+  }, [filteredBookings, staffColumns])
+
   const gc = useCallback((a) => {
     // Priority: no_show=red, completed=grey, then service color, then fallback
     if (a.status === 'no_show') return '#EF4444'
@@ -1105,15 +1131,15 @@ const Calendar = () => {
     const isDragging = drag?.id === a.id
     const isNewBooking = newCalBookingIds.has(a.id)
     const top = isDragging ? drag.ghostTop : timeToPx(a.start)
-    const h = isDragging ? drag.ghostH : a.dur * HH
+    const h = isDragging ? drag.ghostH : (layoutMap[a.id]?.h || a.dur * HH)
     const bg = gc(a)
     const hov = hovA === a.id
     const sel = selA === a.id
     const done = a.status === 'completed'
     const isActive = a.status === 'checked_in'
     const hasOverride = !!a._overrideH
-    // Card height = booking duration in pixels. No artificial minimum.
-    // A 30-min booking is 34px. A 60-min is 70px. Cards CANNOT overflow their time slot.
+    // Card height from layout algorithm: min 52px, separator-aware.
+    // Short bookings expand to fit content. Adjacent bookings get a 2px gap.
     const cardH = Math.max(h - 2, 24)
     const isShort = cardH < 50
     const tiny = cardH <= 32, sm = cardH <= 44
