@@ -453,17 +453,19 @@ const Calendar = () => {
     if (match) {
       setSelA(bookingId)
       autoOpenRef.current = true
-      // Scroll the grid container so the booking card is visible
-      // Use double rAF to ensure the DOM has rendered the card
-      requestAnimationFrame(() => requestAnimationFrame(() => {
-        if (scrollRef.current) {
-          // Calculate position from booking start time
-          const [hh, mm] = (match.start || '10:00').split(':').map(Number)
-          const cardTop = ((hh - SH) + mm / 60) * HH
-          // Scroll so the card sits ~120px from the top (comfortable viewing)
-          scrollRef.current.scrollTo({ top: Math.max(0, cardTop - 120), behavior: 'smooth' })
-        }
-      }))
+      // Scroll the grid container so the booking card AND its detail panel are visible
+      // Card goes near the top, leaving maximum room below for the panel
+      // Delay slightly to let the detail panel render
+      setTimeout(() => {
+        requestAnimationFrame(() => {
+          if (scrollRef.current) {
+            const [hh, mm] = (match.start || '10:00').split(':').map(Number)
+            const cardTop = ((hh - SH) + mm / 60) * HH
+            // Position card ~40px from top — gives maximum room for the detail panel below
+            scrollRef.current.scrollTo({ top: Math.max(0, cardTop - 40), behavior: 'smooth' })
+          }
+        })
+      }, 150)
       // Clean the URL params so refresh doesn't re-trigger
       searchParams.delete('booking')
       searchParams.delete('date')
