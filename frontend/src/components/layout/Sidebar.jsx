@@ -151,7 +151,6 @@ function buildSections(navItems, tier, businessType, business) {
         { id: 'crm-pipeline', label: 'Pipeline', path: '/dashboard/crm?view=pipeline', Icon: Columns3, locked: false },
         { id: 'crm-clients', label: 'Clients', path: '/dashboard/crm?view=clients', Icon: BookUser, locked: false },
         { id: 'crm-analytics', label: 'Analytics', path: '/dashboard/crm?view=analytics', Icon: BarChart3, locked: false },
-        { id: 'crm-documents', label: 'Documents', path: '/dashboard/documents', Icon: FileText, locked: false },
       ]},
     ]},
     { label: 'SHOP', items: [
@@ -208,6 +207,7 @@ function buildSections(navItems, tier, businessType, business) {
         })),
         { id: 'accounts', label: 'Accounts', path: '/dashboard/accounts', Icon: Wallet, locked: false },
         { id: 'reports', label: 'Reports', path: '/dashboard/reports', Icon: ClipboardList, locked: false },
+        { id: 'documents', label: 'Documents', path: '/dashboard/documents', Icon: FileText, locked: false },
         ...(!isRestaurant ? [
           { id: 'consumables', label: 'Consumables', path: '/dashboard/consumables', Icon: FlaskConical, locked: false },
           { id: 'rota', label: 'Staff Rota', path: '/dashboard/rota', Icon: CalendarCheck, locked: false },
