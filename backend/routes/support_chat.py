@@ -1,9 +1,11 @@
 """
 Support Chat API — proxies to Anthropic Claude for the marketing support page.
 Keeps API key server-side. CORS enabled for reeveos.app.
+Rate-limited to prevent API credit burn from abuse.
 """
-from fastapi import APIRouter, Body
+from fastapi import APIRouter, Body, Request
 from fastapi.responses import JSONResponse
+from middleware.rate_limit import limiter
 import httpx
 import os
 
@@ -31,8 +33,9 @@ Keep answers concise, friendly, and helpful. Use British English. If you don't k
 
 
 @router.post("/chat")
-async def support_chat(body: dict = Body(...)):
-    """Proxy chat to Anthropic Claude API."""
+@limiter.limit("10/minute")
+async def support_chat(request: Request, body: dict = Body(...)):
+    """Proxy chat to Anthropic Claude API. Rate-limited to prevent abuse."""
     api_key = os.environ.get("ANTHROPIC_API_KEY", "")
     if not api_key:
         return JSONResponse({"reply": "Our AI support is currently being set up. Please email hello@reeveos.app for help, or use the FAQ answers below!"}, status_code=200)
@@ -40,6 +43,10 @@ async def support_chat(body: dict = Body(...)):
     user_message = body.get("message", "").strip()
     if not user_message:
         return JSONResponse({"reply": "Please type a question and I'll help you out!"}, status_code=200)
+
+    # Cap message length — no reason a support question needs more than 1000 chars
+    if len(user_message) > 1000:
+        user_message = user_message[:1000]
 
     try:
         async with httpx.AsyncClient(timeout=30.0) as client:

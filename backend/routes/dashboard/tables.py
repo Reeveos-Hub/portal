@@ -9,8 +9,10 @@ from datetime import datetime
 from bson import ObjectId
 
 
-async def find_business(db, business_id: str, owner_id: str, role: str = ""):
-    """Find business by ID (handles both string and ObjectId), verify ownership."""
+async def find_business(db, business_id: str, owner_id: str = "", role: str = ""):
+    """Fetch business document by ID. Auth is handled by verify_business_access
+    middleware — this function is lookup only. owner_id and role params kept
+    for backward compat but are NOT used for auth checks."""
     biz = await db.businesses.find_one({"_id": business_id})
     if not biz:
         try:
@@ -19,10 +21,6 @@ async def find_business(db, business_id: str, owner_id: str, role: str = ""):
             pass
     if not biz:
         raise HTTPException(status_code=404, detail="Business not found")
-    if role in ("business_owner", "platform_admin", "super_admin"):
-        return biz
-    if biz.get("owner_id") != owner_id and str(biz.get("owner_id")) != owner_id:
-        raise HTTPException(status_code=403, detail="Not authorized")
     return biz
 
 router = APIRouter(prefix="/tables", tags=["tables"])
