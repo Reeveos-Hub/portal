@@ -5,6 +5,7 @@
  */
 
 import { useState, useRef, useEffect, useMemo, useCallback } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { useBusiness } from '../../contexts/BusinessContext'
 import api from '../../utils/api'
 import RestaurantCalendar from './RestaurantCalendar'
@@ -110,7 +111,11 @@ const Calendar = () => {
   }
 
   /* ── State ── */
-  const [selectedDate, setSelectedDate] = useState(() => new Date().toISOString().slice(0, 10))
+  const [searchParams, setSearchParams] = useSearchParams()
+  const [selectedDate, setSelectedDate] = useState(() => {
+    const urlDate = searchParams.get('date')
+    return urlDate || new Date().toISOString().slice(0, 10)
+  })
   const [viewMode, setViewMode] = useState('Day')
   const [cm, setCm] = useState('service')
   const [showBook, setShowBook] = useState(false)
@@ -437,6 +442,28 @@ const Calendar = () => {
   useEffect(() => {
     fetchCalendarData(true)
   }, [fetchCalendarData])
+
+  /* ── Auto-open booking from Dashboard link ── */
+  const autoOpenRef = useRef(false)
+  useEffect(() => {
+    if (autoOpenRef.current || !data?.bookings?.length) return
+    const bookingId = searchParams.get('booking')
+    if (!bookingId) return
+    const match = data.bookings.find(b => b.id === bookingId)
+    if (match) {
+      setSelA(bookingId)
+      autoOpenRef.current = true
+      // Scroll the card into view after render
+      requestAnimationFrame(() => {
+        const el = document.querySelector(`[data-booking-id="${bookingId}"]`)
+        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      })
+      // Clean the URL params so refresh doesn't re-trigger
+      searchParams.delete('booking')
+      searchParams.delete('date')
+      setSearchParams(searchParams, { replace: true })
+    }
+  }, [data, searchParams])
 
   // Live polling — refresh every 15 seconds without showing loading spinner
   useEffect(() => {
@@ -1072,7 +1099,7 @@ const Calendar = () => {
 
     return (
       <>
-        <div data-ap="1"
+        <div data-ap="1" data-booking-id={a.id}
           onMouseEnter={() => !drag && setHovA(a.id)}
           onMouseLeave={() => !drag && setHovA(null)}
           onMouseDown={e => {
