@@ -1054,19 +1054,18 @@ const Calendar = () => {
     const isDragging = drag?.id === a.id
     const isNewBooking = newCalBookingIds.has(a.id)
     const top = isDragging ? drag.ghostTop : timeToPx(a.start)
-    const h = isDragging ? drag.ghostH : (a._overrideH || a.dur * HH)
+    const h = isDragging ? drag.ghostH : a.dur * HH
     const bg = gc(a)
     const hov = hovA === a.id
     const sel = selA === a.id
     const done = a.status === 'completed'
     const isActive = a.status === 'checked_in'
-    const hasOverride = !!a._overrideH
-    // When overlap algo shrinks a card, use its exact height with zero padding
-    // This eliminates ALL CSS box-model issues — height IS the visual size, period
-    const cardH = hasOverride ? Math.max(h, 24) : Math.max(h - 2, isActive ? 80 : 64)
-    const isShort = cardH < 64
-    const tiny = cardH <= 38, sm = cardH <= 56
-    const cardPad = hasOverride ? '0 6px' : tiny ? '4px 8px' : sm ? '5px 9px' : '7px 11px'
+    // Card height = booking duration in pixels. No artificial minimum.
+    // A 30-min booking is 34px. A 60-min is 70px. Cards CANNOT overflow their time slot.
+    const cardH = Math.max(h - 2, 24)
+    const isShort = cardH < 50
+    const tiny = cardH <= 32, sm = cardH <= 44
+    const cardPad = tiny ? '1px 6px' : sm ? '3px 8px' : '6px 10px'
 
     if (isDragging && drag.type === 'move' && drag.ghostStaffId !== a.staffId) return null
 
@@ -1490,23 +1489,7 @@ const Calendar = () => {
                         <span style={{ fontSize: 9, fontWeight: 800, color: '#999', textTransform: 'uppercase', letterSpacing: 2 }}>{b.label}</span>
                       </div>
                     ))}
-                    {(() => {
-                      /* Overlap layout — cap every card to available space before next booking */
-                      const col = filteredBookings.filter(a => a.staffId === staff.id).sort((a, b) => a.start - b.start)
-                      return col.map((a, i) => {
-                        const next = col[i + 1]
-                        const topPx = timeToPx(a.start)
-                        const naturalH = a.dur * HH
-                        if (next) {
-                          const gap = timeToPx(next.start) - topPx
-                          const maxH = Math.max(gap - 2, 24)
-                          if (naturalH > maxH || 64 > maxH) {
-                            return <Bl key={a.id} a={{...a, _overrideH: maxH}} />
-                          }
-                        }
-                        return <Bl key={a.id} a={a} />
-                      })
-                    })()}
+                    {filteredBookings.filter(a => a.staffId === staff.id).map(a => <Bl key={a.id} a={a} />)}
                     {drag?.type === 'move' && drag.ghostStaffId === staff.id && (() => {
                       const a = bookings.find(b => b.id === drag.id)
                       if (!a || a.staffId === staff.id) return null
