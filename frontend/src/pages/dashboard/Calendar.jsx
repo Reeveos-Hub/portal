@@ -1044,8 +1044,7 @@ const Calendar = () => {
     const done = a.status === 'completed'
     const isActive = a.status === 'checked_in'
     const hasOverride = !!a._overrideH
-    const minCardH = hasOverride ? 24 : isActive ? 80 : 64
-    const cardH = Math.max(h - 2, minCardH)
+    const cardH = hasOverride ? Math.max(h, 24) : Math.max(h - 2, isActive ? 80 : 64)
     const isShort = cardH < 64
     const tiny = cardH <= 38, sm = cardH <= 56
 
@@ -1067,7 +1066,6 @@ const Calendar = () => {
           }}
           style={{
             position: 'absolute', top: top + 1, left: 4, right: 4, height: cardH,
-            minHeight: minCardH,
             borderRadius: isActive ? 8 : 6,
             background: isActive ? 'linear-gradient(135deg, #111111, #222)' : done ? `${bg}60` : bg,
             opacity: isDragging ? 0.85 : done ? 0.7 : a.status === 'no_show' ? 0.55 : 1,
