@@ -101,10 +101,15 @@ const EnhanceTreatment = ({ data, onContinue, onBack }) => {
     )
   }
 
-  // If no add-ons, auto-skip
-  if (addOns.length === 0) {
-    // Use effect-like auto-skip via immediate continue
-    handleSkip()
+  // If no add-ons, auto-skip (must be in useEffect, not during render)
+  useEffect(() => {
+    if (!loading && addOns.length === 0) {
+      handleSkip()
+    }
+  }, [loading, addOns])
+
+  // Show nothing while auto-skipping (avoids flash of empty add-ons UI)
+  if (!loading && addOns.length === 0) {
     return null
   }
 
