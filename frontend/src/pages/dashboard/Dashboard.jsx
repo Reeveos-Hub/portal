@@ -566,34 +566,37 @@ const Dashboard = () => {
               <div><div style={{ fontSize: 15, fontWeight: 700 }}>Upcoming Appointments</div><div style={{ fontSize: 11, color: '#9CA3AF' }}>{arrivals.length} appointments</div></div>
             </div>
             <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 4 }}>
-              {arrivals.map(a => (
+              {arrivals.map(a => {
+                const isTouch = typeof window !== 'undefined' && ('ontouchstart' in window || window.innerWidth < 1024)
+                return (
                 <div key={a.id} style={{ display: 'flex', alignItems: 'stretch', borderRadius: 8, border: '1px solid #E5E7EB', fontSize: 12, overflow: 'hidden', background: '#fff' }}>
                   {/* Time zone — navigates to Calendar, hover uses status colour */}
                   <div
                     onClick={() => !editMode && navigate(`/dashboard/calendar?date=${new Date().toISOString().split('T')[0]}&booking=${a.id}`)}
-                    style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '10px 12px', cursor: editMode ? 'grab' : 'pointer', transition: 'all 0.2s', borderRight: '1px solid #E5E7EB', flexShrink: 0 }}
-                    onMouseEnter={e => { if (editMode) return; e.currentTarget.style.background = a.statusBg; e.currentTarget.style.borderRightColor = a.statusBg; e.currentTarget.querySelector('.uc-time').style.color = a.statusText; e.currentTarget.querySelector('.uc-cal').style.color = a.statusColor }}
-                    onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.borderRightColor = '#E5E7EB'; e.currentTarget.querySelector('.uc-time').style.color = '#111'; e.currentTarget.querySelector('.uc-cal').style.color = '#C4C8CF' }}
+                    style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '10px 12px', cursor: editMode ? 'grab' : 'pointer', transition: 'all 0.2s', borderRight: '1px solid #E5E7EB', flexShrink: 0, background: isTouch ? a.statusBg : 'transparent' }}
+                    onMouseEnter={e => { if (editMode || isTouch) return; e.currentTarget.style.background = a.statusBg; e.currentTarget.style.borderRightColor = a.statusBg; e.currentTarget.querySelector('.uc-time').style.color = a.statusText; e.currentTarget.querySelector('.uc-cal').style.color = a.statusColor }}
+                    onMouseLeave={e => { if (isTouch) return; e.currentTarget.style.background = 'transparent'; e.currentTarget.style.borderRightColor = '#E5E7EB'; e.currentTarget.querySelector('.uc-time').style.color = '#111'; e.currentTarget.querySelector('.uc-cal').style.color = '#C4C8CF' }}
                   >
-                    <span className="uc-time" style={{ fontWeight: 700, fontSize: 13, minWidth: 34, transition: 'color 0.2s' }}>{a.time}</span>
-                    <CalendarCheck className="uc-cal" style={{ width: 12, height: 12, color: '#C4C8CF', transition: 'color 0.2s', flexShrink: 0 }} />
+                    <span className="uc-time" style={{ fontWeight: 700, fontSize: 13, minWidth: 34, transition: 'color 0.2s', color: isTouch ? a.statusText : '#111' }}>{a.time}</span>
+                    <CalendarCheck className="uc-cal" style={{ width: 12, height: 12, color: isTouch ? a.statusColor : '#C4C8CF', transition: 'color 0.2s', flexShrink: 0 }} />
                   </div>
                   {/* Name zone — navigates to CRM profile, hover uses gold */}
                   <div
                     onClick={() => !editMode && navigate(a.clientId ? `/dashboard/crm?view=clients&client=${a.clientId}` : `/dashboard/crm?view=clients&search=${encodeURIComponent(a.name)}`)}
-                    style={{ flex: 1, display: 'flex', alignItems: 'center', gap: 8, padding: '8px 10px', cursor: editMode ? 'grab' : 'pointer', transition: 'all 0.2s', minWidth: 0 }}
-                    onMouseEnter={e => { if (editMode) return; e.currentTarget.style.background = '#F8F0DC'; e.currentTarget.querySelector('.uc-av').style.background = '#C9A84C'; e.currentTarget.querySelector('.uc-av').style.color = '#fff'; e.currentTarget.querySelector('.uc-nm').style.color = '#92700C' }}
-                    onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.querySelector('.uc-av').style.background = '#F3F4F6'; e.currentTarget.querySelector('.uc-av').style.color = '#6B7280'; e.currentTarget.querySelector('.uc-nm').style.color = '#111' }}
+                    style={{ flex: 1, display: 'flex', alignItems: 'center', gap: 8, padding: '8px 10px', cursor: editMode ? 'grab' : 'pointer', transition: 'all 0.2s', minWidth: 0, background: isTouch ? '#F8F0DC' : 'transparent' }}
+                    onMouseEnter={e => { if (editMode || isTouch) return; e.currentTarget.style.background = '#F8F0DC'; e.currentTarget.querySelector('.uc-av').style.background = '#C9A84C'; e.currentTarget.querySelector('.uc-av').style.color = '#fff'; e.currentTarget.querySelector('.uc-nm').style.color = '#92700C' }}
+                    onMouseLeave={e => { if (isTouch) return; e.currentTarget.style.background = 'transparent'; e.currentTarget.querySelector('.uc-av').style.background = '#F3F4F6'; e.currentTarget.querySelector('.uc-av').style.color = '#6B7280'; e.currentTarget.querySelector('.uc-nm').style.color = '#111' }}
                   >
-                    <div className="uc-av" style={{ width: 28, height: 28, borderRadius: '50%', background: '#F3F4F6', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 9, fontWeight: 600, flexShrink: 0, color: '#6B7280', transition: 'all 0.2s' }}>{getInit(a.name)}</div>
+                    <div className="uc-av" style={{ width: 28, height: 28, borderRadius: '50%', background: isTouch ? '#C9A84C' : '#F3F4F6', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 9, fontWeight: 600, flexShrink: 0, color: isTouch ? '#fff' : '#6B7280', transition: 'all 0.2s' }}>{getInit(a.name)}</div>
                     <div style={{ flex: 1, minWidth: 0 }}>
-                      <div className="uc-nm" style={{ fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontSize: 13, transition: 'color 0.2s' }}>{a.name}</div>
+                      <div className="uc-nm" style={{ fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontSize: 13, transition: 'color 0.2s', color: isTouch ? '#92700C' : '#111' }}>{a.name}</div>
                       <div style={{ fontSize: 10, color: '#9CA3AF', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{a.service || '—'}</div>
                     </div>
                     <span style={{ fontSize: 9, fontWeight: 600, padding: '3px 8px', borderRadius: 10, background: a.statusBg, color: a.statusColor, flexShrink: 0 }}>{a.statusLabel}</span>
                   </div>
                 </div>
-              ))}
+                )
+              })}
               {arrivals.length === 0 && <div style={{ color: '#9CA3AF', fontSize: 12, textAlign: 'center', paddingTop: 20 }}>No upcoming appointments</div>}
             </div>
             <button onClick={() => navigate('/dashboard/bookings')} style={{ fontSize: 11, fontWeight: 500, color: '#6B7280', cursor: 'pointer', marginTop: 8, paddingTop: 8, borderTop: '1px solid #F3F4F6', background: 'none', border: 'none', fontFamily: 'inherit', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4 }}>View All <ArrowRight size={12} /></button>
