@@ -16,17 +16,20 @@ from fastapi import APIRouter, HTTPException, Depends, Body, Request, Header
 from middleware.medical_audit import log_medical_access
 from middleware.encryption import TenantEncryption
 from middleware.rate_limit import limiter
+from middleware.brute_force import check_lockout, record_attempt
 from database import get_database
+from config import settings as app_settings
 from bson import ObjectId
 import bcrypt
 import re
 import jwt
-import os
 
 router = APIRouter(prefix="/client", tags=["Consumer Portal"])
 
-JWT_SECRET = os.environ.get("JWT_SECRET_KEY", os.environ.get("jwt_secret_key", "fallback-secret"))
-JWT_ALGORITHM = "HS256"
+# Use the SAME JWT config as the rest of the platform — no fallback.
+# signing_key = private key (RS256) or secret (HS256) — for creating tokens
+# verify_key = public key (RS256) or secret (HS256) — for checking tokens
+JWT_ALGORITHM = app_settings.jwt_algorithm
 
 
 def _hash(pw: str) -> str:
@@ -47,12 +50,12 @@ def _create_token(user_id: str, role: str = "diner") -> str:
         "exp": datetime.utcnow() + timedelta(days=30),
         "iat": datetime.utcnow(),
     }
-    return jwt.encode(payload, JWT_SECRET, algorithm=JWT_ALGORITHM)
+    return jwt.encode(payload, app_settings.jwt_signing_key, algorithm=JWT_ALGORITHM)
 
 
 def _decode_token(token: str) -> dict:
     try:
-        return jwt.decode(token, JWT_SECRET, algorithms=[JWT_ALGORITHM])
+        return jwt.decode(token, app_settings.jwt_verify_key, algorithms=[JWT_ALGORITHM])
     except jwt.ExpiredSignatureError:
         raise HTTPException(401, "Token expired")
     except jwt.InvalidTokenError:
@@ -247,10 +250,15 @@ async def consumer_login(request: Request, data: dict = Body(...)):
     if not email or not password:
         raise HTTPException(400, "Email and password required")
 
+    # Layer 2: Account-level lockout (blocks distributed attacks)
+    await check_lockout(email)
+
     account = await db.consumer_accounts.find_one({"email": email})
     if not account or not _verify(password, account.get("password_hash", "")):
+        await record_attempt(email, request, success=False)
         raise HTTPException(401, "Invalid email or password")
 
+    await record_attempt(email, request, success=True)
     user_id = str(account["_id"])
     token = _create_token(user_id)
 
@@ -295,7 +303,7 @@ async def consumer_password_reset_request(request: Request, data: dict = Body(..
         "exp": datetime.utcnow() + timedelta(hours=1),
         "iat": datetime.utcnow(),
     }
-    reset_token = jwt.encode(reset_payload, JWT_SECRET, algorithm=JWT_ALGORITHM)
+    reset_token = jwt.encode(reset_payload, app_settings.jwt_signing_key, algorithm=JWT_ALGORITHM)
 
     # Build reset URL — include slug so they land back on the right business portal
     reset_url = f"https://portal.reeveos.app/client/{slug}?reset={reset_token}" if slug else f"https://portal.reeveos.app/reset-password?token={reset_token}&portal=client"
@@ -345,7 +353,7 @@ async def consumer_password_reset_confirm(request: Request, data: dict = Body(..
 
     # Decode and validate token
     try:
-        payload = jwt.decode(token, JWT_SECRET, algorithms=[JWT_ALGORITHM])
+        payload = jwt.decode(token, app_settings.jwt_verify_key, algorithms=[JWT_ALGORITHM])
         if payload.get("type") != "consumer_password_reset":
             raise HTTPException(400, "Invalid reset token")
         user_id = payload.get("sub")

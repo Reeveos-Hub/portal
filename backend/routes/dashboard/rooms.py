@@ -1,11 +1,12 @@
 """
 rooms.py — Treatment Room Management API
 CRUD for treatment rooms, equipment, modes, and allocation priority.
-Tenant-isolated: every query scoped to business_id.
+Tenant-isolated via verify_business_access — structurally impossible to
+access another business's rooms.
 """
 from fastapi import APIRouter, HTTPException, Depends
 from database import get_database
-from middleware.auth import get_current_owner
+from middleware.tenant import verify_business_access, TenantContext
 from pydantic import BaseModel, Field
 from typing import List, Optional
 from datetime import datetime, timezone
@@ -56,33 +57,14 @@ def _serialize(room: dict) -> dict:
     return room
 
 
-async def _find_business(db, business_id: str, owner_id: str, role: str = ""):
-    """Find and verify business ownership."""
-    biz = await db.businesses.find_one({"_id": business_id})
-    if not biz:
-        try:
-            biz = await db.businesses.find_one({"_id": ObjectId(business_id)})
-        except Exception:
-            pass
-    if not biz:
-        raise HTTPException(status_code=404, detail="Business not found")
-    if role in ("business_owner", "platform_admin", "super_admin"):
-        return biz
-    biz_owner = str(biz.get("owner_id", ""))
-    if biz_owner != owner_id and biz_owner != str(owner_id):
-        raise HTTPException(status_code=403, detail="Not authorized")
-    return biz
-
-
 # ═══════════════════════════════════════════════════════════════
 # ENDPOINTS
 # ═══════════════════════════════════════════════════════════════
 
 @router.get("/business/{business_id}")
-async def list_rooms(business_id: str, user=Depends(get_current_owner)):
+async def list_rooms(business_id: str, tenant: TenantContext = Depends(verify_business_access)):
     """List all active rooms for a business."""
     db = get_database()
-    await _find_business(db, business_id, str(user["_id"]), user.get("role", ""))
 
     rooms = []
     cursor = db.rooms.find({
@@ -97,10 +79,9 @@ async def list_rooms(business_id: str, user=Depends(get_current_owner)):
 
 
 @router.post("/business/{business_id}", status_code=201)
-async def create_room(business_id: str, data: RoomCreate, user=Depends(get_current_owner)):
+async def create_room(business_id: str, data: RoomCreate, tenant: TenantContext = Depends(verify_business_access)):
     """Create a new treatment room."""
     db = get_database()
-    await _find_business(db, business_id, str(user["_id"]), user.get("role", ""))
 
     # Validate modes
     invalid_modes = set(data.enabled_modes) - VALID_MODES
@@ -141,10 +122,9 @@ async def create_room(business_id: str, data: RoomCreate, user=Depends(get_curre
 
 
 @router.put("/business/{business_id}/{room_id}")
-async def update_room(business_id: str, room_id: str, data: RoomUpdate, user=Depends(get_current_owner)):
+async def update_room(business_id: str, room_id: str, data: RoomUpdate, tenant: TenantContext = Depends(verify_business_access)):
     """Update a treatment room."""
     db = get_database()
-    await _find_business(db, business_id, str(user["_id"]), user.get("role", ""))
 
     # Find room (tenant-scoped)
     room = await db.rooms.find_one({
@@ -202,10 +182,9 @@ async def update_room(business_id: str, room_id: str, data: RoomUpdate, user=Dep
 
 
 @router.delete("/business/{business_id}/{room_id}")
-async def delete_room(business_id: str, room_id: str, user=Depends(get_current_owner)):
+async def delete_room(business_id: str, room_id: str, tenant: TenantContext = Depends(verify_business_access)):
     """Soft-delete a room (set is_active=False). We never hard-delete — GDPR audit trail."""
     db = get_database()
-    await _find_business(db, business_id, str(user["_id"]), user.get("role", ""))
 
     room = await db.rooms.find_one({
         "_id": ObjectId(room_id),

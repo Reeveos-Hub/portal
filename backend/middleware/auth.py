@@ -18,7 +18,7 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -
     else:
         expire = datetime.utcnow() + timedelta(minutes=settings.jwt_access_token_expire_minutes)
     to_encode.update({"exp": expire, "token_type": "access"})
-    encoded_jwt = jwt.encode(to_encode, settings.jwt_secret_key, algorithm=settings.jwt_algorithm)
+    encoded_jwt = jwt.encode(to_encode, settings.jwt_signing_key, algorithm=settings.jwt_algorithm)
     return encoded_jwt
 
 
@@ -26,7 +26,7 @@ def create_refresh_token(data: dict) -> str:
     to_encode = data.copy()
     expire = datetime.utcnow() + timedelta(days=settings.jwt_refresh_token_expire_days)
     to_encode.update({"exp": expire, "token_type": "refresh"})
-    encoded_jwt = jwt.encode(to_encode, settings.jwt_secret_key, algorithm=settings.jwt_algorithm)
+    encoded_jwt = jwt.encode(to_encode, settings.jwt_signing_key, algorithm=settings.jwt_algorithm)
     return encoded_jwt
 
 
@@ -39,7 +39,7 @@ async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(s
     
     try:
         token = credentials.credentials
-        payload = jwt.decode(token, settings.jwt_secret_key, algorithms=[settings.jwt_algorithm])
+        payload = jwt.decode(token, settings.jwt_verify_key, algorithms=[settings.jwt_algorithm])
         user_id: str = payload.get("sub")
         if user_id is None:
             raise credentials_exception

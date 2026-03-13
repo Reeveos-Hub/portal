@@ -10,5 +10,7 @@ frontend/.env.production
 frontend/.env.local
 *.pyc
 *.bak
+*.pem
+backend/keys/
 .DS_Store
 .backup2

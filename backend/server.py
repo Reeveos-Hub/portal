@@ -115,6 +115,13 @@ async def lifespan(app: FastAPI):
     except Exception as e:
         import logging
         logging.getLogger("documents").error(f"Documents index init error: {e}")
+    # Brute force protection indexes (login_attempts TTL + email lookup)
+    try:
+        from middleware.brute_force import ensure_indexes as ensure_brute_force_indexes
+        await ensure_brute_force_indexes()
+    except Exception as e:
+        import logging
+        logging.getLogger("brute_force").error(f"Brute force index init error: {e}")
     yield
     stop_scheduler()
     await database.close_mongo_connection()

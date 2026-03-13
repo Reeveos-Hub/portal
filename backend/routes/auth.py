@@ -6,6 +6,7 @@ from config import settings
 from models.user import UserCreate, UserResponse, UserRole
 from middleware.auth import create_access_token, create_refresh_token
 from middleware.rate_limit import limiter
+from middleware.brute_force import check_lockout, record_attempt
 from pydantic import BaseModel, EmailStr
 from typing import Optional
 
@@ -130,12 +131,18 @@ async def register(user_data: UserCreate):
 async def login(request: Request, login_data: LoginRequest):
     db = get_database()
     
+    # Layer 2: Account-level lockout (blocks distributed attacks across multiple IPs)
+    await check_lockout(login_data.email)
+    
     user = await db.users.find_one({"email": login_data.email})
     if not user or not verify_password(login_data.password, user["password_hash"]):
+        await record_attempt(login_data.email, request, success=False)
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect email or password"
         )
+    
+    await record_attempt(login_data.email, request, success=True)
     
     access_token = create_access_token(data={"sub": str(user["_id"])})
     refresh_token = create_refresh_token(data={"sub": str(user["_id"])})
@@ -174,7 +181,7 @@ async def refresh_access_token(request: Request, body: RefreshRequest):
     
     try:
         payload = jose_jwt.decode(
-            body.refresh_token, settings.jwt_secret_key,
+            body.refresh_token, settings.jwt_verify_key,
             algorithms=[settings.jwt_algorithm]
         )
         if payload.get("token_type") != "refresh":
@@ -242,7 +249,7 @@ async def confirm_password_reset(request: PasswordResetConfirm):
     
     try:
         payload = jose_jwt.decode(
-            request.token, settings.jwt_secret_key,
+            request.token, settings.jwt_verify_key,
             algorithms=[settings.jwt_algorithm]
         )
         if payload.get("type") != "password_reset":
@@ -278,18 +285,25 @@ async def admin_login(request: Request, login_data: LoginRequest):
     """Admin-only login — requires role == 'admin'."""
     db = get_database()
 
+    # Layer 2: Account-level lockout (blocks distributed attacks across multiple IPs)
+    await check_lockout(login_data.email)
+
     user = await db.users.find_one({"email": login_data.email})
     if not user or not verify_password(login_data.password, user["password_hash"]):
+        await record_attempt(login_data.email, request, success=False)
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect email or password",
         )
 
     if user.get("role", "").lower() not in ("platform_admin", "super_admin"):
+        await record_attempt(login_data.email, request, success=False)
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Not authorized — admin access only",
         )
+
+    await record_attempt(login_data.email, request, success=True)
 
     access_token = create_access_token(data={"sub": str(user["_id"])})
     refresh_token = create_refresh_token(data={"sub": str(user["_id"])})
@@ -315,7 +329,7 @@ async def verify_email(token: str):
 
     try:
         payload = jose_jwt.decode(
-            token, settings.jwt_secret_key,
+            token, settings.jwt_verify_key,
             algorithms=[settings.jwt_algorithm]
         )
         if payload.get("type") != "email_verify":
