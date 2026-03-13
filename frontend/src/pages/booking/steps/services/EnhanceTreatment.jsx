@@ -3,7 +3,7 @@
  * Shown after service selection if the service has add-ons
  */
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { Sparkles, ChevronRight } from 'lucide-react'
 import BookingHeader from '../../components/BookingHeader'
 import StepIndicator from '../../components/StepIndicator'
@@ -101,14 +101,17 @@ const EnhanceTreatment = ({ data, onContinue, onBack }) => {
     )
   }
 
-  // If no add-ons, auto-skip (must be in useEffect, not during render)
+  const skippedRef = useRef(false)
+
+  // If no add-ons, auto-skip (ref guard prevents infinite re-render loop)
   useEffect(() => {
-    if (!loading && addOns.length === 0) {
+    if (!loading && addOns.length === 0 && !skippedRef.current) {
+      skippedRef.current = true
       handleSkip()
     }
   }, [loading, addOns])
 
-  // Show nothing while auto-skipping (avoids flash of empty add-ons UI)
+  // Show nothing while auto-skipping
   if (!loading && addOns.length === 0) {
     return null
   }
