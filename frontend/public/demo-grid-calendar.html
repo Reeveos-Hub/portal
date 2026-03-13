@@ -79,7 +79,38 @@ let bks=[
 const g=document.getElementById('g');
 const gh=document.getElementById('gh');
 const logEl=document.getElementById('log');
-let drag=null,hiCell=null;
+let drag=null,hiCell=null,pressTimer=null;
+
+function showConfirm(bk,newStaff,nh,nm,origSt,origH,origM){
+const ov=document.createElement('div');
+ov.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,0.3);z-index:200;display:flex;align-items:flex-end;justify-content:center';
+const em=bk.sm+bk.dur,eH=bk.sh+Math.floor(em/60),eM=em%60;
+const box=document.createElement('div');
+box.style.cssText='width:100%;max-width:400px;background:#fff;border-radius:20px 20px 0 0;padding:20px;font-family:inherit';
+box.innerHTML='<div style="display:flex;justify-content:center;padding:0 0 12px"><div style="width:36px;height:4px;border-radius:2px;background:#D1D5DB"></div></div>'
++'<div style="font-size:15px;font-weight:700;color:#111;margin-bottom:12px">Move appointment?</div>'
++'<div style="padding:12px;background:#F9FAFB;border-radius:10px;margin-bottom:16px">'
++'<div style="font-size:14px;font-weight:700;color:#111">'+bk.cl+'</div>'
++'<div style="font-size:12px;color:#666;margin-top:2px">'+bk.sv+'</div>'
++'<div style="display:flex;align-items:center;gap:6px;margin-top:8px;font-size:12px;color:#999">'
++'<span style="text-decoration:line-through">'+origSt+' at '+ft(origH,origM)+'</span>'
++'<span style="color:#111">→</span>'
++'<span style="font-weight:600;color:#111">'+newStaff.id+' at '+ft(nh,nm)+'</span>'
++'</div></div>'
++'<div style="display:flex;gap:10px">'
++'<button id="cfCancel" style="flex:1;padding:12px;border-radius:12px;border:1px solid #EBEBEB;background:#fff;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit">Cancel</button>'
++'<button id="cfConfirm" style="flex:1;padding:12px;border-radius:12px;border:none;background:#111;color:#fff;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit">Confirm move</button>'
++'</div>';
+ov.appendChild(box);
+document.body.appendChild(ov);
+ov.addEventListener('click',e=>{if(e.target===ov){ov.remove();render();logEl.innerHTML='Move cancelled'}});
+box.querySelector('#cfCancel').addEventListener('click',()=>{ov.remove();render();logEl.innerHTML='Move cancelled'});
+box.querySelector('#cfConfirm').addEventListener('click',()=>{
+bk.st=newStaff.id;bk.sh=nh;bk.sm=nm;
+ov.remove();render();
+logEl.innerHTML='Moved <b>'+bk.cl+'</b> → <b>'+newStaff.id+'</b> at <b>'+ft(nh,nm)+'</b>';
+});
+}
 
 function build(){
 const rd=slots.map(s=>si(s.h,s.m)).join('] minmax(20px,auto) [');
@@ -138,21 +169,42 @@ if(!bk)return;
 e.preventDefault();
 cd.setPointerCapture(e.pointerId);
 const r=cd.getBoundingClientRect();
-drag={bk,ox:e.clientX-r.left,oy:e.clientY-r.top,pid:e.pointerId,active:false,sx:e.clientX,sy:e.clientY};
+const origSt=bk.st,origH=bk.sh,origM=bk.sm;
+let ox=e.clientX-r.left,oy=e.clientY-r.top;
+let sx=e.clientX,sy=e.clientY;
+let dragActive=false;
+let holdFired=false;
+
+pressTimer=setTimeout(()=>{
+holdFired=true;
+cd.style.transform='scale(1.04)';
+cd.style.opacity='0.7';
+cd.style.boxShadow='0 4px 16px rgba(0,0,0,0.15)';
+logEl.innerHTML='<b>Drag mode active</b> — move to a new slot';
+if(navigator.vibrate)navigator.vibrate(30);
+},500);
 
 const mv=ev=>{
-if(!drag)return;
-if(!drag.active){
-if(Math.abs(ev.clientX-drag.sx)<8&&Math.abs(ev.clientY-drag.sy)<8)return;
-drag.active=true;
-cd.style.opacity='0.35';
+if(!holdFired){
+if(Math.abs(ev.clientX-sx)>10||Math.abs(ev.clientY-sy)>10){
+clearTimeout(pressTimer);pressTimer=null;
+cd.removeEventListener('pointermove',mv);
+cd.removeEventListener('pointerup',up);
+cd.removeEventListener('pointercancel',up);
+cd.style.transform='';cd.style.opacity='';cd.style.boxShadow='';
+}
+return;
+}
+if(!dragActive){
+if(Math.abs(ev.clientX-sx)<5&&Math.abs(ev.clientY-sy)<5)return;
+dragActive=true;
+cd.style.opacity='0.3';cd.style.transform='';cd.style.boxShadow='';
 gh.style.display='block';
 gh.style.background=bk.stat==='completed'?'#D1D5DB':sr(bk.st);
 gh.innerHTML='<div class="cn">'+bk.cl+'</div><div class="cv">'+bk.sv+'</div>';
-logEl.innerHTML='Moving <b>'+bk.cl+'</b>';
 }
-gh.style.left=(ev.clientX-drag.ox)+'px';
-gh.style.top=(ev.clientY-drag.oy)+'px';
+gh.style.left=(ev.clientX-ox)+'px';
+gh.style.top=(ev.clientY-oy)+'px';
 if(hiCell)hiCell.classList.remove('drop-hi');
 const el=document.elementFromPoint(ev.clientX,ev.clientY);
 if(el&&el.dataset&&el.dataset.sh!=null){hiCell=el;el.classList.add('drop-hi')}
@@ -160,21 +212,28 @@ else hiCell=null;
 };
 
 const up=ev=>{
+clearTimeout(pressTimer);pressTimer=null;
 cd.removeEventListener('pointermove',mv);
 cd.removeEventListener('pointerup',up);
 cd.removeEventListener('pointercancel',up);
 if(hiCell)hiCell.classList.remove('drop-hi');
-gh.style.display='none';cd.style.opacity='1';
-if(drag&&drag.active&&hiCell&&hiCell.dataset.sh!=null){
+gh.style.display='none';
+cd.style.opacity='1';cd.style.transform='';cd.style.boxShadow='';
+
+if(dragActive&&hiCell&&hiCell.dataset.sh!=null){
 const nh=parseInt(hiCell.dataset.sh),nm=parseInt(hiCell.dataset.sm),nc=parseInt(hiCell.dataset.col);
 const ns=ST.find(s=>s.col===nc);
-if(ns){bk.st=ns.id;bk.sh=nh;bk.sm=nm;
-logEl.innerHTML='Moved <b>'+bk.cl+'</b> → <b>'+ns.id+'</b> at <b>'+ft(nh,nm)+'</b>';
-render();}
-}else if(drag&&!drag.active){
-logEl.innerHTML='Tapped <b>'+bk.cl+'</b> — opens detail panel';
+if(ns&&(ns.id!==origSt||nh!==origH||nm!==origM)){
+showConfirm(bk,ns,nh,nm,origSt,origH,origM);
+}else{
+logEl.innerHTML='Dropped in same position';
 }
-drag=null;hiCell=null;
+}else if(!holdFired||!dragActive){
+logEl.innerHTML='Tapped <b>'+bk.cl+'</b> — opens detail panel';
+}else{
+logEl.innerHTML='Drop cancelled';
+}
+drag=null;hiCell=null;dragActive=false;holdFired=false;
 };
 cd.addEventListener('pointermove',mv);
 cd.addEventListener('pointerup',up);
