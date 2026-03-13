@@ -160,6 +160,83 @@ const Calendar = () => {
   const [selAlerts, setSelAlerts] = useState([])
   const [showBlockTime, setShowBlockTime] = useState(false)
   const [blockForm, setBlockForm] = useState({ staff_id: '', start_time: '', end_time: '', preset: 'custom', reason: '' })
+
+  /* ── Profile Dropdown State ── */
+  const [profileOpen, setProfileOpen] = useState(null)
+  const [profilePreset, setProfilePreset] = useState(null)
+  const [profileStart, setProfileStart] = useState('')
+  const [profileEnd, setProfileEnd] = useState('')
+  const [profileReason, setProfileReason] = useState('')
+  const [profileBlocked, setProfileBlocked] = useState(false)
+  const [profileStartPicker, setProfileStartPicker] = useState(false)
+  const [profileEndPicker, setProfileEndPicker] = useState(false)
+  const profileRef = useRef(null)
+  const profileIconRefs = useRef({})
+
+  const BLOCK_PRESETS = [
+    { id: 'lunch', label: 'Lunch', start: '12:00', end: '13:00' },
+    { id: 'break', label: 'Break', start: '10:30', end: '10:45' },
+    { id: 'training', label: 'Training', start: '14:00', end: '16:00' },
+    { id: 'personal', label: 'Personal', start: '09:00', end: '10:00' },
+    { id: 'custom', label: 'Custom', start: '', end: '' },
+  ]
+
+  const BLOCK_TIMES = []
+  for (let bh = 8; bh <= 19; bh++) {
+    BLOCK_TIMES.push(`${String(bh).padStart(2, '0')}:00`)
+    BLOCK_TIMES.push(`${String(bh).padStart(2, '0')}:15`)
+    BLOCK_TIMES.push(`${String(bh).padStart(2, '0')}:30`)
+    BLOCK_TIMES.push(`${String(bh).padStart(2, '0')}:45`)
+  }
+
+  const openProfile = (staffId) => {
+    if (profileOpen === staffId) { setProfileOpen(null); return }
+    setProfileOpen(staffId)
+    setProfilePreset(null)
+    setProfileStart('')
+    setProfileEnd('')
+    setProfileReason('')
+    setProfileBlocked(false)
+    setProfileStartPicker(false)
+    setProfileEndPicker(false)
+  }
+
+  const pickProfilePreset = (p) => {
+    setProfilePreset(p.id)
+    setProfileStart(p.start)
+    setProfileEnd(p.end)
+    setProfileReason(p.id === 'custom' ? '' : p.label)
+    setProfileStartPicker(false)
+    setProfileEndPicker(false)
+  }
+
+  const confirmProfileBlock = async () => {
+    if (!profileStart || !profileEnd || !profileOpen) return
+    try {
+      await api.post(`/blocked-times/business/${bid}`, {
+        staff_id: profileOpen,
+        date: selectedDate,
+        start_time: profileStart,
+        end_time: profileEnd,
+        preset: profilePreset || 'custom',
+        reason: profileReason || profilePreset || 'Blocked',
+      })
+      setProfileBlocked(true)
+      fetchCalendarData(false)
+      setTimeout(() => { setProfileOpen(null); setProfileBlocked(false) }, 1200)
+    } catch (err) { console.error('Block time failed:', err) }
+  }
+
+  useEffect(() => {
+    const handler = (e) => {
+      if (profileRef.current && !profileRef.current.contains(e.target)) {
+        const clickedIcon = Object.values(profileIconRefs.current).some(el => el && el.contains(e.target))
+        if (!clickedIcon) setProfileOpen(null)
+      }
+    }
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [])
   const openBookModal = () => {
     setEditingId(null)
     setBookForm(f => ({ ...f, date: selectedDate, time: '', serviceId: '', staffId: '', customerName: '', customerPhone: '', customerEmail: '', notes: '' }))
@@ -1093,8 +1170,118 @@ const Calendar = () => {
                   transition: 'background 0.15s ease',
                   borderBottom: (hoverCol === s.id || drag?.ghostStaffId === s.id) ? '2px solid #111111' : '2px solid transparent',
                 }}>
-                  <div style={{ width: 40, height: 40, borderRadius: '50%', border: `2px solid ${s.color}`, padding: 2, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <div style={{ width: '100%', height: '100%', borderRadius: '50%', background: `linear-gradient(135deg,${s.color},${s.color}BB)`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 800, color: '#fff' }}>{s.initials}</div>
+                  <div style={{ position: 'relative' }}>
+                    <div
+                      ref={el => profileIconRefs.current[s.id] = el}
+                      onClick={() => openProfile(s.id)}
+                      style={{
+                        width: 40, height: 40, borderRadius: '50%', cursor: 'pointer',
+                        border: profileOpen === s.id ? '2.5px solid #111' : `2px solid ${s.color}`,
+                        padding: 2, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        transition: 'all 0.15s',
+                        transform: profileOpen === s.id ? 'scale(1.08)' : 'scale(1)',
+                      }}
+                    >
+                      <div style={{ width: '100%', height: '100%', borderRadius: '50%', background: `linear-gradient(135deg,${s.color},${s.color}BB)`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 800, color: '#fff' }}>{s.initials}</div>
+                    </div>
+
+                    {/* ════ PROFILE DROPDOWN ════ */}
+                    {profileOpen === s.id && (() => {
+                      const staffBookings = filteredBookings.filter(b => b.staffId === s.id)
+                      const staffRevenue = staffBookings.reduce((sum, b) => sum + (b.price || 0), 0)
+                      return (
+                        <div ref={profileRef} style={{
+                          position: 'absolute', top: 50, left: '50%', transform: 'translateX(-50%)',
+                          width: 280, background: '#fff', borderRadius: 16,
+                          boxShadow: '0 8px 32px rgba(0,0,0,0.14), 0 2px 8px rgba(0,0,0,0.06)',
+                          border: '1px solid #EBEBEB', zIndex: 100,
+                        }}>
+                          <div style={{ position: 'absolute', top: -6, left: '50%', width: 12, height: 12, background: '#fff', border: '1px solid #EBEBEB', borderRight: 'none', borderBottom: 'none', transform: 'translateX(-50%) rotate(45deg)' }} />
+
+                          <div style={{ padding: '16px 18px 12px', borderBottom: '1px solid #F5F5F3' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                              <div style={{ width: 36, height: 36, borderRadius: '50%', background: `linear-gradient(135deg,${s.color},${s.color}BB)`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, fontWeight: 800, color: '#fff' }}>{s.initials}</div>
+                              <div>
+                                <div style={{ fontSize: 14, fontWeight: 700, color: '#111' }}>{s.name}</div>
+                                <div style={{ fontSize: 11, color: '#999' }}>{s.full?.split(' - ')[1] || 'Staff'}</div>
+                              </div>
+                            </div>
+                            <div style={{ display: 'flex', gap: 12, marginTop: 10 }}>
+                              <div style={{ flex: 1, textAlign: 'center', padding: '6px 0', background: '#FAFAF8', borderRadius: 8 }}>
+                                <div style={{ fontSize: 16, fontWeight: 800, color: '#111' }}>{staffBookings.length}</div>
+                                <div style={{ fontSize: 9, color: '#999', fontWeight: 600 }}>bookings</div>
+                              </div>
+                              <div style={{ flex: 1, textAlign: 'center', padding: '6px 0', background: '#FAFAF8', borderRadius: 8 }}>
+                                <div style={{ fontSize: 16, fontWeight: 800, color: '#C9A84C' }}>£{staffRevenue}</div>
+                                <div style={{ fontSize: 9, color: '#999', fontWeight: 600 }}>today</div>
+                              </div>
+                            </div>
+                          </div>
+
+                          <div style={{ padding: '14px 18px' }}>
+                            <div style={{ fontSize: 10, fontWeight: 700, color: '#999', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 10 }}>Block Time</div>
+                            <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap', marginBottom: 14 }}>
+                              {BLOCK_PRESETS.map(p => (
+                                <button key={p.id} onClick={() => pickProfilePreset(p)} style={{
+                                  padding: '7px 14px', borderRadius: 20, fontSize: 12, fontWeight: 600, cursor: 'pointer',
+                                  border: profilePreset === p.id ? `1.5px solid ${s.color}` : '1.5px solid #EBEBEB',
+                                  background: profilePreset === p.id ? `${s.color}10` : '#fff',
+                                  color: profilePreset === p.id ? s.color : '#666',
+                                  fontFamily: "'Figtree', sans-serif",
+                                }}>{p.label}</button>
+                              ))}
+                            </div>
+
+                            {profilePreset && (
+                              <div>
+                                <div style={{ display: 'flex', gap: 10, marginBottom: 10 }}>
+                                  <div style={{ flex: 1, position: 'relative' }}>
+                                    <label style={{ fontSize: 10, fontWeight: 700, color: '#999', display: 'block', marginBottom: 4 }}>From</label>
+                                    <button onClick={() => { setProfileStartPicker(!profileStartPicker); setProfileEndPicker(false) }} style={{ width: '100%', padding: '10px 12px', borderRadius: 10, border: '1.5px solid #EBEBEB', fontSize: 14, fontWeight: 600, fontFamily: 'inherit', background: '#fff', cursor: 'pointer', textAlign: 'left', color: profileStart ? '#111' : '#ccc' }}>
+                                      {profileStart || 'Start'}
+                                    </button>
+                                    {profileStartPicker && (
+                                      <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, maxHeight: 180, overflowY: 'auto', background: '#fff', borderRadius: 10, border: '1px solid #EBEBEB', boxShadow: '0 8px 24px rgba(0,0,0,0.1)', zIndex: 10, marginTop: 4 }}>
+                                        {BLOCK_TIMES.map(t => (
+                                          <div key={t} onClick={() => { setProfileStart(t); setProfileStartPicker(false) }} style={{ padding: '8px 12px', fontSize: 13, cursor: 'pointer', background: profileStart === t ? `${s.color}10` : 'transparent', fontWeight: profileStart === t ? 700 : 400, color: '#111' }}>{t}</div>
+                                        ))}
+                                      </div>
+                                    )}
+                                  </div>
+                                  <div style={{ flex: 1, position: 'relative' }}>
+                                    <label style={{ fontSize: 10, fontWeight: 700, color: '#999', display: 'block', marginBottom: 4 }}>To</label>
+                                    <button onClick={() => { setProfileEndPicker(!profileEndPicker); setProfileStartPicker(false) }} style={{ width: '100%', padding: '10px 12px', borderRadius: 10, border: '1.5px solid #EBEBEB', fontSize: 14, fontWeight: 600, fontFamily: 'inherit', background: '#fff', cursor: 'pointer', textAlign: 'left', color: profileEnd ? '#111' : '#ccc' }}>
+                                      {profileEnd || 'End'}
+                                    </button>
+                                    {profileEndPicker && (
+                                      <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, maxHeight: 180, overflowY: 'auto', background: '#fff', borderRadius: 10, border: '1px solid #EBEBEB', boxShadow: '0 8px 24px rgba(0,0,0,0.1)', zIndex: 10, marginTop: 4 }}>
+                                        {BLOCK_TIMES.map(t => (
+                                          <div key={t} onClick={() => { setProfileEnd(t); setProfileEndPicker(false) }} style={{ padding: '8px 12px', fontSize: 13, cursor: 'pointer', background: profileEnd === t ? `${s.color}10` : 'transparent', fontWeight: profileEnd === t ? 700 : 400, color: '#111' }}>{t}</div>
+                                        ))}
+                                      </div>
+                                    )}
+                                  </div>
+                                </div>
+
+                                {profilePreset === 'custom' && (
+                                  <input value={profileReason} onChange={e => setProfileReason(e.target.value)} placeholder="Reason (e.g. Dentist)" style={{ width: '100%', padding: '10px 12px', borderRadius: 10, border: '1.5px solid #EBEBEB', fontSize: 13, fontFamily: 'inherit', outline: 'none', marginBottom: 10, boxSizing: 'border-box' }} />
+                                )}
+
+                                <button onClick={confirmProfileBlock} disabled={!profileStart || !profileEnd} style={{
+                                  width: '100%', padding: '12px 0', borderRadius: 12, border: 'none',
+                                  background: profileBlocked ? '#22C55E' : (!profileStart || !profileEnd) ? '#E5E5E5' : s.color,
+                                  color: profileBlocked ? '#fff' : (!profileStart || !profileEnd) ? '#aaa' : '#fff',
+                                  fontSize: 14, fontWeight: 700, cursor: (!profileStart || !profileEnd) ? 'not-allowed' : 'pointer',
+                                  fontFamily: "'Figtree', sans-serif", transition: 'all 0.2s',
+                                }}>
+                                  {profileBlocked ? '✓ Blocked' : `Block ${s.name}'s Time`}
+                                </button>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      )
+                    })()}
                   </div>
                   <div>
                     <div style={{ fontSize: 12, fontWeight: 700, color: '#111111', lineHeight: 1.2 }}>{s.name}</div>
