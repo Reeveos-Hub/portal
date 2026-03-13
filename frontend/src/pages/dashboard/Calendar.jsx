@@ -121,7 +121,7 @@ const Calendar = () => {
   const [hovA, setHovA] = useState(null)
   const [hovSlot, setHovSlot] = useState(null)
   const [selA, setSelA] = useState(null)
-  const [showKPI, setShowKPI] = useState(true)
+  const [showKPI, setShowKPI] = useState(false)
   const [fabOpen, setFabOpen] = useState(false)
   const [hoverCol, setHoverCol] = useState(null)
   const [hoverRow, setHoverRow] = useState(null)
@@ -160,6 +160,7 @@ const Calendar = () => {
   const [selAlerts, setSelAlerts] = useState([])
   const [showBlockTime, setShowBlockTime] = useState(false)
   const [blockForm, setBlockForm] = useState({ staff_id: '', start_time: '', end_time: '', preset: 'custom', reason: '' })
+  const [isFullscreen, setIsFullscreen] = useState(false)
 
   /* ── Check-In / Check-Out State ── */
   const [ciPanel, setCiPanel] = useState(null) // null | { mode:'checkin'|'checkout', id:string }
@@ -304,6 +305,13 @@ const Calendar = () => {
     document.addEventListener('mousedown', handler)
     return () => document.removeEventListener('mousedown', handler)
   }, [])
+
+  /* ── Tablet fullscreen toggle ── */
+  useEffect(() => {
+    document.body.style.overflow = isFullscreen ? 'hidden' : ''
+    return () => { document.body.style.overflow = '' }
+  }, [isFullscreen])
+
   const openBookModal = () => {
     setEditingId(null)
     setBookForm(f => ({ ...f, date: selectedDate, time: '', serviceId: '', staffId: '', customerName: '', customerPhone: '', customerEmail: '', notes: '' }))
@@ -1009,7 +1017,7 @@ const Calendar = () => {
     const isDragging = drag?.id === a.id
     const isNewBooking = newCalBookingIds.has(a.id)
     const top = isDragging ? drag.ghostTop : timeToPx(a.start)
-    const h = isDragging ? drag.ghostH : a.dur * HH
+    const h = isDragging ? drag.ghostH : (a._overrideH || a.dur * HH)
     const bg = gc(a)
     const hov = hovA === a.id
     const sel = selA === a.id
@@ -1137,7 +1145,9 @@ const Calendar = () => {
 
   /* ═════════════════ RENDER ═════════════════ */
   return (
-    <div style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column', background: '#FFFFFF', fontFamily: "'Figtree', system-ui, sans-serif", overflow: 'hidden' }}>
+    <div style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column', background: '#FFFFFF', fontFamily: "'Figtree', system-ui, sans-serif", overflow: 'hidden',
+      ...(isFullscreen ? { position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 9999 } : {})
+    }}>
       <style>{`
         @keyframes newPulse{0%,100%{box-shadow:0 0 0 0 rgba(17,17,17,0.6)}50%{box-shadow:0 0 0 8px rgba(17,17,17,0)}}
         @keyframes shimmer{0%{background-position:-200% center}100%{background-position:200% center}}
@@ -1201,12 +1211,12 @@ const Calendar = () => {
         <button onClick={() => setShowBlockTime(true)} style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '7px 14px', borderRadius: 20, border: 'none', background: '#F5F5F5', fontSize: 12, fontWeight: 500, color: '#777', cursor: 'pointer' }}>
           <svg width={13} height={13} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="9" y1="3" x2="9" y2="21"/></svg> Block Time
         </button>
+        <button onClick={() => setIsFullscreen(!isFullscreen)} style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '7px 14px', borderRadius: 20, border: 'none', background: isFullscreen ? '#111111' : '#F5F5F5', fontSize: 12, fontWeight: isFullscreen ? 600 : 500, color: isFullscreen ? '#fff' : '#777', cursor: 'pointer', transition: 'all 0.2s' }} title={isFullscreen ? 'Exit tablet mode' : 'Tablet mode'}>
+          <svg width={14} height={14} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="5" y="2" width="14" height="20" rx="2" /><line x1="12" y1="18" x2="12" y2="18" strokeWidth="3" strokeLinecap="round" /></svg>
+          {isFullscreen ? 'Exit Tablet' : 'Tablet'}
+        </button>
         <button onClick={() => setShowKPI(!showKPI)} style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '7px 14px', borderRadius: 20, border: 'none', background: showKPI ? '#11111112' : '#F5F5F5', fontSize: 12, fontWeight: 600, color: showKPI ? '#111111' : '#999', cursor: 'pointer' }}>
           <BarChartIcon /> Insights {showKPI ? <ChevU /> : <ChevD />}
-        </button>
-        <button style={{ width: 38, height: 38, borderRadius: '50%', border: 'none', background: '#F5F5F5', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative', color: '#888' }}>
-          <BellIcon />
-          <div style={{ position: 'absolute', top: 6, right: 7, width: 8, height: 8, borderRadius: '50%', background: '#EF4444', border: '2px solid #F5F5F5' }} />
         </button>
       </div>
 
@@ -1214,20 +1224,16 @@ const Calendar = () => {
       <div style={{ maxHeight: showKPI ? 100 : 0, overflow: 'hidden', transition: 'max-height 0.3s cubic-bezier(0.22,1,0.36,1)', background: '#fff', borderBottom: showKPI ? '1px solid #EBEBEB' : 'none' }}>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 10, padding: '10px 16px' }}>
           {[
-            { label: 'Total Appointments', value: String(bookings.length), change: '+12%', up: true, spark: [12,15,13,18,14,20,bookings.length || 22], color: '#111111' },
-            { label: 'Completed', value: `${bookings.length ? Math.round(bookings.filter(b=>b.status==='completed').length/bookings.length*100) : 0}%`, change: '+8%', up: true, spark: [70,75,72,80,78,82,85], color: '#22C55E' },
-            { label: 'No-show Rate', value: `${bookings.length ? Math.round(bookings.filter(b=>b.status==='no_show').length/bookings.length*100) : 0}%`, change: '+2%', up: false, spark: [5,4,6,5,8,6,7], color: '#EF4444' },
-            { label: 'Revenue Today', value: `£${revenue}`, change: '+15%', up: true, spark: [800,950,870,1100,980,1050,revenue||1145], color: '#D4A574' },
+            { label: 'Total Appointments', value: String(bookings.length), color: '#111111' },
+            { label: 'Completed', value: `${bookings.length ? Math.round(bookings.filter(b=>b.status==='completed').length/bookings.length*100) : 0}%`, color: '#22C55E' },
+            { label: 'No-show Rate', value: `${bookings.length ? Math.round(bookings.filter(b=>b.status==='no_show').length/bookings.length*100) : 0}%`, color: '#EF4444' },
+            { label: 'Revenue Today', value: `£${revenue}`, color: '#D4A574' },
           ].map((k, i) => (
             <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 14px', borderRadius: 14, background: '#FFFFFF', border: '1px solid #F0F0F0' }}>
               <div style={{ flex: 1 }}>
                 <div style={{ fontSize: 10, color: '#888', fontWeight: 500, marginBottom: 2 }}>{k.label}</div>
-                <div style={{ display: 'flex', alignItems: 'baseline', gap: 6 }}>
-                  <span style={{ fontSize: 20, fontWeight: 800, color: '#111111', lineHeight: 1 }}>{k.value}</span>
-                  <span style={{ fontSize: 10, fontWeight: 700, color: k.up ? '#22C55E' : '#EF4444', display: 'flex', alignItems: 'center', gap: 2 }}>{k.up ? '↑' : '↓'}{k.change}</span>
-                </div>
+                <span style={{ fontSize: 20, fontWeight: 800, color: '#111111', lineHeight: 1 }}>{k.value}</span>
               </div>
-              <Spark data={k.spark} color={k.color} />
             </div>
           ))}
         </div>
@@ -1443,7 +1449,22 @@ const Calendar = () => {
                         <span style={{ fontSize: 9, fontWeight: 800, color: '#999', textTransform: 'uppercase', letterSpacing: 2 }}>{b.label}</span>
                       </div>
                     ))}
-                    {filteredBookings.filter(a => a.staffId === staff.id).map(a => <Bl key={a.id} a={a} />)}
+                    {(() => {
+                      /* Overlap layout — shrink cards that overlap with next booking */
+                      const col = filteredBookings.filter(a => a.staffId === staff.id).sort((a, b) => a.start - b.start)
+                      return col.map((a, i) => {
+                        const next = col[i + 1]
+                        const topPx = timeToPx(a.start)
+                        const naturalH = a.dur * HH
+                        const usedH = Math.max(naturalH, 64)
+                        let layoutH = usedH
+                        if (next) {
+                          const nextTop = timeToPx(next.start)
+                          if (topPx + usedH > nextTop - 2) layoutH = Math.max(nextTop - topPx - 2, 24)
+                        }
+                        return <Bl key={a.id} a={{...a, _overrideH: layoutH}} />
+                      })
+                    })()}
                     {drag?.type === 'move' && drag.ghostStaffId === staff.id && (() => {
                       const a = bookings.find(b => b.id === drag.id)
                       if (!a || a.staffId === staff.id) return null
