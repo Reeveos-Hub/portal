@@ -162,8 +162,9 @@ const Shell=({biz,user,desk,activeTab,onNav,onLogout,tab,children})=>(
 )
 
 // ═══ MAIN ═══
-export default function ClientPortal(){
-  const{slug}=useParams()
+export default function ClientPortal({overrideSlug}={}){
+  const _p=useParams()
+  const slug=overrideSlug||_p.slug||_p.businessSlug
   const[view,setView]=useState('login'),[biz,setBiz]=useState(null),[user,setUser]=useState(null)
   const[loading,setLoading]=useState(false),[err,setErr]=useState('')
   const[authMode,setAuthMode]=useState('login'),[email,setEmail]=useState(''),[password,setPassword]=useState('')
