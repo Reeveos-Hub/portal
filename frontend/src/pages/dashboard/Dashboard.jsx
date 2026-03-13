@@ -590,9 +590,8 @@ const Dashboard = () => {
                       <div className="uc-nm" style={{ fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontSize: 13, transition: 'color 0.2s' }}>{a.name}</div>
                       <div style={{ fontSize: 10, color: '#9CA3AF', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{a.service || '—'}</div>
                     </div>
+                    <span style={{ fontSize: 9, fontWeight: 600, padding: '3px 8px', borderRadius: 10, background: a.statusBg, color: a.statusColor, flexShrink: 0 }}>{a.statusLabel}</span>
                   </div>
-                  {/* Status badge */}
-                  <span style={{ fontSize: 9, fontWeight: 600, padding: '3px 8px', borderRadius: 10, background: a.statusBg, color: a.statusColor, flexShrink: 0, alignSelf: 'center', marginRight: 10 }}>{a.statusLabel}</span>
                 </div>
               ))}
               {arrivals.length === 0 && <div style={{ color: '#9CA3AF', fontSize: 12, textAlign: 'center', paddingTop: 20 }}>No upcoming appointments</div>}

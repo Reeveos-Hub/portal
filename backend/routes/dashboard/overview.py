@@ -185,6 +185,33 @@ async def get_today_bookings(
     now = datetime.now().strftime("%H:%M")
     found_next = False
 
+    # Batch lookup: map customer emails/names to client IDs
+    biz_match = {"$or": [{"businessId": business_id}, {"business_id": business_id}]}
+    emails = set()
+    names = set()
+    for b in today_bookings:
+        fields = _extract_booking_fields(b)
+        e = b.get("customerEmail") or b.get("customer_email") or (b.get("customer", {}) or {}).get("email")
+        if e:
+            emails.add(e.lower())
+        names.add(fields["customer_name"])
+
+    client_map = {}  # name -> client_id
+    if emails:
+        email_clients = await db.clients.find(
+            {**biz_match, "email": {"$in": list(emails)}}, {"_id": 1, "email": 1, "name": 1}
+        ).to_list(500)
+        for c in email_clients:
+            if c.get("name"):
+                client_map[c["name"]] = str(c["_id"])
+    if names:
+        name_clients = await db.clients.find(
+            {**biz_match, "name": {"$in": list(names)}}, {"_id": 1, "name": 1}
+        ).to_list(500)
+        for c in name_clients:
+            if c.get("name") and c["name"] not in client_map:
+                client_map[c["name"]] = str(c["_id"])
+
     result = []
     for b in today_bookings:
         fields = _extract_booking_fields(b)
@@ -192,11 +219,16 @@ async def get_today_bookings(
         is_next = not found_next and btime >= now
         if is_next:
             found_next = True
+        # Client ID: check booking doc first, then lookup map
+        cid = b.get("clientId") or b.get("client_id") or ""
+        if not cid:
+            cid = client_map.get(fields["customer_name"], "")
         result.append({
             "id": str(b.get("_id", "")),
             "time": btime,
             "endTime": b.get("endTime") or b.get("end_time"),
             "customerName": fields["customer_name"],
+            "clientId": cid,
             "service": fields["service_name"],
             "staff": fields["staff_name"] or _staff_name(business, fields["staff_id"]),
             "status": b.get("status", "confirmed"),

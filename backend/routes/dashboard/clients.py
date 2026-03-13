@@ -125,7 +125,8 @@ async def list_clients(
     business = await _get_business(db, business_id, {"_id": tenant.user_id, "role": tenant.role})
     biz_id = str(business["_id"])
 
-    match = {"businessId": biz_id, "active": {"$ne": False}}
+    biz_match = {"$or": [{"businessId": biz_id}, {"business_id": biz_id}]}
+    match = {**biz_match, "active": {"$ne": False}}
     if tag:
         match["tags"] = tag
     if search:
@@ -152,9 +153,9 @@ async def list_clients(
     }
     sort_spec = sort_map.get(sort, sort_map["last_visit_desc"])
 
-    total = await sdb.clients.count_documents(match)
+    total = await db.clients.count_documents(match)
     skip = (page - 1) * limit
-    cursor = sdb.clients.find(match).sort(sort_spec).skip(skip).limit(limit)
+    cursor = db.clients.find(match).sort(sort_spec).skip(skip).limit(limit)
     rows = await cursor.to_list(length=limit)
 
     clients = []
@@ -174,11 +175,11 @@ async def list_clients(
         })
 
     now = date.today()
-    segments = {"all": await sdb.clients.count_documents({"businessId": biz_id, "active": {"$ne": False}})}
+    segments = {"all": await db.clients.count_documents({**biz_match, "active": {"$ne": False}})}
     for seg in ["new", "returning", "inactive", "at_risk"]:
-        m = {"businessId": biz_id, "active": {"$ne": False}}
+        m = {**biz_match, "active": {"$ne": False}}
         m.update(_segment_filter(seg, now))
-        segments[seg] = await sdb.clients.count_documents(m)
+        segments[seg] = await db.clients.count_documents(m)
 
     return {
         "clients": clients,
