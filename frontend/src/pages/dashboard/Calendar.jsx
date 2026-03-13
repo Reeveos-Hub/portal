@@ -1023,9 +1023,10 @@ const Calendar = () => {
     const sel = selA === a.id
     const done = a.status === 'completed'
     const isActive = a.status === 'checked_in'
-    const minCardH = 64
+    const hasOverride = !!a._overrideH
+    const minCardH = hasOverride ? 24 : 64
     const cardH = Math.max(h - 2, minCardH)
-    const isShort = h < minCardH + 2
+    const isShort = cardH < 64
     const tiny = cardH <= 38, sm = cardH <= 56
 
     if (isDragging && drag.type === 'move' && drag.ghostStaffId !== a.staffId) return null
@@ -1457,12 +1458,14 @@ const Calendar = () => {
                         const topPx = timeToPx(a.start)
                         const naturalH = a.dur * HH
                         const usedH = Math.max(naturalH, 64)
-                        let layoutH = usedH
                         if (next) {
                           const nextTop = timeToPx(next.start)
-                          if (topPx + usedH > nextTop - 2) layoutH = Math.max(nextTop - topPx - 2, 24)
+                          if (topPx + usedH > nextTop - 2) {
+                            const shrunkH = Math.max(nextTop - topPx - 2, 24)
+                            return <Bl key={a.id} a={{...a, _overrideH: shrunkH}} />
+                          }
                         }
-                        return <Bl key={a.id} a={{...a, _overrideH: layoutH}} />
+                        return <Bl key={a.id} a={a} />
                       })
                     })()}
                     {drag?.type === 'move' && drag.ghostStaffId === staff.id && (() => {
