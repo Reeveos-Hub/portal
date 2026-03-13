@@ -1061,9 +1061,12 @@ const Calendar = () => {
     const done = a.status === 'completed'
     const isActive = a.status === 'checked_in'
     const hasOverride = !!a._overrideH
+    // When overlap algo shrinks a card, use its exact height with zero padding
+    // This eliminates ALL CSS box-model issues — height IS the visual size, period
     const cardH = hasOverride ? Math.max(h, 24) : Math.max(h - 2, isActive ? 80 : 64)
     const isShort = cardH < 64
     const tiny = cardH <= 38, sm = cardH <= 56
+    const cardPad = hasOverride ? '0 6px' : tiny ? '4px 8px' : sm ? '5px 9px' : '7px 11px'
 
     if (isDragging && drag.type === 'move' && drag.ghostStaffId !== a.staffId) return null
 
@@ -1098,7 +1101,7 @@ const Calendar = () => {
               : sel ? `0 0 0 2.5px #fff, 0 0 0 4.5px ${bg}, 0 8px 24px ${bg}25`
               : hov ? `0 8px 24px ${bg}30` : `0 2px 6px ${bg}12`,
             zIndex: isDragging ? 40 : sel ? 30 : isActive ? 25 : hov ? 20 : isShort ? 5 : 2,
-            padding: tiny ? '4px 8px' : sm ? '5px 9px' : '7px 11px',
+            padding: cardPad,
             display: 'flex', flexDirection: 'column',
           }}>
           {!tiny && !isDragging && (
