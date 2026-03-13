@@ -1071,6 +1071,7 @@ const Calendar = () => {
             opacity: isDragging ? 0.85 : done ? 0.7 : a.status === 'no_show' ? 0.55 : 1,
             cursor: isDragging ? 'grabbing' : 'grab',
             overflow: 'hidden', color: isActive ? '#fff' : '#111',
+            boxSizing: 'border-box',
             transition: isDragging ? 'none' : 'all 0.2s cubic-bezier(0.22,1,0.36,1)',
             transform: isDragging ? 'scale(1.03)' : hov && !sel ? 'scale(1.012) translateY(-1px)' : 'none',
             animation: isActive ? 'activePulse 2s ease-in-out infinite' : isNewBooking ? 'calendarPulse 0.6s ease-out' : 'none',
