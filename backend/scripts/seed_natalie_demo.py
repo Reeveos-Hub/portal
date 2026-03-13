@@ -6,9 +6,14 @@ import asyncio
 import sys
 sys.path.insert(0, '.')
 
-from database import get_database
+from motor.motor_asyncio import AsyncIOMotorClient
 from bson import ObjectId
 from datetime import datetime
+
+# Connect directly — don't rely on app startup
+from config import settings
+client = AsyncIOMotorClient(settings.mongodb_url)
+db = client[settings.mongodb_db_name]
 
 BIZ_SLUG = "rejuvenate-skin-experts"
 TODAY = datetime.now().strftime("%Y-%m-%d")
@@ -111,10 +116,7 @@ CLIENTS = [
 
 
 async def run():
-    db = get_database()
-    if db is None:
-        print("ERROR: Could not connect to database")
-        return
+    print(f"Connecting to {settings.mongodb_url} / {settings.mongodb_db_name}")
 
     # Find business
     biz = await db.businesses.find_one({"slug": BIZ_SLUG})
