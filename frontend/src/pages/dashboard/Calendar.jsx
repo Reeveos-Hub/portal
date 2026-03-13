@@ -818,6 +818,10 @@ const Calendar = () => {
     }
 
     const isNarrow = typeof window !== 'undefined' && window.innerWidth < 1024
+    const [sheetReady, setSheetReady] = useState(false)
+    useEffect(() => {
+      if (isNarrow) { const t = setTimeout(() => setSheetReady(true), 50); return () => clearTimeout(t) }
+    }, [])
 
     const panelContent = (
       <>
@@ -1072,9 +1076,10 @@ const Calendar = () => {
 
     if (isNarrow) {
       return createPortal(
-        <div onClick={e => { e.stopPropagation(); setSelA(null) }} style={{
+        <div onClick={e => { e.stopPropagation(); if (sheetReady) setSelA(null) }} style={{
           position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.3)', zIndex: 9000,
           display: 'flex', alignItems: 'flex-end', justifyContent: 'center',
+          pointerEvents: sheetReady ? 'auto' : 'none',
         }}>
           <div data-po="1" onClick={e => e.stopPropagation()} style={{
             width: '100%', maxWidth: 480, maxHeight: '80vh', overflowY: 'auto',
