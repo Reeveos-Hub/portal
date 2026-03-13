@@ -501,34 +501,38 @@ const Calendar = () => {
     const booking = (data?.bookings || []).find(b => b.id === selA)
     if (!booking) { setSelPackages([]); setSelClient(null); setSelAlerts([]); return }
 
+    let cancelled = false
+
     const fetchCrmData = (clientId) => {
-      api.get(`/packages/business/${bid}/client/${clientId}`).then(r => {
-        setSelPackages(r.packages || [])
-      }).catch(() => setSelPackages([]))
-      api.get(`/crm/business/${bid}/client/${clientId}`).then(r => {
-        setSelClient(r)
-      }).catch(() => setSelClient(null))
-      api.get(`/notes/business/${bid}/client/${clientId}/alerts`).then(r => {
-        setSelAlerts((r.alerts || []).filter(a => a.active !== false))
-      }).catch(() => setSelAlerts([]))
+      Promise.allSettled([
+        api.get(`/packages/business/${bid}/client/${clientId}`),
+        api.get(`/crm/business/${bid}/client/${clientId}`),
+        api.get(`/notes/business/${bid}/client/${clientId}/alerts`),
+      ]).then(([pkgRes, crmRes, alertRes]) => {
+        if (cancelled) return
+        setSelPackages(pkgRes.status === 'fulfilled' ? (pkgRes.value.packages || []) : [])
+        setSelClient(crmRes.status === 'fulfilled' ? crmRes.value : null)
+        setSelAlerts(alertRes.status === 'fulfilled' ? (alertRes.value.alerts || []).filter(a => a.active !== false) : [])
+      })
     }
 
     if (booking.customerId) {
-      // Direct lookup — booking has linked client
       fetchCrmData(booking.customerId)
     } else if (booking.customerName && booking.customerName !== 'Walk-in') {
-      // Fallback — search CRM by name to find the client
       api.get(`/clients/business/${bid}?search=${encodeURIComponent(booking.customerName)}&limit=1`).then(r => {
+        if (cancelled) return
         const clients = r.clients || []
         if (clients.length > 0 && clients[0].id) {
           fetchCrmData(clients[0].id)
         } else {
           setSelPackages([]); setSelClient(null); setSelAlerts([])
         }
-      }).catch(() => { setSelPackages([]); setSelClient(null); setSelAlerts([]) })
+      }).catch(() => { if (!cancelled) { setSelPackages([]); setSelClient(null); setSelAlerts([]) } })
     } else {
       setSelPackages([]); setSelClient(null); setSelAlerts([])
     }
+
+    return () => { cancelled = true }
   }, [selA, bid])
 
   /* ── Time updater ── */
