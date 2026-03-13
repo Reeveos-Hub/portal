@@ -6,7 +6,6 @@
 
 import { useState, useRef, useEffect, useMemo, useCallback } from 'react'
 import { useSearchParams } from 'react-router-dom'
-import { createPortal } from 'react-dom'
 import { useBusiness } from '../../contexts/BusinessContext'
 import api from '../../utils/api'
 import RestaurantCalendar from './RestaurantCalendar'
@@ -127,7 +126,6 @@ const Calendar = () => {
   const [hovA, setHovA] = useState(null)
   const [hovSlot, setHovSlot] = useState(null)
   const [selA, setSelA] = useState(null)
-  const selAOpenedAt = useRef(0)
   const [showKPI, setShowKPI] = useState(false)
   const [fabOpen, setFabOpen] = useState(false)
   const [hoverCol, setHoverCol] = useState(null)
@@ -822,10 +820,13 @@ const Calendar = () => {
       }
     }
 
-    const isNarrow = isFullscreen || (typeof window !== 'undefined' && window.innerWidth < 1024)
-
-    const panelContent = (
-      <>
+    return (
+      <div data-po="1" onClick={e => e.stopPropagation()} style={{
+        position: 'absolute', top: (a.start - SH) * HH + a.dur * HH + 6, left: 4, right: 4,
+        background: '#fff', borderRadius: 16, zIndex: 50,
+        boxShadow: '0 16px 48px rgba(0,0,0,0.16), 0 2px 8px rgba(0,0,0,0.06)',
+        border: '1px solid #EBEBEB', overflow: 'hidden',
+      }}>
         <div style={{ height: 4, background: bg }} />
         <div style={{ padding: '14px 16px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
@@ -1072,40 +1073,6 @@ const Calendar = () => {
           )}
           {a.notes && <div style={{ marginTop: 8, padding: '8px 10px', background: '#FFFBEB', borderRadius: 8, border: '1px solid #FDE68A', fontSize: 11, color: '#92400E', lineHeight: '16px' }}>{a.notes}</div>}
         </div>
-      </>
-    )
-
-    if (isNarrow) {
-      return createPortal(
-        <div onClick={e => { e.stopPropagation(); if (Date.now() - selAOpenedAt.current > 400) setSelA(null) }} style={{
-          position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.3)', zIndex: 10001,
-          display: 'flex', alignItems: 'flex-end', justifyContent: 'center',
-        }}>
-          <div data-po="1" onClick={e => e.stopPropagation()} style={{
-            width: '100%', maxWidth: 480, maxHeight: '80vh', overflowY: 'auto',
-            background: '#fff', borderRadius: '20px 20px 0 0',
-            boxShadow: '0 -8px 40px rgba(0,0,0,0.15)',
-            animation: 'slideUpSheet 0.25s ease-out',
-          }}>
-            <div style={{ display: 'flex', justifyContent: 'center', padding: '10px 0 4px' }}>
-              <div style={{ width: 36, height: 4, borderRadius: 2, background: '#D1D5DB' }} />
-            </div>
-            {panelContent}
-          </div>
-          <style>{`@keyframes slideUpSheet { from { transform: translateY(100%); } to { transform: translateY(0); } }`}</style>
-        </div>,
-        document.body
-      )
-    }
-
-    return (
-      <div data-po="1" onClick={e => e.stopPropagation()} style={{
-        position: 'absolute', top: (a.start - SH) * HH + a.dur * HH + 6, left: 4, right: 4,
-        background: '#fff', borderRadius: 16, zIndex: 50,
-        boxShadow: '0 16px 48px rgba(0,0,0,0.16), 0 2px 8px rgba(0,0,0,0.06)',
-        border: '1px solid #EBEBEB', overflow: 'hidden',
-      }}>
-        {panelContent}
       </div>
     )
   }
@@ -1155,7 +1122,7 @@ const Calendar = () => {
             if (drag) return
             e.stopPropagation()
             if (isFullscreen || window.innerWidth < 1024) {
-              if (!sel) { selAOpenedAt.current = Date.now(); setSelA(a.id) }
+              if (!sel) setSelA(a.id)
             } else {
               setSelA(sel ? null : a.id)
             }
@@ -1239,7 +1206,7 @@ const Calendar = () => {
             )}
           </div>
         </div>
-        {sel && !isDragging && <Pop a={a} />}
+        {sel && !isDragging && !isFullscreen && window.innerWidth >= 1024 && <Pop a={a} />}
       </>
     )
   }
@@ -1752,6 +1719,55 @@ const Calendar = () => {
           </div>
         </>
       )}
+
+      {/* ── Tablet Bottom Sheet (booking detail) — stable, not inside Pop ── */}
+      {selA && (isFullscreen || window.innerWidth < 1024) && (() => {
+        const sb = bookings.find(b => b.id === selA)
+        if (!sb) return null
+        const sStaff = staffColumns.find(s => s.id === sb.staffId)
+        const sSt = STATUS_MAP[sb.status] || STATUS_MAP.confirmed
+        const sBg = gc(sb)
+        return (
+          <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.3)', zIndex: 10001, display: 'flex', alignItems: 'flex-end', justifyContent: 'center' }}
+            onClick={() => setSelA(null)}>
+            <div onClick={e => e.stopPropagation()} style={{ width: '100%', maxWidth: 480, maxHeight: '80vh', overflowY: 'auto', background: '#fff', borderRadius: '20px 20px 0 0', boxShadow: '0 -8px 40px rgba(0,0,0,0.15)' }}>
+              <div style={{ display: 'flex', justifyContent: 'center', padding: '10px 0 4px' }}><div style={{ width: 36, height: 4, borderRadius: 2, background: '#D1D5DB' }} /></div>
+              <div style={{ height: 4, background: sBg }} />
+              <div style={{ padding: '14px 16px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
+                  <div style={{ width: 40, height: 40, borderRadius: '50%', background: sBg + '15', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, fontWeight: 700, color: sBg }}>{sb.customerName?.split(' ').map(w => w[0]).join('').slice(0, 2)}</div>
+                  <div style={{ flex: 1 }}><div style={{ fontSize: 15, fontWeight: 700, color: '#111' }}>{sb.customerName}</div><div style={{ fontSize: 11, color: '#999' }}>{typeof sb.service === 'object' ? sb.service?.name : sb.service}</div></div>
+                  <div style={{ padding: '4px 10px', borderRadius: 20, background: sSt.color + '12', fontSize: 10, fontWeight: 700, color: sSt.color }}>{sSt.label}</div>
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 12 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 12, color: '#888' }}><ClockIcon />{fmt(sb.start)} - {fmt(sb.start + sb.dur)}</div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 12, color: '#888' }}><UserIcon />{sStaff?.full || sStaff?.name}</div>
+                </div>
+                <div style={{ fontSize: 20, fontWeight: 800, color: '#111', marginBottom: 12 }}>£{sb.price || 0}</div>
+                {(sb.customerPhone || sb.customerEmail) && (
+                  <div style={{ display: 'flex', gap: 8, marginBottom: 10, flexWrap: 'wrap' }}>
+                    {sb.customerPhone && <a href={'tel:' + sb.customerPhone} style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 11, color: '#666', textDecoration: 'none', padding: '3px 8px', background: '#F5F5F5', borderRadius: 6 }}><PhoneIcon />{sb.customerPhone}</a>}
+                    {sb.customerEmail && <span style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 11, color: '#666', padding: '3px 8px', background: '#F5F5F5', borderRadius: 6 }}><MailIcon />{sb.customerEmail}</span>}
+                  </div>
+                )}
+                {selClient && (
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8, marginBottom: 12 }}>
+                    <div style={{ padding: '8px 10px', border: '1px solid #EBEBEB', borderRadius: 8 }}><div style={{ fontSize: 9, fontWeight: 600, color: '#999', textTransform: 'uppercase', letterSpacing: 0.5 }}>Visits</div><div style={{ fontSize: 18, fontWeight: 800, color: '#111' }}>{selClient.stats?.totalBookings || 0}</div></div>
+                    <div style={{ padding: '8px 10px', border: '1px solid #EBEBEB', borderRadius: 8 }}><div style={{ fontSize: 9, fontWeight: 600, color: '#999', textTransform: 'uppercase', letterSpacing: 0.5 }}>Lifetime</div><div style={{ fontSize: 18, fontWeight: 800, color: '#111' }}>{selClient.stats?.totalSpent || 0}</div></div>
+                    <div style={{ padding: '8px 10px', border: '1px solid #EBEBEB', borderRadius: 8 }}><div style={{ fontSize: 9, fontWeight: 600, color: '#999', textTransform: 'uppercase', letterSpacing: 0.5 }}>Stage</div><div style={{ fontSize: 14, fontWeight: 700, color: '#111' }}>{selClient.pipeline_stage || 'Active'}</div></div>
+                  </div>
+                )}
+                {selClient?.staff_notes && <div style={{ marginBottom: 8, padding: '8px 10px', background: '#F0FDF4', borderRadius: 8, border: '1px solid #BBF7D0', fontSize: 11, color: '#166534', lineHeight: '16px' }}><strong>Staff notes:</strong> {selClient.staff_notes}</div>}
+                {selClient?.preferences && <div style={{ marginBottom: 8, padding: '8px 10px', background: '#FEF2F2', borderRadius: 8, border: '1px solid #FECACA', fontSize: 11, color: '#991B1B', lineHeight: '16px' }}><strong>Preference:</strong> {selClient.preferences}</div>}
+                <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
+                  <button onClick={() => { setEditingId(sb.id); setSelA(null) }} style={{ flex: 1, padding: '10px', borderRadius: 10, border: '1px solid #EBEBEB', background: '#fff', cursor: 'pointer', fontSize: 12, fontWeight: 600, fontFamily: 'inherit' }}>Edit</button>
+                  <button onClick={() => { setCiPanel({ mode: sb.status === 'checked_in' ? 'checkout' : 'checkin', id: sb.id }); setSelA(null) }} style={{ flex: 1, padding: '10px', borderRadius: 10, border: 'none', background: sb.status === 'checked_in' ? '#111' : '#22C55E', color: '#fff', cursor: 'pointer', fontSize: 12, fontWeight: 700, fontFamily: 'inherit' }}>{sb.status === 'checked_in' ? 'Complete' : 'Check In'}</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )
+      })()}
 
       {/* ── Check-In / Check-Out Side Panel ── */}
       {ciPanel && (() => {
