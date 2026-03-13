@@ -6,6 +6,7 @@
 
 import { useState, useRef, useEffect, useMemo, useCallback } from 'react'
 import { useSearchParams } from 'react-router-dom'
+import { createPortal } from 'react-dom'
 import { useBusiness } from '../../contexts/BusinessContext'
 import api from '../../utils/api'
 import RestaurantCalendar from './RestaurantCalendar'
@@ -816,13 +817,10 @@ const Calendar = () => {
       }
     }
 
-    return (
-      <div data-po="1" onClick={e => e.stopPropagation()} style={{
-        position: 'absolute', top: (a.start - SH) * HH + a.dur * HH + 6, left: 4, right: 4,
-        background: '#fff', borderRadius: 16, zIndex: 50,
-        boxShadow: '0 16px 48px rgba(0,0,0,0.16), 0 2px 8px rgba(0,0,0,0.06)',
-        border: '1px solid #EBEBEB', overflow: 'hidden',
-      }}>
+    const isNarrow = typeof window !== 'undefined' && window.innerWidth < 1024
+
+    const panelContent = (
+      <>
         <div style={{ height: 4, background: bg }} />
         <div style={{ padding: '14px 16px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
@@ -1069,6 +1067,40 @@ const Calendar = () => {
           )}
           {a.notes && <div style={{ marginTop: 8, padding: '8px 10px', background: '#FFFBEB', borderRadius: 8, border: '1px solid #FDE68A', fontSize: 11, color: '#92400E', lineHeight: '16px' }}>{a.notes}</div>}
         </div>
+      </>
+    )
+
+    if (isNarrow) {
+      return createPortal(
+        <div onClick={e => { e.stopPropagation(); setSelA(null) }} style={{
+          position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.3)', zIndex: 9000,
+          display: 'flex', alignItems: 'flex-end', justifyContent: 'center',
+        }}>
+          <div data-po="1" onClick={e => e.stopPropagation()} style={{
+            width: '100%', maxWidth: 480, maxHeight: '80vh', overflowY: 'auto',
+            background: '#fff', borderRadius: '20px 20px 0 0',
+            boxShadow: '0 -8px 40px rgba(0,0,0,0.15)',
+            animation: 'slideUpSheet 0.25s ease-out',
+          }}>
+            <div style={{ display: 'flex', justifyContent: 'center', padding: '10px 0 4px' }}>
+              <div style={{ width: 36, height: 4, borderRadius: 2, background: '#D1D5DB' }} />
+            </div>
+            {panelContent}
+          </div>
+          <style>{`@keyframes slideUpSheet { from { transform: translateY(100%); } to { transform: translateY(0); } }`}</style>
+        </div>,
+        document.body
+      )
+    }
+
+    return (
+      <div data-po="1" onClick={e => e.stopPropagation()} style={{
+        position: 'absolute', top: (a.start - SH) * HH + a.dur * HH + 6, left: 4, right: 4,
+        background: '#fff', borderRadius: 16, zIndex: 50,
+        boxShadow: '0 16px 48px rgba(0,0,0,0.16), 0 2px 8px rgba(0,0,0,0.06)',
+        border: '1px solid #EBEBEB', overflow: 'hidden',
+      }}>
+        {panelContent}
       </div>
     )
   }
