@@ -7,7 +7,7 @@
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'Figtree',system-ui,-apple-system,sans-serif;background:#F5F5F5;padding:8px;overflow-x:hidden}
-.cw{border:1px solid #EBEBEB;border-radius:12px;overflow:hidden;background:#fff;position:relative}
+.cw{border:1px solid #EBEBEB;border-radius:12px;overflow:hidden;background:#fff;position:relative;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent}
 .cg{display:grid;gap:0;overflow-y:auto;max-height:calc(100vh - 140px);position:relative;-webkit-overflow-scrolling:touch}
 .tl{grid-column:1;padding:2px 4px 0 0;text-align:right;font-size:10px;font-weight:500;color:#999;border-right:1px solid #EBEBEB;background:#fff;z-index:2;position:sticky;left:0}
 .hl{border-top:1px solid #E5E5E5;border-left:1px solid #EBEBEB}
@@ -177,6 +177,8 @@ let holdFired=false;
 
 pressTimer=setTimeout(()=>{
 holdFired=true;
+document.body.style.overflow='hidden';
+document.body.style.touchAction='none';
 cd.style.transform='scale(1.04)';
 cd.style.opacity='0.7';
 cd.style.boxShadow='0 4px 16px rgba(0,0,0,0.15)';
@@ -213,6 +215,8 @@ else hiCell=null;
 
 const up=ev=>{
 clearTimeout(pressTimer);pressTimer=null;
+document.body.style.overflow='';
+document.body.style.touchAction='';
 cd.removeEventListener('pointermove',mv);
 cd.removeEventListener('pointerup',up);
 cd.removeEventListener('pointercancel',up);
