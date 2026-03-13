@@ -91,9 +91,51 @@ const api = {
     }
 
     if (!response.ok) {
-      const error = await response.json().catch(() => ({ detail: 'Request failed' }))
-      const msg = error.detail || 'Request failed'
-      throw new Error(`${response.status}: ${msg}`)
+      const error = await response.json().catch(() => ({ detail: '' }))
+      const serverMsg = error.detail || ''
+
+      // Map status codes to human-friendly messages
+      // Server message takes priority if it's specific (e.g. brute force lockout)
+      let friendlyMsg
+      switch (response.status) {
+        case 400:
+          friendlyMsg = serverMsg || 'Something was wrong with that request. Please check and try again.'
+          break
+        case 401:
+          friendlyMsg = serverMsg || 'Incorrect email or password.'
+          break
+        case 403:
+          friendlyMsg = 'You don\'t have permission to do that.'
+          break
+        case 404:
+          friendlyMsg = serverMsg || 'That page or item couldn\'t be found.'
+          break
+        case 409:
+          friendlyMsg = serverMsg || 'That already exists. Please try a different name.'
+          break
+        case 413:
+          friendlyMsg = 'That file is too large. Maximum size is 5MB.'
+          break
+        case 422:
+          friendlyMsg = serverMsg || 'Please check the form for errors and try again.'
+          break
+        case 429:
+          friendlyMsg = serverMsg || 'Too many attempts. Please wait a moment and try again.'
+          break
+        case 500:
+          friendlyMsg = 'Something went wrong on our end. Please try again.' +
+            (error.reference ? ` (Ref: ${error.reference})` : '')
+          break
+        case 502:
+        case 503:
+        case 504:
+          friendlyMsg = 'The server is temporarily unavailable. Please try again in a moment.'
+          break
+        default:
+          friendlyMsg = serverMsg || 'Something went wrong. Please try again.'
+      }
+
+      throw new Error(friendlyMsg)
     }
 
     const data = await response.json()
@@ -149,8 +191,11 @@ const api = {
       body: formData
     })
     if (!response.ok) {
-      const err = await response.json().catch(() => ({ detail: 'Upload failed' }))
-      throw new Error(err.detail || 'Upload failed')
+      const err = await response.json().catch(() => ({ detail: '' }))
+      const msg = response.status === 413
+        ? 'That file is too large. Maximum size is 5MB.'
+        : (err.detail || 'Upload failed. Please try again.')
+      throw new Error(msg)
     }
     return response.json()
   }
