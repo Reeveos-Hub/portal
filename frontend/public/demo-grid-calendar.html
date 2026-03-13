@@ -200,7 +200,7 @@ return;
 if(!dragActive){
 if(Math.abs(ev.clientX-sx)<5&&Math.abs(ev.clientY-sy)<5)return;
 dragActive=true;
-cd.style.opacity='0.3';cd.style.transform='';cd.style.boxShadow='';
+cd.style.opacity='0.3';cd.style.transform='';cd.style.boxShadow='';cd.style.pointerEvents='none';
 gh.style.display='block';
 gh.style.background=bk.stat==='completed'?'#D1D5DB':sr(bk.st);
 gh.innerHTML='<div class="cn">'+bk.cl+'</div><div class="cv">'+bk.sv+'</div>';
@@ -222,7 +222,7 @@ cd.removeEventListener('pointerup',up);
 cd.removeEventListener('pointercancel',up);
 if(hiCell)hiCell.classList.remove('drop-hi');
 gh.style.display='none';
-cd.style.opacity='1';cd.style.transform='';cd.style.boxShadow='';
+cd.style.opacity='1';cd.style.transform='';cd.style.boxShadow='';cd.style.pointerEvents='';
 
 if(dragActive&&hiCell&&hiCell.dataset.sh!=null){
 const nh=parseInt(hiCell.dataset.sh),nm=parseInt(hiCell.dataset.sm),nc=parseInt(hiCell.dataset.col);
