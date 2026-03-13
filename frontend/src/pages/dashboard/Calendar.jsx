@@ -817,7 +817,7 @@ const Calendar = () => {
       }
     }
 
-    const isNarrow = typeof window !== 'undefined' && window.innerWidth < 1024
+    const isNarrow = isFullscreen || (typeof window !== 'undefined' && window.innerWidth < 1024)
     const [sheetReady, setSheetReady] = useState(false)
     useEffect(() => {
       if (isNarrow) { const t = setTimeout(() => setSheetReady(true), 50); return () => clearTimeout(t) }
@@ -1077,7 +1077,7 @@ const Calendar = () => {
     if (isNarrow) {
       return createPortal(
         <div onClick={e => { e.stopPropagation(); if (sheetReady) setSelA(null) }} style={{
-          position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.3)', zIndex: 9000,
+          position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.3)', zIndex: 10001,
           display: 'flex', alignItems: 'flex-end', justifyContent: 'center',
           pointerEvents: sheetReady ? 'auto' : 'none',
         }}>
