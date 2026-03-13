@@ -779,6 +779,17 @@ const Calendar = () => {
             <div style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 12, color: '#888' }}><UserIcon />{staff?.full || staff?.name}</div>
             {a.roomName && <div style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 12, color: '#888', gridColumn: '1 / -1' }}>Room: <span style={{ fontWeight: 600, color: '#555' }}>{a.roomName}</span></div>}
           </div>
+          {/* ── Active treatment timer ── */}
+          {a.status === 'checked_in' && checkedInTimes[a.id] && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 10px', background: '#C9A84C08', borderRadius: 8, border: '1px solid #C9A84C20', marginBottom: 12 }}>
+              <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#C9A84C' }} />
+              <div style={{ flex: 1 }}>
+                <div style={{ fontSize: 10, fontWeight: 700, color: '#C9A84C', textTransform: 'uppercase', letterSpacing: 0.5 }}>Treatment In Progress</div>
+                <div style={{ fontSize: 9, color: '#888' }}>Booked: {fmt(a.start)} - {fmt(a.start + a.dur)}{a.roomName ? ` · ${a.roomName}` : ''}</div>
+              </div>
+              <div style={{ fontSize: 18, fontWeight: 800, color: '#C9A84C' }}><LiveTimer startedAt={checkedInTimes[a.id]} /></div>
+            </div>
+          )}
           <div style={{ fontSize: 20, fontWeight: 800, color: '#111111', marginBottom: 12 }}>£{a.price || 0}</div>
           {/* ── Client Details from CRM ── */}
           {(a.customerPhone || a.customerEmail) && (

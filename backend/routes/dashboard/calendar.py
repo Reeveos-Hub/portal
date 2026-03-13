@@ -160,6 +160,8 @@ async def get_calendar(
             "duration": svc_duration,
             "customerName": nb["customer"]["name"],
             "customerId": nb.get("customerId") or b.get("customerId", ""),
+            "customerPhone": nb["customer"].get("phone") or b.get("customerPhone", ""),
+            "customerEmail": nb["customer"].get("email") or b.get("customerEmail", ""),
             "service": service_name,
             "serviceColor": svc_color,
             "status": nb["status"],
@@ -168,6 +170,8 @@ async def get_calendar(
             "price": price,
             "notes": nb["notes"],
             "source": nb["source"],
+            "roomId": b.get("roomId", ""),
+            "roomName": b.get("roomName", ""),
         })
 
     bookings.sort(key=lambda x: x.get("time", ""))
