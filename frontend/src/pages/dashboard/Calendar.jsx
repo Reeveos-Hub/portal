@@ -126,7 +126,14 @@ const Calendar = () => {
   const [staffDrop, setStaffDrop] = useState(false)
   const [hovA, setHovA] = useState(null)
   const [hovSlot, setHovSlot] = useState(null)
-  const [selA, setSelA] = useState(null)
+  const [selA, _setSelA] = useState(null)
+  const selALock = useRef(false)
+  const setSelA = useCallback((v) => {
+    if (selALock.current) return
+    _setSelA(v)
+    selALock.current = true
+    setTimeout(() => { selALock.current = false }, 300)
+  }, [])
   const [showKPI, setShowKPI] = useState(false)
   const [fabOpen, setFabOpen] = useState(false)
   const [hoverCol, setHoverCol] = useState(null)
@@ -818,10 +825,6 @@ const Calendar = () => {
     }
 
     const isNarrow = isFullscreen || (typeof window !== 'undefined' && window.innerWidth < 1024)
-    const [sheetReady, setSheetReady] = useState(false)
-    useEffect(() => {
-      if (isNarrow) { const t = setTimeout(() => setSheetReady(true), 50); return () => clearTimeout(t) }
-    }, [])
 
     const panelContent = (
       <>
@@ -1076,10 +1079,9 @@ const Calendar = () => {
 
     if (isNarrow) {
       return createPortal(
-        <div onClick={e => { e.stopPropagation(); if (sheetReady) setSelA(null) }} style={{
+        <div onClick={e => { e.stopPropagation(); setSelA(null) }} style={{
           position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.3)', zIndex: 10001,
           display: 'flex', alignItems: 'flex-end', justifyContent: 'center',
-          pointerEvents: sheetReady ? 'auto' : 'none',
         }}>
           <div data-po="1" onClick={e => e.stopPropagation()} style={{
             width: '100%', maxWidth: 480, maxHeight: '80vh', overflowY: 'auto',
