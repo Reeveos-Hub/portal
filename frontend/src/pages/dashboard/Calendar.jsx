@@ -572,7 +572,7 @@ const Calendar = () => {
   })
 
   /* ── Auto-size layout: minimum card height + separator gaps between adjacent bookings ── */
-  const MIN_CARD = 72
+  const MIN_CARD = 52
   const layoutMap = useMemo(() => {
     const map = {}
     staffColumns.forEach(staff => {
