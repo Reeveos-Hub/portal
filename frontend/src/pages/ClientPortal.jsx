@@ -182,8 +182,8 @@ export default function ClientPortal(){
   const upcoming=myData?.upcoming_bookings||[]
 
   useEffect(()=>{if(!slug)return;apiFetch(`/client/${slug}/info`).then(d=>{setBiz(d.business||d);if(sessionStorage.getItem('client_token'))loadUser()}).catch(()=>{})},[slug])
-  useEffect(()=>{const params=new URLSearchParams(window.location.search);const rt=params.get('reset');if(rt){setResetToken(rt);setAuthMode('reset')}},[])
-  const loadUser=async()=>{try{const p=await apiFetch('/client/auth/me');const d=await apiFetch(`/client/${slug}/my-data`);setUser(p.user||p);setCs(d.consultation||null);setMyData(d);setView('home');try{const svc=await apiFetch(`/client/${slug}/services`);setServices(svc.services||[])}catch(e){}}catch(e){sessionStorage.removeItem('client_token')}}
+  useEffect(()=>{const params=new URLSearchParams(window.location.search);const rt=params.get('reset');if(rt){setResetToken(rt);setAuthMode('reset')};const vw=params.get('view');if(vw==='form'){setStep(0);setView('form')}},[])
+  const returnUrl=new URLSearchParams(window.location.search).get('returnUrl')||null  const loadUser=async()=>{try{const p=await apiFetch('/client/auth/me');const d=await apiFetch(`/client/${slug}/my-data`);setUser(p.user||p);setCs(d.consultation||null);setMyData(d);setView('home');try{const svc=await apiFetch(`/client/${slug}/services`);setServices(svc.services||[])}catch(e){}}catch(e){sessionStorage.removeItem('client_token')}}
   const doAuth=async()=>{setLoading(true);setErr('');try{const body=authMode==='login'?{email,password}:{name:signupName,email,phone:signupPhone,password,business_id:biz?.business_id||''};const d=await apiFetch(`/client/auth/${authMode==='login'?'login':'signup'}`,{method:'POST',body:JSON.stringify(body)});sessionStorage.setItem('client_token',d.token);await loadUser()}catch(e){setErr(e.message)}setLoading(false)}
   const doForgot=async()=>{setLoading(true);setErr('');try{await apiFetch('/client/auth/password-reset-request',{method:'POST',body:JSON.stringify({email,slug})});setResetStatus('sent')}catch(e){}setResetStatus('sent');setLoading(false)}
   const doReset=async()=>{if(newPw!==confirmPw){setErr("Passwords don't match");return}if(newPw.length<8){setErr("Password must be at least 8 characters");return}setLoading(true);setErr('');try{await apiFetch('/client/auth/password-reset-confirm',{method:'POST',body:JSON.stringify({token:resetToken,new_password:newPw})});setResetStatus('done')}catch(e){setErr(e.message)}setLoading(false)}
@@ -415,6 +415,7 @@ export default function ClientPortal(){
           <p style={{fontSize:13,color:$.txtM,marginBottom:20}}>Thank you, {fd.fullName}. Your consultation form has been received by {biz?.name}.</p>
           {(alerts.blocks.length>0||alerts.flags.length>0)&&<div style={{textAlign:'left',marginBottom:20}}><Alerts blocks={alerts.blocks} flags={alerts.flags}/></div>}
           <button onClick={()=>setView('home')} style={{width:'100%',padding:'10px 0',borderRadius:99,border:'none',background:$.acc,color:'#fff',fontSize:13,fontWeight:700,cursor:'pointer',fontFamily:$.f}}>Back to Home</button>
+          {returnUrl&&<button onClick={()=>{window.location.href=returnUrl}} style={{width:'100%',padding:'10px 0',borderRadius:99,border:'none',background:'#111',color:'#C9A84C',fontSize:13,fontWeight:700,cursor:'pointer',fontFamily:$.f,marginTop:8}}>Return to Booking</button>}
         </div>
       </div>
     </Shell>
