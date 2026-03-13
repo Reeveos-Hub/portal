@@ -11,7 +11,7 @@ const BookingFormRedirect = () => {
   const returnUrl = searchParams.get('returnUrl') || `${window.location.origin}/${businessSlug}`
 
   useEffect(() => {
-    window.location.href = `https://portal.rezvo.app/client/${businessSlug}?view=form&returnUrl=${encodeURIComponent(returnUrl)}`
+    window.location.href = `/client/${businessSlug}?view=form&returnUrl=${encodeURIComponent(returnUrl)}`
   }, [businessSlug, returnUrl])
 
   return (
