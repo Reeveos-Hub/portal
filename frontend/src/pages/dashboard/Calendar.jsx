@@ -162,6 +162,13 @@ const Calendar = () => {
   const [blockForm, setBlockForm] = useState({ staff_id: '', start_time: '', end_time: '', preset: 'custom', reason: '' })
   const [isFullscreen, setIsFullscreen] = useState(false)
 
+  /* ── Reschedule State (Calendar level so it persists across re-renders) ── */
+  const [showResched, setShowResched] = useState(false)
+  const [reschedSlots, setReschedSlots] = useState([])
+  const [reschedLoading, setReschedLoading] = useState(false)
+  const [reschedDate, setReschedDate] = useState(selectedDate)
+  const [reschedSaving, setReschedSaving] = useState(null)
+
   /* ── Check-In / Check-Out State ── */
   const [ciPanel, setCiPanel] = useState(null) // null | { mode:'checkin'|'checkout', id:string }
   const [ciChecks, setCiChecks] = useState([])
@@ -445,6 +452,12 @@ const Calendar = () => {
     return () => clearTimeout(t)
   }, [newCalBookingIds])
 
+  /* ── Reset reschedule when switching bookings ── */
+  useEffect(() => {
+    setShowResched(false); setReschedSlots([]); setReschedSaving(null)
+    setReschedDate(selectedDate)
+  }, [selA])
+
   /* ── Fetch packages + CRM client when booking selected ── */
   useEffect(() => {
     if (!selA || !bid) { setSelPackages([]); setSelClient(null); setSelAlerts([]); return }
@@ -697,11 +710,6 @@ const Calendar = () => {
     const staff = staffColumns.find(s => s.id === a.staffId)
     const st = STATUS_MAP[a.status] || STATUS_MAP.confirmed
     const bg = gc(a)
-    const [showResched, setShowResched] = useState(false)
-    const [reschedSlots, setReschedSlots] = useState([])
-    const [reschedLoading, setReschedLoading] = useState(false)
-    const [reschedDate, setReschedDate] = useState(() => (a.date || selectedDate))
-    const [reschedSaving, setReschedSaving] = useState(null)
 
     const fetchAvailability = (dateStr) => {
       if (!bid) return
