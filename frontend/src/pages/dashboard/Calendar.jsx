@@ -139,6 +139,7 @@ const Calendar = () => {
   const [statusFilter, setStatusFilter] = useState('all')
   const [staffFilter, setStaffFilter] = useState('all')
   const [calSearch, setCalSearch] = useState('')
+  const [tabletSearchOpen, setTabletSearchOpen] = useState(false)
   const [showStatusDD, setShowStatusDD] = useState(false)
   const [showStaffDD, setShowStaffDD] = useState(false)
   const scrollRef = useRef(null)
@@ -1261,6 +1262,77 @@ const Calendar = () => {
       `}</style>
 
       {/* ═══ TOP CONTROLS ═══ */}
+      {(isFullscreen || (typeof window !== 'undefined' && window.innerWidth < 1024)) ? (
+        <div style={{ background: '#fff', borderBottom: '1px solid #EBEBEB', flexShrink: 0, zIndex: 35 }}>
+          {/* Row 1: Date nav + Today + Day/Wk/Mo */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '6px 10px', borderBottom: '1px solid #F5F5F5' }}>
+            <button onClick={goPrev} style={{ width: 28, height: 28, borderRadius: '50%', border: 'none', background: '#F5F5F5', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#111', fontFamily: 'inherit' }}><ChevL /></button>
+            <span style={{ fontSize: 12, fontWeight: 700, color: '#111', padding: '0 4px', whiteSpace: 'nowrap' }}>{dateLabel}</span>
+            <button onClick={goNext} style={{ width: 28, height: 28, borderRadius: '50%', border: 'none', background: '#F5F5F5', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#111', fontFamily: 'inherit' }}><ChevR /></button>
+            <button onClick={goToday} style={{ padding: '5px 12px', borderRadius: 16, border: 'none', background: isToday ? '#111' : '#F5F5F5', color: isToday ? '#fff' : '#111', fontSize: 11, fontWeight: 700, cursor: 'pointer', fontFamily: "'Figtree', sans-serif" }}>Today</button>
+            <div style={{ flex: 1 }} />
+            <div style={{ display: 'flex', background: '#F5F5F5', borderRadius: 14, padding: 2 }}>
+              {['Day', 'Week', 'Month'].map(v => (
+                <button key={v} onClick={() => setViewMode(v)} style={{ padding: '4px 10px', borderRadius: 12, border: 'none', cursor: 'pointer', fontSize: 10, fontWeight: viewMode === v ? 700 : 500, background: viewMode === v ? '#fff' : 'transparent', color: viewMode === v ? '#111' : '#999', fontFamily: "'Figtree', sans-serif" }}>{v === 'Month' ? 'Mo' : v === 'Week' ? 'Wk' : v}</button>
+              ))}
+            </div>
+          </div>
+          {/* Row 2: Filters + Search + Block + Tablet */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '5px 10px' }}>
+            {tabletSearchOpen ? (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6, flex: 1, background: '#F5F5F5', borderRadius: 16, padding: '0 10px', height: 32 }}>
+                <SearchIcon />
+                <input autoFocus value={calSearch} onChange={e => setCalSearch(e.target.value)} onBlur={() => { if (!calSearch) setTabletSearchOpen(false) }} placeholder="Search clients, services..." style={{ border: 'none', background: 'transparent', outline: 'none', fontSize: 11, color: '#111', width: '100%', fontWeight: 500, fontFamily: "'Figtree', sans-serif" }} />
+                <button onClick={() => { setCalSearch(''); setTabletSearchOpen(false) }} style={{ border: 'none', background: 'none', cursor: 'pointer', color: '#999', fontSize: 14, padding: 0, lineHeight: 1 }}>×</button>
+              </div>
+            ) : (
+              <>
+                <div data-filter-dd style={{ position: 'relative' }}>
+                  <button onClick={() => { setShowStatusDD(!showStatusDD); setShowStaffDD(false) }} style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '5px 10px', borderRadius: 16, border: 'none', background: statusFilter !== 'all' ? '#11111112' : '#F5F5F5', fontSize: 10, fontWeight: 600, color: statusFilter !== 'all' ? '#111' : '#777', cursor: 'pointer', fontFamily: "'Figtree', sans-serif" }}>
+                    <FilterIcon /> {statusFilter === 'all' ? 'Status' : statusFilter} <ChevD />
+                  </button>
+                  {showStatusDD && (
+                    <div style={{ position: 'absolute', top: '100%', left: 0, marginTop: 4, background: '#fff', border: '1px solid #E8E4DD', borderRadius: 10, boxShadow: '0 8px 24px rgba(0,0,0,0.1)', zIndex: 100, minWidth: 140, padding: '4px 0' }}>
+                      {['all', 'confirmed', 'pending', 'completed', 'no_show', 'cancelled'].map(s => (
+                        <button key={s} onClick={() => { setStatusFilter(s); setShowStatusDD(false) }} style={{ display: 'block', width: '100%', textAlign: 'left', padding: '8px 14px', border: 'none', background: statusFilter === s ? '#11111112' : 'transparent', fontSize: 12, fontWeight: statusFilter === s ? 600 : 400, color: statusFilter === s ? '#111' : '#555', cursor: 'pointer', fontFamily: "'Figtree', sans-serif" }}>
+                          {s === 'all' ? 'All status' : s === 'no_show' ? 'No-show' : s.charAt(0).toUpperCase() + s.slice(1)}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+                <div data-filter-dd style={{ position: 'relative' }}>
+                  <button onClick={() => { setShowStaffDD(!showStaffDD); setShowStatusDD(false) }} style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '5px 10px', borderRadius: 16, border: 'none', background: staffFilter !== 'all' ? '#11111112' : '#F5F5F5', fontSize: 10, fontWeight: 600, color: staffFilter !== 'all' ? '#111' : '#777', cursor: 'pointer', fontFamily: "'Figtree', sans-serif" }}>
+                    <UsersIcon /> {staffFilter === 'all' ? 'Staff' : staffColumns.find(s => s.id === staffFilter)?.name || 'Staff'} <ChevD />
+                  </button>
+                  {showStaffDD && (
+                    <div style={{ position: 'absolute', top: '100%', left: 0, marginTop: 4, background: '#fff', border: '1px solid #E8E4DD', borderRadius: 10, boxShadow: '0 8px 24px rgba(0,0,0,0.1)', zIndex: 100, minWidth: 160, padding: '4px 0' }}>
+                      <button onClick={() => { setStaffFilter('all'); setShowStaffDD(false) }} style={{ display: 'block', width: '100%', textAlign: 'left', padding: '8px 14px', border: 'none', background: staffFilter === 'all' ? '#11111112' : 'transparent', fontSize: 12, fontWeight: staffFilter === 'all' ? 600 : 400, color: staffFilter === 'all' ? '#111' : '#555', cursor: 'pointer', fontFamily: "'Figtree', sans-serif" }}>All staff</button>
+                      {staffColumns.map(s => (
+                        <button key={s.id} onClick={() => { setStaffFilter(s.id); setShowStaffDD(false) }} style={{ display: 'block', width: '100%', textAlign: 'left', padding: '8px 14px', border: 'none', background: staffFilter === s.id ? '#11111112' : 'transparent', fontSize: 12, fontWeight: staffFilter === s.id ? 600 : 400, color: staffFilter === s.id ? '#111' : '#555', cursor: 'pointer', fontFamily: "'Figtree', sans-serif" }}>{s.name}</button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+                <button onClick={() => setCm(cm === 'service' ? 'staff' : cm === 'staff' ? 'status' : 'service')} style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '5px 10px', borderRadius: 16, border: 'none', background: '#F5F5F5', fontSize: 10, fontWeight: 600, color: '#777', cursor: 'pointer', fontFamily: "'Figtree', sans-serif" }}>
+                  <TagIcon /> {cm === 'service' ? 'Service' : cm === 'staff' ? 'Staff' : 'Status'}
+                </button>
+                <div style={{ flex: 1 }} />
+                <button onClick={() => setTabletSearchOpen(true)} style={{ width: 30, height: 30, borderRadius: '50%', border: 'none', background: calSearch ? '#11111112' : '#F5F5F5', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <SearchIcon />
+                </button>
+                <button onClick={() => setShowBlockTime(true)} style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '5px 10px', borderRadius: 16, border: 'none', background: '#F5F5F5', fontSize: 10, fontWeight: 600, color: '#777', cursor: 'pointer', fontFamily: "'Figtree', sans-serif" }}>
+                  <svg width={11} height={11} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="9" y1="3" x2="9" y2="21"/></svg> Block
+                </button>
+                <button onClick={() => setIsFullscreen(!isFullscreen)} style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '5px 10px', borderRadius: 16, border: 'none', background: isFullscreen ? '#111' : '#F5F5F5', fontSize: 10, fontWeight: 700, color: isFullscreen ? '#fff' : '#777', cursor: 'pointer', fontFamily: "'Figtree', sans-serif" }}>
+                  <svg width={11} height={11} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="5" y="2" width="14" height="20" rx="2" /><line x1="12" y1="18" x2="12" y2="18" strokeWidth="3" strokeLinecap="round" /></svg>
+                  {isFullscreen ? 'Exit' : 'Tablet'}
+                </button>
+              </>
+            )}
+          </div>
+        </div>
+      ) : (
       <div style={{
         display: 'flex', alignItems: 'center', padding: '10px 16px', gap: 8,
         background: '#fff', borderBottom: '1px solid #EBEBEB', flexShrink: 0, zIndex: 35, flexWrap: 'wrap',
@@ -1323,6 +1395,7 @@ const Calendar = () => {
           <BarChartIcon /> Insights {showKPI ? <ChevU /> : <ChevD />}
         </button>
       </div>
+      )}
 
       {/* ═══ KPI STRIP ═══ */}
       <div style={{ maxHeight: showKPI ? 100 : 0, overflow: 'hidden', transition: 'max-height 0.3s cubic-bezier(0.22,1,0.36,1)', background: '#fff', borderBottom: showKPI ? '1px solid #EBEBEB' : 'none' }}>
