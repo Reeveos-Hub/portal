@@ -1160,7 +1160,7 @@ const Calendar = () => {
       ) : (
         <div style={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
           <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-            <div style={{ display: 'flex', height: 60, borderBottom: '1px solid #EBEBEB', background: '#fff', flexShrink: 0, zIndex: 10 }}>
+            <div style={{ display: 'flex', height: 60, borderBottom: '1px solid #EBEBEB', background: '#fff', flexShrink: 0, zIndex: profileOpen ? 50 : 10 }}>
               <div style={{ width: TCW, flexShrink: 0 }} />
               {staffColumns.map(s => (
                 <div key={s.id} style={{

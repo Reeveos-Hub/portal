@@ -10,7 +10,7 @@ export const getNavItems = (businessType) => {
     main: [
       { id: 'home', label: 'Home Dashboard', icon: 'fa-house', path: '/dashboard', minTier: 'free' },
       { id: 'calendar', label: isRestaurant ? 'Reservations Planner' : 'Calendar', icon: 'fa-calendar-days', path: '/dashboard/calendar', minTier: 'free' },
-      { id: 'notifications', label: 'Notifications', icon: 'fa-bell', path: '/dashboard/notifications', minTier: 'free', badge: 3 },
+      { id: 'notifications', label: 'Notifications', icon: 'fa-bell', path: '/dashboard/notifications', minTier: 'free' },
       { id: 'bookings', label: 'Bookings', icon: 'fa-clipboard-list', path: '/dashboard/bookings', minTier: 'free' },
       { id: 'booking-link', label: 'Booking Link', icon: 'fa-link', path: '/dashboard/booking-link', minTier: 'free' },
       { id: 'services', label: isRestaurant ? 'Menu' : 'Services', icon: isRestaurant ? 'fa-utensils' : 'fa-scissors', path: '/dashboard/services', minTier: 'free' },
