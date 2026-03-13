@@ -1166,12 +1166,13 @@ const Calendar = () => {
             }
           }}
           style={{
-            position: 'absolute', top: top + 1, left: 4, right: 4, height: cardH,
+            position: 'absolute', top: top + 1, left: 4, right: 4,
+            ...(isDragging ? { height: cardH } : { minHeight: cardH }),
             borderRadius: isActive ? 8 : 6,
             background: isActive ? 'linear-gradient(135deg, #111111, #222)' : done ? `${bg}60` : bg,
             opacity: isDragging ? 0.85 : done ? 0.7 : a.status === 'no_show' ? 0.55 : 1,
             cursor: isDragging ? 'grabbing' : 'grab',
-            overflow: 'hidden', color: isActive ? '#fff' : '#111',
+            color: isActive ? '#fff' : '#111',
             boxSizing: 'border-box',
             transition: isDragging ? 'none' : 'all 0.2s cubic-bezier(0.22,1,0.36,1)',
             transform: isDragging ? 'scale(1.03)' : hov && !sel ? 'scale(1.012) translateY(-1px)' : 'none',
