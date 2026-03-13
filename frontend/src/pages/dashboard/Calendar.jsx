@@ -1463,18 +1463,17 @@ const Calendar = () => {
                       </div>
                     ))}
                     {(() => {
-                      /* Overlap layout — shrink cards that overlap with next booking */
+                      /* Overlap layout — cap every card to available space before next booking */
                       const col = filteredBookings.filter(a => a.staffId === staff.id).sort((a, b) => a.start - b.start)
                       return col.map((a, i) => {
                         const next = col[i + 1]
                         const topPx = timeToPx(a.start)
                         const naturalH = a.dur * HH
-                        const usedH = Math.max(naturalH, 64)
                         if (next) {
-                          const nextTop = timeToPx(next.start)
-                          if (topPx + usedH > nextTop - 2) {
-                            const shrunkH = Math.max(nextTop - topPx - 2, 24)
-                            return <Bl key={a.id} a={{...a, _overrideH: shrunkH}} />
+                          const gap = timeToPx(next.start) - topPx
+                          const maxH = Math.max(gap - 2, 24)
+                          if (naturalH > maxH || 64 > maxH) {
+                            return <Bl key={a.id} a={{...a, _overrideH: maxH}} />
                           }
                         }
                         return <Bl key={a.id} a={a} />
