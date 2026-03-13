@@ -1060,6 +1060,7 @@ const Calendar = () => {
     const sel = selA === a.id
     const done = a.status === 'completed'
     const isActive = a.status === 'checked_in'
+    const hasOverride = !!a._overrideH
     // Card height = booking duration in pixels. No artificial minimum.
     // A 30-min booking is 34px. A 60-min is 70px. Cards CANNOT overflow their time slot.
     const cardH = Math.max(h - 2, 24)
