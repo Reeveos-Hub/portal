@@ -389,7 +389,6 @@ const Sidebar = ({ open, onNavigate: closeMobile }) => {
   const { business, businessType, tier } = useBusiness()
   const navItems = getNavItemsFn(businessType)
   const sections = buildSections(navItems, tier, businessType, business)
-  const allItems = sections.flatMap(s => s.items)
 
   const [panelOpen, setPanelOpen] = useState(true)
   const [panelShow, setPanelShow] = useState(true)
@@ -402,8 +401,39 @@ const Sidebar = ({ open, onNavigate: closeMobile }) => {
   const panelRef = useRef(null)
   const [panelH, setPanelH] = useState(800)
   const cascadeCounter = useRef(0)
+  const [notifCount, setNotifCount] = useState(0)
 
   const activePath = location.pathname + location.search
+
+  // Fetch real notification count
+  useEffect(() => {
+    const bid = business?.id ?? business?._id
+    if (!bid) return
+    const fetchCount = () => {
+      import('../../utils/api').then(({ default: api }) => {
+        api.get(`/notifications/business/${bid}?limit=1`).then(r => {
+          setNotifCount(r.unread_count || 0)
+        }).catch(() => {})
+      })
+    }
+    fetchCount()
+    const iv = setInterval(fetchCount, 60000)
+    return () => clearInterval(iv)
+  }, [business])
+
+  // Inject real notification count into nav
+  if (notifCount > 0) {
+    for (const section of sections) {
+      for (const item of section.items) {
+        if (item.children) {
+          const n = item.children.find(c => c?.id === 'notifications')
+          if (n) n.badge = notifCount
+        }
+      }
+    }
+  }
+
+  const allItems = sections.flatMap(s => s.items)
 
   useEffect(() => {
     if (panelRef.current) setPanelH(panelRef.current.offsetHeight)
