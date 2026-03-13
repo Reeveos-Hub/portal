@@ -8,7 +8,6 @@ import { useParams } from 'react-router-dom'
 import { getBookingPage, createBooking } from '../../utils/bookingApi'
 import AppLoader from '../../components/shared/AppLoader'
 import PickService from './steps/services/PickService'
-import EnhanceTreatment from './steps/services/EnhanceTreatment'
 import PickDateTime from './steps/services/PickDateTime'
 import YourDetails from './steps/services/YourDetails'
 import PickGuestsDate from './steps/restaurant/PickGuestsDate'
@@ -17,7 +16,6 @@ import YourDetailsRestaurant from './steps/restaurant/YourDetailsRestaurant'
 
 const SERVICES_STEPS = [
   { id: 'pick-service', component: PickService },
-  { id: 'enhance-treatment', component: EnhanceTreatment },
   { id: 'pick-datetime', component: PickDateTime },
   { id: 'your-details', component: YourDetails },
 ]
