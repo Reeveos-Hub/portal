@@ -51,6 +51,24 @@ const BookingFlow = () => {
       .finally(() => setLoading(false))
   }, [businessSlug])
 
+  // Restore booking state after returning from consultation form
+  useEffect(() => {
+    const saved = sessionStorage.getItem('booking_state')
+    if (saved && data) {
+      try {
+        const s = JSON.parse(saved)
+        sessionStorage.removeItem('booking_state')
+        setFlowData(prev => ({ ...prev, ...s.flowData }))
+        setStep(s.step || 0)
+      } catch (e) {}
+    }
+  }, [data])
+
+  // Save state before navigating away (called from YourDetails form link)
+  const saveState = () => {
+    sessionStorage.setItem('booking_state', JSON.stringify({ flowData, step }))
+  }
+
   const handleContinue = (next) => {
     const merged = { ...flowData, ...next }
     if (next.serviceId) {
@@ -124,6 +142,7 @@ const BookingFlow = () => {
           onContinue={handleContinue}
           onBack={handleBack}
           onCreate={handleCreate}
+          onSaveState={saveState}
         />
         <p className="text-center text-xs text-gray-400 pb-4 pt-2">Powered by <a href="https://reeveos.app" target="_blank" rel="noopener noreferrer" className="font-semibold text-[#111111] hover:underline">ReeveOS</a></p>
       </div>

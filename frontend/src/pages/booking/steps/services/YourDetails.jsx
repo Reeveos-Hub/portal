@@ -11,7 +11,7 @@ import StickyFooter from '../../components/StickyFooter'
 
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8000'
 
-const YourDetails = ({ data, onCreate, onBack }) => {
+const YourDetails = ({ data, onCreate, onBack, onSaveState }) => {
   const { business, service, staff, date, time, slug, services } = data
   const [name, setName] = useState('')
   const [phone, setPhone] = useState('')
@@ -32,6 +32,20 @@ const YourDetails = ({ data, onCreate, onBack }) => {
 
   const svc = service || services?.find((s) => s.id === data.serviceId)
 
+  // Restore form fields after returning from consultation form
+  useEffect(() => {
+    const saved = sessionStorage.getItem('booking_form_fields')
+    if (saved) {
+      try {
+        const f = JSON.parse(saved)
+        sessionStorage.removeItem('booking_form_fields')
+        if (f.name) setName(f.name)
+        if (f.phone) setPhone(f.phone)
+        if (f.email) setEmail(f.email)
+        if (f.notes) setNotes(f.notes)
+      } catch (e) {}
+    }
+  }, [])
   useEffect(() => {
     if (chatRef.current) chatRef.current.scrollTop = chatRef.current.scrollHeight
   }, [msgs])
@@ -276,6 +290,10 @@ const YourDetails = ({ data, onCreate, onBack }) => {
               <p className="text-amber-800 text-xs leading-relaxed mb-3">{formRequired.message}</p>
               <a
                 href={`${formRequired.url}?returnUrl=${encodeURIComponent(window.location.href)}`}
+                onClick={() => {
+                  onSaveState && onSaveState()
+                  sessionStorage.setItem('booking_form_fields', JSON.stringify({ name, phone, email, notes }))
+                }}
                 className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-bold text-white no-underline"
                 style={{ background: '#C9A84C' }}
               >
