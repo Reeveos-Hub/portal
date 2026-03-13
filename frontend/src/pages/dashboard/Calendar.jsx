@@ -161,6 +161,73 @@ const Calendar = () => {
   const [showBlockTime, setShowBlockTime] = useState(false)
   const [blockForm, setBlockForm] = useState({ staff_id: '', start_time: '', end_time: '', preset: 'custom', reason: '' })
 
+  /* ── Check-In / Check-Out State ── */
+  const [ciPanel, setCiPanel] = useState(null) // null | { mode:'checkin'|'checkout', id:string }
+  const [ciChecks, setCiChecks] = useState([])
+  const [ciNote, setCiNote] = useState('')
+  const [ciReaction, setCiReaction] = useState(2)
+  const [ciComfort, setCiComfort] = useState(4)
+  const [ciNotes, setCiNotes] = useState('')
+  const [ciAftercare, setCiAftercare] = useState(true)
+  const [ciInformed, setCiInformed] = useState(true)
+  const [ciPhoto, setCiPhoto] = useState(false)
+  const [ciSuccess, setCiSuccess] = useState(null)
+  const [checkedInTimes, setCheckedInTimes] = useState({})
+
+  const CI_CHECK_ITEMS = [
+    { id: 'medical', label: 'Any medical changes since last visit?' },
+    { id: 'pregnancy', label: 'Pregnancy check (if applicable)' },
+    { id: 'homecare', label: 'Using prescribed home care products?' },
+    { id: 'sun', label: 'Recent sun exposure or sunbed use?' },
+    { id: 'expectations', label: 'Client expectations discussed' },
+    { id: 'consent', label: 'Verbal consent confirmed' },
+  ]
+
+  const openCheckInPanel = (booking) => {
+    setCiChecks(CI_CHECK_ITEMS.map(c => ({ ...c, done: false })))
+    setCiNote(''); setCiSuccess(null)
+    setCiPanel({ mode: 'checkin', id: booking.id })
+    setSelA(null)
+  }
+
+  const openCheckOutPanel = (booking) => {
+    setCiReaction(2); setCiComfort(4); setCiNotes(''); setCiAftercare(true); setCiInformed(true); setCiPhoto(false); setCiSuccess(null)
+    setCiPanel({ mode: 'checkout', id: booking.id })
+    setSelA(null)
+  }
+
+  const confirmCheckIn = async () => {
+    if (!ciPanel) return
+    try {
+      await api.patch(`/bookings/business/${bid}/detail/${ciPanel.id}/status`, { status: 'checked_in' })
+      setCheckedInTimes(prev => ({ ...prev, [ciPanel.id]: Date.now() }))
+      setCiSuccess('checked_in')
+      fetchCalendarData(false)
+      setTimeout(() => { setCiPanel(null); setCiSuccess(null) }, 1200)
+    } catch (err) { console.error('Check-in failed:', err) }
+  }
+
+  const confirmCheckOut = async () => {
+    if (!ciPanel) return
+    try {
+      await api.patch(`/bookings/business/${bid}/detail/${ciPanel.id}/status`, { status: 'completed' })
+      // Save treatment notes to CRM
+      if (ciNotes.trim()) {
+        const bk = bookings.find(b => b.id === ciPanel.id)
+        const clientId = bk?.customerId || bk?.clientId
+        if (clientId) {
+          api.post(`/crm/business/${bid}/client/${clientId}/interaction`, {
+            type: 'treatment_note', summary: ciNotes,
+            outcome: `Reaction: ${ciReaction}/5, Comfort: ${ciComfort}/5`,
+          }).catch(e => console.error('Note save failed:', e))
+        }
+      }
+      setCiSuccess('completed')
+      fetchCalendarData(false)
+      setTimeout(() => { setCiPanel(null); setCiSuccess(null) }, 1800)
+    } catch (err) { console.error('Check-out failed:', err) }
+  }
+
   /* ── Profile Dropdown State ── */
   const [profileOpen, setProfileOpen] = useState(null)
   const [profilePreset, setProfilePreset] = useState(null)
@@ -826,12 +893,10 @@ const Calendar = () => {
               })
             }} style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5, padding: '10px 0', borderRadius: 10, border: '1px solid #EBEBEB', background: '#fff', fontSize: 12, fontWeight: 600, color: '#111111', cursor: 'pointer', fontFamily: "'Figtree', sans-serif" }}><RotateCcwIcon /> Reschedule</button>
             <button onClick={() => {
-              const newStatus = a.status === 'checked_in' ? 'completed' : 'checked_in'
-              api.patch(`/bookings/business/${bid}/detail/${a.id}/status`, { status: newStatus }).then(() => {
-                fetchCalendarData(false); setSelA(null)
-              }).catch(err => console.error('Status update failed:', err))
-            }} style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5, padding: '10px 0', borderRadius: 10, border: 'none', background: '#111111', fontSize: 12, fontWeight: 600, color: '#fff', cursor: 'pointer', boxShadow: '0 2px 8px rgba(17,17,17,0.2)', fontFamily: "'Figtree', sans-serif" }}>
-              <CheckIcon /> {a.status === 'checked_in' ? 'Complete' : 'Check In'}
+              if (a.status === 'checked_in') { openCheckOutPanel(a) }
+              else { openCheckInPanel(a) }
+            }} style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5, padding: '10px 0', borderRadius: 10, border: 'none', background: a.status === 'checked_in' ? '#111111' : '#059669', fontSize: 12, fontWeight: 700, color: a.status === 'checked_in' ? '#C9A84C' : '#fff', cursor: 'pointer', boxShadow: '0 2px 8px rgba(17,17,17,0.2)', fontFamily: "'Figtree', sans-serif" }}>
+              <CheckIcon /> {a.status === 'checked_in' ? 'Check Out' : a.status === 'completed' ? 'Done' : 'Check In'}
             </button>
             <button onClick={() => {
               setCancelConfirm(a.id)
@@ -928,6 +993,17 @@ const Calendar = () => {
     )
   }
 
+  /* ── Live Timer for active bookings ── */
+  const LiveTimer = ({ startedAt }) => {
+    const [el, setEl] = useState(0)
+    useEffect(() => {
+      const t = () => setEl(Math.floor((Date.now() - startedAt) / 1000))
+      t(); const iv = setInterval(t, 1000); return () => clearInterval(iv)
+    }, [startedAt])
+    const m = Math.floor(el / 60), s = el % 60
+    return <span style={{ fontVariantNumeric: 'tabular-nums' }}>{m}:{String(s).padStart(2, '0')}</span>
+  }
+
   /* ── Booking Block with drag ── */
   const Bl = ({ a }) => {
     const isDragging = drag?.id === a.id
@@ -938,6 +1014,7 @@ const Calendar = () => {
     const hov = hovA === a.id
     const sel = selA === a.id
     const done = a.status === 'completed'
+    const isActive = a.status === 'checked_in'
     const minCardH = 64
     const cardH = Math.max(h - 2, minCardH)
     const isShort = h < minCardH + 2
@@ -962,18 +1039,20 @@ const Calendar = () => {
           style={{
             position: 'absolute', top: top + 1, left: 4, right: 4, height: cardH,
             minHeight: minCardH,
-            borderRadius: 6, background: done ? `${bg}60` : bg,
+            borderRadius: isActive ? 8 : 6,
+            background: isActive ? 'linear-gradient(135deg, #111111, #222)' : done ? `${bg}60` : bg,
             opacity: isDragging ? 0.85 : done ? 0.7 : a.status === 'no_show' ? 0.55 : 1,
             cursor: isDragging ? 'grabbing' : 'grab',
-            overflow: 'hidden', color: '#111',
+            overflow: 'hidden', color: isActive ? '#fff' : '#111',
             transition: isDragging ? 'none' : 'all 0.2s cubic-bezier(0.22,1,0.36,1)',
             transform: isDragging ? 'scale(1.03)' : hov && !sel ? 'scale(1.012) translateY(-1px)' : 'none',
-            animation: isNewBooking ? 'calendarPulse 0.6s ease-out' : 'none',
-            boxShadow: isNewBooking ? `0 0 0 3px rgba(16,185,129,0.4), 0 8px 24px ${bg}25`
+            animation: isActive ? 'activePulse 2s ease-in-out infinite' : isNewBooking ? 'calendarPulse 0.6s ease-out' : 'none',
+            boxShadow: isActive ? '0 0 0 2px #C9A84C, 0 4px 16px rgba(201,168,76,0.3)'
+              : isNewBooking ? `0 0 0 3px rgba(16,185,129,0.4), 0 8px 24px ${bg}25`
               : isDragging ? `0 12px 36px ${bg}40, 0 0 0 2px #fff, 0 0 0 4px ${bg}`
               : sel ? `0 0 0 2.5px #fff, 0 0 0 4.5px ${bg}, 0 8px 24px ${bg}25`
               : hov ? `0 8px 24px ${bg}30` : `0 2px 6px ${bg}12`,
-            zIndex: isDragging ? 40 : sel ? 30 : hov ? 20 : isShort ? 5 : 2,
+            zIndex: isDragging ? 40 : sel ? 30 : isActive ? 25 : hov ? 20 : isShort ? 5 : 2,
             padding: tiny ? '4px 8px' : sm ? '5px 9px' : '7px 11px',
             display: 'flex', flexDirection: 'column',
           }}>
@@ -1003,11 +1082,15 @@ const Calendar = () => {
               <>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 2 }}>
                   <div style={{ fontSize: 9, opacity: 0.85, fontWeight: 700, letterSpacing: 0.3 }}>{fmt(isDragging ? pxToTime(drag.ghostTop) : a.start)} - {fmt((isDragging ? pxToTime(drag.ghostTop) : a.start) + (isDragging ? drag.ghostH / HH : a.dur))}</div>
-                  {(a.price || 0) > 0 && <div style={{ fontSize: 11, fontWeight: 700, background: 'rgba(0,0,0,0.1)', borderRadius: 6, padding: '2px 8px' }}>£{a.price}</div>}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                    {isActive && checkedInTimes[a.id] && <span style={{ fontSize: 10, fontWeight: 800, color: '#C9A84C', background: 'rgba(201,168,76,0.15)', padding: '1px 8px', borderRadius: 6 }}><LiveTimer startedAt={checkedInTimes[a.id]} /></span>}
+                    {(a.price || 0) > 0 && <div style={{ fontSize: 11, fontWeight: 700, background: isActive ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.1)', borderRadius: 6, padding: '2px 8px' }}>£{a.price}</div>}
+                  </div>
                 </div>
                 <div style={{ fontSize: 14, fontWeight: 700, lineHeight: 1.2, marginBottom: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{a.customerName}</div>
                 <div style={{ fontSize: 11, opacity: 0.85, fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{typeof a.service === 'object' ? a.service?.name : a.service}{a.roomName ? ` · ${a.roomName}` : ''}</div>
-                {a.isNewClient && <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, marginTop: 6, fontSize: 9, fontWeight: 800, letterSpacing: 1, background: 'linear-gradient(110deg, #111111 30%, #1a1a1a 50%, #111111 70%)', backgroundSize: '200% 100%', borderRadius: 20, padding: '4px 12px 4px 9px', textTransform: 'uppercase', width: 'fit-content', color: '#fff', animation: 'newPulse 2s ease-in-out infinite, shimmer 3s linear infinite', boxShadow: '0 2px 12px rgba(17,17,17,0.4)' }}><StarIcon /> New Client</span>}
+                {isActive && <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, marginTop: 6, fontSize: 8, fontWeight: 800, letterSpacing: 0.5, background: '#C9A84C', color: '#111', borderRadius: 20, padding: '4px 10px', textTransform: 'uppercase', width: 'fit-content' }}><span style={{ width: 5, height: 5, borderRadius: '50%', background: '#111' }} /> In Treatment</span>}
+                {a.isNewClient && !isActive && <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, marginTop: 6, fontSize: 9, fontWeight: 800, letterSpacing: 1, background: 'linear-gradient(110deg, #111111 30%, #1a1a1a 50%, #111111 70%)', backgroundSize: '200% 100%', borderRadius: 20, padding: '4px 12px 4px 9px', textTransform: 'uppercase', width: 'fit-content', color: '#fff', animation: 'newPulse 2s ease-in-out infinite, shimmer 3s linear infinite', boxShadow: '0 2px 12px rgba(17,17,17,0.4)' }}><StarIcon /> New Client</span>}
                 {a.status === 'completed' && <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, marginTop: 6, fontSize: 9, fontWeight: 800, letterSpacing: 1, background: '#22C55E', borderRadius: 20, padding: '4px 12px 4px 9px', textTransform: 'uppercase', width: 'fit-content', color: '#fff', boxShadow: '0 2px 8px rgba(34,197,94,0.3)' }}>✓ Completed</span>}
               </>
             )}
@@ -1059,6 +1142,8 @@ const Calendar = () => {
         @keyframes newPulse{0%,100%{box-shadow:0 0 0 0 rgba(17,17,17,0.6)}50%{box-shadow:0 0 0 8px rgba(17,17,17,0)}}
         @keyframes shimmer{0%{background-position:-200% center}100%{background-position:200% center}}
         @keyframes toastIn{from{transform:translateY(20px);opacity:0}to{transform:translateY(0);opacity:1}}
+        @keyframes activePulse{0%,100%{box-shadow:0 0 0 0 rgba(201,168,76,0.4),inset 0 0 0 2px #C9A84C}50%{box-shadow:0 0 0 6px rgba(201,168,76,0),inset 0 0 0 2px #C9A84C}}
+        @keyframes fadeSlide{from{opacity:0;transform:translateX(12px)}to{opacity:1;transform:translateX(0)}}
       `}</style>
 
       {/* ═══ TOP CONTROLS ═══ */}
@@ -1535,6 +1620,158 @@ const Calendar = () => {
           </div>
         </>
       )}
+
+      {/* ── Check-In / Check-Out Side Panel ── */}
+      {ciPanel && (() => {
+        const ciBk = bookings.find(b => b.id === ciPanel.id)
+        if (!ciBk) return null
+        const ciStaff = staffColumns.find(s => s.id === ciBk.staffId)
+        const ciStaffName = ciStaff?.name || 'Staff'
+        const ciSvcName = typeof ciBk.service === 'object' ? ciBk.service?.name : ciBk.service
+        const ciAllChecked = ciChecks.every(c => c.done)
+
+        return (
+          <>
+            <div onClick={() => setCiPanel(null)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.15)', zIndex: 200 }} />
+            <div style={{ position: 'fixed', top: 0, right: 0, bottom: 0, width: 400, maxWidth: '90vw', background: '#fff', zIndex: 201, display: 'flex', flexDirection: 'column', boxShadow: '-4px 0 30px rgba(0,0,0,0.12)', fontFamily: "'Figtree', system-ui, sans-serif", animation: 'fadeSlide 0.2s ease-out' }}>
+
+              {/* ═══ CHECK-IN ═══ */}
+              {ciPanel.mode === 'checkin' && (
+                <>
+                  <div style={{ background: 'linear-gradient(135deg, #059669, #047857)', padding: '18px 20px', color: '#fff', flexShrink: 0 }}>
+                    <button onClick={() => setCiPanel(null)} style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.7)', fontSize: 12, fontWeight: 600, cursor: 'pointer', padding: 0, marginBottom: 6, fontFamily: 'inherit' }}>← Close</button>
+                    <div style={{ fontSize: 11, fontWeight: 700, opacity: 0.8, letterSpacing: 1, textTransform: 'uppercase', marginBottom: 3 }}>Check-In</div>
+                    <div style={{ fontSize: 18, fontWeight: 800 }}>{ciBk.customerName}</div>
+                    <div style={{ fontSize: 12, opacity: 0.9, marginTop: 3 }}>{ciSvcName} · {ciBk.time ? fmt(ciBk.start) : '—'} · {ciStaffName}</div>
+                  </div>
+                  <div style={{ flex: 1, overflowY: 'auto', padding: '14px 20px' }}>
+                    {/* Auto alerts from CRM */}
+                    {selClient && (
+                      <div style={{ background: '#FFF8E1', borderRadius: 10, padding: '12px 14px', marginBottom: 12, border: '1px solid #FFE0B2' }}>
+                        <div style={{ fontSize: 10, fontWeight: 700, color: '#E65100', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 6 }}>Auto-Detected</div>
+                        {selClient.consultation_form_status && (
+                          <div style={{ fontSize: 12, fontWeight: 600, color: '#111', marginBottom: 4 }}>
+                            <span style={{ width: 7, height: 7, borderRadius: '50%', display: 'inline-block', marginRight: 5, background: selClient.consultation_form_status === 'valid' ? '#059669' : '#F59E0B' }} />
+                            Consultation: {selClient.consultation_form_status === 'valid' ? 'Clear' : 'Needs Attention'}
+                          </div>
+                        )}
+                        {selClient.health_score != null && <div style={{ fontSize: 12, fontWeight: 600, color: '#111', marginBottom: 4 }}>Health Score: {selClient.health_score}</div>}
+                      </div>
+                    )}
+
+                    {/* Personalisation notes */}
+                    {selClient?.client?.notes && (
+                      <div style={{ background: '#FFF9E6', borderRadius: 10, padding: '10px 12px', marginBottom: 12, border: '1px solid #F0E8D0' }}>
+                        <div style={{ fontSize: 10, fontWeight: 700, color: '#8B3A3A', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 3 }}>Remember</div>
+                        <p style={{ fontSize: 12, color: '#111', lineHeight: 1.5, margin: 0 }}>"{Array.isArray(selClient.client.notes) ? selClient.client.notes.join(' · ') : selClient.client.notes}"</p>
+                      </div>
+                    )}
+
+                    {/* Packages */}
+                    {selPackages.length > 0 && (
+                      <div style={{ background: '#FAFAF8', borderRadius: 10, padding: '10px 12px', marginBottom: 12, border: '1px solid #F0F0F0' }}>
+                        {selPackages.map(p => <div key={p.id} style={{ fontSize: 12, fontWeight: 600, color: '#C9A84C' }}>Package: Session {p.used_sessions + 1}/{p.total_sessions} — {p.name}</div>)}
+                      </div>
+                    )}
+
+                    {/* Checklist */}
+                    <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 8, color: '#111' }}>Pre-Treatment Checklist</div>
+                    {ciChecks.map(item => (
+                      <div key={item.id} onClick={() => setCiChecks(ciChecks.map(c => c.id === item.id ? { ...c, done: !c.done } : c))} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 11px', borderRadius: 8, border: '1px solid #EBEBEB', marginBottom: 4, cursor: 'pointer', background: item.done ? '#F0FDF4' : '#fff' }}>
+                        <div style={{ width: 20, height: 20, borderRadius: 6, border: item.done ? '2px solid #059669' : '2px solid #D5D5D0', background: item.done ? '#059669' : '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, transition: 'all 0.15s' }}>
+                          {item.done && <span style={{ color: '#fff', fontSize: 11, fontWeight: 800 }}>✓</span>}
+                        </div>
+                        <span style={{ fontSize: 12, color: '#111' }}>{item.label}</span>
+                      </div>
+                    ))}
+
+                    <textarea value={ciNote} onChange={e => setCiNote(e.target.value)} placeholder="Additional notes..." style={{ width: '100%', minHeight: 40, borderRadius: 8, border: '1px solid #EBEBEB', padding: 10, fontSize: 12, fontFamily: 'inherit', resize: 'vertical', outline: 'none', boxSizing: 'border-box', marginTop: 8, marginBottom: 12 }} />
+
+                    {ciSuccess === 'checked_in' ? (
+                      <div style={{ textAlign: 'center', padding: 16, background: '#F0FDF4', borderRadius: 10 }}>
+                        <div style={{ fontSize: 20, color: '#059669' }}>✓</div>
+                        <div style={{ fontSize: 14, fontWeight: 700, color: '#059669', marginTop: 2 }}>Checked In — Timer Started</div>
+                      </div>
+                    ) : (
+                      <button onClick={confirmCheckIn} disabled={!ciAllChecked} style={{ width: '100%', padding: '12px 0', borderRadius: 10, border: 'none', background: ciAllChecked ? '#059669' : '#E5E5E5', color: ciAllChecked ? '#fff' : '#aaa', fontSize: 14, fontWeight: 700, cursor: ciAllChecked ? 'pointer' : 'not-allowed', fontFamily: 'inherit' }}>
+                        {ciAllChecked ? 'Confirm Check-In' : `Complete checklist (${ciChecks.filter(c => c.done).length}/${ciChecks.length})`}
+                      </button>
+                    )}
+                  </div>
+                </>
+              )}
+
+              {/* ═══ CHECK-OUT ═══ */}
+              {ciPanel.mode === 'checkout' && (
+                <>
+                  <div style={{ background: 'linear-gradient(135deg, #111111, #222)', padding: '18px 20px', color: '#fff', flexShrink: 0 }}>
+                    <button onClick={() => setCiPanel(null)} style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.5)', fontSize: 12, fontWeight: 600, cursor: 'pointer', padding: 0, marginBottom: 6, fontFamily: 'inherit' }}>← Close</button>
+                    <div style={{ fontSize: 11, fontWeight: 700, color: '#C9A84C', letterSpacing: 1, textTransform: 'uppercase', marginBottom: 3 }}>Check-Out</div>
+                    <div style={{ fontSize: 18, fontWeight: 800 }}>{ciBk.customerName}</div>
+                    <div style={{ fontSize: 12, opacity: 0.7, marginTop: 3 }}>{ciSvcName} · {ciStaffName}{ciBk.roomName ? ` · ${ciBk.roomName}` : ''}</div>
+                    {checkedInTimes[ciBk.id] && (
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 8, padding: '5px 10px', background: 'rgba(201,168,76,0.15)', borderRadius: 8, width: 'fit-content' }}>
+                        <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#C9A84C' }} />
+                        <span style={{ fontSize: 12, fontWeight: 700, color: '#C9A84C' }}>Duration: <LiveTimer startedAt={checkedInTimes[ciBk.id]} /></span>
+                      </div>
+                    )}
+                  </div>
+                  <div style={{ flex: 1, overflowY: 'auto', padding: '14px 20px' }}>
+                    <label style={{ fontSize: 10, fontWeight: 700, color: '#999', letterSpacing: 0.5, textTransform: 'uppercase' }}>Treatment Notes</label>
+                    <textarea value={ciNotes} onChange={e => setCiNotes(e.target.value)} placeholder="What was done, areas treated, settings, products..." style={{ width: '100%', minHeight: 60, borderRadius: 8, border: '1px solid #EBEBEB', padding: 10, fontSize: 12, fontFamily: 'inherit', marginTop: 5, resize: 'vertical', outline: 'none', boxSizing: 'border-box', marginBottom: 12 }} />
+
+                    {[
+                      { key: 'reaction', label: 'Skin Reaction', lo: 'None', hi: 'Severe', c: '#DC2626', val: ciReaction, set: setCiReaction },
+                      { key: 'comfort', label: 'Client Comfort', lo: 'Poor', hi: 'Excellent', c: '#059669', val: ciComfort, set: setCiComfort },
+                    ].map(sc => (
+                      <div key={sc.key} style={{ marginBottom: 12 }}>
+                        <label style={{ fontSize: 10, fontWeight: 700, color: '#999', letterSpacing: 0.5, textTransform: 'uppercase' }}>{sc.label}</label>
+                        <div style={{ display: 'flex', gap: 5, marginTop: 5, alignItems: 'center' }}>
+                          <span style={{ fontSize: 9, color: '#bbb', width: 28 }}>{sc.lo}</span>
+                          {[1, 2, 3, 4, 5].map(n => (
+                            <button key={n} onClick={() => sc.set(n)} style={{ flex: 1, height: 36, borderRadius: 8, border: sc.val === n ? `2px solid ${sc.c}` : '1px solid #EBEBEB', background: sc.val === n ? `${sc.c}12` : '#fff', fontSize: 14, fontWeight: 700, cursor: 'pointer', color: sc.val === n ? sc.c : '#ddd', fontFamily: 'inherit' }}>{n}</button>
+                          ))}
+                          <span style={{ fontSize: 9, color: '#bbb', width: 38, textAlign: 'right' }}>{sc.hi}</span>
+                        </div>
+                      </div>
+                    ))}
+
+                    {[
+                      { label: 'Progress photo taken', val: ciPhoto, set: setCiPhoto },
+                      { label: 'Aftercare instructions given', val: ciAftercare, set: setCiAftercare },
+                      { label: 'Client informed of expectations', val: ciInformed, set: setCiInformed },
+                    ].map(t => (
+                      <div key={t.label} onClick={() => t.set(!t.val)} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 0', borderBottom: '1px solid #F5F5F3', cursor: 'pointer' }}>
+                        <div style={{ width: 36, height: 20, borderRadius: 10, background: t.val ? '#059669' : '#ddd', padding: 2, transition: '0.2s' }}>
+                          <div style={{ width: 16, height: 16, borderRadius: 8, background: '#fff', boxShadow: '0 1px 2px rgba(0,0,0,0.2)', transform: t.val ? 'translateX(16px)' : 'translateX(0)', transition: '0.2s' }} />
+                        </div>
+                        <span style={{ fontSize: 12, color: '#333' }}>{t.label}</span>
+                      </div>
+                    ))}
+
+                    <div style={{ marginTop: 12, background: '#F0FDF4', borderRadius: 8, padding: 10, border: '1px solid #BBF7D0' }}>
+                      <div style={{ fontSize: 9, fontWeight: 700, color: '#166534', marginBottom: 3, textTransform: 'uppercase', letterSpacing: 0.5 }}>On Complete — Auto Sends:</div>
+                      <div style={{ fontSize: 11, color: '#15803D', lineHeight: 1.8 }}>✓ Aftercare email · ✓ SMS · ✓ Portal notification · ✓ Google Review (2hrs) · ✓ Tip for {ciStaffName}</div>
+                    </div>
+
+                    <div style={{ marginTop: 12 }}>
+                      {ciSuccess === 'completed' ? (
+                        <div style={{ textAlign: 'center', padding: 16, background: '#F0FDF4', borderRadius: 10 }}>
+                          <div style={{ fontSize: 20, color: '#059669' }}>✓</div>
+                          <div style={{ fontSize: 14, fontWeight: 700, color: '#059669', marginTop: 2 }}>Complete — All Queued</div>
+                          <div style={{ fontSize: 11, color: '#888', marginTop: 2 }}>Aftercare, review, tip sent</div>
+                        </div>
+                      ) : (
+                        <button onClick={confirmCheckOut} style={{ width: '100%', padding: '12px 0', borderRadius: 10, border: 'none', background: '#111111', fontSize: 14, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', color: '#C9A84C' }}>Complete Appointment</button>
+                      )}
+                    </div>
+                  </div>
+                </>
+              )}
+            </div>
+          </>
+        )
+      })()}
 
       {/* ── Block Time Modal ── */}
       {showBlockTime && (
