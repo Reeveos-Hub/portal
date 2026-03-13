@@ -354,11 +354,13 @@ const Dashboard = () => {
     .filter(b => !searchFilter || (b.customerName || '').toLowerCase().includes(searchFilter.toLowerCase()))
     .map(b => ({
       id: b.id, time: b.time || '', name: b.customerName || 'Client',
+      clientId: b.clientId || b.client_id || b.customerId || b.customer_id || '',
       service: typeof b.service === 'object' ? b.service?.name : b.service,
       staffName: b.staffName || '', status: b.status,
       statusLabel: b.status === 'confirmed' ? 'Confirmed' : b.status === 'pending' ? 'Pending' : 'In Treatment',
       statusColor: b.status === 'confirmed' ? '#3B82F6' : b.status === 'pending' ? '#F59E0B' : '#22C55E',
       statusBg: b.status === 'confirmed' ? '#EFF6FF' : b.status === 'pending' ? '#FFFBEB' : '#F0FDF4',
+      statusText: b.status === 'confirmed' ? '#2563EB' : b.status === 'pending' ? '#92400E' : '#065F46',
       action: b.status === 'confirmed' ? 'Check In' : b.status === 'pending' ? 'Confirm' : 'View',
     }))
 
@@ -565,14 +567,32 @@ const Dashboard = () => {
             </div>
             <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 4 }}>
               {arrivals.map(a => (
-                <div key={a.id} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '7px 8px', borderRadius: 8, border: '1px solid #E5E7EB', fontSize: 12 }}>
-                  <div style={{ fontWeight: 700, minWidth: 38 }}>{a.time}</div>
-                  <div style={{ width: 26, height: 26, borderRadius: '50%', background: '#F3F4F6', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 9, fontWeight: 600, flexShrink: 0 }}>{getInit(a.name)}</div>
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{a.name}</div>
-                    <div style={{ fontSize: 10, color: '#9CA3AF', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{a.service || '—'}</div>
+                <div key={a.id} style={{ display: 'flex', alignItems: 'stretch', borderRadius: 8, border: '1px solid #E5E7EB', fontSize: 12, overflow: 'hidden', background: '#fff' }}>
+                  {/* Time zone — navigates to Calendar, hover uses status colour */}
+                  <div
+                    onClick={() => !editMode && navigate(`/dashboard/calendar?date=${new Date().toISOString().split('T')[0]}&booking=${a.id}`)}
+                    style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '10px 12px', cursor: editMode ? 'grab' : 'pointer', transition: 'all 0.2s', borderRight: '1px solid #E5E7EB', flexShrink: 0 }}
+                    onMouseEnter={e => { if (editMode) return; e.currentTarget.style.background = a.statusBg; e.currentTarget.style.borderRightColor = a.statusBg; e.currentTarget.querySelector('.uc-time').style.color = a.statusText; e.currentTarget.querySelector('.uc-cal').style.color = a.statusColor }}
+                    onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.borderRightColor = '#E5E7EB'; e.currentTarget.querySelector('.uc-time').style.color = '#111'; e.currentTarget.querySelector('.uc-cal').style.color = '#C4C8CF' }}
+                  >
+                    <span className="uc-time" style={{ fontWeight: 700, fontSize: 13, minWidth: 34, transition: 'color 0.2s' }}>{a.time}</span>
+                    <CalendarCheck className="uc-cal" style={{ width: 12, height: 12, color: '#C4C8CF', transition: 'color 0.2s', flexShrink: 0 }} />
                   </div>
-                  <span style={{ fontSize: 9, fontWeight: 600, padding: '2px 7px', borderRadius: 10, background: a.statusBg, color: a.statusColor }}>{a.statusLabel}</span>
+                  {/* Name zone — navigates to CRM profile, hover uses gold */}
+                  <div
+                    onClick={() => !editMode && navigate(a.clientId ? `/dashboard/crm?view=clients&client=${a.clientId}` : `/dashboard/crm?view=clients&search=${encodeURIComponent(a.name)}`)}
+                    style={{ flex: 1, display: 'flex', alignItems: 'center', gap: 8, padding: '8px 10px', cursor: editMode ? 'grab' : 'pointer', transition: 'all 0.2s', minWidth: 0 }}
+                    onMouseEnter={e => { if (editMode) return; e.currentTarget.style.background = '#F8F0DC'; e.currentTarget.querySelector('.uc-av').style.background = '#C9A84C'; e.currentTarget.querySelector('.uc-av').style.color = '#fff'; e.currentTarget.querySelector('.uc-nm').style.color = '#92700C' }}
+                    onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.querySelector('.uc-av').style.background = '#F3F4F6'; e.currentTarget.querySelector('.uc-av').style.color = '#6B7280'; e.currentTarget.querySelector('.uc-nm').style.color = '#111' }}
+                  >
+                    <div className="uc-av" style={{ width: 28, height: 28, borderRadius: '50%', background: '#F3F4F6', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 9, fontWeight: 600, flexShrink: 0, color: '#6B7280', transition: 'all 0.2s' }}>{getInit(a.name)}</div>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div className="uc-nm" style={{ fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontSize: 13, transition: 'color 0.2s' }}>{a.name}</div>
+                      <div style={{ fontSize: 10, color: '#9CA3AF', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{a.service || '—'}</div>
+                    </div>
+                  </div>
+                  {/* Status badge */}
+                  <span style={{ fontSize: 9, fontWeight: 600, padding: '3px 8px', borderRadius: 10, background: a.statusBg, color: a.statusColor, flexShrink: 0, alignSelf: 'center', marginRight: 10 }}>{a.statusLabel}</span>
                 </div>
               ))}
               {arrivals.length === 0 && <div style={{ color: '#9CA3AF', fontSize: 12, textAlign: 'center', paddingTop: 20 }}>No upcoming appointments</div>}
