@@ -164,8 +164,8 @@ const YourDetails = ({ data, onCreate, onBack }) => {
         )}
       </div>
 
-      {/* Two columns: Form + AI — side by side on desktop, stacked on mobile */}
-      <div className="flex flex-col sm:flex-row gap-4 pb-6">
+      {/* Form + AI — stacked (booking page uses 400px phone frame) */}
+      <div className="flex flex-col gap-4 pb-6">
         {/* Left: Form */}
         <div className="flex-1 min-w-0">
           <h2 className="text-sm font-semibold text-[#111111] mb-3">Your details</h2>
