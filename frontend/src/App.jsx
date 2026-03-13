@@ -109,7 +109,7 @@ import Onboarding from './pages/onboarding/Onboarding'
 
 /* Booking flow (public, no auth) */
 import BookingFlow from './pages/booking/BookingFlow'
-import BookingFormRedirect from './pages/booking/BookingFormRedirect'
+import BookingForm from './pages/booking/BookingForm'
 import BookingConfirmation from './pages/booking/BookingConfirmation'
 import BookingManage from './pages/booking/BookingManage'
 import ClientPortal from './pages/ClientPortal'
@@ -129,7 +129,7 @@ const App = () => {
       <Router>
         <ScrollToTop />
         <Routes>
-          <Route path="/:businessSlug/form" element={<ClientPortal />} />
+          <Route path="/:businessSlug/form" element={<BookingForm />} />
           <Route path="/:businessSlug" element={<BookingFlow />} />
           <Route path="/:businessSlug/confirm/:bookingId" element={<BookingConfirmation />} />
           <Route path="/:businessSlug/manage/:bookingId" element={<BookingManage />} />
