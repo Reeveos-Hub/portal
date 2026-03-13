@@ -11,7 +11,7 @@ import RestaurantCalendar from './RestaurantCalendar'
 import AppLoader from '../../components/shared/AppLoader'
 
 /* ───────────────────── Constants ───────────────────── */
-const SH = 8, EH = 20, HH = 80, TCW = 52
+const SH = 8, EH = 24, HH = 80, TCW = 52
 const SNAP_MINS = 15
 const SNAP_PX = HH * (SNAP_MINS / 60) // 20px per 15min
 

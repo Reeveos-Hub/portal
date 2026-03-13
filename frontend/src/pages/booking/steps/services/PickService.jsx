@@ -51,11 +51,12 @@ const PickService = ({ data, onContinue }) => {
             <button
               key={svc.id}
               onClick={() => setSelectedId(svc.id)}
-              className={`w-full text-left p-3 rounded-xl border transition-all ${
+              className={`w-full text-left p-3 rounded-xl border transition-all duration-300 ${
                 selected
-                  ? 'border-[#111111] bg-[#111111]/[0.03] ring-1 ring-[#111111]/20'
-                  : 'border-gray-200 bg-white hover:border-gray-300'
+                  ? 'border-[#C9A84C] bg-[#C9A84C]/[0.04]'
+                  : 'border-gray-200 bg-white hover:border-gray-300 shadow-sm'
               }`}
+              style={selected ? { boxShadow: '0 0 12px rgba(201,168,76,0.25), 0 0 4px rgba(201,168,76,0.15)' } : {}}
             >
               <div className="flex justify-between items-start gap-3">
                 <div className="flex-1 min-w-0">
@@ -72,8 +73,8 @@ const PickService = ({ data, onContinue }) => {
                     <span className="font-medium text-gray-700">{price}</span>
                   </div>
                 </div>
-                <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 mt-0.5 transition-all ${
-                  selected ? 'border-[#111111] bg-[#111111]' : 'border-gray-300'
+                <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 mt-0.5 transition-all duration-300 ${
+                  selected ? 'border-[#C9A84C] bg-[#C9A84C]' : 'border-gray-300'
                 }`}>
                   {selected && <Check className="w-3 h-3 text-white" strokeWidth={3} />}
                 </div>

@@ -5,9 +5,11 @@ Customer-facing flow: /book/:businessSlug
 
 import os
 import logging
+import httpx
 from fastapi import APIRouter, HTTPException, status, Query, Request
 from database import get_database
 from middleware.rate_limit import limiter
+from config import settings
 from pydantic import BaseModel, EmailStr
 from typing import List, Optional
 from datetime import datetime, date, time, timedelta
@@ -1184,3 +1186,84 @@ def _format_booking(bkg, business):
             "google": f"https://calendar.google.com/calendar/render?action=TEMPLATE&text=Booking at {name}&dates={dt.replace('-', '').replace(':', '')}00/{dt.replace('-', '').replace(':', '')}00&location={addr}",
         },
     }
+
+
+# ═══════════════ AI BOOKING ASSISTANT ═══════════════
+
+@router.post("/{business_slug}/ai-assist")
+@limiter.limit("5/minute")
+async def booking_ai_assist(request: Request, business_slug: str, payload: dict):
+    """AI assistant for the booking flow — proxies to Anthropic so the API key stays server-side."""
+    if not settings.anthropic_api_key:
+        raise HTTPException(503, "AI assistant not configured")
+
+    db = get_database()
+    business = await db.businesses.find_one({"slug": business_slug, "claimed": True})
+    if not business:
+        raise HTTPException(404, "Business not found")
+
+    user_message = (payload.get("message") or "").strip()
+    if not user_message:
+        raise HTTPException(400, "No message provided")
+
+    service_name = payload.get("serviceName", "a treatment")
+    service_dur = payload.get("serviceDuration", 60)
+    service_price = payload.get("servicePrice", 0)
+    time_slot = payload.get("time", "TBD")
+    room_name = payload.get("room", "TBD")
+    current_name = payload.get("currentName", "")
+    current_phone = payload.get("currentPhone", "")
+    current_email = payload.get("currentEmail", "")
+    biz_name = business.get("name", "the clinic")
+    biz_addr = _get_address_str(business)
+
+    system_prompt = f"""You are the ReeveOS booking assistant for {biz_name}, located at {biz_addr}.
+The client is booking: {service_name} ({service_dur} mins, £{service_price}) at {time_slot}, allocated to {room_name}.
+
+Your job — be proactive, warm, and concise. Never use emojis. Always:
+1. Extract name, phone, email from natural conversation. When someone provides details, extract ALL of them.
+2. If they say it's a gift, ask who it's for. Collect THEIR details for the booking but note the recipient.
+3. If they mention a holiday, suggest Dermaplaning (£75 — holiday glow). If wedding, suggest a treatment course.
+4. If they have concerns, reassure with specific treatment info.
+5. If anyone is coming with them, mention the duo treatment room option.
+6. Once all 3 fields are filled, tell them to hit Confirm Booking.
+
+Available add-ons: Dermaplaning (45min, £75), LED Light Therapy (20min, £35), Luxury Lymphatic Lift (60min, £85), Hyaluronic Acid Booster (15min, £45).
+
+If they provide contact details, respond with EXACTLY this JSON on its own line:
+{{"name":"...","phone":"...","email":"..."}}
+Only include fields they actually provided. Then continue your response on the next line.
+
+Current fields: name="{current_name}" phone="{current_phone}" email="{current_email}". Only extract what's new."""
+
+    try:
+        async with httpx.AsyncClient(timeout=30) as client:
+            resp = await client.post(
+                "https://api.anthropic.com/v1/messages",
+                headers={
+                    "x-api-key": settings.anthropic_api_key,
+                    "anthropic-version": "2023-06-01",
+                    "content-type": "application/json",
+                },
+                json={
+                    "model": "claude-haiku-4-5-20251001",
+                    "max_tokens": 500,
+                    "system": system_prompt,
+                    "messages": [{"role": "user", "content": user_message}],
+                },
+            )
+        if resp.status_code != 200:
+            logger.error(f"AI assist API error {resp.status_code}: {resp.text[:200]}")
+            raise HTTPException(502, "AI assistant temporarily unavailable")
+
+        data = resp.json()
+        text = " ".join(b.get("text", "") for b in data.get("content", []) if b.get("type") == "text")
+        return {"reply": text}
+
+    except httpx.TimeoutException:
+        raise HTTPException(504, "AI assistant timed out")
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"AI assist error: {e}")
+        raise HTTPException(502, "AI assistant temporarily unavailable")
