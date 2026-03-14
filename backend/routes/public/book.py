@@ -112,7 +112,8 @@ async def _find_best_table(db, business, date_str: str, time_str: str, party_siz
             continue
         b_start = _time_to_mins(b.get("time", "12:00"))
         b_dur = b.get("duration") or DEFAULT_TURN_TIME
-        b_end = b_start + b_dur
+        b_buffer = b.get("buffer_minutes", 0)
+        b_end = b_start + b_dur + b_buffer
         occupied.setdefault(tid, []).append((b_start, b_end))
 
     # Filter and rank candidate tables
@@ -171,7 +172,8 @@ async def _check_double_booking(db, biz_id: str, table_id: str, date_str: str, t
             continue
         b_start = _time_to_mins(b.get("time", "12:00"))
         b_dur = b.get("duration") or DEFAULT_TURN_TIME
-        b_end = b_start + b_dur
+        b_buffer = b.get("buffer_minutes", 0)
+        b_end = b_start + b_dur + b_buffer
         if _times_overlap(req_start, req_end, b_start, b_end):
             return b  # conflict found
     return None
@@ -254,6 +256,7 @@ async def get_booking_page(business_slug: str):
                 "name": s.get("name", ""),
                 "category": s.get("category", "General"),
                 "duration": s.get("duration_minutes", 60),
+                "buffer_minutes": s.get("buffer_minutes", 0),
                 "price": int((s.get("price", 0) or 0) * 100),
                 "description": s.get("description", ""),
                 "staffIds": [st.get("id") for st in business.get("staff", []) if st.get("id")],
@@ -430,7 +433,8 @@ async def get_availability(
             continue
         b_start = _time_to_mins(b.get("time", "12:00"))
         b_dur = b.get("duration") or turn_time
-        occupied.setdefault(tid, []).append((b_start, b_start + b_dur))
+        b_buffer = b.get("buffer_minutes", 0)
+        occupied.setdefault(tid, []).append((b_start, b_start + b_dur + b_buffer))
 
     # Filter tables that can fit the party
     fitting_tables = [t for t in tables if (t.get("seats") or t.get("capacity") or 4) >= partySize]
@@ -655,9 +659,13 @@ async def create_booking(request: Request, business_slug: str, payload: dict):
     svc = None
     if biz_type == "services":
         svc = next((s for s in business.get("menu", []) if s.get("id") == payload.get("serviceId")), None)
-        doc["service"] = {"id": payload.get("serviceId"), "name": svc.get("name") if svc else "", "duration": (svc or {}).get("duration_minutes", 60)}
-        doc["endTime"] = _add_minutes(booking_time, (svc or {}).get("duration_minutes", 60))
-        doc["duration"] = (svc or {}).get("duration_minutes", 60)
+        svc_buffer = (svc or {}).get("buffer_minutes", 0)
+        svc_dur = (svc or {}).get("duration_minutes", 60)
+        doc["service"] = {"id": payload.get("serviceId"), "name": svc.get("name") if svc else "", "duration": svc_dur, "buffer_minutes": svc_buffer}
+        doc["endTime"] = _add_minutes(booking_time, svc_dur)
+        doc["duration"] = svc_dur
+        doc["buffer_minutes"] = svc_buffer
+        doc["bufferEndTime"] = _add_minutes(booking_time, svc_dur + svc_buffer) if svc_buffer else doc["endTime"]
 
     # ── Room auto-allocation (services businesses only) ──
     # Same pattern as table auto-assignment for restaurants.
@@ -668,7 +676,7 @@ async def create_booking(request: Request, business_slug: str, payload: dict):
         try:
             from routes.dashboard.rooms import find_best_room
             svc_equipment = (svc or {}).get("required_equipment") or []
-            svc_duration = (svc or {}).get("duration_minutes", 60)
+            svc_duration = (svc or {}).get("duration_minutes", 60) + (svc or {}).get("buffer_minutes", 0)
             room_id, room_name = await find_best_room(
                 db, biz_id, payload.get("date", ""),
                 booking_time, svc_duration, svc_equipment

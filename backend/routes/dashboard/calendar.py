@@ -215,6 +215,15 @@ async def get_calendar(
         svc_id = nb.get("serviceId") or (nb["service"].get("id") if isinstance(nb["service"], dict) else "")
         svc_color = svc_color_map.get(svc_id) or svc_color_map.get(service_name.lower()) or "#6BA3C7"
 
+        # Buffer time from booking or service menu
+        bkg_buffer = b.get("buffer_minutes", 0)
+        if not bkg_buffer and isinstance(nb["service"], dict):
+            svc_id_lookup = nb["service"].get("id", "")
+            for ms in business.get("menu", []):
+                if ms.get("id") == svc_id_lookup:
+                    bkg_buffer = ms.get("buffer_minutes", 0)
+                    break
+
         bookings.append({
             "id": nb["id"],
             "date": b.get("date", date_param),
@@ -223,6 +232,8 @@ async def get_calendar(
             "time": nb["time"] or "09:00",
             "endTime": nb["endTime"],
             "duration": svc_duration,
+            "buffer_minutes": bkg_buffer,
+            "bufferEndTime": b.get("bufferEndTime") or nb["endTime"],
             "customerName": nb["customer"]["name"],
             "customerId": nb.get("customerId") or b.get("customerId", ""),
             "customerPhone": nb["customer"].get("phone") or b.get("customerPhone", ""),
@@ -451,17 +462,26 @@ async def staff_create_booking(
         raise HTTPException(400, "Customer name, date, and time are required")
 
     duration = 60
+    buffer_minutes = 0
     service_doc = None
     if service:
         duration = service.get("duration", 60)
+        # Look up buffer_minutes from the business menu (source of truth)
+        svc_id = service.get("id", "")
+        for menu_svc in business.get("menu", []):
+            if menu_svc.get("id") == svc_id:
+                buffer_minutes = menu_svc.get("buffer_minutes", 0)
+                break
         service_doc = {
             "id": service.get("id"),
             "name": service.get("name", "Treatment"),
             "duration": duration,
+            "buffer_minutes": buffer_minutes,
             "price": service.get("price", 0),
         }
 
     end_time = _mins_to_end(booking_time, duration)
+    buffer_end_time = _mins_to_end(booking_time, duration + buffer_minutes) if buffer_minutes else end_time
 
     # ── First appointment +15min buffer ──
     # New clients get extra consultation time on their first visit
@@ -499,6 +519,8 @@ async def staff_create_booking(
         "time": booking_time,
         "duration": duration,
         "endTime": end_time,
+        "buffer_minutes": buffer_minutes,
+        "bufferEndTime": buffer_end_time,
         "customer": {
             "name": customer_name,
             "phone": customer_phone,

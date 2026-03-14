@@ -90,12 +90,21 @@ const Services = () => {
   const ungrouped = filtered.filter(s => !displayCategories.includes(s.category))
   if (ungrouped.length > 0) grouped['Other'] = ungrouped
 
+  const _bufferToLabel = (mins) => {
+    if (!mins || mins === 0) return 'None'
+    return BUFFER_TIMES.find(b => parseInt(b) === mins) || `${mins} mins`
+  }
+  const _labelToBuffer = (label) => {
+    if (!label || label === 'None') return 0
+    return parseInt(label) || 0
+  }
+
   const selectService = (s) => {
     setSelected(s)
     setEditorTab('details')
     setEditing({
       name: s.name || '', category: s.category || '', description: s.description || '',
-      price: s.price || 0, duration: s.duration || '30 mins', buffer: 'None',
+      price: s.price || 0, duration: s.duration || '30 mins', buffer: _bufferToLabel(s.buffer_minutes),
       color: s.color || COLORS[0], active: s.active !== false,
     })
   }
@@ -151,13 +160,14 @@ const Services = () => {
   const handleSave = async () => {
     if (!bid || !selected) return
     setSaving(true)
+    const payload = { ...editing, buffer_minutes: _labelToBuffer(editing.buffer) }
+    delete payload.buffer
     try {
-      await api.put(`/services-v2/business/${bid}/${selected.id}`, editing)
-      setServices(prev => prev.map(s => s.id === selected.id ? { ...s, ...editing } : s))
+      await api.put(`/services-v2/business/${bid}/${selected.id}`, payload)
+      setServices(prev => prev.map(s => s.id === selected.id ? { ...s, ...editing, buffer_minutes: payload.buffer_minutes } : s))
     } catch (e) {
-      // Fallback to v1
-      try { await api.patch(`/services/business/${bid}/${selected.id}`, editing) } catch (e2) { console.error(e2) }
-      setServices(prev => prev.map(s => s.id === selected.id ? { ...s, ...editing } : s))
+      try { await api.patch(`/services/business/${bid}/${selected.id}`, payload) } catch (e2) { console.error(e2) }
+      setServices(prev => prev.map(s => s.id === selected.id ? { ...s, ...editing, buffer_minutes: payload.buffer_minutes } : s))
     }
     finally { setSaving(false) }
   }

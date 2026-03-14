@@ -86,6 +86,7 @@ async def get_services_grouped(business_id: str, tenant: TenantContext = Depends
             "name": s.get("name"),
             "description": s.get("description"),
             "duration": s.get("duration_minutes", 60),
+            "buffer_minutes": s.get("buffer_minutes", 0),
             "price": int((s.get("price", 0) or 0) * 100),
             "staffIds": s.get("staffIds", []),
             "staffNames": staff_names,
@@ -130,6 +131,9 @@ async def create_service(business_id: str, payload: dict = Body(...), tenant: Te
     duration = payload.get("duration", 60)
     if duration not in [15, 30, 45, 60, 90, 120, 150, 180, 240]:
         duration = max(15, min(480, ((duration + 7) // 15) * 15))
+    buffer_minutes = int(payload.get("buffer_minutes", 0) or 0)
+    if buffer_minutes not in [0, 5, 10, 15, 30]:
+        buffer_minutes = max(0, min(30, buffer_minutes))
     price_raw = float(payload.get("price", 0) or 0)
     price = max(0, int(round(price_raw * 100)))
 
@@ -147,6 +151,7 @@ async def create_service(business_id: str, payload: dict = Body(...), tenant: Te
         "category": cat_name,
         "description": (payload.get("description") or "")[:200],
         "duration_minutes": duration,
+        "buffer_minutes": buffer_minutes,
         "price": price / 100.0,
         "staffIds": payload.get("staffIds") or [],
         "online": payload.get("online", True),
@@ -186,6 +191,9 @@ async def update_service(business_id: str, service_id: str, payload: dict = Body
         s["description"] = (payload["description"] or "")[:200]
     if "duration" in payload:
         s["duration_minutes"] = max(15, min(480, int(payload["duration"])))
+    if "buffer_minutes" in payload:
+        bm = int(payload["buffer_minutes"] or 0)
+        s["buffer_minutes"] = bm if bm in [0, 5, 10, 15, 30] else max(0, min(30, bm))
     if "price" in payload:
         s["price"] = max(0, float(payload["price"]))
     if "staffIds" in payload:
