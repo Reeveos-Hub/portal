@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { useBusiness } from "../contexts/BusinessContext";
 import { useAuth } from "../contexts/AuthContext";
 import api from "../utils/api";
@@ -101,6 +102,7 @@ const SERVICES_QUESTIONS = [
 
 export default function SupportBot({ externalOpen, onExternalClose, hideBubble } = {}) {
   const { business, businessType } = useBusiness()
+  const navigate = useNavigate()
   const { user } = useAuth()
   const bid = business?.id ?? business?._id
   const isRestaurant = businessType === 'restaurant'
@@ -536,7 +538,7 @@ This is a local services business (salon/clinic/spa), NOT a restaurant. Use "app
           <div style={{ position:'fixed', bottom:154, right:20, zIndex:52, display:'flex', flexDirection:'column', gap:8, alignItems:'flex-end' }}>
             {[
               { label: isRestaurant ? 'New Booking' : 'New Appointment', icon: 'M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z', action: () => { setActivePanel('booking'); setFabOpen(false); } },
-              { label: isRestaurant ? 'Walk-in' : 'Walk-in Client', icon: 'M13 10V3L4 14h7v7l9-11h-7z', action: () => { setActivePanel('walkin'); setFabOpen(false); } },
+              { label: isRestaurant ? 'Walk-in' : 'New Client', icon: isRestaurant ? 'M13 10V3L4 14h7v7l9-11h-7z' : 'M16 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2M12 7a4 4 0 100-8 4 4 0 000 8M19 8v6M22 11h-6', action: () => { if (isRestaurant) { setActivePanel('walkin') } else { navigate('/dashboard/crm?action=add') } setFabOpen(false); } },
               { label: 'Chat Support', icon: 'M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z', action: () => { setIsOpen(true); setFabOpen(false); } },
             ].map((item, i) => (
               <button key={i} onClick={item.action} style={{
