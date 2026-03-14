@@ -1865,20 +1865,50 @@ const Calendar = () => {
                   if (staffFilter !== 'all' && b.staffId !== staffFilter) return false
                   return true
                 })
-                return dayBookings.map(b => {
-                  const [h, m] = (b.time || '09:00').split(':').map(Number)
-                  const start = h + m / 60
-                  const dur = (b.duration || 30) / 60
-                  const top = (start - SH) * WHH
-                  const height = Math.max(dur * WHH - 1, 16)
+                /* Overlap layout: side-by-side when bookings clash */
+                const sorted = [...dayBookings].sort((a, b) => {
+                  const [ah, am] = (a.time || '09:00').split(':').map(Number)
+                  const [bh, bm] = (b.time || '09:00').split(':').map(Number)
+                  return (ah + am / 60) - (bh + bm / 60)
+                })
+                const placed = []
+                sorted.forEach(bk => {
+                  const [bh, bm] = (bk.time || '09:00').split(':').map(Number)
+                  const start = bh + bm / 60
+                  const dur = (bk.duration || 30) / 60
+                  const end = start + dur
+                  let col = 0
+                  while (placed.some(p => p.col === col && p.start < end && p.end > start)) col++
+                  placed.push({ ...bk, start, dur, end, col })
+                })
+                const groups = []
+                placed.forEach(p => {
+                  let found = groups.find(g => g.some(m => m.start < p.end && m.end > p.start))
+                  if (found) found.push(p)
+                  else groups.push([p])
+                })
+                const laid = []
+                groups.forEach(g => {
+                  const maxCol = Math.max(...g.map(m => m.col)) + 1
+                  g.forEach(m => laid.push({ ...m, totalCols: maxCol }))
+                })
+                return laid.map(b => {
+                  const top = (b.start - SH) * WHH
+                  const height = Math.max(b.dur * WHH - 2, 18)
                   const sc = staffColorMap[b.staffId] || '#6BA3C7'
+                  const colW = 1 / b.totalCols
+                  const leftFrac = (di + b.col * colW) / 7
+                  const widthFrac = colW / 7
+                  const endH = Math.floor(b.end), endM = Math.round((b.end - endH) * 60)
+                  const timeStr = `${fmtAP(Math.floor(b.start))} - ${fmtAP(endH)}`
                   return (
                     <div key={b.id} onClick={() => { setSelectedDate(dk); setViewMode('Day') }}
-                      style={{ position: 'absolute', top, height, left: `calc(36px + (100% - 36px) * ${di / 7} + 2px)`, width: `calc((100% - 36px) / 7 - 4px)`, background: `${sc}18`, borderLeft: `3px solid ${sc}`, borderRadius: 4, padding: '2px 4px', cursor: 'pointer', overflow: 'hidden', zIndex: 5 }}>
-                      <p style={{ fontSize: 9, fontWeight: 700, color: sc, margin: 0, lineHeight: 1.1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      style={{ position: 'absolute', top, height, left: `calc(36px + (100% - 36px) * ${leftFrac} + 1px)`, width: `calc((100% - 36px) * ${widthFrac} - 2px)`, background: sc, borderRadius: 5, padding: '3px 5px', cursor: 'pointer', overflow: 'hidden', zIndex: 5, boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
+                      <p style={{ fontSize: 8, fontWeight: 500, color: '#111', margin: 0, lineHeight: 1.2 }}>{timeStr}</p>
+                      <p style={{ fontSize: 10, fontWeight: 700, color: '#111', margin: '1px 0 0', lineHeight: 1.2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                         {(b.customerName || '').split(' ')[0]}
                       </p>
-                      {height >= 28 && <p style={{ fontSize: 8, fontWeight: 600, color: `${sc}99`, margin: 0, lineHeight: 1.1 }}>{fmtAP(h)}</p>}
+                      {height >= 40 && <p style={{ fontSize: 9, fontWeight: 500, color: '#222', margin: '1px 0 0', lineHeight: 1.1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{b.service}</p>}
                     </div>
                   )
                 })
