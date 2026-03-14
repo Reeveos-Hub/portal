@@ -32,6 +32,7 @@ const STAGE_COLORS = {
 }
 
 const HEALTH_COLORS = { excellent: '#10B981', good: '#34D399', fair: '#F59E0B', poor: '#EF4444', critical: '#991B1B' }
+const RETENTION_LABELS = { excellent: 'Loyal', good: 'Active', fair: 'Cooling', poor: 'At Risk', critical: 'Lapsed' }
 
 const CATEGORY_ICONS = {
   booking: Calendar, clinical: FileText, comms: MessageSquare, financial: DollarSign,
@@ -43,7 +44,7 @@ const getInit = (n) => (n || '??').split(' ').map(w => w[0]).join('').toUpperCas
 const ABG = ['#FEF3C7','#DBEAFE','#FCE7F3','#D1FAE5','#EDE9FE','#FEE2E2','#E0E7FF']
 const getABG = (n) => ABG[Math.abs([...(n||'')].reduce((h,c) => c.charCodeAt(0)+((h<<5)-h), 0)) % ABG.length]
 
-const healthLabel = (s) => s >= 80 ? 'Excellent' : s >= 60 ? 'Good' : s >= 40 ? 'Fair' : s >= 20 ? 'Poor' : 'Critical'
+const healthLabel = (s) => s >= 80 ? 'Loyal' : s >= 60 ? 'Active' : s >= 40 ? 'Cooling' : s >= 20 ? 'At Risk' : 'Lapsed'
 const healthColor = (s) => s >= 80 ? '#10B981' : s >= 60 ? '#34D399' : s >= 40 ? '#F59E0B' : s >= 20 ? '#EF4444' : '#991B1B'
 
 const fmtDate = (d) => { if (!d) return '—'; try { return new Date(d).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: '2-digit' }) } catch { return '—' } }
@@ -479,11 +480,11 @@ function DashboardView({ data, onClientClick }) {
 
         {/* Health Distribution */}
         <div style={{ background: '#fff', borderRadius: 14, padding: 18, border: '1px solid #EBEBEB' }}>
-          <h3 style={{ fontSize: 14, fontWeight: 700, color: '#111', margin: '0 0 14px' }}>Client Health</h3>
+          <h3 style={{ fontSize: 14, fontWeight: 700, color: '#111', margin: '0 0 14px' }}>Client Retention</h3>
           {Object.entries(health_distribution || {}).map(([k, v]) => (
             <div key={k} style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
               <div style={{ width: 8, height: 8, borderRadius: '50%', background: HEALTH_COLORS[k], flexShrink: 0 }} />
-              <span style={{ fontSize: 12, fontWeight: 600, color: '#333', flex: 1, textTransform: 'capitalize' }}>{k}</span>
+              <span style={{ fontSize: 12, fontWeight: 600, color: '#333', flex: 1 }}>{RETENTION_LABELS[k] || k}</span>
               <span style={{ fontSize: 12, fontWeight: 700, color: '#111' }}>{v}</span>
             </div>
           ))}
@@ -582,8 +583,8 @@ function PipelineView({ data, onClientClick, moveClient, dragItem, setDragItem, 
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ fontSize: 12, fontWeight: 700, color: '#111', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{c.name}</div>
                     </div>
-                    {/* Health score dot */}
-                    <div title={`Health: ${c.health_score}`} style={{ width: 8, height: 8, borderRadius: '50%', background: healthColor(c.health_score), flexShrink: 0 }} />
+                    {/* Retention score dot */}
+                    <div title={`Retention: ${healthLabel(c.health_score)}`} style={{ width: 8, height: 8, borderRadius: '50%', background: healthColor(c.health_score), flexShrink: 0 }} />
                   </div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 10, color: '#888' }}>
                     <span>{c.total_visits} visits · {fmtCurrency(c.total_spend)}</span>
@@ -615,7 +616,7 @@ function ClientListView({ clients, search, onClientClick }) {
       <div style={{ background: '#fff', borderRadius: 14, border: '1px solid #EBEBEB', overflow: 'hidden' }}>
         {/* Header */}
         <div style={{ display: 'grid', gridTemplateColumns: '2fr 1.5fr 1fr 1fr 1fr 80px', gap: 8, padding: '10px 16px', borderBottom: '1px solid #EBEBEB', background: '#FAFAF8' }}>
-          {['Client', 'Contact', 'Visits', 'Spend', 'Last Visit', 'Health'].map(h => (
+          {['Client', 'Contact', 'Visits', 'Spend', 'Last Visit', 'Retention'].map(h => (
             <span key={h} style={{ fontSize: 10, fontWeight: 700, color: '#888', textTransform: 'uppercase' }}>{h}</span>
           ))}
         </div>
@@ -643,7 +644,7 @@ function ClientListView({ clients, search, onClientClick }) {
               <div style={{ fontSize: 12, color: '#666' }}>{fmtDate(c.lastVisit || c.last_visit)}</div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
                 <div style={{ width: 8, height: 8, borderRadius: '50%', background: healthColor(hs) }} />
-                <span style={{ fontSize: 11, fontWeight: 600, color: healthColor(hs) }}>{hs}</span>
+                <span style={{ fontSize: 11, fontWeight: 600, color: healthColor(hs) }}>{healthLabel(hs)}</span>
               </div>
             </div>
           )
@@ -791,7 +792,7 @@ function ClientDetailPanel({ detail, timeline, onClose, bid, onInteraction, onRe
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
           <div style={{ width: 10, height: 10, borderRadius: '50%', background: healthColor(health_score) }} />
-          <span style={{ fontSize: 12, fontWeight: 700, color: healthColor(health_score) }}>{health_score}</span>
+          <span style={{ fontSize: 12, fontWeight: 700, color: healthColor(health_score) }}>{healthLabel(health_score)}</span>
         </div>
       </div>
 
