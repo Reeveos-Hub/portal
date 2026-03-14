@@ -106,7 +106,7 @@ const labelStyle = {
 const bigNumStyle = { fontSize: 28, fontWeight: 800, color: '#111' }
 const secTextStyle = { fontSize: 13, color: '#666' }
 const btnStyle = (active) => ({
-  padding: '6px 14px', fontSize: 12, fontWeight: 600, borderRadius: 6, cursor: 'pointer',
+  padding: '6px 14px', fontSize: 12, fontWeight: 600, borderRadius: 999, cursor: 'pointer',
   border: active ? '1px solid #C9A84C' : '1px solid #E5E5E5',
   background: active ? '#FBF6E9' : '#FAFAFA', color: active ? '#C9A84C' : '#666',
   fontFamily: "'Figtree', sans-serif", transition: 'all 0.15s',

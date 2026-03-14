@@ -176,7 +176,7 @@ const AssistantChat = () => {
               </div>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-              <button onClick={() => setExpanded(!expanded)} style={{ background: 'none', border: 'none', color: '#666', cursor: 'pointer', padding: 4, borderRadius: 4 }}
+              <button onClick={() => setExpanded(!expanded)} style={{ background: 'none', border: 'none', color: '#666', cursor: 'pointer', padding: 4, borderRadius: 999 }}
                 title={expanded ? 'Shrink' : 'Expand'}>
                 {expanded ? <Minimize2 size={14} /> : <Maximize2 size={14} />}
               </button>

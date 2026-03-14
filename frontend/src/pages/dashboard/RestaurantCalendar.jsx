@@ -1040,8 +1040,8 @@ export default function RestaurantCalendar() {
 const pillBtn = { width: 30, height: 30, borderRadius: '50%', border: 'none', background: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#111111', boxShadow: '0 1px 3px rgba(0,0,0,0.06)' }
 const divider = { width: 1, height: 20, background: '#EBEBEB' }
 const toggleWrap = { display: 'flex', background: '#F5F5F5', borderRadius: 20, padding: 2 }
-const toggleActive = { padding: '5px 12px', borderRadius: 18, border: 'none', cursor: 'pointer', fontSize: 11, fontWeight: 700, background: '#111111', color: '#fff', boxShadow: '0 2px 8px rgba(17,17,17,0.2)', transition: 'all 0.15s', fontFamily: "'Figtree', sans-serif", whiteSpace: 'nowrap' }
-const toggleInactive = { padding: '5px 12px', borderRadius: 18, border: 'none', cursor: 'pointer', fontSize: 11, fontWeight: 500, background: 'transparent', color: '#555', transition: 'all 0.15s', fontFamily: "'Figtree', sans-serif", whiteSpace: 'nowrap' }
+const toggleActive = { padding: '5px 12px', borderRadius: 999, border: "none", cursor: "pointer", fontSize: 11, fontWeight: 700, background: '#111111', color: '#fff', boxShadow: '0 2px 8px rgba(17,17,17,0.2)', transition: 'all 0.15s', fontFamily: "'Figtree', sans-serif", whiteSpace: 'nowrap' }
+const toggleInactive = { padding: '5px 12px', borderRadius: 999, border: "none", cursor: "pointer", fontSize: 11, fontWeight: 500, background: 'transparent', color: '#555', transition: 'all 0.15s', fontFamily: "'Figtree', sans-serif", whiteSpace: 'nowrap' }
 const iconBtn = { width: 34, height: 34, borderRadius: '50%', border: 'none', background: '#F5F5F5', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#555' }
 const panelIconBtn = { width: 32, height: 32, borderRadius: '50%', border: 'none', background: 'transparent', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#666' }
 const sectionTitle = { fontSize: 13, fontWeight: 600, color: '#999', textTransform: 'uppercase', letterSpacing: '0.1em', margin: 0, marginBottom: 12 }

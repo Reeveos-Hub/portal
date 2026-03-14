@@ -410,7 +410,7 @@ export default function CRM() {
         <div style={{ padding: '14px 20px', borderTop: '1px solid #EBEBEB', display: 'flex', gap: 10, flexShrink: 0 }}>
           <button onClick={() => setShowNewClient(false)} style={{ flex: 1, padding: 12, borderRadius: 999, border: '1px solid #EBEBEB', background: '#fff', fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: "'Figtree', sans-serif", color: '#666' }}>Cancel</button>
           <button onClick={createNewClient} disabled={newClientSaving}
-            style={{ flex: 1, padding: 12, borderRadius: 12, border: 'none', background: '#111', color: '#fff', fontSize: 13, fontWeight: 700, cursor: newClientSaving ? 'default' : 'pointer', fontFamily: "'Figtree', sans-serif", opacity: newClientSaving ? 0.6 : 1 }}>
+            style={{ flex: 1, padding: 12, borderRadius: 999, border: 'none', background: '#111', color: '#fff', fontSize: 13, fontWeight: 700, cursor: newClientSaving ? 'default' : 'pointer', fontFamily: "'Figtree', sans-serif", opacity: newClientSaving ? 0.6 : 1 }}>
             {newClientSaving ? 'Creating...' : 'Create Client'}
           </button>
         </div>
@@ -1107,7 +1107,7 @@ function InteractionModal({ bid, clientId, clientName, onClose, onSaved, onBack 
         {/* Bottom actions */}
         <div style={{ padding: '14px 20px', borderTop: '1px solid #EBEBEB', display: 'flex', gap: 10, flexShrink: 0 }}>
           <button onClick={handleClose} style={{ flex: 1, padding: '10px', borderRadius: 999, border: '1px solid #E5E5E5', background: '#fff', fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: "'Figtree', sans-serif", color: '#555' }}>Cancel</button>
-          <button onClick={save} disabled={saving || !summary.trim()} style={{ flex: 1, padding: '10px', borderRadius: 10, border: 'none', background: '#111', color: '#fff', fontSize: 13, fontWeight: 600, cursor: summary.trim() ? 'pointer' : 'default', opacity: summary.trim() ? 1 : 0.5, fontFamily: "'Figtree', sans-serif" }}>
+          <button onClick={save} disabled={saving || !summary.trim()} style={{ flex: 1, padding: '10px', borderRadius: 999, border: 'none', background: '#111', color: '#fff', fontSize: 13, fontWeight: 600, cursor: summary.trim() ? 'pointer' : 'default', opacity: summary.trim() ? 1 : 0.5, fontFamily: "'Figtree', sans-serif" }}>
             {saving ? 'Saving...' : 'Save'}
           </button>
         </div>

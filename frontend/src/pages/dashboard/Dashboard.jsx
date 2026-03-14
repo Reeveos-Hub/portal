@@ -755,7 +755,7 @@ const Dashboard = () => {
                     <div style={{ fontSize: 10, color: '#9CA3AF' }}>{!def.removable ? "Required" : isHidden ? 'Hidden' : 'Visible'}</div>
                   </div>
                   {def.removable ? (
-                    <button onClick={() => isHidden ? showWidget(id) : hideWidget(id)} style={{ padding: '4px 10px', borderRadius: 6, fontSize: 10, fontWeight: 600, background: isHidden ? '#F0FDF4' : '#FEF2F2', color: isHidden ? '#059669' : '#EF4444', border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}>
+                    <button onClick={() => isHidden ? showWidget(id) : hideWidget(id)} style={{ padding: '4px 10px', borderRadius: 999, fontSize: 10, fontWeight: 600, background: isHidden ? '#F0FDF4' : '#FEF2F2', color: isHidden ? '#059669' : '#EF4444', border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}>
                       {isHidden ? 'Show' : 'Hide'}
                     </button>
                   ) : <Lock size={12} color="#9CA3AF" />}
@@ -806,11 +806,11 @@ const Dashboard = () => {
                   {/* Edit controls */}
                   {editMode && (
                     <div data-no-drag style={{ position: 'absolute', top: 6, right: 6, display: 'flex', gap: 4, zIndex: 10 }}>
-                      <button onClick={() => toggleLock(item.i)} style={{ width: 24, height: 24, borderRadius: 6, background: isLocked ? '#C9A84C' : isDark ? 'rgba(255,255,255,0.15)' : '#F3F4F6', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <button onClick={() => toggleLock(item.i)} style={{ width: 24, height: 24, borderRadius: 999, background: isLocked ? '#C9A84C' : isDark ? 'rgba(255,255,255,0.15)' : '#F3F4F6', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                         {isLocked ? <Lock size={11} color="#fff" /> : <Unlock size={11} color={isDark ? '#fff' : '#9CA3AF'} />}
                       </button>
                       {widget?.removable && (
-                        <button onClick={() => hideWidget(item.i)} style={{ width: 24, height: 24, borderRadius: 6, background: isDark ? 'rgba(255,255,255,0.15)' : '#F3F4F6', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <button onClick={() => hideWidget(item.i)} style={{ width: 24, height: 24, borderRadius: 999, background: isDark ? 'rgba(255,255,255,0.15)' : '#F3F4F6', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                           <EyeOff size={11} color={isDark ? '#fff' : '#9CA3AF'} />
                         </button>
                       )}

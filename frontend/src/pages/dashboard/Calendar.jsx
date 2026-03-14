@@ -1841,7 +1841,7 @@ const Calendar = () => {
         </div>
         {bookError && <p style={{ color: '#DC2626', fontSize: 13, fontWeight: 600, margin: 0, padding: '0 20px 8px' }}>{bookError}</p>}
         <div style={{ padding: '12px 20px 20px', borderTop: '1px solid #EBEBEB', flexShrink: 0, background: '#FAFAFA' }}>
-          <button onClick={submitBooking} disabled={bookSaving} style={{ width: '100%', padding: '12px 0', background: '#111', color: '#fff', border: 'none', borderRadius: 10, fontSize: 14, fontWeight: 700, cursor: bookSaving ? 'wait' : 'pointer', fontFamily: "'Figtree', sans-serif", opacity: bookSaving ? 0.6 : 1 }}>
+          <button onClick={submitBooking} disabled={bookSaving} style={{ width: '100%', padding: '12px 0', background: '#111', color: '#fff', border: 'none', borderRadius: 999, fontSize: 14, fontWeight: 700, cursor: bookSaving ? 'wait' : 'pointer', fontFamily: "'Figtree', sans-serif", opacity: bookSaving ? 0.6 : 1 }}>
             {bookSaving ? (editingId ? 'Saving...' : 'Creating...') : (editingId ? 'Save Changes' : 'Create Appointment')}
           </button>
         </div>
@@ -1945,7 +1945,7 @@ const Calendar = () => {
                         <div style={{ fontSize: 14, fontWeight: 700, color: '#059669', marginTop: 2 }}>Checked In — Timer Started</div>
                       </div>
                     ) : (
-                      <button onClick={confirmCheckIn} disabled={!ciAllChecked} style={{ width: '100%', padding: '12px 0', borderRadius: 10, border: 'none', background: ciAllChecked ? '#059669' : '#E5E5E5', color: ciAllChecked ? '#fff' : '#aaa', fontSize: 14, fontWeight: 700, cursor: ciAllChecked ? 'pointer' : 'not-allowed', fontFamily: 'inherit' }}>
+                      <button onClick={confirmCheckIn} disabled={!ciAllChecked} style={{ width: '100%', padding: '12px 0', borderRadius: 999, border: 'none', background: ciAllChecked ? '#059669' : '#E5E5E5', color: ciAllChecked ? '#fff' : '#aaa', fontSize: 14, fontWeight: 700, cursor: ciAllChecked ? 'pointer' : 'not-allowed', fontFamily: 'inherit' }}>
                         {ciAllChecked ? 'Confirm Check-In' : `Complete checklist (${ciChecks.filter(c => c.done).length}/${ciChecks.length})`}
                       </button>
                     )}

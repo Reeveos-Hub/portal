@@ -38,7 +38,7 @@ const ic = {
 const Btn = ({ children, primary, gold, disabled, onClick, style = {} }) => (
   <button onClick={onClick} disabled={disabled} style={{
     padding: '10px 24px', border: primary || gold ? 'none' : `1px solid ${T.border}`,
-    borderRadius: 8, fontFamily: F, fontSize: 13, fontWeight: primary || gold ? 600 : 400,
+    borderRadius: 999, fontFamily: F, fontSize: 13, fontWeight: primary || gold ? 600 : 400,
     cursor: disabled ? 'default' : 'pointer', display: 'inline-flex', alignItems: 'center', gap: 6,
     background: disabled ? T.border : gold ? T.gold : primary ? T.forest : T.white,
     color: disabled ? T.muted : gold ? T.forest : primary ? T.white : T.text,
@@ -169,7 +169,7 @@ const WebsitePages = () => {
               <h3 style={{ fontFamily: F, fontSize: 15, fontWeight: 600, color: p.dark ? T.white : T.text, margin: p.popular ? '24px 0 0' : 0 }}>{p.name}</h3>
               <p style={{ fontFamily: F, fontSize: 10, color: p.dark ? T.gold : T.muted, margin: '2px 0 0' }}>{p.sub}</p>
               <div style={{ marginTop: 10 }}><span style={{ fontFamily: F, fontSize: 28, fontWeight: 600, color: p.dark ? T.white : T.text }}>{p.price}</span>{p.per && <span style={{ fontFamily: F, fontSize: 12, color: p.dark ? '#888' : T.muted }}>{p.per}</span>}</div>
-              <button onClick={() => { if (canUpgrade) { setSelectedPlan(p); setScreen('payment') } }} disabled={!canUpgrade} style={{ width: '100%', marginTop: 14, padding: 10, borderRadius: 8, fontFamily: F, fontSize: 12, fontWeight: 600, cursor: canUpgrade ? 'pointer' : 'default', background: isCurrent ? T.bg : p.popular ? T.gold : 'transparent', color: isCurrent ? T.muted : p.popular ? T.forest : p.dark ? T.white : T.text, border: p.popular ? 'none' : `1px solid ${isCurrent ? T.border : p.dark ? '#444' : T.border}` }}>{isCurrent ? 'Current' : canUpgrade ? 'Upgrade' : '—'}</button>
+              <button onClick={() => { if (canUpgrade) { setSelectedPlan(p); setScreen('payment') } }} disabled={!canUpgrade} style={{ width: '100%', marginTop: 14, padding: 10, borderRadius: 999, fontFamily: F, fontSize: 12, fontWeight: 600, cursor: canUpgrade ? 'pointer' : 'default', background: isCurrent ? T.bg : p.popular ? T.gold : 'transparent', color: isCurrent ? T.muted : p.popular ? T.forest : p.dark ? T.white : T.text, border: p.popular ? 'none' : `1px solid ${isCurrent ? T.border : p.dark ? '#444' : T.border}` }}>{isCurrent ? 'Current' : canUpgrade ? 'Upgrade' : '—'}</button>
               <div style={{ marginTop: 14, flex: 1 }}>{p.features.map(f => <div key={f} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '3px 0' }}><Ic d={ic.check} size={12} color={p.dark ? T.gold : T.green} /><span style={{ fontFamily: F, fontSize: 11, color: p.dark ? '#ccc' : T.text }}>{f}</span></div>)}</div>
             </div>)
           })}
@@ -187,10 +187,10 @@ const WebsitePages = () => {
         <p style={{ fontFamily: F, fontSize: 13, color: T.muted, marginTop: 6 }}>{selectedPlan.name} plan · {selectedPlan.price}/month</p>
         <div style={{ marginTop: 28 }}>
           <label style={{ fontFamily: F, fontSize: 11, color: T.muted, display: 'block', marginBottom: 5 }}>Card number</label>
-          <input placeholder="4242 4242 4242 4242" style={{ width: '100%', padding: '12px 14px', border: `1px solid ${T.border}`, borderRadius: 8, fontFamily: F, fontSize: 14, outline: 'none', boxSizing: 'border-box' }} />
+          <input placeholder="4242 4242 4242 4242" style={{ width: '100%', padding: '12px 14px', border: `1px solid ${T.border}`, borderRadius: 999, fontFamily: F, fontSize: 14, outline: 'none', boxSizing: 'border-box' }} />
           <div style={{ display: 'flex', gap: 12, marginTop: 12 }}>
-            <div style={{ flex: 1 }}><label style={{ fontFamily: F, fontSize: 11, color: T.muted, display: 'block', marginBottom: 5 }}>Expiry</label><input placeholder="MM/YY" style={{ width: '100%', padding: '12px 14px', border: `1px solid ${T.border}`, borderRadius: 8, fontFamily: F, fontSize: 14, outline: 'none', boxSizing: 'border-box' }} /></div>
-            <div style={{ flex: 1 }}><label style={{ fontFamily: F, fontSize: 11, color: T.muted, display: 'block', marginBottom: 5 }}>CVC</label><input placeholder="123" style={{ width: '100%', padding: '12px 14px', border: `1px solid ${T.border}`, borderRadius: 8, fontFamily: F, fontSize: 14, outline: 'none', boxSizing: 'border-box' }} /></div>
+            <div style={{ flex: 1 }}><label style={{ fontFamily: F, fontSize: 11, color: T.muted, display: 'block', marginBottom: 5 }}>Expiry</label><input placeholder="MM/YY" style={{ width: '100%', padding: '12px 14px', border: `1px solid ${T.border}`, borderRadius: 999, fontFamily: F, fontSize: 14, outline: 'none', boxSizing: 'border-box' }} /></div>
+            <div style={{ flex: 1 }}><label style={{ fontFamily: F, fontSize: 11, color: T.muted, display: 'block', marginBottom: 5 }}>CVC</label><input placeholder="123" style={{ width: '100%', padding: '12px 14px', border: `1px solid ${T.border}`, borderRadius: 999, fontFamily: F, fontSize: 14, outline: 'none', boxSizing: 'border-box' }} /></div>
           </div>
         </div>
         <button onClick={() => setScreen('welcome')} style={{ width: '100%', marginTop: 24, padding: 14, background: T.forest, color: T.white, border: 'none', borderRadius: 999, fontFamily: F, fontSize: 14, fontWeight: 600, cursor: 'pointer' }}>Subscribe · {selectedPlan.price}/month</button>
@@ -314,7 +314,7 @@ const WebsitePages = () => {
           <div style={{ width: 260, background: T.white, border: `1px solid ${T.border}`, borderRadius: 12, overflow: 'hidden' }}>
             <div style={{ height: 140, background: selectedTemplate ? selectedTemplate.grad : `linear-gradient(135deg, #2C3E2D, ${T.gold})`, position: 'relative' }}><span style={{ position: 'absolute', bottom: 5, right: 7, background: 'rgba(0,0,0,0.5)', color: T.white, fontFamily: F, fontSize: 9, padding: '2px 6px', borderRadius: 4 }}>Live</span></div>
             <div style={{ padding: 12 }}><p style={{ fontFamily: F, fontSize: 12, fontWeight: 600, color: T.text, margin: 0 }}>Your Site</p><p style={{ fontFamily: F, fontSize: 10, color: T.muted, margin: '2px 0 0' }}>{siteUrl}</p>
-              <div style={{ display: 'flex', gap: 6, marginTop: 10 }}><button onClick={() => { setTab('settings'); setSettingsTab('Domains & Email') }} style={{ flex: 1, padding: 6, background: T.bg, border: `1px solid ${T.border}`, borderRadius: 6, fontFamily: F, fontSize: 10, cursor: 'pointer' }}>Custom Domain</button><button style={{ flex: 1, padding: 6, background: T.gold, border: 'none', borderRadius: 6, fontFamily: F, fontSize: 10, fontWeight: 600, cursor: 'pointer', color: T.forest }}>Publish</button></div>
+              <div style={{ display: 'flex', gap: 6, marginTop: 10 }}><button onClick={() => { setTab('settings'); setSettingsTab('Domains & Email') }} style={{ flex: 1, padding: 6, background: T.bg, border: `1px solid ${T.border}`, borderRadius: 999, fontFamily: F, fontSize: 10, cursor: 'pointer' }}>Custom Domain</button><button style={{ flex: 1, padding: 6, background: T.gold, border: 'none', borderRadius: 999, fontFamily: F, fontSize: 10, fontWeight: 600, cursor: 'pointer', color: T.forest }}>Publish</button></div>
             </div>
           </div>
         </div>
@@ -335,7 +335,7 @@ const WebsitePages = () => {
             <div style={{ height: 110, background: T.bg, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Ic d={ic.file} size={24} color={T.border} /></div>
             <div style={{ padding: 12 }}><div style={{ display: 'flex', justifyContent: 'space-between' }}><span style={{ fontFamily: F, fontSize: 13, fontWeight: 600, color: T.text }}>{p.title||p.slug}</span><span style={{ fontFamily: F, fontSize: 9, color: p.status==='published'?T.green:T.amber, fontWeight: 600, padding: '2px 5px', background: p.status==='published'?'#DCFCE7':'#FEF3C7', borderRadius: 4 }}>{p.status==='published'?'PUBLISHED':'DRAFT'}</span></div>
               <p style={{ fontFamily: F, fontSize: 11, color: T.muted, margin: '4px 0 0' }}>/{p.slug}</p>
-              <div style={{ display: 'flex', gap: 6, marginTop: 8 }}><Btn onClick={() => navigate(`/dashboard/website/edit/${p.slug}`)} style={{ padding: '4px 12px', fontSize: 11, borderRadius: 6 }}><Ic d={ic.pen} size={11} /> Edit</Btn><button onClick={() => deletePage(p.slug)} style={{ padding: '4px 8px', border: `1px solid ${T.border}`, borderRadius: 6, background: T.white, cursor: 'pointer', display: 'flex', alignItems: 'center' }}><Ic d={ic.trash} size={11} color={T.red} /></button></div>
+              <div style={{ display: 'flex', gap: 6, marginTop: 8 }}><Btn onClick={() => navigate(`/dashboard/website/edit/${p.slug}`)} style={{ padding: '4px 12px', fontSize: 11, borderRadius: 999 }}><Ic d={ic.pen} size={11} /> Edit</Btn><button onClick={() => deletePage(p.slug)} style={{ padding: '4px 8px', border: `1px solid ${T.border}`, borderRadius: 999, background: T.white, cursor: 'pointer', display: 'flex', alignItems: 'center' }}><Ic d={ic.trash} size={11} color={T.red} /></button></div>
             </div>
           </div>)}
           <div onClick={() => { const t = prompt('Page title:'); if(t) createPage(t, t.toLowerCase().replace(/\s+/g,'-').replace(/[^a-z0-9-]/g,'')) }} style={{ background: T.white, border: `2px dashed ${T.border}`, borderRadius: 999, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', minHeight: 200 }} onMouseOver={e => e.currentTarget.style.borderColor = T.gold} onMouseOut={e => e.currentTarget.style.borderColor = T.border}><Ic d={ic.plus} size={22} /><p style={{ fontFamily: F, fontSize: 11, color: T.muted, marginTop: 6 }}>New Page</p></div>

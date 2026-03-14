@@ -430,7 +430,7 @@ export default function AdminLayout() {
               </div>
             )}
             <button type="submit" disabled={loggingIn || !email || !password}
-              style={{ width: '100%', padding: '12px 0', borderRadius: 12, border: 'none', background: '#C9A84C', color: '#111', fontSize: 14, fontWeight: 700, fontFamily: FIG, cursor: loggingIn || !email || !password ? 'not-allowed' : 'pointer', opacity: loggingIn || !email || !password ? 0.5 : 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, transition: 'opacity 200ms' }}>
+              style={{ width: '100%', padding: '12px 0', borderRadius: 999, border: 'none', background: '#C9A84C', color: '#111', fontSize: 14, fontWeight: 700, fontFamily: FIG, cursor: loggingIn || !email || !password ? 'not-allowed' : 'pointer', opacity: loggingIn || !email || !password ? 0.5 : 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, transition: 'opacity 200ms' }}>
               {loggingIn ? (<><span style={{ width: 16, height: 16, border: '2px solid rgba(255,255,255,0.3)', borderTopColor: '#FFF', borderRadius: '50%', animation: 'spin 0.6s linear infinite', display: 'inline-block' }} />Signing in...</>) : 'Sign In'}
             </button>
           </div>
