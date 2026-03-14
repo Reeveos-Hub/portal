@@ -71,6 +71,7 @@ export default function CRM() {
   const [analyticsData, setAnalyticsData] = useState(null)
   const [clients, setClients] = useState([])
   const [search, setSearch] = useState('')
+  const [crmSearchOpen, setCrmSearchOpen] = useState(false)
   const [selectedClient, setSelectedClient] = useState(null)
   const [clientDetail, setClientDetail] = useState(null)
   const [timeline, setTimeline] = useState([])
@@ -226,6 +227,40 @@ export default function CRM() {
   return (
     <div style={{ fontFamily: "'Figtree', sans-serif", height: '100%', display: 'flex', flexDirection: 'column', background: '#FAFAF8' }}>
       {/* ── Top Nav ── */}
+      {(typeof window !== 'undefined' && window.innerWidth < 1024) ? (
+        <div style={{ padding: '6px 10px', borderBottom: '1px solid #EBEBEB', background: '#fff', flexShrink: 0, display: 'flex', flexDirection: 'column', gap: 4 }}>
+          {crmSearchOpen ? (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6, background: '#F5F5F5', borderRadius: 16, padding: '0 10px', height: 32 }}>
+              <Search size={13} color="#777" />
+              <input autoFocus value={search} onChange={e => setSearch(e.target.value)} onBlur={() => { if (!search) setCrmSearchOpen(false) }}
+                placeholder="Search clients..." style={{ border: 'none', background: 'transparent', outline: 'none', fontSize: 11, color: '#111', width: '100%', fontWeight: 500, fontFamily: "'Figtree', sans-serif" }} />
+              <button onClick={() => { setSearch(''); setCrmSearchOpen(false) }} style={{ border: 'none', background: 'none', cursor: 'pointer', color: '#999', fontSize: 14, padding: 0, lineHeight: 1 }}>×</button>
+            </div>
+          ) : (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+              {VIEWS.map(v => (
+                <button key={v.id} onClick={() => setView(v.id)} style={{
+                  display: 'flex', alignItems: 'center', gap: 3, padding: '5px 8px', borderRadius: 8, border: 'none',
+                  background: view === v.id ? '#111' : 'transparent', color: view === v.id ? '#fff' : '#888',
+                  fontSize: 10, fontWeight: 600, cursor: 'pointer', fontFamily: "'Figtree', sans-serif",
+                }}>
+                  <v.Icon size={12} /> {v.label}
+                </button>
+              ))}
+              <div style={{ flex: 1 }} />
+              {view === 'clients' && (
+                <button onClick={() => setCrmSearchOpen(true)} style={{ width: 30, height: 30, borderRadius: '50%', border: 'none', background: search ? '#11111112' : '#F5F5F5', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <Search size={13} color="#777" />
+                </button>
+              )}
+              <button onClick={() => { setShowNewClient(true); setNewClientForm({ name: '', phone: '', email: '', notes: '', source: '', tags: [], sendConsultation: true }); setNewClientError('') }}
+                style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '5px 10px', borderRadius: 16, border: 'none', background: '#111', color: '#fff', fontSize: 10, fontWeight: 700, cursor: 'pointer', fontFamily: "'Figtree', sans-serif", flexShrink: 0 }}>
+                <UserPlus size={11} /> New
+              </button>
+            </div>
+          )}
+        </div>
+      ) : (
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 20px', borderBottom: '1px solid #EBEBEB', background: '#fff', flexShrink: 0 }}>
         <div style={{ display: 'flex', gap: 4 }}>
           {VIEWS.map(v => (
@@ -254,6 +289,7 @@ export default function CRM() {
         </button>
         </div>
       </div>
+      )}
 
       {/* ── Content ── */}
       <div style={{ flex: 1, overflow: 'hidden', display: 'flex' }}>
