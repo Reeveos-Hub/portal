@@ -15,9 +15,6 @@ import AppLoader from '../../components/shared/AppLoader'
 const SH = 8, EH = 24, HH = 80, TCW = 52
 const SNAP_MINS = 15
 const SNAP_PX = HH * (SNAP_MINS / 60) // 20px per 15min
-const SLOTS_PER_HR = 4 // 15-min slots
-const timeToSlot = (t) => Math.max(0, Math.floor((t - SH) * SLOTS_PER_HR))
-const durToSlots = (dur) => Math.max(1, Math.ceil(dur * SLOTS_PER_HR))
 
 const SERVICE_COLORS = {
   cut: '#D4A574', colour: '#E8845E', style: '#6BA3C7',
@@ -732,7 +729,6 @@ const Calendar = () => {
 
   const revenue = bookings.reduce((s, a) => s + (a.price || 0), 0)
   const totHrs = EH - SH
-  const totalSlots = totHrs * SLOTS_PER_HR
 
   /* ═══════════════════ DRAG & DROP LOGIC ═══════════════════ */
 
@@ -1251,22 +1247,20 @@ const Calendar = () => {
   const Bl = ({ a }) => {
     const isDragging = drag?.id === a.id
     const isNewBooking = newCalBookingIds.has(a.id)
+    const top = isDragging ? drag.ghostTop : timeToPx(a.start)
+    const h = isDragging ? drag.ghostH : (layoutMap[a.id]?.h || a.dur * HH)
     const bg = gc(a)
     const hov = hovA === a.id
     const sel = selA === a.id
     const done = a.status === 'completed'
     const isActive = a.status === 'checked_in'
-    /* CSS Grid placement — card positioned by grid-row/grid-column, height auto-expands */
-    const startSlot = timeToSlot(a.start)
-    const endSlot = isDragging && drag.type === 'resize'
-      ? startSlot + Math.max(1, Math.ceil(drag.ghostH / SNAP_PX))
-      : startSlot + durToSlots(a.dur)
-    const staffIdx = staffColumns.findIndex(s => s.id === a.staffId)
-    /* During move drag, card fades in place; ghost renders separately */
-    const cardH = isDragging ? Math.max((drag.ghostH || a.dur * HH) - 2, 24) : 999
-    const isShort = false
-    const tiny = false, sm = false
-    const cardPad = '6px 10px'
+    const hasOverride = !!a._overrideH
+    // Card height from layout algorithm: min 52px, separator-aware.
+    // Short bookings expand to fit content. Adjacent bookings get a 2px gap.
+    const cardH = Math.max(h - 2, 24)
+    const isShort = cardH < 50
+    const tiny = cardH <= 32, sm = cardH <= 44
+    const cardPad = hasOverride ? '2px 6px' : tiny ? '1px 6px' : sm ? '3px 8px' : '6px 10px'
 
     if (isDragging && drag.type === 'move' && drag.ghostStaffId !== a.staffId) return null
 
@@ -1289,9 +1283,7 @@ const Calendar = () => {
             }
           }}
           style={{
-            gridRow: `${startSlot + 1} / ${endSlot + 1}`,
-            gridColumn: staffIdx + 2,
-            margin: '1px 3px',
+            position: 'absolute', top: top + 1, left: 4, right: 4, height: cardH,
             borderRadius: isActive ? 8 : 6,
             background: isActive ? 'linear-gradient(135deg, #111111, #222)' : done ? `${bg}60` : bg,
             opacity: isDragging ? 0.85 : done ? 0.7 : a.status === 'no_show' ? 0.55 : 1,
@@ -1310,14 +1302,37 @@ const Calendar = () => {
             padding: cardPad,
             display: 'flex', flexDirection: hasOverride ? 'row' : 'column', alignItems: hasOverride ? 'center' : 'stretch', gap: hasOverride ? 4 : 0,
           }}>
-          {!tiny && !isDragging && (
+          {!tiny && !hasOverride && !isDragging && (
             <div style={{ position: 'absolute', top: 4, left: 6, opacity: hov ? 0.6 : 0, transition: 'opacity 0.15s' }}>
               <GripIcon />
             </div>
           )}
-          {!tiny && <div style={{ position: 'absolute', top: 6, right: 7, opacity: 0.7 }}>{(a.status === 'confirmed' || a.status === 'completed') ? <SICheck s={10} c="#111" /> : a.status === 'pending' ? <SIClock s={10} c="#111" /> : null}</div>}
-          <div style={{ position: 'relative', zIndex: 2, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
-            {/* Full card layout — CSS Grid auto-sizes, no clipping */}
+          {!tiny && !hasOverride && <div style={{ position: 'absolute', top: 6, right: 7, opacity: 0.7 }}>{(a.status === 'confirmed' || a.status === 'completed') ? <SICheck s={10} c="#111" /> : a.status === 'pending' ? <SIClock s={10} c="#111" /> : null}</div>}
+          {hasOverride ? (
+            /* Shrunk card — single row: time + name + price */
+            <>
+              <span style={{ fontSize: 9, fontWeight: 600, opacity: 0.8, flexShrink: 0 }}>{fmt(a.start)}</span>
+              <span style={{ fontSize: 10, fontWeight: 700, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1 }}>{a.customerName}</span>
+              {(a.price || 0) > 0 && <span style={{ fontSize: 9, fontWeight: 700, opacity: 0.8, background: 'rgba(0,0,0,0.08)', borderRadius: 4, padding: '1px 5px', flexShrink: 0 }}>£{a.price}</span>}
+            </>
+          ) : (
+          <div style={{ position: 'relative', zIndex: 2, display: 'flex', flexDirection: 'column', height: '100%', minWidth: 0, overflow: 'hidden' }}>
+            {tiny ? (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 4, height: '100%' }}>
+                <span style={{ fontSize: 9, opacity: 0.85, fontWeight: 600 }}>{fmt(isDragging ? pxToTime(drag.ghostTop) : a.start)}</span>
+                <span style={{ fontSize: 10, fontWeight: 700, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1 }}>{a.customerName}</span>
+                {(a.price || 0) > 0 && <span style={{ fontSize: 8, fontWeight: 700, background: 'rgba(0,0,0,0.12)', borderRadius: 4, padding: '1px 5px', flexShrink: 0 }}>£{a.price}</span>}
+              </div>
+            ) : sm ? (
+              <>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div style={{ fontSize: 9, opacity: 0.85, fontWeight: 600 }}>{fmt(isDragging ? pxToTime(drag.ghostTop) : a.start)}-{fmt((isDragging ? pxToTime(drag.ghostTop) : a.start) + (isDragging ? drag.ghostH / HH : a.dur))}</div>
+                  {(a.price || 0) > 0 && <div style={{ fontSize: 10, fontWeight: 700, background: 'rgba(0,0,0,0.1)', borderRadius: 5, padding: '1px 6px' }}>£{a.price}</div>}
+                </div>
+                <div style={{ fontSize: 12, fontWeight: 700, lineHeight: 1.2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'normal', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', width: '100%' }}>{a.customerName}</div>
+                {cardH >= 60 && <div style={{ fontSize: 10, opacity: 0.85, fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{typeof a.service === 'object' ? a.service?.name : a.service}{a.roomName ? ` · ${a.roomName}` : ''}</div>}
+              </>
+            ) : (
               <>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 2 }}>
                   <div style={{ fontSize: 9, opacity: 0.85, fontWeight: 700, letterSpacing: 0.3 }}>{fmt(isDragging ? pxToTime(drag.ghostTop) : a.start)} - {fmt((isDragging ? pxToTime(drag.ghostTop) : a.start) + (isDragging ? drag.ghostH / HH : a.dur))}</div>
@@ -1328,11 +1343,13 @@ const Calendar = () => {
                 </div>
                 <div style={{ fontSize: 14, fontWeight: 700, lineHeight: 1.2, marginBottom: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'normal', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', width: '100%' }}>{a.customerName}</div>
                 <div style={{ fontSize: 11, opacity: 0.85, fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{typeof a.service === 'object' ? a.service?.name : a.service}{a.roomName ? ` · ${a.roomName}` : ''}</div>
-                {isActive && <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, marginTop: 6, fontSize: 8, fontWeight: 800, letterSpacing: 0.5, background: '#C9A84C', color: '#111', borderRadius: 20, padding: '4px 10px', textTransform: 'uppercase', width: 'fit-content' }}><span style={{ width: 5, height: 5, borderRadius: '50%', background: '#111' }} /> In Treatment</span>}
+                {isActive && cardH > 80 && <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, marginTop: 6, fontSize: 8, fontWeight: 800, letterSpacing: 0.5, background: '#C9A84C', color: '#111', borderRadius: 20, padding: '4px 10px', textTransform: 'uppercase', width: 'fit-content' }}><span style={{ width: 5, height: 5, borderRadius: '50%', background: '#111' }} /> In Treatment</span>}
                 {a.isNewClient && !isActive && <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, marginTop: 6, fontSize: 9, fontWeight: 800, letterSpacing: 1, background: 'linear-gradient(110deg, #111111 30%, #1a1a1a 50%, #111111 70%)', backgroundSize: '200% 100%', borderRadius: 20, padding: '4px 12px 4px 9px', textTransform: 'uppercase', width: 'fit-content', color: '#fff', animation: 'newPulse 2s ease-in-out infinite, shimmer 3s linear infinite', boxShadow: '0 2px 12px rgba(17,17,17,0.4)' }}><StarIcon /> New Client</span>}
                 {a.status === 'completed' && <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, marginTop: 6, fontSize: 9, fontWeight: 800, letterSpacing: 1, background: '#22C55E', borderRadius: 20, padding: '4px 12px 4px 9px', textTransform: 'uppercase', width: 'fit-content', color: '#fff', boxShadow: '0 2px 8px rgba(34,197,94,0.3)' }}>✓ Completed</span>}
               </>
+            )}
           </div>
+          )}
           <div data-resize="1" onMouseDown={e => startDragResize(e, a)} style={{
             position: 'absolute', bottom: 0, left: 0, right: 0, height: 8,
             cursor: 'ns-resize', zIndex: 5,
@@ -1707,41 +1724,35 @@ const Calendar = () => {
             </div>
 
             <div ref={scrollRef} style={{ flex: 1, overflow: 'auto', position: 'relative' }}>
-              <div ref={gridRef} style={{ display: 'grid', gridTemplateColumns: `${TCW}px repeat(${staffColumns.length}, 1fr)`, gridTemplateRows: `repeat(${totalSlots}, minmax(18px, auto))`, position: 'relative' }}>
-                {/* Grid cells: time labels + hour/half-hour borders */}
-                {Array.from({ length: totalSlots }, (_, sl) => {
-                  const isHour = sl % SLOTS_PER_HR === 0
-                  const h = SH + Math.floor(sl / SLOTS_PER_HR)
-                  return [
-                    <div key={`t${sl}`} style={{ gridRow: sl + 1, gridColumn: 1, borderTop: isHour ? '1px solid #E5E5E5' : 'none', display: 'flex', alignItems: 'start', justifyContent: 'flex-end', paddingRight: 6, paddingTop: isHour ? 1 : 0, background: '#fff', position: 'sticky', left: 0, zIndex: 5 }}>
-                      {isHour && <span style={{ fontSize: 11, fontWeight: 600, color: '#888' }}>{fmtAP(h)}</span>}
-                    </div>,
-                    ...staffColumns.map((staff, ci) => (
-                      <div key={`c${sl}-${ci}`} style={{ gridRow: sl + 1, gridColumn: ci + 2, borderTop: isHour ? '1px solid #E5E5E5' : '1px dashed #F0F0F0', borderLeft: '1px solid #EBEBEB', minHeight: 18 }} />
-                    ))
-                  ]
-                }).flat()}
+              <div ref={gridRef} style={{ display: 'flex', minHeight: totHrs * HH }}>
+                <div style={{ width: TCW, flexShrink: 0, position: 'sticky', left: 0, zIndex: 5, background: '#FFFFFF' }}>
+                  {Array.from({ length: totHrs }, (_, i) => (
+                    <div key={i} style={{ height: HH, position: 'relative', background: hoverRow === i ? '#F0FAF4' : 'transparent', transition: 'background 0.15s ease' }}>
+                      <span style={{ position: 'absolute', top: -6, right: 6, fontSize: 11, fontWeight: hoverRow === i ? 700 : 600, color: hoverRow === i ? '#111111' : '#888', transition: 'all 0.15s ease' }}>{fmtAP(SH + i)}</span>
+                    </div>
+                  ))}
+                  {isToday && tp > 0 && tp < totHrs * HH && (
+                    <div style={{ position: 'absolute', top: tp - 8, left: 0, zIndex: 12, background: '#EF4444', color: '#fff', fontSize: 8, fontWeight: 700, padding: '2px 5px', borderRadius: 5, boxShadow: '0 2px 6px rgba(239,68,68,0.25)' }}>{ts}</div>
+                  )}
+                </div>
 
-                {/* Staff column event overlays — handle hover, click-to-book, drag detection */}
-                {staffColumns.map((staff, ci) => (
-                  <div key={`ov-${staff.id}`}
+                {staffColumns.map(staff => (
+                  <div key={staff.id}
                     ref={el => { staffColRefs.current[staff.id] = el }}
                     onMouseEnter={() => { if (!drag) { setHovS(staff.id); setHoverCol(staff.id) } }}
                     onMouseLeave={() => { if (!drag) { setHovS(null); setHovSlot(null); setHoverCol(null); setHoverRow(null) } }}
                     onMouseMove={e => {
                       if (drag) return
                       const r = e.currentTarget.getBoundingClientRect()
-                      const y = e.clientY - r.top
-                      const totalH = r.height
-                      setHoverRow(Math.floor(y / totalH * totalSlots / SLOTS_PER_HR))
-                      if (hovS === staff.id && !hovA && !selA) setHovSlot(Math.floor(y / (totalH / totalSlots / 2)) * (totalH / totalSlots / 2))
+                      const y = e.clientY - r.top + (scrollRef.current?.scrollTop || 0)
+                      setHoverRow(Math.floor(y / HH))
+                      if (hovS === staff.id && !hovA && !selA) setHovSlot(Math.floor(y / (HH / 2)) * (HH / 2))
                     }}
                     onClick={e => {
                       if (drag || hovA || selA) return
                       const r = e.currentTarget.getBoundingClientRect()
-                      const y = e.clientY - r.top
-                      const slotIdx = Math.floor(y / r.height * totalSlots)
-                      const slotHour = SH + slotIdx / SLOTS_PER_HR
+                      const y = e.clientY - r.top + (scrollRef.current?.scrollTop || 0)
+                      const slotHour = SH + y / HH
                       const h = Math.floor(slotHour)
                       const m = Math.round((slotHour - h) * 60 / 15) * 15
                       const timeStr = `${String(h).padStart(2,'0')}:${String(m % 60).padStart(2,'0')}`
@@ -1754,62 +1765,43 @@ const Calendar = () => {
                       }
                     }}
                     style={{
-                      gridRow: '1 / -1', gridColumn: ci + 2,
-                      position: 'relative', zIndex: 1,
+                      flex: 1, position: 'relative', borderLeft: '1px solid #EBEBEB',
                       background: drag?.ghostStaffId === staff.id ? 'rgba(17,17,17,0.03)' : hoverCol === staff.id ? 'rgba(17,17,17,0.015)' : 'transparent',
                       cursor: drag ? (drag.type === 'resize' ? 'ns-resize' : 'grabbing') : hovA ? 'pointer' : 'cell',
                       transition: 'background 0.15s ease',
                     }}>
+                    {Array.from({ length: totHrs }, (_, i) => (
+                      <div key={i}>
+                        <div style={{ position: 'absolute', top: i * HH, left: 0, right: 0, height: HH, background: hoverRow === i && hoverCol === staff.id ? 'rgba(17,17,17,0.04)' : hoverRow === i ? 'rgba(17,17,17,0.015)' : 'transparent', transition: 'background 0.15s ease', pointerEvents: 'none' }} />
+                        <div style={{ position: 'absolute', top: i * HH, left: 0, right: 0, height: 1, background: '#E5E5E5' }} />
+                        <div style={{ position: 'absolute', top: i * HH + HH / 2, left: 0, right: 0, borderTop: '1px dashed #F0F0F0' }} />
+                      </div>
+                    ))}
                     {!drag && hovS === staff.id && !hovA && !selA && hovSlot !== null && (
-                      <div style={{ position: 'absolute', top: hovSlot, left: 4, right: 4, height: 30, borderRadius: 4, border: '2px dashed #D4A57440', background: '#D4A57406', display: 'flex', alignItems: 'center', justifyContent: 'center', pointerEvents: 'none', zIndex: 1 }}><PlusIcon size={16} /></div>
+                      <div style={{ position: 'absolute', top: hovSlot, left: 4, right: 4, height: HH / 2, borderRadius: 4, border: '2px dashed #D4A57440', background: '#D4A57406', display: 'flex', alignItems: 'center', justifyContent: 'center', pointerEvents: 'none', zIndex: 1 }}><PlusIcon size={16} /></div>
                     )}
+                    {blocks.filter(b => b.allStaff || b.staffId === staff.id).map((b, i) => (
+                      <div key={`b${i}`} style={{
+                        position: 'absolute', top: (b.start - SH) * HH + 1, left: 4, right: 4,
+                        height: b.dur * HH - 2, borderRadius: 4,
+                        background: b.type === 'meeting' ? 'repeating-linear-gradient(135deg,#D5D5D5,#D5D5D5 3px,#E8E8E8 3px,#E8E8E8 7px)' : '#ECECEC',
+                        border: '1px solid #D0D0D0', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1,
+                      }}>
+                        <span style={{ fontSize: 9, fontWeight: 800, color: '#999', textTransform: 'uppercase', letterSpacing: 2 }}>{b.label}</span>
+                      </div>
+                    ))}
+                    {filteredBookings.filter(a => a.staffId === staff.id).map(a => <Bl key={a.id} a={a} />)}
+                    {drag?.type === 'move' && drag.ghostStaffId === staff.id && (() => {
+                      const a = bookings.find(b => b.id === drag.id)
+                      if (!a || a.staffId === staff.id) return null
+                      return <DragGhost />
+                    })()}
                   </div>
                 ))}
 
-                {/* Block time cards — grid-placed */}
-                {staffColumns.map((staff, ci) =>
-                  (blocks || []).filter(b => b.allStaff || b.staffId === staff.id).map((b, i) => (
-                    <div key={`blk-${staff.id}-${i}`} style={{
-                      gridRow: `${timeToSlot(b.start) + 1} / ${timeToSlot(b.start) + durToSlots(b.dur) + 1}`,
-                      gridColumn: ci + 2, margin: '1px 4px', borderRadius: 4, zIndex: 2,
-                      background: b.type === 'meeting' ? 'repeating-linear-gradient(135deg,#D5D5D5,#D5D5D5 3px,#E8E8E8 3px,#E8E8E8 7px)' : '#ECECEC',
-                      border: '1px solid #D0D0D0', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    }}>
-                      <span style={{ fontSize: 9, fontWeight: 800, color: '#999', textTransform: 'uppercase', letterSpacing: 2 }}>{b.label}</span>
-                    </div>
-                  ))
-                )}
-
-                {/* Booking cards — grid-placed, auto-sizing */}
-                {filteredBookings.map(a => <Bl key={a.id} a={a} />)}
-
-                {/* Drag ghost in destination column */}
-                {drag?.type === 'move' && (() => {
-                  const a = bookings.find(b => b.id === drag.id)
-                  if (!a || a.staffId === drag.ghostStaffId) return null
-                  const ghostCI = staffColumns.findIndex(s => s.id === drag.ghostStaffId)
-                  if (ghostCI < 0) return null
-                  const bg = gc(a)
-                  return (
-                    <div style={{ gridRow: '1 / -1', gridColumn: ghostCI + 2, position: 'relative', pointerEvents: 'none', zIndex: 40 }}>
-                      <div style={{
-                        position: 'absolute', top: drag.ghostTop + 1, left: 4, right: 4,
-                        height: drag.ghostH - 2, borderRadius: 999,
-                        background: bg, opacity: 0.85,
-                        boxShadow: `0 12px 36px ${bg}40, 0 0 0 2px #fff, 0 0 0 4px ${bg}`,
-                        transform: 'scale(1.03)',
-                      }} />
-                    </div>
-                  )
-                })()}
-
-                {/* Current time red line */}
-                {isToday && tp > 0 && (
-                  <div style={{ gridRow: '1 / -1', gridColumn: '1 / -1', position: 'relative', pointerEvents: 'none', zIndex: 15 }}>
-                    <div style={{ position: 'absolute', top: tp, left: TCW - 3, right: 0, height: 2, background: '#EF4444' }}>
-                      <div style={{ position: 'absolute', left: 0, top: -3.5, width: 9, height: 9, borderRadius: '50%', background: '#EF4444' }} />
-                    </div>
-                    <div style={{ position: 'absolute', top: tp - 8, left: 0, zIndex: 12, background: '#EF4444', color: '#fff', fontSize: 8, fontWeight: 700, padding: '2px 5px', borderRadius: 5, boxShadow: '0 2px 6px rgba(239,68,68,0.25)' }}>{ts}</div>
+                {isToday && tp > 0 && tp < totHrs * HH && (
+                  <div style={{ position: 'absolute', top: tp, left: TCW - 3, right: 0, height: 2, background: '#EF4444', zIndex: 15, pointerEvents: 'none' }}>
+                    <div style={{ position: 'absolute', left: 0, top: -3.5, width: 9, height: 9, borderRadius: '50%', background: '#EF4444' }} />
                   </div>
                 )}
               </div>
