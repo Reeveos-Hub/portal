@@ -31,17 +31,21 @@ const timeAgo = (d) => {
 }
 
 /* ═══ Grid Engine ═══ */
-const COLS = 4
+const DESKTOP_COLS = 4
+const TABLET_COLS = 2
 const ROW_H = 100
+const TABLET_ROW_H = 80
 const GAP = 16
+const TABLET_GAP = 10
+const isTabletView = () => typeof window !== 'undefined' && window.innerWidth < 1024
 
-function calcPosition(item, containerWidth) {
-  const colW = (containerWidth - GAP * (COLS - 1)) / COLS
+function calcPosition(item, containerWidth, cols, rowH, gap) {
+  const colW = (containerWidth - gap * (cols - 1)) / cols
   return {
-    left: item.x * (colW + GAP),
-    top: item.y * (ROW_H + GAP),
-    width: item.w * colW + (item.w - 1) * GAP,
-    height: item.h * ROW_H + (item.h - 1) * GAP,
+    left: item.x * (colW + gap),
+    top: item.y * (rowH + gap),
+    width: item.w * colW + (item.w - 1) * gap,
+    height: item.h * rowH + (item.h - 1) * gap,
   }
 }
 
@@ -70,12 +74,29 @@ const DEFAULT_LAYOUT = [
   { i: 'consultations', x: 2, y: 10, w: 2, h: 2 },
 ]
 
+const TABLET_LAYOUT = [
+  { i: 'stats',         x: 0, y: 0,  w: 2, h: 2 },
+  { i: 'upcoming',      x: 0, y: 2,  w: 1, h: 4 },
+  { i: 'trends',        x: 1, y: 2,  w: 1, h: 2 },
+  { i: 'quickActions',  x: 0, y: 6,  w: 2, h: 2 },
+  { i: 'activity',      x: 1, y: 4,  w: 1, h: 2 },
+  { i: 'weekGlance',    x: 0, y: 8,  w: 1, h: 2 },
+  { i: 'services',      x: 1, y: 8,  w: 1, h: 3 },
+  { i: 'staffToday',    x: 0, y: 10, w: 1, h: 3 },
+  { i: 'consultations', x: 1, y: 11, w: 1, h: 2 },
+]
+
 /* ═══ MAIN DASHBOARD ═══ */
 const Dashboard = () => {
   const { business, businessType, loading: bizLoading } = useBusiness()
   const bid = business?.id ?? business?._id
   const isRestaurant = businessType === 'restaurant'
   const navigate = useNavigate()
+  const isTablet = isTabletView()
+  const cols = isTablet ? TABLET_COLS : DESKTOP_COLS
+  const rowH = isTablet ? TABLET_ROW_H : ROW_H
+  const gap = isTablet ? TABLET_GAP : GAP
+  const defaultLayout = isTablet ? TABLET_LAYOUT : DEFAULT_LAYOUT
 
   /* ── Data state ── */
   const [summary, setSummary] = useState(null)
@@ -90,7 +111,7 @@ const Dashboard = () => {
   /* ── Grid state ── */
   const containerRef = useRef(null)
   const [containerWidth, setContainerWidth] = useState(900)
-  const [layout, setLayout] = useState(DEFAULT_LAYOUT)
+  const [layout, setLayout] = useState(defaultLayout)
   const [editMode, setEditMode] = useState(false)
   const [lockedWidgets, setLockedWidgets] = useState(new Set())
   const [hiddenWidgets, setHiddenWidgets] = useState(new Set())
@@ -193,6 +214,7 @@ const Dashboard = () => {
   /* ── Load saved layout (with validation) ── */
   useEffect(() => {
     api.get('/dashboard/layout').then(data => {
+      if (isTablet) return // Tablet always uses its own optimised layout
       if (data && data.layout && Array.isArray(data.layout) && data.layout.length > 0 && data.layout[0]?.i) {
         // Validate: every item must have i, x, y, w, h and be a known widget
         const valid = data.layout.every(l => 
@@ -230,7 +252,7 @@ const Dashboard = () => {
     if (!editMode || lockedWidgets.has(itemId)) return
     const item = layout.find(l => l.i === itemId)
     if (!item || !containerRef.current) return
-    const pos = calcPosition(item, containerWidth)
+    const pos = calcPosition(item, containerWidth, cols, rowH, gap)
     const rect = containerRef.current.getBoundingClientRect()
     setDragging(itemId)
     setDragOffset({ x: e.clientX - rect.left - pos.left, y: e.clientY - rect.top - pos.top })
@@ -254,21 +276,21 @@ const Dashboard = () => {
         setDragPos({ x: e.clientX - rect.left - dragOffset.x, y: e.clientY - rect.top - dragOffset.y })
       }
       if (resizing) {
-        const colW = (containerWidth - GAP * (COLS - 1)) / COLS
-        const dxCols = Math.round((e.clientX - resizing.startX) / (colW + GAP))
-        const dyRows = Math.round((e.clientY - resizing.startY) / (ROW_H + GAP))
+        const colW = (containerWidth - gap * (cols - 1)) / cols
+        const dxCols = Math.round((e.clientX - resizing.startX) / (colW + gap))
+        const dyRows = Math.round((e.clientY - resizing.startY) / (rowH + gap))
         const widget = WIDGETS[resizing.id]
-        const newW = Math.max(widget?.minW || 1, Math.min(COLS, resizing.startW + dxCols))
+        const newW = Math.max(widget?.minW || 1, Math.min(cols, resizing.startW + dxCols))
         const newH = Math.max(widget?.minH || 1, resizing.startH + dyRows)
         setLayout(prev => prev.map(l => l.i === resizing.id ? { ...l, w: newW, h: newH } : l))
       }
     }
     const handleUp = () => {
       if (dragging) {
-        const colW = (containerWidth - GAP * (COLS - 1)) / COLS
-        const snapX = Math.round(dragPos.x / (colW + GAP))
-        const snapY = Math.round(dragPos.y / (ROW_H + GAP))
-        const newLayout = layout.map(l => l.i === dragging ? { ...l, x: Math.max(0, Math.min(COLS - l.w, snapX)), y: Math.max(0, snapY) } : l)
+        const colW = (containerWidth - gap * (cols - 1)) / cols
+        const snapX = Math.round(dragPos.x / (colW + gap))
+        const snapY = Math.round(dragPos.y / (rowH + gap))
+        const newLayout = layout.map(l => l.i === dragging ? { ...l, x: Math.max(0, Math.min(cols - l.w, snapX)), y: Math.max(0, snapY) } : l)
         setLayout(newLayout)
         saveLayout(newLayout)
         setDragging(null)
@@ -297,7 +319,7 @@ const Dashboard = () => {
     } else { saveLayout(layout, n, lockedWidgets) }
   }
   const resetLayout = () => {
-    setLayout([...DEFAULT_LAYOUT]); setHiddenWidgets(new Set()); setLockedWidgets(new Set())
+    setLayout([...defaultLayout]); setHiddenWidgets(new Set()); setLockedWidgets(new Set())
     api.delete('/dashboard/layout').catch(() => {})
   }
 
@@ -306,7 +328,7 @@ const Dashboard = () => {
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
     if (params.get('reset') === 'true') {
-      setLayout([...DEFAULT_LAYOUT]); setHiddenWidgets(new Set()); setLockedWidgets(new Set())
+      setLayout([...defaultLayout]); setHiddenWidgets(new Set()); setLockedWidgets(new Set())
       api.delete('/dashboard/layout').catch(() => {})
       window.history.replaceState({}, '', window.location.pathname)
       hasAutoReset.current = true
@@ -321,7 +343,7 @@ const Dashboard = () => {
       const hasUpcoming = layout.some(l => l.i === 'upcoming')
       if (!hasStats || !hasUpcoming) {
         console.warn('Required widgets missing from layout, resetting')
-        setLayout([...DEFAULT_LAYOUT]); setHiddenWidgets(new Set()); setLockedWidgets(new Set())
+        setLayout([...defaultLayout]); setHiddenWidgets(new Set()); setLockedWidgets(new Set())
         api.delete('/dashboard/layout').catch(() => {})
         hasAutoReset.current = true
       }
@@ -410,7 +432,7 @@ const Dashboard = () => {
               <div><div style={{ fontSize: 15, fontWeight: 700 }}>Appointment Trends</div><div style={{ fontSize: 11, color: '#9CA3AF' }}>By hour today</div></div>
               <span style={{ fontSize: 12, fontWeight: 600, color: '#9CA3AF' }}>{todayBookings.length} total</span>
             </div>
-            <div style={{ flex: 1, display: 'flex', alignItems: 'flex-end', gap: 4 }}>
+            <div style={{ flex: 1, display: 'flex', alignItems: 'flex-end', gap: 4, maxHeight: isTablet ? 100 : undefined }}>
               {hours.map((h, i) => (
                 <div key={h} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3, justifyContent: 'flex-end', height: '100%' }}>
                   {counts[i] > 0 && <span style={{ fontSize: 9, fontWeight: 700 }}>{counts[i]}</span>}
@@ -429,7 +451,7 @@ const Dashboard = () => {
             <div style={{ position: 'absolute', top: -16, right: -16, width: 120, height: 120, background: '#fff', opacity: 0.05, borderRadius: '50%', filter: 'blur(30px)' }} />
             <div style={{ position: 'absolute', bottom: -16, left: -16, width: 90, height: 90, background: '#10B981', opacity: 0.1, borderRadius: '50%', filter: 'blur(20px)' }} />
             <div style={{ fontSize: 16, fontWeight: 700, color: '#fff', marginBottom: 14, position: 'relative', zIndex: 1 }}>Quick Actions</div>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, flex: 1, position: 'relative', zIndex: 1 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: isTablet ? 'repeat(4, 1fr)' : '1fr 1fr', gap: isTablet ? 8 : 10, flex: 1, position: 'relative', zIndex: 1 }}>
               {(isRestaurant ? [
                 { icon: <Armchair size={20} color="#10B981" />, label: 'Walk-In', action: 'Walk-in' },
                 { icon: <CalendarCheck size={20} color="#D4A373" />, label: 'Reserve', action: 'Reserve' },
@@ -574,23 +596,23 @@ const Dashboard = () => {
                   {/* Time zone — navigates to Calendar, hover uses status colour */}
                   <div
                     onClick={() => !editMode && navigate(`/dashboard/calendar?date=${new Date().toISOString().split('T')[0]}&booking=${a.id}`)}
-                    style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '10px 12px', cursor: editMode ? 'grab' : 'pointer', transition: 'all 0.2s', borderRight: '1px solid #E5E7EB', flexShrink: 0, background: isTouch ? a.statusBg : 'transparent' }}
+                    style={{ display: 'flex', alignItems: 'center', gap: isTouch ? 3 : 5, padding: isTouch ? '6px 8px' : '10px 12px', cursor: editMode ? 'grab' : 'pointer', transition: 'all 0.2s', borderRight: '1px solid #E5E7EB', flexShrink: 0, background: isTouch ? a.statusBg : 'transparent' }}
                     onMouseEnter={e => { if (editMode || isTouch) return; e.currentTarget.style.background = a.statusBg; e.currentTarget.style.borderRightColor = a.statusBg; e.currentTarget.querySelector('.uc-time').style.color = a.statusText; e.currentTarget.querySelector('.uc-cal').style.color = a.statusColor }}
                     onMouseLeave={e => { if (isTouch) return; e.currentTarget.style.background = 'transparent'; e.currentTarget.style.borderRightColor = '#E5E7EB'; e.currentTarget.querySelector('.uc-time').style.color = '#111'; e.currentTarget.querySelector('.uc-cal').style.color = '#C4C8CF' }}
                   >
-                    <span className="uc-time" style={{ fontWeight: 700, fontSize: 13, minWidth: 34, transition: 'color 0.2s', color: isTouch ? a.statusText : '#111' }}>{a.time}</span>
+                    <span className="uc-time" style={{ fontWeight: 700, fontSize: isTouch ? 11 : 13, minWidth: isTouch ? 28 : 34, transition: 'color 0.2s', color: isTouch ? a.statusText : '#111' }}>{a.time}</span>
                     <CalendarCheck className="uc-cal" style={{ width: 12, height: 12, color: isTouch ? a.statusColor : '#C4C8CF', transition: 'color 0.2s', flexShrink: 0 }} />
                   </div>
                   {/* Name zone — navigates to CRM profile, hover uses gold */}
                   <div
                     onClick={() => !editMode && navigate(a.clientId ? `/dashboard/crm?view=clients&client=${a.clientId}` : `/dashboard/crm?view=clients&search=${encodeURIComponent(a.name)}`)}
-                    style={{ flex: 1, display: 'flex', alignItems: 'center', gap: 8, padding: '8px 10px', cursor: editMode ? 'grab' : 'pointer', transition: 'all 0.2s', minWidth: 0, background: isTouch ? '#F8F0DC' : 'transparent' }}
+                    style={{ flex: 1, display: 'flex', alignItems: 'center', gap: isTouch ? 6 : 8, padding: isTouch ? '6px 8px' : '8px 10px', cursor: editMode ? 'grab' : 'pointer', transition: 'all 0.2s', minWidth: 0, background: isTouch ? '#F8F0DC' : 'transparent' }}
                     onMouseEnter={e => { if (editMode || isTouch) return; e.currentTarget.style.background = '#F8F0DC'; e.currentTarget.querySelector('.uc-av').style.background = '#C9A84C'; e.currentTarget.querySelector('.uc-av').style.color = '#fff'; e.currentTarget.querySelector('.uc-nm').style.color = '#92700C' }}
                     onMouseLeave={e => { if (isTouch) return; e.currentTarget.style.background = 'transparent'; e.currentTarget.querySelector('.uc-av').style.background = '#F3F4F6'; e.currentTarget.querySelector('.uc-av').style.color = '#6B7280'; e.currentTarget.querySelector('.uc-nm').style.color = '#111' }}
                   >
-                    <div className="uc-av" style={{ width: 28, height: 28, borderRadius: '50%', background: isTouch ? '#C9A84C' : '#F3F4F6', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 9, fontWeight: 600, flexShrink: 0, color: isTouch ? '#fff' : '#6B7280', transition: 'all 0.2s' }}>{getInit(a.name)}</div>
+                    <div className="uc-av" style={{ width: isTouch ? 22 : 28, height: isTouch ? 22 : 28, borderRadius: '50%', background: isTouch ? '#C9A84C' : '#F3F4F6', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: isTouch ? 8 : 9, fontWeight: 600, flexShrink: 0, color: isTouch ? '#fff' : '#6B7280', transition: 'all 0.2s' }}>{getInit(a.name)}</div>
                     <div style={{ flex: 1, minWidth: 0 }}>
-                      <div className="uc-nm" style={{ fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontSize: 13, transition: 'color 0.2s', color: isTouch ? '#92700C' : '#111' }}>{a.name}</div>
+                      <div className="uc-nm" style={{ fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontSize: isTouch ? 11 : 13, transition: 'color 0.2s', color: isTouch ? '#92700C' : '#111' }}>{a.name}</div>
                       <div style={{ fontSize: 10, color: '#9CA3AF', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{a.service || '—'}</div>
                     </div>
                     <span style={{ fontSize: 9, fontWeight: 600, padding: '3px 8px', borderRadius: 10, background: a.statusBg, color: a.statusColor, flexShrink: 0 }}>{a.statusLabel}</span>
@@ -744,7 +766,7 @@ const Dashboard = () => {
         )}
 
         {/* ── Grid Area ── */}
-        <div style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', padding: '24px 24px 24px 24px', minWidth: 0 }}>
+        <div style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', padding: isTablet ? '12px 10px' : '24px 24px 24px 24px', minWidth: 0 }}>
           {editMode && (
             <div style={{ marginBottom: 16, padding: '10px 16px', borderRadius: 8, background: '#C9A84C15', border: '1px solid #C9A84C30', fontSize: 12, color: '#374151', display: 'flex', alignItems: 'center', gap: 8 }}>
               <Move size={14} color="#C9A84C" />
@@ -752,11 +774,11 @@ const Dashboard = () => {
             </div>
           )}
 
-          <div ref={containerRef} style={{ position: 'relative', width: '100%', height: (totalH + 2) * (ROW_H + GAP), minHeight: 400 }}>
+          <div ref={containerRef} style={{ position: 'relative', width: '100%', height: (totalH + 2) * (rowH + gap), minHeight: 400 }}>
             {/* Grid guides */}
-            {editMode && Array.from({ length: COLS }).map((_, i) => {
-              const colW = (containerWidth - GAP * (COLS - 1)) / COLS
-              return <div key={i} style={{ position: 'absolute', left: i * (colW + GAP), top: 0, width: colW, height: '100%', background: '#11111103', border: '1px dashed #E5E7EB', borderRadius: 8, pointerEvents: 'none' }} />
+            {editMode && Array.from({ length: cols }).map((_, i) => {
+              const colW = (containerWidth - gap * (cols - 1)) / cols
+              return <div key={i} style={{ position: 'absolute', left: i * (colW + gap), top: 0, width: colW, height: '100%', background: '#11111103', border: '1px dashed #E5E7EB', borderRadius: 8, pointerEvents: 'none' }} />
             })}
 
             {visibleLayout.map(item => {
@@ -764,15 +786,15 @@ const Dashboard = () => {
               const isLocked = lockedWidgets.has(item.i)
               const widget = WIDGETS[item.i]
               const pos = isDragging
-                ? { left: dragPos.x, top: dragPos.y, width: calcPosition(item, containerWidth).width, height: calcPosition(item, containerWidth).height }
-                : calcPosition(item, containerWidth)
+                ? { left: dragPos.x, top: dragPos.y, width: calcPosition(item, containerWidth, cols, rowH, gap).width, height: calcPosition(item, containerWidth, cols, rowH, gap).height }
+                : calcPosition(item, containerWidth, cols, rowH, gap)
 
               const isDark = item.i === 'quickActions'
 
               return (
                 <div key={item.i} style={{
                   position: 'absolute', left: pos.left, top: pos.top, width: pos.width, height: pos.height,
-                  background: isDark ? '#111111' : '#fff', color: isDark ? '#fff' : '#111', borderRadius: 14, padding: 16,
+                  background: isDark ? '#111111' : '#fff', color: isDark ? '#fff' : '#111', borderRadius: isTablet ? 12 : 14, padding: isTablet ? 10 : 16,
                   border: `1px solid ${isDragging ? '#C9A84C' : editMode ? '#C4C8CF' : isDark ? '#111' : '#E5E7EB'}`,
                   boxShadow: isDragging ? '0 16px 48px rgba(0,0,0,0.15), 0 0 0 2px #C9A84C' : '0 1px 3px rgba(0,0,0,0.04)',
                   transition: isDragging ? 'none' : 'all 0.25s ease',
