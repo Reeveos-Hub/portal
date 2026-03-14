@@ -221,7 +221,7 @@ export default function CRM() {
       <p style={{ color: '#EF4444', fontWeight: 700, fontSize: 16 }}>CRM Error</p>
       <p style={{ color: '#666', fontSize: 13, marginTop: 8 }}>{error}</p>
       <p style={{ color: '#999', fontSize: 12, marginTop: 8 }}>Business ID: {bid || 'NOT SET'}</p>
-      <button onClick={() => { setError(null); setLoading(true); loadDashboard() }} style={{ marginTop: 16, padding: '8px 20px', borderRadius: 8, border: '1px solid #DDD', background: '#fff', cursor: 'pointer', fontFamily: "'Figtree', sans-serif", fontWeight: 600 }}>Retry</button>
+      <button onClick={() => { setError(null); setLoading(true); loadDashboard() }} style={{ marginTop: 16, padding: '8px 20px', borderRadius: 999, border: '1px solid #DDD', background: '#fff', cursor: 'pointer', fontFamily: "'Figtree', sans-serif", fontWeight: 600 }}>Retry</button>
     </div>
   )
 
@@ -329,7 +329,7 @@ export default function CRM() {
             <div style={{ fontSize: 16, fontWeight: 800, color: '#111' }}>New Client</div>
             <div style={{ fontSize: 11, color: '#999', marginTop: 2 }}>Add to your client database</div>
           </div>
-          <button onClick={() => setShowNewClient(false)} style={{ width: 32, height: 32, borderRadius: 8, background: '#F5F5F5', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <button onClick={() => setShowNewClient(false)} style={{ width: 32, height: 32, borderRadius: 999, background: '#F5F5F5', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <X size={14} color="#999" />
           </button>
         </div>
@@ -408,7 +408,7 @@ export default function CRM() {
 
         {/* Footer */}
         <div style={{ padding: '14px 20px', borderTop: '1px solid #EBEBEB', display: 'flex', gap: 10, flexShrink: 0 }}>
-          <button onClick={() => setShowNewClient(false)} style={{ flex: 1, padding: 12, borderRadius: 12, border: '1px solid #EBEBEB', background: '#fff', fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: "'Figtree', sans-serif", color: '#666' }}>Cancel</button>
+          <button onClick={() => setShowNewClient(false)} style={{ flex: 1, padding: 12, borderRadius: 999, border: '1px solid #EBEBEB', background: '#fff', fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: "'Figtree', sans-serif", color: '#666' }}>Cancel</button>
           <button onClick={createNewClient} disabled={newClientSaving}
             style={{ flex: 1, padding: 12, borderRadius: 12, border: 'none', background: '#111', color: '#fff', fontSize: 13, fontWeight: 700, cursor: newClientSaving ? 'default' : 'pointer', fontFamily: "'Figtree', sans-serif", opacity: newClientSaving ? 0.6 : 1 }}>
             {newClientSaving ? 'Creating...' : 'Create Client'}
@@ -877,7 +877,7 @@ function ClientDetailPanel({ detail, timeline, onClose, bid, onInteraction, onRe
             { label: 'Send Message', Icon: MessageSquare, onClick: onMessage },
             { label: 'Book', Icon: Calendar, onClick: onBook },
           ].map(a => (
-            <button key={a.label} onClick={a.onClick} style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4, padding: '8px 8px', borderRadius: 8, border: '1px solid #EBEBEB', background: '#fff', fontSize: 11, fontWeight: 600, color: '#333', cursor: 'pointer', fontFamily: "'Figtree', sans-serif" }}>
+            <button key={a.label} onClick={a.onClick} style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4, padding: '8px 8px', borderRadius: 999, border: '1px solid #EBEBEB', background: '#fff', fontSize: 11, fontWeight: 600, color: '#333', cursor: 'pointer', fontFamily: "'Figtree', sans-serif" }}>
               <a.Icon size={13} /> {a.label}
             </button>
           ))}
@@ -885,7 +885,7 @@ function ClientDetailPanel({ detail, timeline, onClose, bid, onInteraction, onRe
 
         {/* View Full Profile */}
         {onViewProfile && (
-          <button onClick={onViewProfile} style={{ width: '100%', padding: '11px 0', borderRadius: 12, border: '2px solid #C9A84C', background: 'rgba(201,168,76,0.03)', color: '#C9A84C', fontSize: 14, fontWeight: 700, cursor: 'pointer', fontFamily: "'Figtree', sans-serif", marginBottom: 16, transition: 'all 0.15s' }}>
+          <button onClick={onViewProfile} style={{ width: '100%', padding: '11px 0', borderRadius: 999, border: '2px solid #C9A84C', background: 'rgba(201,168,76,0.03)', color: '#C9A84C', fontSize: 14, fontWeight: 700, cursor: 'pointer', fontFamily: "'Figtree', sans-serif", marginBottom: 16, transition: 'all 0.15s' }}>
             View Full Profile →
           </button>
         )}
@@ -1061,7 +1061,7 @@ function InteractionModal({ bid, clientId, clientName, onClose, onSaved, onBack 
       }}>
         {/* Header with back button */}
         <div style={{ padding: '16px 20px', borderBottom: '1px solid #EBEBEB', display: 'flex', alignItems: 'center', gap: 12, flexShrink: 0 }}>
-          <button onClick={handleClose} style={{ width: 32, height: 32, borderRadius: 8, border: '1px solid #EBEBEB', background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
+          <button onClick={handleClose} style={{ width: 32, height: 32, borderRadius: 999, border: '1px solid #EBEBEB', background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
             <ArrowLeft size={16} color="#666" />
           </button>
           <div>
@@ -1076,7 +1076,7 @@ function InteractionModal({ bid, clientId, clientName, onClose, onSaved, onBack 
             <label style={{ fontSize: 11, fontWeight: 700, color: '#888', textTransform: 'uppercase', display: 'block', marginBottom: 6 }}>Type</label>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
               {types.map(t => (
-                <button key={t.id} onClick={() => setType(t.id)} style={{ padding: '6px 14px', borderRadius: 8, border: type === t.id ? '2px solid #111' : '1px solid #E5E5E5', background: type === t.id ? '#111' : '#fff', color: type === t.id ? '#fff' : '#555', fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: "'Figtree', sans-serif" }}>{t.label}</button>
+                <button key={t.id} onClick={() => setType(t.id)} style={{ padding: '6px 14px', borderRadius: 999, border: type === t.id ? '2px solid #111' : '1px solid #E5E5E5', background: type === t.id ? '#111' : '#fff', color: type === t.id ? '#fff' : '#555', fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: "'Figtree', sans-serif" }}>{t.label}</button>
               ))}
             </div>
           </div>
@@ -1091,7 +1091,7 @@ function InteractionModal({ bid, clientId, clientName, onClose, onSaved, onBack 
             <label style={{ fontSize: 11, fontWeight: 700, color: '#888', textTransform: 'uppercase', display: 'block', marginBottom: 6 }}>Outcome</label>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
               {outcomes.map(o => (
-                <button key={o.id} onClick={() => setOutcome(o.id)} style={{ padding: '6px 14px', borderRadius: 8, border: outcome === o.id ? `2px solid ${GOLD}` : '1px solid #E5E5E5', background: outcome === o.id ? `${GOLD}15` : '#fff', color: outcome === o.id ? GOLD : '#555', fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: "'Figtree', sans-serif" }}>{o.label}</button>
+                <button key={o.id} onClick={() => setOutcome(o.id)} style={{ padding: '6px 14px', borderRadius: 999, border: outcome === o.id ? `2px solid ${GOLD}` : '1px solid #E5E5E5', background: outcome === o.id ? `${GOLD}15` : '#fff', color: outcome === o.id ? GOLD : '#555', fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: "'Figtree', sans-serif" }}>{o.label}</button>
               ))}
             </div>
           </div>
@@ -1106,7 +1106,7 @@ function InteractionModal({ bid, clientId, clientName, onClose, onSaved, onBack 
 
         {/* Bottom actions */}
         <div style={{ padding: '14px 20px', borderTop: '1px solid #EBEBEB', display: 'flex', gap: 10, flexShrink: 0 }}>
-          <button onClick={handleClose} style={{ flex: 1, padding: '10px', borderRadius: 10, border: '1px solid #E5E5E5', background: '#fff', fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: "'Figtree', sans-serif", color: '#555' }}>Cancel</button>
+          <button onClick={handleClose} style={{ flex: 1, padding: '10px', borderRadius: 999, border: '1px solid #E5E5E5', background: '#fff', fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: "'Figtree', sans-serif", color: '#555' }}>Cancel</button>
           <button onClick={save} disabled={saving || !summary.trim()} style={{ flex: 1, padding: '10px', borderRadius: 10, border: 'none', background: '#111', color: '#fff', fontSize: 13, fontWeight: 600, cursor: summary.trim() ? 'pointer' : 'default', opacity: summary.trim() ? 1 : 0.5, fontFamily: "'Figtree', sans-serif" }}>
             {saving ? 'Saving...' : 'Save'}
           </button>

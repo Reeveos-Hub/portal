@@ -179,7 +179,7 @@ const TableNode = ({ table, status, isSelected, locked, isDragging, onMouseDown,
           animation: 'fpPopIn 150ms cubic-bezier(0.34,1.56,0.64,1) 50ms forwards', opacity: 0,
         }}>
           <button onClick={(e) => { e.stopPropagation(); onEdit?.() }} style={{
-            width: 28, height: 28, borderRadius: 8, border: '1px solid #E5E7EB', cursor: 'pointer',
+            width: 28, height: 28, borderRadius: 999, border: '1px solid #E5E7EB', cursor: 'pointer',
             background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center',
             boxShadow: '0 2px 10px rgba(0,0,0,.1)',
           }} title="Edit table">
@@ -187,7 +187,7 @@ const TableNode = ({ table, status, isSelected, locked, isDragging, onMouseDown,
           </button>
           {(table.shape === 'long' || table.shape === 'booth') && (
             <button onClick={(e) => { e.stopPropagation(); onRotate?.() }} style={{
-              width: 28, height: 28, borderRadius: 8, border: '1px solid #E5E7EB', cursor: 'pointer',
+              width: 28, height: 28, borderRadius: 999, border: '1px solid #E5E7EB', cursor: 'pointer',
               background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center',
               boxShadow: '0 2px 10px rgba(0,0,0,.1)',
             }} title="Rotate 90°">

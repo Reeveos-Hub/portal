@@ -42,7 +42,7 @@ export default function VerifyEmail() {
           <CheckCircle2 size={48} color="#22C55E" style={{ marginBottom: 16 }} />
           <h1 style={{ fontSize: 24, fontWeight: 700, color: '#111', margin: '0 0 8px' }}>Email verified</h1>
           <p style={{ fontSize: 15, color: '#666', margin: '0 0 24px' }}>Your email has been confirmed. You're all set.</p>
-          <button onClick={() => navigate('/login')} style={{ padding: '12px 28px', borderRadius: 8, border: 'none', background: '#111', color: '#FFF', fontWeight: 700, fontSize: 14, cursor: 'pointer' }}>
+          <button onClick={() => navigate('/login')} style={{ padding: '12px 28px', borderRadius: 999, border: 'none', background: '#111', color: '#FFF', fontWeight: 700, fontSize: 14, cursor: 'pointer' }}>
             Sign in
           </button>
         </>}
@@ -51,7 +51,7 @@ export default function VerifyEmail() {
           <XCircle size={48} color="#EF4444" style={{ marginBottom: 16 }} />
           <h1 style={{ fontSize: 24, fontWeight: 700, color: '#111', margin: '0 0 8px' }}>Verification failed</h1>
           <p style={{ fontSize: 15, color: '#666', margin: '0 0 24px' }}>{error || 'This link may have expired. Please sign in and request a new verification email.'}</p>
-          <button onClick={() => navigate('/login')} style={{ padding: '12px 28px', borderRadius: 8, border: 'none', background: '#111', color: '#FFF', fontWeight: 700, fontSize: 14, cursor: 'pointer' }}>
+          <button onClick={() => navigate('/login')} style={{ padding: '12px 28px', borderRadius: 999, border: 'none', background: '#111', color: '#FFF', fontWeight: 700, fontSize: 14, cursor: 'pointer' }}>
             Sign in
           </button>
         </>}

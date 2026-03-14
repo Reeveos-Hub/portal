@@ -278,7 +278,7 @@ export default function RoomSetupModal({ onComplete, onSkip }) {
                 disabled={saving || !customW || !customH || parseFloat(customW) < 2 || parseFloat(customH) < 2}
                 style={{
                   marginTop: 16, width: '100%', padding: '12px 20px',
-                  borderRadius: 12, border: 'none', cursor: 'pointer',
+                  borderRadius: 999, border: 'none', cursor: 'pointer',
                   background: '#111111', color: '#fff',
                   fontSize: 14, fontWeight: 700,
                   opacity: (!customW || !customH || parseFloat(customW) < 2 || parseFloat(customH) < 2) ? 0.4 : 1,

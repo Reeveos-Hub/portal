@@ -576,9 +576,9 @@ const Services = () => {
               <strong style={{ color: '#666' }}>Delete</strong> — permanently removes the service
             </div>
             <div style={{ display: 'flex', gap: 8 }}>
-              <button onClick={() => setDeleteConfirm(null)} style={{ flex: 1, padding: '12px 0', borderRadius: 10, border: '1px solid #E5E5E5', background: '#fff', fontSize: 13, fontWeight: 600, color: '#333', cursor: 'pointer', fontFamily: "'Figtree', sans-serif" }}>Cancel</button>
-              <button onClick={handleArchiveService} style={{ flex: 1, padding: '12px 0', borderRadius: 10, border: '1px solid #111', background: '#fff', fontSize: 13, fontWeight: 600, color: '#111', cursor: 'pointer', fontFamily: "'Figtree', sans-serif" }}>Archive</button>
-              <button onClick={handleDeleteService} style={{ flex: 1, padding: '12px 0', borderRadius: 10, border: 'none', background: '#EF4444', fontSize: 13, fontWeight: 600, color: '#fff', cursor: 'pointer', fontFamily: "'Figtree', sans-serif" }}>Delete</button>
+              <button onClick={() => setDeleteConfirm(null)} style={{ flex: 1, padding: '12px 0', borderRadius: 999, border: '1px solid #E5E5E5', background: '#fff', fontSize: 13, fontWeight: 600, color: '#333', cursor: 'pointer', fontFamily: "'Figtree', sans-serif" }}>Cancel</button>
+              <button onClick={handleArchiveService} style={{ flex: 1, padding: '12px 0', borderRadius: 999, border: '1px solid #111', background: '#fff', fontSize: 13, fontWeight: 600, color: '#111', cursor: 'pointer', fontFamily: "'Figtree', sans-serif" }}>Archive</button>
+              <button onClick={handleDeleteService} style={{ flex: 1, padding: '12px 0', borderRadius: 999, border: 'none', background: '#EF4444', fontSize: 13, fontWeight: 600, color: '#fff', cursor: 'pointer', fontFamily: "'Figtree', sans-serif" }}>Delete</button>
             </div>
           </div>
         </div>

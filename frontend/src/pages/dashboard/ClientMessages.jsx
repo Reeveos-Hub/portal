@@ -207,7 +207,7 @@ export default function ClientMessages() {
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, padding: '8px 0 10px', borderBottom: '1px solid #F3F4F6', marginBottom: 8 }}>
               {['😊','👍','❤️','🙏','✨','💆‍♀️','💅','🌟','👋','😍','🎉','💕','🔥','✅','📋','💬','📸','⏰','📞','💳'].map(e => (
                 <button key={e} onClick={() => { setReply(r => r + e); setShowEmoji(false) }}
-                  style={{ width: 36, height: 36, borderRadius: 8, border: 'none', background: 'transparent', fontSize: 20, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                  style={{ width: 36, height: 36, borderRadius: 999, border: 'none', background: 'transparent', fontSize: 20, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                   onMouseOver={ev => ev.currentTarget.style.background = '#F3F4F6'}
                   onMouseOut={ev => ev.currentTarget.style.background = 'transparent'}
                 >{e}</button>

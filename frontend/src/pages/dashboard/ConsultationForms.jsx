@@ -90,7 +90,7 @@ export default function ConsultationForms() {
 
   const card = { background: '#fff', borderRadius: 12, border: '1px solid #f0f0f0', padding: 16 }
   const tabBtn = (active) => ({
-    padding: '8px 16px', borderRadius: 8, fontSize: 11, fontWeight: 600, border: 'none', cursor: 'pointer',
+    padding: '8px 16px', borderRadius: 999, fontSize: 11, fontWeight: 600, border: 'none', cursor: 'pointer',
     background: active ? black : 'transparent', color: active ? gold : '#6b7280',
   })
 
@@ -106,10 +106,10 @@ export default function ConsultationForms() {
           <p style={{ fontSize: 11, color: '#9ca3af', marginTop: 2 }}>Manage client health questionnaires and contraindication screening</p>
         </div>
         <div style={{ display: 'flex', gap: 8 }}>
-          <button onClick={load} style={{ padding: '8px 12px', borderRadius: 8, border: '1px solid #e5e7eb', background: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}>
+          <button onClick={load} style={{ padding: '8px 12px', borderRadius: 999, border: '1px solid #e5e7eb', background: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}>
             <RefreshCw size={12} color="#6b7280" /><span style={{ fontSize: 11, color: '#6b7280' }}>Refresh</span>
           </button>
-          <button onClick={() => window.open(portalUrl, '_blank')} style={{ padding: '8px 12px', borderRadius: 8, border: 'none', background: gold, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}>
+          <button onClick={() => window.open(portalUrl, '_blank')} style={{ padding: '8px 12px', borderRadius: 999, border: 'none', background: gold, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}>
             <ExternalLink size={12} color={black} /><span style={{ fontSize: 11, fontWeight: 600, color: black }}>Preview Portal</span>
           </button>
         </div>
@@ -144,7 +144,7 @@ export default function ConsultationForms() {
           <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
             {['', 'clear', 'flagged', 'blocked'].map(f => (
               <button key={f} onClick={() => setFilter(f)}
-                style={{ padding: '6px 12px', borderRadius: 8, fontSize: 10, fontWeight: 600, border: filter === f ? `2px solid ${gold}` : '2px solid #e5e7eb', background: filter === f ? gold + '10' : '#fff', color: filter === f ? gold : '#6b7280', cursor: 'pointer' }}>
+                style={{ padding: '6px 12px', borderRadius: 999, fontSize: 10, fontWeight: 600, border: filter === f ? `2px solid ${gold}` : '2px solid #e5e7eb', background: filter === f ? gold + '10' : '#fff', color: filter === f ? gold : '#6b7280', cursor: 'pointer' }}>
                 {f || 'All'}
               </button>
             ))}
@@ -212,7 +212,7 @@ export default function ConsultationForms() {
             </div>
             <div style={{ display: 'flex', gap: 8 }}>
               <input readOnly value={portalUrl} style={{ flex: 1, padding: '8px 12px', borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 10, color: '#6b7280', background: '#f9fafb' }} />
-              <button onClick={copyLink} style={{ padding: '8px 12px', borderRadius: 8, background: copied ? '#22c55e' : gold + '15', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}>
+              <button onClick={copyLink} style={{ padding: '8px 12px', borderRadius: 999, background: copied ? '#22c55e' : gold + '15', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}>
                 {copied ? <Check size={12} color="#fff" /> : <Copy size={12} color={gold} />}
                 <span style={{ fontSize: 10, fontWeight: 600, color: copied ? '#fff' : gold }}>{copied ? 'Copied!' : 'Copy'}</span>
               </button>
@@ -249,7 +249,7 @@ export default function ConsultationForms() {
                   <div style={{ width: 8, height: 8, borderRadius: '50%', background: r.on ? '#22c55e' : '#d1d5db' }} />
                   <span style={{ fontSize: 10, color: '#374151' }}>{r.label}</span>
                 </div>
-                <div style={{ width: 32, height: 16, borderRadius: 8, background: r.on ? gold : '#e5e7eb', position: 'relative', cursor: 'pointer' }}>
+                <div style={{ width: 32, height: 16, borderRadius: 999, background: r.on ? gold : '#e5e7eb', position: 'relative', cursor: 'pointer' }}>
                   <div style={{ width: 12, height: 12, borderRadius: '50%', background: '#fff', position: 'absolute', top: 2, [r.on ? 'right' : 'left']: 2, boxShadow: '0 1px 2px rgba(0,0,0,0.1)' }} />
                 </div>
               </div>
@@ -332,9 +332,9 @@ export default function ConsultationForms() {
                 <textarea value={reviewNote} onChange={e => setReviewNote(e.target.value)} placeholder="Add notes about this client's form..."
                   style={{ width: '100%', padding: 12, borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 11, resize: 'vertical', minHeight: 60, outline: 'none', boxSizing: 'border-box' }} />
                 <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
-                  <button onClick={() => reviewSubmission(selectedSub._id)} style={{ flex: 1, padding: '10px 0', borderRadius: 8, border: 'none', background: gold, color: black, fontSize: 11, fontWeight: 700, cursor: 'pointer' }}>Mark Reviewed</button>
+                  <button onClick={() => reviewSubmission(selectedSub._id)} style={{ flex: 1, padding: '10px 0', borderRadius: 999, border: 'none', background: gold, color: black, fontSize: 11, fontWeight: 700, cursor: 'pointer' }}>Mark Reviewed</button>
                   {selectedSub.status === 'flagged' && (
-                    <button onClick={() => reviewSubmission(selectedSub._id, 'clear')} style={{ flex: 1, padding: '10px 0', borderRadius: 8, border: '2px solid #22c55e', background: '#ecfdf5', color: '#059669', fontSize: 11, fontWeight: 700, cursor: 'pointer' }}>Override → Clear</button>
+                    <button onClick={() => reviewSubmission(selectedSub._id, 'clear')} style={{ flex: 1, padding: '10px 0', borderRadius: 999, border: '2px solid #22c55e', background: '#ecfdf5', color: '#059669', fontSize: 11, fontWeight: 700, cursor: 'pointer' }}>Override → Clear</button>
                   )}
                 </div>
               </div>
@@ -346,7 +346,7 @@ export default function ConsultationForms() {
               </div>
             )}
 
-            <button onClick={() => setSelectedSub(null)} style={{ width: '100%', padding: '10px 0', borderRadius: 8, border: '1px solid #e5e7eb', background: '#fff', color: '#6b7280', fontSize: 11, fontWeight: 600, cursor: 'pointer', marginTop: 12 }}>Close</button>
+            <button onClick={() => setSelectedSub(null)} style={{ width: '100%', padding: '10px 0', borderRadius: 999, border: '1px solid #e5e7eb', background: '#fff', color: '#6b7280', fontSize: 11, fontWeight: 600, cursor: 'pointer', marginTop: 12 }}>Close</button>
           </div>
         </div>
       )}

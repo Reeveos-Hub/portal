@@ -216,7 +216,7 @@ const BookingLink = () => {
             <style>{`@keyframes slideIn { from { transform: translateX(100%) } to { transform: translateX(0) } }`}</style>
             {/* Header */}
             <div style={{ padding: '16px 20px', borderBottom: '1px solid #EBEBEB', display: 'flex', alignItems: 'center', gap: 12 }}>
-              <button onClick={() => setShowQr(false)} style={{ width: 32, height: 32, borderRadius: 8, border: '1px solid #EBEBEB', background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
+              <button onClick={() => setShowQr(false)} style={{ width: 32, height: 32, borderRadius: 999, border: '1px solid #EBEBEB', background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
                 <ArrowLeft size={16} color="#666" />
               </button>
               <div>
@@ -246,20 +246,20 @@ const BookingLink = () => {
                 <a
                   href={`https://api.qrserver.com/v1/create-qr-code/?size=500x500&data=${encodeURIComponent(bookingUrl)}&format=png&margin=10`}
                   download={`qr-${slug}.png`}
-                  style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, padding: '12px 16px', borderRadius: 10, border: 'none', background: '#111', color: '#fff', fontSize: 13, fontWeight: 600, textDecoration: 'none', cursor: 'pointer', fontFamily: "'Figtree', sans-serif" }}
+                  style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, padding: '12px 16px', borderRadius: 999, border: 'none', background: '#111', color: '#fff', fontSize: 13, fontWeight: 600, textDecoration: 'none', cursor: 'pointer', fontFamily: "'Figtree', sans-serif" }}
                 >
                   <Download size={16} /> Download PNG
                 </a>
                 <a
                   href={`https://api.qrserver.com/v1/create-qr-code/?size=1000x1000&data=${encodeURIComponent(bookingUrl)}&format=svg&margin=10`}
                   download={`qr-${slug}.svg`}
-                  style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, padding: '12px 16px', borderRadius: 10, border: '1px solid #EBEBEB', background: '#fff', color: '#111', fontSize: 13, fontWeight: 600, textDecoration: 'none', cursor: 'pointer', fontFamily: "'Figtree', sans-serif" }}
+                  style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, padding: '12px 16px', borderRadius: 999, border: '1px solid #EBEBEB', background: '#fff', color: '#111', fontSize: 13, fontWeight: 600, textDecoration: 'none', cursor: 'pointer', fontFamily: "'Figtree', sans-serif" }}
                 >
                   <Download size={16} /> Download SVG (Print Quality)
                 </a>
                 <button
                   onClick={() => { window.print() }}
-                  style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, padding: '12px 16px', borderRadius: 10, border: '1px solid #EBEBEB', background: '#fff', color: '#111', fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: "'Figtree', sans-serif" }}
+                  style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, padding: '12px 16px', borderRadius: 999, border: '1px solid #EBEBEB', background: '#fff', color: '#111', fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: "'Figtree', sans-serif" }}
                 >
                   <Printer size={16} /> Print
                 </button>
@@ -272,7 +272,7 @@ const BookingLink = () => {
                       alert('Link copied!')
                     }
                   }}
-                  style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, padding: '12px 16px', borderRadius: 10, border: '1px solid #EBEBEB', background: '#fff', color: '#111', fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: "'Figtree', sans-serif" }}
+                  style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, padding: '12px 16px', borderRadius: 999, border: '1px solid #EBEBEB', background: '#fff', color: '#111', fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: "'Figtree', sans-serif" }}
                 >
                   <Share2 size={16} /> Share
                 </button>

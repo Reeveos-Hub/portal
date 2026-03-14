@@ -637,7 +637,7 @@ const Dashboard = () => {
                 { label: 'Blocked', value: consultationStats.blocked, bg: '#FEF2F2', color: '#DC2626' },
                 { label: 'Clear', value: consultationStats.clear, bg: '#F0FDF4', color: '#059669' },
               ].map((c, i) => (
-                <div key={i} onClick={() => navigate('/dashboard/consultation-forms')} style={{ flex: 1, padding: 10, borderRadius: 8, background: c.bg, cursor: 'pointer' }}>
+                <div key={i} onClick={() => navigate('/dashboard/consultation-forms')} style={{ flex: 1, padding: 10, borderRadius: 999, background: c.bg, cursor: 'pointer' }}>
                   <div style={{ fontSize: 22, fontWeight: 800, color: c.color }}>{c.value}</div>
                   <div style={{ fontSize: 10, fontWeight: 600, color: c.color }}>{c.label}</div>
                 </div>
@@ -716,7 +716,7 @@ const Dashboard = () => {
             <Search style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', width: 14, height: 14, color: '#9CA3AF', pointerEvents: 'none' }} />
             <input type="text" value={searchFilter} onChange={e => setSearchFilter(e.target.value)} placeholder="Search clients, appointments..." style={{ paddingLeft: 30, paddingRight: 12, padding: '8px 12px 8px 30px', width: 240, background: '#F9FAFB', border: '1px solid #E5E7EB', borderRadius: 10, fontSize: 12, fontFamily: 'inherit', outline: 'none' }} />
           </div>
-          <button onClick={() => { setLoading(true); loadDashboard() }} style={{ padding: 8, borderRadius: 8, background: 'none', border: 'none', cursor: 'pointer', color: '#9CA3AF' }}><RefreshCw size={16} /></button>
+          <button onClick={() => { setLoading(true); loadDashboard() }} style={{ padding: 8, borderRadius: 999, background: 'none', border: 'none', cursor: 'pointer', color: '#9CA3AF' }}><RefreshCw size={16} /></button>
           <button onClick={() => { setEditMode(!editMode); if (editMode) setShowLibrary(false) }} style={{
             display: 'flex', alignItems: 'center', gap: 6, padding: '8px 16px', borderRadius: 8, fontSize: 12, fontWeight: 600,
             background: editMode ? '#111' : '#F3F4F6', color: editMode ? '#fff' : '#374151',
@@ -726,10 +726,10 @@ const Dashboard = () => {
           </button>
           {editMode && (
             <>
-              <button onClick={() => setShowLibrary(!showLibrary)} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 16px', borderRadius: 8, fontSize: 12, fontWeight: 600, background: '#F3F4F6', color: '#374151', border: '1px solid #E5E7EB', cursor: 'pointer', fontFamily: 'inherit' }}>
+              <button onClick={() => setShowLibrary(!showLibrary)} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 16px', borderRadius: 999, fontSize: 12, fontWeight: 600, background: '#F3F4F6', color: '#374151', border: '1px solid #E5E7EB', cursor: 'pointer', fontFamily: 'inherit' }}>
                 <Plus size={14} />Add Widget
               </button>
-              <button onClick={resetLayout} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 16px', borderRadius: 8, fontSize: 12, fontWeight: 600, background: '#F3F4F6', color: '#9CA3AF', border: '1px solid #E5E7EB', cursor: 'pointer', fontFamily: 'inherit' }}>
+              <button onClick={resetLayout} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 16px', borderRadius: 999, fontSize: 12, fontWeight: 600, background: '#F3F4F6', color: '#9CA3AF', border: '1px solid #E5E7EB', cursor: 'pointer', fontFamily: 'inherit' }}>
                 <RotateCcw size={14} />Reset
               </button>
             </>

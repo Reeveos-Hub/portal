@@ -95,7 +95,7 @@ export default function ClientPush() {
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 10, marginBottom: 20 }}>
         {TYPES.map(t => (
           <button key={t.id} onClick={() => setType(t.id)} style={{
-            padding: '14px 12px', borderRadius: 12, cursor: 'pointer', textAlign: 'left', fontFamily: S.font,
+            padding: '14px 12px', borderRadius: 999, cursor: 'pointer', textAlign: 'left', fontFamily: S.font,
             border: type === t.id ? `2px solid ${gold}` : `1px solid ${S.bdr}`,
             background: type === t.id ? 'rgba(200,163,76,0.04)' : S.card,
           }}>

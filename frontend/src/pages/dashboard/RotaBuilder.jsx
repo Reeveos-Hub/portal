@@ -535,7 +535,7 @@ const RotaBuilder = () => {
                         </div>
                       </div>
                       <button onClick={() => openEditTemplate(tpl)} style={{
-                        background: '#F9FAFB', border: '1px solid #E5E7EB', borderRadius: 8, padding: '6px 8px', cursor: 'pointer',
+                        background: '#F9FAFB', border: '1px solid #E5E7EB', borderRadius: 999, padding: '6px 8px', cursor: 'pointer',
                       }}>
                         <Edit2 size={14} style={{ color: '#6B7280' }} />
                       </button>
@@ -663,7 +663,7 @@ const RotaBuilder = () => {
             </h2>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
               <button onClick={prevWeek} style={{
-                background: '#fff', border: '1px solid #E5E7EB', borderRadius: 8, padding: '7px 10px', cursor: 'pointer',
+                background: '#fff', border: '1px solid #E5E7EB', borderRadius: 999, padding: '7px 10px', cursor: 'pointer',
               }}>
                 <ChevronLeft size={16} style={{ color: '#6B7280' }} />
               </button>
@@ -674,7 +674,7 @@ const RotaBuilder = () => {
                 Today
               </button>
               <button onClick={nextWeek} style={{
-                background: '#fff', border: '1px solid #E5E7EB', borderRadius: 8, padding: '7px 10px', cursor: 'pointer',
+                background: '#fff', border: '1px solid #E5E7EB', borderRadius: 999, padding: '7px 10px', cursor: 'pointer',
               }}>
                 <ChevronRight size={16} style={{ color: '#6B7280' }} />
               </button>

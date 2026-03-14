@@ -496,7 +496,7 @@ export default function AdminLayout() {
                       justifyContent: collapsed ? 'center' : 'flex-start',
                       marginLeft: collapsed ? 0 : 4, marginRight: collapsed ? 0 : 4,
                       width: collapsed ? '100%' : 'calc(100% - 8px)',
-                      borderRadius: 10, border: 'none', cursor: 'pointer',
+                      borderRadius: 999, border: 'none', cursor: 'pointer',
                       fontSize: 13, fontWeight: active ? 600 : 500, fontFamily: FIG,
                       color: active ? t.navActiveText : t.navText,
                       background: active ? t.navActiveBg : 'transparent',
@@ -519,12 +519,12 @@ export default function AdminLayout() {
         <div style={{ padding: 8, borderTop: `1px solid ${t.sidebarBorder}` }}>
           {/* Theme toggle */}
           {!collapsed && (
-            <div onClick={() => setDark(!dark)} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 12px', marginBottom: 4, borderRadius: 10, cursor: 'pointer', transition: 'background 150ms' }}
+            <div onClick={() => setDark(!dark)} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 12px', marginBottom: 4, borderRadius: 999, cursor: 'pointer', transition: 'background 150ms' }}
               onMouseOver={e => e.currentTarget.style.background = t.navHoverBg}
               onMouseOut={e => e.currentTarget.style.background = 'transparent'}
             >
               <div style={{
-                width: 36, height: 20, borderRadius: 10, position: 'relative', cursor: 'pointer',
+                width: 36, height: 20, borderRadius: 999, position: 'relative', cursor: 'pointer',
                 background: dark ? '#C9A84C' : '#E8E4DD', transition: 'background 300ms',
               }}>
                 <div style={{
@@ -562,7 +562,7 @@ export default function AdminLayout() {
               width: '100%', display: 'flex', alignItems: 'center', gap: 10,
               padding: collapsed ? '8px 0' : '8px 12px',
               justifyContent: collapsed ? 'center' : 'flex-start',
-              borderRadius: 10, border: 'none', cursor: 'pointer',
+              borderRadius: 999, border: 'none', cursor: 'pointer',
               fontSize: 12, fontWeight: 500, fontFamily: FIG,
               color: t.logoutText, background: 'transparent', transition: 'all 150ms',
             }}

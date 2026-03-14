@@ -154,7 +154,7 @@ const TopBar = ({ onMenuClick, sidebarOpen }) => {
             </div>
             <button 
               onClick={() => navigate('/dashboard/settings')}
-              style={{ width: '100%', padding: '10px 12px', fontSize: 13, color: theme.text.secondary, background: 'transparent', border: 'none', borderRadius: 8, cursor: 'pointer', textAlign: 'left', fontFamily: theme.font.family }}
+              style={{ width: '100%', padding: '10px 12px', fontSize: 13, color: theme.text.secondary, background: 'transparent', border: 'none', borderRadius: 999, cursor: 'pointer', textAlign: 'left', fontFamily: theme.font.family }}
               onMouseOver={e => e.currentTarget.style.background=theme.interactive.hover}
               onMouseOut={e => e.currentTarget.style.background='transparent'}
             >
@@ -162,7 +162,7 @@ const TopBar = ({ onMenuClick, sidebarOpen }) => {
             </button>
             <button 
               onClick={() => { logout?.(); navigate('/login') }}
-              style={{ width: '100%', padding: '10px 12px', fontSize: 13, color: theme.status.error, background: 'transparent', border: 'none', borderRadius: 8, cursor: 'pointer', textAlign: 'left', fontFamily: theme.font.family }}
+              style={{ width: '100%', padding: '10px 12px', fontSize: 13, color: theme.status.error, background: 'transparent', border: 'none', borderRadius: 999, cursor: 'pointer', textAlign: 'left', fontFamily: theme.font.family }}
               onMouseOver={e => e.currentTarget.style.background=theme.status.errorBg}
               onMouseOut={e => e.currentTarget.style.background='transparent'}
             >

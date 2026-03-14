@@ -42,7 +42,7 @@ const TextArea = ({ value, onChange, placeholder = '', rows = 3 }) => (
     style={{ width: '100%', padding: '9px 12px', border: '1px solid #E5E5E5', borderRadius: 10, fontSize: 13, outline: 'none', fontFamily: "'Figtree', sans-serif", resize: 'vertical', boxSizing: 'border-box' }} />
 )
 const Pill = ({ active, children, onClick }) => (
-  <button onClick={onClick} style={{ padding: '5px 14px', borderRadius: 8, border: active ? '2px solid #111' : '1px solid #E5E5E5', background: active ? '#111' : '#fff', color: active ? '#fff' : '#555', fontSize: 11, fontWeight: 600, cursor: 'pointer', fontFamily: "'Figtree', sans-serif" }}>{children}</button>
+  <button onClick={onClick} style={{ padding: '5px 14px', borderRadius: 999, border: active ? '2px solid #111' : '1px solid #E5E5E5', background: active ? '#111' : '#fff', color: active ? '#fff' : '#555', fontSize: 11, fontWeight: 600, cursor: 'pointer', fontFamily: "'Figtree', sans-serif" }}>{children}</button>
 )
 const StatusBadge = ({ status }) => (
   <span style={{ fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 6, background: `${STATUS_COLORS[status] || '#999'}15`, color: STATUS_COLORS[status] || '#999', textTransform: 'capitalize', whiteSpace: 'nowrap' }}>{(status || '').replace(/_/g, ' ')}</span>
@@ -166,7 +166,7 @@ export default function ShopManager() {
     <div data-tour="shop" style={{ padding: 40, textAlign: 'center', fontFamily: "'Figtree', sans-serif" }}>
       <p style={{ color: '#EF4444', fontWeight: 700 }}>Shop Error</p>
       <p style={{ color: '#666', fontSize: 13, marginTop: 8 }}>{error}</p>
-      <button onClick={() => { setError(null); setLoading(true); load() }} style={{ marginTop: 16, padding: '8px 20px', borderRadius: 8, border: '1px solid #DDD', background: '#fff', cursor: 'pointer', fontFamily: "'Figtree', sans-serif", fontWeight: 600 }}>Retry</button>
+      <button onClick={() => { setError(null); setLoading(true); load() }} style={{ marginTop: 16, padding: '8px 20px', borderRadius: 999, border: '1px solid #DDD', background: '#fff', cursor: 'pointer', fontFamily: "'Figtree', sans-serif", fontWeight: 600 }}>Retry</button>
     </div>
   )
 
@@ -192,13 +192,13 @@ export default function ShopManager() {
           {stats && <span style={{ fontSize: 11, color: '#888' }}>{stats.total_products} products · {stats.total_orders} orders · {fmtPrice(stats.total_revenue)} revenue</span>}
           {tab === 'products' && (
             <button onClick={() => setPanel({ type: 'product', data: { name: '', price: '', stock: '', category: '', description: '', status: 'active', type: 'physical', track_stock: true, visible_online: true, shipping_required: true, tags: '' } })}
-              style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '8px 16px', borderRadius: 10, border: 'none', background: '#111', color: '#fff', fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: "'Figtree', sans-serif" }}>
+              style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '8px 16px', borderRadius: 999, border: 'none', background: '#111', color: '#fff', fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: "'Figtree', sans-serif" }}>
               <Plus size={14} /> Add Product
             </button>
           )}
           {tab === 'discounts' && (
             <button onClick={() => setPanel({ type: 'discount', data: { code: '', type: 'percentage', value: '', min_spend: '', max_uses: '', status: 'active', applies_to: 'all' } })}
-              style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '8px 16px', borderRadius: 10, border: 'none', background: '#111', color: '#fff', fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: "'Figtree', sans-serif" }}>
+              style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '8px 16px', borderRadius: 999, border: 'none', background: '#111', color: '#fff', fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: "'Figtree', sans-serif" }}>
               <Plus size={14} /> Create Code
             </button>
           )}
@@ -233,9 +233,9 @@ export default function ShopManager() {
               <strong style={{ color: '#666' }}>Delete</strong> — permanently removes the product
             </div>
             <div style={{ display: 'flex', gap: 8 }}>
-              <button onClick={() => setDeleteConfirm(null)} style={{ flex: 1, padding: '12px 0', borderRadius: 10, border: '1px solid #E5E5E5', background: '#fff', fontSize: 13, fontWeight: 600, color: '#333', cursor: 'pointer', fontFamily: "'Figtree', sans-serif" }}>Cancel</button>
-              <button onClick={() => archiveProduct(deleteConfirm.id || deleteConfirm._id)} style={{ flex: 1, padding: '12px 0', borderRadius: 10, border: '1px solid #111', background: '#fff', fontSize: 13, fontWeight: 600, color: '#111', cursor: 'pointer', fontFamily: "'Figtree', sans-serif" }}>Archive</button>
-              <button onClick={() => deleteProduct(deleteConfirm.id || deleteConfirm._id)} style={{ flex: 1, padding: '12px 0', borderRadius: 10, border: 'none', background: '#EF4444', fontSize: 13, fontWeight: 600, color: '#fff', cursor: 'pointer', fontFamily: "'Figtree', sans-serif" }}>Delete</button>
+              <button onClick={() => setDeleteConfirm(null)} style={{ flex: 1, padding: '12px 0', borderRadius: 999, border: '1px solid #E5E5E5', background: '#fff', fontSize: 13, fontWeight: 600, color: '#333', cursor: 'pointer', fontFamily: "'Figtree', sans-serif" }}>Cancel</button>
+              <button onClick={() => archiveProduct(deleteConfirm.id || deleteConfirm._id)} style={{ flex: 1, padding: '12px 0', borderRadius: 999, border: '1px solid #111', background: '#fff', fontSize: 13, fontWeight: 600, color: '#111', cursor: 'pointer', fontFamily: "'Figtree', sans-serif" }}>Archive</button>
+              <button onClick={() => deleteProduct(deleteConfirm.id || deleteConfirm._id)} style={{ flex: 1, padding: '12px 0', borderRadius: 999, border: 'none', background: '#EF4444', fontSize: 13, fontWeight: 600, color: '#fff', cursor: 'pointer', fontFamily: "'Figtree', sans-serif" }}>Delete</button>
             </div>
           </div>
         </div>
@@ -328,10 +328,10 @@ function ProductsView({ products, search, setSearch, onEdit, onDelete, deletingI
             </div>
 
             <div style={{ display: 'flex', gap: 6, marginTop: 'auto', paddingTop: 8, borderTop: '1px solid #F5F5F5' }}>
-              <button onClick={() => onEdit(p)} style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4, padding: 6, borderRadius: 8, border: '1px solid #E5E5E5', background: '#fff', fontSize: 11, fontWeight: 600, color: '#333', cursor: 'pointer', fontFamily: "'Figtree', sans-serif" }}>
+              <button onClick={() => onEdit(p)} style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4, padding: 6, borderRadius: 999, border: '1px solid #E5E5E5', background: '#fff', fontSize: 11, fontWeight: 600, color: '#333', cursor: 'pointer', fontFamily: "'Figtree', sans-serif" }}>
                 <Edit3 size={12} /> Edit
               </button>
-              <button onClick={() => onDelete(p.id || p._id, p.name)} style={{ padding: '6px 10px', borderRadius: 8, border: '1px solid #FEE2E2', background: '#FFF5F5', color: '#EF4444', cursor: 'pointer', display: 'flex', alignItems: 'center' }}>
+              <button onClick={() => onDelete(p.id || p._id, p.name)} style={{ padding: '6px 10px', borderRadius: 999, border: '1px solid #FEE2E2', background: '#FFF5F5', color: '#EF4444', cursor: 'pointer', display: 'flex', alignItems: 'center' }}>
                 <Archive size={12} />
               </button>
             </div>
@@ -355,7 +355,7 @@ function OrdersView({ orders, onUpdate }) {
     <div>
       <div style={{ display: 'flex', gap: 4, marginBottom: 12 }}>
         {['all', 'pending', 'processing', 'shipped', 'delivered', 'cancelled'].map(s => (
-          <button key={s} onClick={() => setFilter(s)} style={{ padding: '5px 12px', borderRadius: 8, border: 'none', background: filter === s ? '#111' : '#F5F5F5', color: filter === s ? '#fff' : '#666', fontSize: 11, fontWeight: 600, cursor: 'pointer', textTransform: 'capitalize', fontFamily: "'Figtree', sans-serif" }}>
+          <button key={s} onClick={() => setFilter(s)} style={{ padding: '5px 12px', borderRadius: 999, border: 'none', background: filter === s ? '#111' : '#F5F5F5', color: filter === s ? '#fff' : '#666', fontSize: 11, fontWeight: 600, cursor: 'pointer', textTransform: 'capitalize', fontFamily: "'Figtree', sans-serif" }}>
             {s === 'all' ? `All (${orders.length})` : `${s} (${orders.filter(o => o.status === s).length})`}
           </button>
         ))}
@@ -382,13 +382,13 @@ function OrdersView({ orders, onUpdate }) {
           <div style={{ display: 'flex', gap: 6, paddingTop: 8, borderTop: '1px solid #F5F5F5' }}>
             {nextStatus[o.status] && (
               <button onClick={() => onUpdate(o.id, nextStatus[o.status])}
-                style={{ padding: '6px 16px', borderRadius: 8, border: 'none', background: STATUS_COLORS[nextStatus[o.status]] || '#111', color: '#fff', fontSize: 11, fontWeight: 600, cursor: 'pointer', textTransform: 'capitalize', fontFamily: "'Figtree', sans-serif" }}>
+                style={{ padding: '6px 16px', borderRadius: 999, border: 'none', background: STATUS_COLORS[nextStatus[o.status]] || '#111', color: '#fff', fontSize: 11, fontWeight: 600, cursor: 'pointer', textTransform: 'capitalize', fontFamily: "'Figtree', sans-serif" }}>
                 Mark {nextStatus[o.status]}
               </button>
             )}
             {o.status !== 'cancelled' && o.status !== 'delivered' && (
               <button onClick={() => onUpdate(o.id, 'cancelled')}
-                style={{ padding: '6px 16px', borderRadius: 8, border: '1px solid #FEE2E2', background: '#FFF5F5', color: '#EF4444', fontSize: 11, fontWeight: 600, cursor: 'pointer', fontFamily: "'Figtree', sans-serif" }}>Cancel</button>
+                style={{ padding: '6px 16px', borderRadius: 999, border: '1px solid #FEE2E2', background: '#FFF5F5', color: '#EF4444', fontSize: 11, fontWeight: 600, cursor: 'pointer', fontFamily: "'Figtree', sans-serif" }}>Cancel</button>
             )}
           </div>
         </div>
@@ -483,7 +483,7 @@ function ProductPanel({ data, onSave, onClose }) {
         transform: show ? 'translateX(0)' : 'translateX(100%)', transition: 'transform 0.25s ease-out',
       }}>
         <div style={{ padding: '14px 20px', borderBottom: '1px solid #EBEBEB', display: 'flex', alignItems: 'center', gap: 12, flexShrink: 0 }}>
-          <button onClick={handleClose} style={{ width: 32, height: 32, borderRadius: 8, border: '1px solid #EBEBEB', background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
+          <button onClick={handleClose} style={{ width: 32, height: 32, borderRadius: 999, border: '1px solid #EBEBEB', background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
             <ArrowLeft size={16} color="#666" />
           </button>
           <h3 style={{ fontSize: 16, fontWeight: 700, color: '#111', margin: 0 }}>{data.id ? 'Edit Product' : 'Add Product'}</h3>
@@ -547,8 +547,8 @@ function ProductPanel({ data, onSave, onClose }) {
         </div>
 
         <div style={{ padding: '14px 20px', borderTop: '1px solid #EBEBEB', display: 'flex', gap: 10, flexShrink: 0 }}>
-          <button onClick={handleClose} style={{ flex: 1, padding: 10, borderRadius: 10, border: '1px solid #E5E5E5', background: '#fff', fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: "'Figtree', sans-serif", color: '#555' }}>Cancel</button>
-          <button onClick={handleSave} disabled={saving} style={{ flex: 1, padding: 10, borderRadius: 10, border: 'none', background: '#111', color: '#fff', fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: "'Figtree', sans-serif", opacity: saving ? 0.6 : 1 }}>
+          <button onClick={handleClose} style={{ flex: 1, padding: 10, borderRadius: 999, border: '1px solid #E5E5E5', background: '#fff', fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: "'Figtree', sans-serif", color: '#555' }}>Cancel</button>
+          <button onClick={handleSave} disabled={saving} style={{ flex: 1, padding: 10, borderRadius: 999, border: 'none', background: '#111', color: '#fff', fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: "'Figtree', sans-serif", opacity: saving ? 0.6 : 1 }}>
             {saving ? 'Saving...' : data.id ? 'Update Product' : 'Add Product'}
           </button>
         </div>
@@ -595,7 +595,7 @@ function DiscountPanel({ data, onSave, onClose }) {
         transform: show ? 'translateX(0)' : 'translateX(100%)', transition: 'transform 0.25s ease-out',
       }}>
         <div style={{ padding: '14px 20px', borderBottom: '1px solid #EBEBEB', display: 'flex', alignItems: 'center', gap: 12, flexShrink: 0 }}>
-          <button onClick={handleClose} style={{ width: 32, height: 32, borderRadius: 8, border: '1px solid #EBEBEB', background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
+          <button onClick={handleClose} style={{ width: 32, height: 32, borderRadius: 999, border: '1px solid #EBEBEB', background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
             <ArrowLeft size={16} color="#666" />
           </button>
           <h3 style={{ fontSize: 16, fontWeight: 700, color: '#111', margin: 0 }}>Create Discount Code</h3>
@@ -633,8 +633,8 @@ function DiscountPanel({ data, onSave, onClose }) {
         </div>
 
         <div style={{ padding: '14px 20px', borderTop: '1px solid #EBEBEB', display: 'flex', gap: 10, flexShrink: 0 }}>
-          <button onClick={handleClose} style={{ flex: 1, padding: 10, borderRadius: 10, border: '1px solid #E5E5E5', background: '#fff', fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: "'Figtree', sans-serif", color: '#555' }}>Cancel</button>
-          <button onClick={handleSave} disabled={saving} style={{ flex: 1, padding: 10, borderRadius: 10, border: 'none', background: '#111', color: '#fff', fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: "'Figtree', sans-serif", opacity: saving ? 0.6 : 1 }}>
+          <button onClick={handleClose} style={{ flex: 1, padding: 10, borderRadius: 999, border: '1px solid #E5E5E5', background: '#fff', fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: "'Figtree', sans-serif", color: '#555' }}>Cancel</button>
+          <button onClick={handleSave} disabled={saving} style={{ flex: 1, padding: 10, borderRadius: 999, border: 'none', background: '#111', color: '#fff', fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: "'Figtree', sans-serif", opacity: saving ? 0.6 : 1 }}>
             {saving ? 'Creating...' : 'Create Discount'}
           </button>
         </div>

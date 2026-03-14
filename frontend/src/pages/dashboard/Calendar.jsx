@@ -103,8 +103,8 @@ const Calendar = () => {
         <p style={{ fontSize: 18, fontWeight: 600 }}>Could not load your business</p>
         <p style={{ fontSize: 14, color: '#666', marginTop: 8 }}>Your session may have expired. Try refreshing or logging in again.</p>
         <div style={{ display: 'flex', gap: 12, marginTop: 16 }}>
-          <button onClick={() => window.location.reload()} style={{ padding: '10px 24px', background: '#111111', color: '#fff', border: 'none', borderRadius: 8, cursor: 'pointer', fontWeight: 600, fontFamily: "'Figtree', sans-serif" }}>Refresh</button>
-          <button onClick={() => { localStorage.removeItem('token'); localStorage.removeItem('refresh_token'); window.location.href = '/login' }} style={{ padding: '10px 24px', background: '#fff', color: '#111111', border: '2px solid #111111', borderRadius: 8, cursor: 'pointer', fontWeight: 600, fontFamily: "'Figtree', sans-serif" }}>Log in again</button>
+          <button onClick={() => window.location.reload()} style={{ padding: '10px 24px', background: '#111111', color: '#fff', border: 'none', borderRadius: 999, cursor: 'pointer', fontWeight: 600, fontFamily: "'Figtree', sans-serif" }}>Refresh</button>
+          <button onClick={() => { localStorage.removeItem('token'); localStorage.removeItem('refresh_token'); window.location.href = '/login' }} style={{ padding: '10px 24px', background: '#fff', color: '#111111', border: '2px solid #111111', borderRadius: 999, cursor: 'pointer', fontWeight: 600, fontFamily: "'Figtree', sans-serif" }}>Log in again</button>
         </div>
       </div>
     )
@@ -1028,22 +1028,22 @@ const Calendar = () => {
               if (bid && bookServices.length === 0) {
                 api.get(`/services-v2/business/${bid}`).then(r => setBookServices((r.categories || []).flatMap(c => c.services || []))).catch(() => {})
               }
-            }} style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5, padding: '10px 0', borderRadius: 10, border: '1px solid #EBEBEB', background: '#fff', fontSize: 12, fontWeight: 600, color: '#111111', cursor: 'pointer', fontFamily: "'Figtree', sans-serif" }}><EditIcon /> Edit</button>
+            }} style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5, padding: '10px 0', borderRadius: 999, border: '1px solid #EBEBEB', background: '#fff', fontSize: 12, fontWeight: 600, color: '#111111', cursor: 'pointer', fontFamily: "'Figtree', sans-serif" }}><EditIcon /> Edit</button>
             <button onClick={() => {
               setShowResched(prev => {
                 if (!prev) fetchAvailability(reschedDate)
                 return !prev
               })
-            }} style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5, padding: '10px 0', borderRadius: 10, border: '1px solid #EBEBEB', background: '#fff', fontSize: 12, fontWeight: 600, color: '#111111', cursor: 'pointer', fontFamily: "'Figtree', sans-serif" }}><RotateCcwIcon /> Reschedule</button>
+            }} style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5, padding: '10px 0', borderRadius: 999, border: '1px solid #EBEBEB', background: '#fff', fontSize: 12, fontWeight: 600, color: '#111111', cursor: 'pointer', fontFamily: "'Figtree', sans-serif" }}><RotateCcwIcon /> Reschedule</button>
             <button onClick={() => {
               if (a.status === 'checked_in') { openCheckOutPanel(a) }
               else { openCheckInPanel(a) }
-            }} style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5, padding: '10px 0', borderRadius: 10, border: 'none', background: a.status === 'checked_in' ? '#111111' : '#059669', fontSize: 12, fontWeight: 700, color: a.status === 'checked_in' ? '#C9A84C' : '#fff', cursor: 'pointer', boxShadow: '0 2px 8px rgba(17,17,17,0.2)', fontFamily: "'Figtree', sans-serif" }}>
+            }} style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5, padding: '10px 0', borderRadius: 999, border: 'none', background: a.status === 'checked_in' ? '#111111' : '#059669', fontSize: 12, fontWeight: 700, color: a.status === 'checked_in' ? '#C9A84C' : '#fff', cursor: 'pointer', boxShadow: '0 2px 8px rgba(17,17,17,0.2)', fontFamily: "'Figtree', sans-serif" }}>
               <CheckIcon /> {a.status === 'checked_in' ? 'Check Out' : a.status === 'completed' ? 'Done' : 'Check In'}
             </button>
             <button onClick={() => {
               setCancelConfirm(a.id)
-            }} style={{ width: 42, display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: 10, border: '1px solid #EF444420', background: '#FEF2F2', color: '#EF4444', cursor: 'pointer' }}><TrashIcon /></button>
+            }} style={{ width: 42, display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: 999, border: '1px solid #EF444420', background: '#FEF2F2', color: '#EF4444', cursor: 'pointer' }}><TrashIcon /></button>
           </div>
           {/* ── Reschedule availability panel ── */}
           {showResched && (
@@ -1321,7 +1321,7 @@ const Calendar = () => {
             <div style={{ flex: 1 }} />
             <div style={{ display: 'flex', background: '#F5F5F5', borderRadius: 14, padding: 2 }}>
               {['Day', 'Week', 'Month'].map(v => (
-                <button key={v} onClick={() => setViewMode(v)} style={{ padding: '4px 10px', borderRadius: 12, border: 'none', cursor: 'pointer', fontSize: 10, fontWeight: viewMode === v ? 700 : 500, background: viewMode === v ? '#fff' : 'transparent', color: viewMode === v ? '#111' : '#999', fontFamily: "'Figtree', sans-serif" }}>{v === 'Month' ? 'Mo' : v === 'Week' ? 'Wk' : v}</button>
+                <button key={v} onClick={() => setViewMode(v)} style={{ padding: '4px 10px', borderRadius: 999, border: 'none', cursor: 'pointer', fontSize: 10, fontWeight: viewMode === v ? 700 : 500, background: viewMode === v ? '#fff' : 'transparent', color: viewMode === v ? '#111' : '#999', fontFamily: "'Figtree', sans-serif" }}>{v === 'Month' ? 'Mo' : v === 'Week' ? 'Wk' : v}</button>
               ))}
             </div>
           </div>
@@ -1574,7 +1574,7 @@ const Calendar = () => {
                                 <div style={{ display: 'flex', gap: 10, marginBottom: 10 }}>
                                   <div style={{ flex: 1, position: 'relative' }}>
                                     <label style={{ fontSize: 10, fontWeight: 700, color: '#999', display: 'block', marginBottom: 4 }}>From</label>
-                                    <button onClick={() => { setProfileStartPicker(!profileStartPicker); setProfileEndPicker(false) }} style={{ width: '100%', padding: '10px 12px', borderRadius: 10, border: '1.5px solid #EBEBEB', fontSize: 14, fontWeight: 600, fontFamily: 'inherit', background: '#fff', cursor: 'pointer', textAlign: 'left', color: profileStart ? '#111' : '#ccc' }}>
+                                    <button onClick={() => { setProfileStartPicker(!profileStartPicker); setProfileEndPicker(false) }} style={{ width: '100%', padding: '10px 12px', borderRadius: 999, border: '1.5px solid #EBEBEB', fontSize: 14, fontWeight: 600, fontFamily: 'inherit', background: '#fff', cursor: 'pointer', textAlign: 'left', color: profileStart ? '#111' : '#ccc' }}>
                                       {profileStart || 'Start'}
                                     </button>
                                     {profileStartPicker && (
@@ -1587,7 +1587,7 @@ const Calendar = () => {
                                   </div>
                                   <div style={{ flex: 1, position: 'relative' }}>
                                     <label style={{ fontSize: 10, fontWeight: 700, color: '#999', display: 'block', marginBottom: 4 }}>To</label>
-                                    <button onClick={() => { setProfileEndPicker(!profileEndPicker); setProfileStartPicker(false) }} style={{ width: '100%', padding: '10px 12px', borderRadius: 10, border: '1.5px solid #EBEBEB', fontSize: 14, fontWeight: 600, fontFamily: 'inherit', background: '#fff', cursor: 'pointer', textAlign: 'left', color: profileEnd ? '#111' : '#ccc' }}>
+                                    <button onClick={() => { setProfileEndPicker(!profileEndPicker); setProfileStartPicker(false) }} style={{ width: '100%', padding: '10px 12px', borderRadius: 999, border: '1.5px solid #EBEBEB', fontSize: 14, fontWeight: 600, fontFamily: 'inherit', background: '#fff', cursor: 'pointer', textAlign: 'left', color: profileEnd ? '#111' : '#ccc' }}>
                                       {profileEnd || 'End'}
                                     </button>
                                     {profileEndPicker && (
@@ -1784,7 +1784,7 @@ const Calendar = () => {
           <div>
             <label style={{ fontSize: 11, fontWeight: 700, color: '#888', textTransform: 'uppercase', letterSpacing: 0.5 }}>Treatment</label>
             <div style={{ position: 'relative', marginTop: 4 }}>
-              <div onClick={() => { setTreatDrop(!treatDrop); setStaffDrop(false) }} style={{ width: '100%', padding: '10px 12px', border: '1px solid #E0E0E0', borderRadius: 10, fontSize: 14, fontFamily: "'Figtree', sans-serif", background: '#FAFAF8', cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center', boxSizing: 'border-box', color: bookForm.serviceId ? '#111' : '#999' }}>
+              <div onClick={() => { setTreatDrop(!treatDrop); setStaffDrop(false) }} style={{ width: '100%', padding: '10px 12px', border: '1px solid #E0E0E0', borderRadius: 999, fontSize: 14, fontFamily: "'Figtree', sans-serif", background: '#FAFAF8', cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center', boxSizing: 'border-box', color: bookForm.serviceId ? '#111' : '#999' }}>
                 <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{bookForm.serviceId ? (bookServices.find(s => (s.id || s._id) === bookForm.serviceId)?.name || 'Select treatment...') : 'Select treatment...'}</span>
                 <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#999" strokeWidth="2.5"><polyline points="6 9 12 15 18 9"/></svg>
               </div>
@@ -1792,7 +1792,7 @@ const Calendar = () => {
                 <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, marginTop: 4, background: '#fff', border: '1px solid #EBEBEB', borderRadius: 12, boxShadow: '0 8px 24px rgba(0,0,0,0.12)', zIndex: 100, maxHeight: 220, overflowY: 'auto', padding: 4 }}>
                   {bookServices.map(s => (
                     <div key={s.id || s._id} onClick={() => { setBookForm(f => ({ ...f, serviceId: s.id || s._id })); setTreatDrop(false) }}
-                      style={{ padding: '10px 12px', fontSize: 13, fontFamily: "'Figtree', sans-serif", cursor: 'pointer', borderRadius: 8, background: bookForm.serviceId === (s.id || s._id) ? '#F5F5F5' : 'transparent', fontWeight: bookForm.serviceId === (s.id || s._id) ? 600 : 400, color: '#111', display: 'flex', justifyContent: 'space-between' }}
+                      style={{ padding: '10px 12px', fontSize: 13, fontFamily: "'Figtree', sans-serif", cursor: 'pointer', borderRadius: 999, background: bookForm.serviceId === (s.id || s._id) ? '#F5F5F5' : 'transparent', fontWeight: bookForm.serviceId === (s.id || s._id) ? 600 : 400, color: '#111', display: 'flex', justifyContent: 'space-between' }}
                       onMouseOver={e => e.currentTarget.style.background = '#F5F5F5'} onMouseOut={e => { if (bookForm.serviceId !== (s.id || s._id)) e.currentTarget.style.background = 'transparent' }}>
                       <span>{s.name}</span>
                       <span style={{ color: '#888', fontSize: 12 }}>£{s.price || 0} · {s.duration || 60}min</span>
@@ -1806,16 +1806,16 @@ const Calendar = () => {
           <div>
             <label style={{ fontSize: 11, fontWeight: 700, color: '#888', textTransform: 'uppercase', letterSpacing: 0.5 }}>Therapist</label>
             <div style={{ position: 'relative', marginTop: 4 }}>
-              <div onClick={() => { setStaffDrop(!staffDrop); setTreatDrop(false) }} style={{ width: '100%', padding: '10px 12px', border: '1px solid #E0E0E0', borderRadius: 10, fontSize: 14, fontFamily: "'Figtree', sans-serif", background: '#FAFAF8', cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center', boxSizing: 'border-box', color: bookForm.staffId ? '#111' : '#999' }}>
+              <div onClick={() => { setStaffDrop(!staffDrop); setTreatDrop(false) }} style={{ width: '100%', padding: '10px 12px', border: '1px solid #E0E0E0', borderRadius: 999, fontSize: 14, fontFamily: "'Figtree', sans-serif", background: '#FAFAF8', cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center', boxSizing: 'border-box', color: bookForm.staffId ? '#111' : '#999' }}>
                 <span>{bookForm.staffId ? ((data?.staff || []).find(s => s.id === bookForm.staffId)?.name || 'Any available') : 'Any available'}</span>
                 <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#999" strokeWidth="2.5"><polyline points="6 9 12 15 18 9"/></svg>
               </div>
               {staffDrop && (
                 <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, marginTop: 4, background: '#fff', border: '1px solid #EBEBEB', borderRadius: 12, boxShadow: '0 8px 24px rgba(0,0,0,0.12)', zIndex: 100, maxHeight: 200, overflowY: 'auto', padding: 4 }}>
-                  <div onClick={() => { setBookForm(f => ({ ...f, staffId: '' })); setStaffDrop(false) }} style={{ padding: '10px 12px', fontSize: 13, color: '#999', cursor: 'pointer', borderRadius: 8, fontFamily: "'Figtree', sans-serif" }} onMouseOver={e => e.currentTarget.style.background = '#F5F5F5'} onMouseOut={e => e.currentTarget.style.background = 'transparent'}>Any available</div>
+                  <div onClick={() => { setBookForm(f => ({ ...f, staffId: '' })); setStaffDrop(false) }} style={{ padding: '10px 12px', fontSize: 13, color: '#999', cursor: 'pointer', borderRadius: 999, fontFamily: "'Figtree', sans-serif" }} onMouseOver={e => e.currentTarget.style.background = '#F5F5F5'} onMouseOut={e => e.currentTarget.style.background = 'transparent'}>Any available</div>
                   {(data?.staff || []).map(s => (
                     <div key={s.id} onClick={() => { setBookForm(f => ({ ...f, staffId: s.id })); setStaffDrop(false) }}
-                      style={{ padding: '10px 12px', fontSize: 13, fontFamily: "'Figtree', sans-serif", cursor: 'pointer', borderRadius: 8, background: bookForm.staffId === s.id ? '#F5F5F5' : 'transparent', fontWeight: bookForm.staffId === s.id ? 600 : 400, color: '#111' }}
+                      style={{ padding: '10px 12px', fontSize: 13, fontFamily: "'Figtree', sans-serif", cursor: 'pointer', borderRadius: 999, background: bookForm.staffId === s.id ? '#F5F5F5' : 'transparent', fontWeight: bookForm.staffId === s.id ? 600 : 400, color: '#111' }}
                       onMouseOver={e => e.currentTarget.style.background = '#F5F5F5'} onMouseOut={e => { if (bookForm.staffId !== s.id) e.currentTarget.style.background = 'transparent' }}>
                       {s.full || s.name}
                     </div>
@@ -1862,12 +1862,12 @@ const Calendar = () => {
               </div>
             </div>
             <div style={{ display: 'flex', gap: 10 }}>
-              <button onClick={() => setCancelConfirm(null)} style={{ flex: 1, padding: '12px 0', borderRadius: 12, border: '1px solid #EBEBEB', background: '#fff', fontSize: 14, fontWeight: 600, color: '#111', cursor: 'pointer', fontFamily: "'Figtree', sans-serif" }}>Keep appointment</button>
+              <button onClick={() => setCancelConfirm(null)} style={{ flex: 1, padding: '12px 0', borderRadius: 999, border: '1px solid #EBEBEB', background: '#fff', fontSize: 14, fontWeight: 600, color: '#111', cursor: 'pointer', fontFamily: "'Figtree', sans-serif" }}>Keep appointment</button>
               <button onClick={() => {
                 api.patch(`/bookings/business/${bid}/detail/${cancelConfirm}/status`, { status: 'cancelled' }).then(() => {
                   fetchCalendarData(false); setSelA(null); setCancelConfirm(null)
                 }).catch(err => { console.error('Cancel failed:', err); setCancelConfirm(null) })
-              }} style={{ flex: 1, padding: '12px 0', borderRadius: 12, border: 'none', background: '#EF4444', fontSize: 14, fontWeight: 600, color: '#fff', cursor: 'pointer', fontFamily: "'Figtree', sans-serif", boxShadow: '0 2px 8px rgba(239,68,68,0.3)' }}>Cancel appointment</button>
+              }} style={{ flex: 1, padding: '12px 0', borderRadius: 999, border: 'none', background: '#EF4444', fontSize: 14, fontWeight: 600, color: '#fff', cursor: 'pointer', fontFamily: "'Figtree', sans-serif", boxShadow: '0 2px 8px rgba(239,68,68,0.3)' }}>Cancel appointment</button>
             </div>
           </div>
         </>
@@ -1929,7 +1929,7 @@ const Calendar = () => {
                     {/* Checklist */}
                     <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 8, color: '#111' }}>Pre-Treatment Checklist</div>
                     {ciChecks.map(item => (
-                      <div key={item.id} onClick={() => setCiChecks(ciChecks.map(c => c.id === item.id ? { ...c, done: !c.done } : c))} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 11px', borderRadius: 8, border: '1px solid #EBEBEB', marginBottom: 4, cursor: 'pointer', background: item.done ? '#F0FDF4' : '#fff' }}>
+                      <div key={item.id} onClick={() => setCiChecks(ciChecks.map(c => c.id === item.id ? { ...c, done: !c.done } : c))} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 11px', borderRadius: 999, border: '1px solid #EBEBEB', marginBottom: 4, cursor: 'pointer', background: item.done ? '#F0FDF4' : '#fff' }}>
                         <div style={{ width: 20, height: 20, borderRadius: 6, border: item.done ? '2px solid #059669' : '2px solid #D5D5D0', background: item.done ? '#059669' : '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, transition: 'all 0.15s' }}>
                           {item.done && <span style={{ color: '#fff', fontSize: 11, fontWeight: 800 }}>✓</span>}
                         </div>
@@ -1981,7 +1981,7 @@ const Calendar = () => {
                         <div style={{ display: 'flex', gap: 5, marginTop: 5, alignItems: 'center' }}>
                           <span style={{ fontSize: 9, color: '#bbb', width: 28 }}>{sc.lo}</span>
                           {[1, 2, 3, 4, 5].map(n => (
-                            <button key={n} onClick={() => sc.set(n)} style={{ flex: 1, height: 36, borderRadius: 8, border: sc.val === n ? `2px solid ${sc.c}` : '1px solid #EBEBEB', background: sc.val === n ? `${sc.c}12` : '#fff', fontSize: 14, fontWeight: 700, cursor: 'pointer', color: sc.val === n ? sc.c : '#ddd', fontFamily: 'inherit' }}>{n}</button>
+                            <button key={n} onClick={() => sc.set(n)} style={{ flex: 1, height: 36, borderRadius: 999, border: sc.val === n ? `2px solid ${sc.c}` : '1px solid #EBEBEB', background: sc.val === n ? `${sc.c}12` : '#fff', fontSize: 14, fontWeight: 700, cursor: 'pointer', color: sc.val === n ? sc.c : '#ddd', fontFamily: 'inherit' }}>{n}</button>
                           ))}
                           <span style={{ fontSize: 9, color: '#bbb', width: 38, textAlign: 'right' }}>{sc.hi}</span>
                         </div>
@@ -2014,7 +2014,7 @@ const Calendar = () => {
                           <div style={{ fontSize: 11, color: '#888', marginTop: 2 }}>Aftercare, review, tip sent</div>
                         </div>
                       ) : (
-                        <button onClick={confirmCheckOut} style={{ width: '100%', padding: '12px 0', borderRadius: 10, border: 'none', background: '#111111', fontSize: 14, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', color: '#C9A84C' }}>Complete Appointment</button>
+                        <button onClick={confirmCheckOut} style={{ width: '100%', padding: '12px 0', borderRadius: 999, border: 'none', background: '#111111', fontSize: 14, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', color: '#C9A84C' }}>Complete Appointment</button>
                       )}
                     </div>
                   </div>
@@ -2040,7 +2040,7 @@ const Calendar = () => {
             <div style={{ fontSize: 16, fontWeight: 800, color: '#111' }}>Block Time</div>
             <div style={{ fontSize: 11, color: '#999', marginTop: 2 }}>Mark staff as unavailable</div>
           </div>
-          <button onClick={() => setShowBlockTime(false)} style={{ width: 32, height: 32, borderRadius: 8, background: '#F5F5F5', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <button onClick={() => setShowBlockTime(false)} style={{ width: 32, height: 32, borderRadius: 999, background: '#F5F5F5', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#999" strokeWidth="2" strokeLinecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
           </button>
         </div>
@@ -2064,7 +2064,7 @@ const Calendar = () => {
             <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
               {staffColumns.map(s => (
                 <button key={s.id} onClick={() => setBlockForm(f => ({ ...f, staff_id: s.id }))}
-                  style={{ padding: '6px 12px', borderRadius: 10, border: `1.5px solid ${blockForm.staff_id === s.id ? '#C9A84C' : '#EBEBEB'}`, fontSize: 11, fontWeight: 600, cursor: 'pointer', background: blockForm.staff_id === s.id ? '#F5F0E4' : '#FAFAF8', color: blockForm.staff_id === s.id ? '#92700C' : '#666', transition: 'all 0.15s' }}>{s.name}</button>
+                  style={{ padding: '6px 12px', borderRadius: 999, border: `1.5px solid ${blockForm.staff_id === s.id ? '#C9A84C' : '#EBEBEB'}`, fontSize: 11, fontWeight: 600, cursor: 'pointer', background: blockForm.staff_id === s.id ? '#F5F0E4' : '#FAFAF8', color: blockForm.staff_id === s.id ? '#92700C' : '#666', transition: 'all 0.15s' }}>{s.name}</button>
               ))}
             </div>
           </div>
@@ -2095,7 +2095,7 @@ const Calendar = () => {
 
         {/* Footer */}
         <div style={{ padding: '14px 20px', borderTop: '1px solid #EBEBEB', display: 'flex', gap: 10, flexShrink: 0 }}>
-          <button onClick={() => setShowBlockTime(false)} style={{ flex: 1, padding: 12, borderRadius: 12, border: '1px solid #EBEBEB', background: '#fff', fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: "'Figtree', sans-serif", color: '#666' }}>Cancel</button>
+          <button onClick={() => setShowBlockTime(false)} style={{ flex: 1, padding: 12, borderRadius: 999, border: '1px solid #EBEBEB', background: '#fff', fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: "'Figtree', sans-serif", color: '#666' }}>Cancel</button>
           <button onClick={async () => {
             if (!blockForm.staff_id || !blockForm.start_time || !blockForm.end_time) return
             try {
@@ -2103,7 +2103,7 @@ const Calendar = () => {
               setShowBlockTime(false)
               fetchCalendarData(false)
             } catch (err) { console.error('Block time failed:', err) }
-          }} style={{ flex: 1, padding: 12, borderRadius: 12, border: 'none', background: '#111', fontSize: 13, fontWeight: 700, color: '#fff', cursor: 'pointer', fontFamily: "'Figtree', sans-serif" }}>Block Time</button>
+          }} style={{ flex: 1, padding: 12, borderRadius: 999, border: 'none', background: '#111', fontSize: 13, fontWeight: 700, color: '#fff', cursor: 'pointer', fontFamily: "'Figtree', sans-serif" }}>Block Time</button>
         </div>
       </div>
 

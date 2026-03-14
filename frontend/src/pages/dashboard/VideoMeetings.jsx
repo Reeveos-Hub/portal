@@ -105,10 +105,10 @@ export default function VideoMeetings() {
       </div>
 
       <div style={{ display: 'flex', gap: 10, justifyContent: 'center' }}>
-        <button onClick={() => { setShowSplash(false); setSearchParams({}) }} style={{ padding: '10px 24px', borderRadius: 10, border: 'none', background: '#111', color: '#fff', fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: "'Figtree', sans-serif" }}>
+        <button onClick={() => { setShowSplash(false); setSearchParams({}) }} style={{ padding: '10px 24px', borderRadius: 999, border: 'none', background: '#111', color: '#fff', fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: "'Figtree', sans-serif" }}>
           Go to Video Meetings
         </button>
-        <button onClick={() => { window.location.href = '/dashboard/services' }} style={{ padding: '10px 24px', borderRadius: 10, border: '1px solid #E5E5E5', background: '#fff', color: '#333', fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: "'Figtree', sans-serif" }}>
+        <button onClick={() => { window.location.href = '/dashboard/services' }} style={{ padding: '10px 24px', borderRadius: 999, border: '1px solid #E5E5E5', background: '#fff', color: '#333', fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: "'Figtree', sans-serif" }}>
           Add Virtual Consultation Service
         </button>
       </div>
@@ -153,9 +153,9 @@ export default function VideoMeetings() {
             </div>
           </div>
           {connected ? (
-            <button onClick={disconnectGoogle} style={{ padding: '8px 16px', borderRadius: 10, border: '1px solid #FEE2E2', background: '#FFF5F5', color: '#EF4444', fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: "'Figtree', sans-serif" }}>Disconnect</button>
+            <button onClick={disconnectGoogle} style={{ padding: '8px 16px', borderRadius: 999, border: '1px solid #FEE2E2', background: '#FFF5F5', color: '#EF4444', fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: "'Figtree', sans-serif" }}>Disconnect</button>
           ) : (
-            <button onClick={connectGoogle} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '10px 20px', borderRadius: 10, border: 'none', background: '#111', color: '#fff', fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: "'Figtree', sans-serif" }}>
+            <button onClick={connectGoogle} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '10px 20px', borderRadius: 999, border: 'none', background: '#111', color: '#fff', fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: "'Figtree', sans-serif" }}>
               <Link2 size={14} /> Connect Google
             </button>
           )}
@@ -185,7 +185,7 @@ export default function VideoMeetings() {
         <div style={{ background: '#fff', borderRadius: 14, border: '1px solid #EBEBEB', padding: 20, marginBottom: 16 }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
             <h2 style={{ fontSize: 15, fontWeight: 700, color: '#111', margin: 0 }}>Upcoming Video Meetings</h2>
-            <button onClick={load} style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '5px 12px', borderRadius: 8, border: '1px solid #E5E5E5', background: '#fff', fontSize: 11, fontWeight: 600, color: '#666', cursor: 'pointer', fontFamily: "'Figtree', sans-serif" }}>
+            <button onClick={load} style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '5px 12px', borderRadius: 999, border: '1px solid #E5E5E5', background: '#fff', fontSize: 11, fontWeight: 600, color: '#666', cursor: 'pointer', fontFamily: "'Figtree', sans-serif" }}>
               <RefreshCw size={12} /> Refresh
             </button>
           </div>
@@ -230,7 +230,7 @@ export default function VideoMeetings() {
                 <div style={{ fontSize: 14, fontWeight: 700, color: '#111' }}>{s.title}</div>
                 <div style={{ fontSize: 12, color: '#888', marginTop: 2, lineHeight: 1.5 }}>{s.description}</div>
                 {s.action === 'connect' && (
-                  <button onClick={connectGoogle} style={{ marginTop: 8, display: 'flex', alignItems: 'center', gap: 6, padding: '8px 18px', borderRadius: 10, border: 'none', background: '#111', color: '#fff', fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: "'Figtree', sans-serif" }}>
+                  <button onClick={connectGoogle} style={{ marginTop: 8, display: 'flex', alignItems: 'center', gap: 6, padding: '8px 18px', borderRadius: 999, border: 'none', background: '#111', color: '#fff', fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: "'Figtree', sans-serif" }}>
                     <Link2 size={14} /> Connect Google
                   </button>
                 )}

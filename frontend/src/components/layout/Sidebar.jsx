@@ -538,7 +538,7 @@ const Sidebar = ({ open, onNavigate: closeMobile }) => {
                   onMouseLeave={handleRailLeave}
                 >
                   <button onClick={() => handleRailClick(item)} style={{
-                    width: 44, height: 44, borderRadius: 12, border: 'none', cursor: 'pointer',
+                    width: 44, height: 44, borderRadius: 999, border: 'none', cursor: 'pointer',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                     background: isActive ? 'rgba(255,255,255,0.14)' : isHovered ? 'rgba(255,255,255,0.08)' : 'transparent',
                     transition: 'all 200ms', position: 'relative',
@@ -596,7 +596,7 @@ const Sidebar = ({ open, onNavigate: closeMobile }) => {
                   {allItems.find(i => i.id === activeSection)?.label || 'Menu'}
                 </span>
                 <button onClick={() => { setPanelOpen(false); setPanelShow(false); setDripActive(false) }} style={{
-                  width: 28, height: 28, borderRadius: 8, border: 'none', cursor: 'pointer',
+                  width: 28, height: 28, borderRadius: 999, border: 'none', cursor: 'pointer',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                   color: T.muted, background: 'transparent', transition: 'all 150ms',
                 }}
@@ -627,7 +627,7 @@ const Sidebar = ({ open, onNavigate: closeMobile }) => {
                           <CascadeItem delay={id2} show={panelShow}>
                             <button onClick={() => children?.length > 1 ? toggleMenu(id) : children?.[0] && handleNav(children[0].path)} style={{
                               width: '100%', display: 'flex', alignItems: 'center', gap: 10,
-                              padding: '9px 10px', borderRadius: 10, border: 'none', cursor: 'pointer',
+                              padding: '9px 10px', borderRadius: 999, border: 'none', cursor: 'pointer',
                               fontSize: 13.5, fontFamily: 'Figtree,system-ui,sans-serif',
                               fontWeight: hasActive ? 600 : 500, color: hasActive ? T.forest : T.muted,
                               background: hasActive ? 'rgba(17,17,17,0.06)' : 'transparent',
@@ -654,7 +654,7 @@ const Sidebar = ({ open, onNavigate: closeMobile }) => {
             {/* User footer */}
             <CascadeItem delay={nd()} show={panelShow}>
               <div style={{ flexShrink: 0, borderTop: `1px solid ${T.borderLight}`, padding: 12 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '6px', borderRadius: 10, cursor: 'pointer', transition: 'all 200ms' }}
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '6px', borderRadius: 999, cursor: 'pointer', transition: 'all 200ms' }}
                   onMouseOver={e => e.currentTarget.style.background = 'rgba(240,237,231,0.6)'}
                   onMouseOut={e => e.currentTarget.style.background = 'transparent'}
                 >

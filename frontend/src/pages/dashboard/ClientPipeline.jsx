@@ -194,7 +194,7 @@ export default function ClientPipeline() {
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 6 }}>
                   {(displayData?.stages || []).map(s => (
                     <button key={s.id} onClick={() => { moveClient(editClient.id, s.id); setEditClient(prev => ({ ...prev, stage: s.id })) }}
-                      style={{ padding: '5px 12px', borderRadius: 8, fontSize: 11, fontWeight: 600, cursor: 'pointer', border: editClient.stage === s.id ? `2px solid ${s.color}` : '1px solid #E5E5E5', background: editClient.stage === s.id ? `${s.color}15` : '#fff', color: editClient.stage === s.id ? s.color : '#666', fontFamily: "'Figtree', sans-serif" }}>
+                      style={{ padding: '5px 12px', borderRadius: 999, fontSize: 11, fontWeight: 600, cursor: 'pointer', border: editClient.stage === s.id ? `2px solid ${s.color}` : '1px solid #E5E5E5', background: editClient.stage === s.id ? `${s.color}15` : '#fff', color: editClient.stage === s.id ? s.color : '#666', fontFamily: "'Figtree', sans-serif" }}>
                       {s.label}
                     </button>
                   ))}
