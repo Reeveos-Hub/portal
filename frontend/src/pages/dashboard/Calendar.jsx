@@ -93,7 +93,7 @@ const UK_HOLIDAYS = {
 }
 const pad2 = n => String(n).padStart(2, '0')
 const dateKey = d => `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`
-const WHH = 48 // compressed hour height for week view
+const WHH = 64 // compressed hour height for week view
 const Spark = ({ data, color }) => {
   const w = 50, h = 16
   const max = Math.max(...data), min = Math.min(...data)
@@ -1885,7 +1885,7 @@ const Calendar = () => {
           <div style={{ flex: 1, overflow: 'auto', background: '#fff', fontFamily: "'Figtree', sans-serif" }}>
             {/* Day column headers */}
             <div style={{ display: 'flex', position: 'sticky', top: 0, zIndex: 10, background: '#fff', borderBottom: '1px solid #EBEBEB' }}>
-              <div style={{ width: 36, flexShrink: 0 }} />
+              <div style={{ width: 40, flexShrink: 0 }} />
               {weekDates.map((d, i) => {
                 const isTd = dateKey(d) === dateKey(new Date())
                 const dayBk = bookingsByDate[dateKey(d)] || []
@@ -1904,19 +1904,19 @@ const Calendar = () => {
               {/* Hour lines + labels */}
               {Array.from({ length: EH - SH }, (_, i) => (
                 <div key={i} style={{ position: 'absolute', top: i * WHH, width: '100%', display: 'flex' }}>
-                  <div style={{ width: 36, flexShrink: 0, textAlign: 'right', paddingRight: 4 }}>
-                    <span style={{ fontSize: 9, fontWeight: 500, color: '#BBB' }}>{fmtAP(SH + i)}</span>
+                  <div style={{ width: 40, flexShrink: 0, textAlign: 'right', paddingRight: 4 }}>
+                    <span style={{ fontSize: 10, fontWeight: 500, color: '#999' }}>{fmtAP(SH + i)}</span>
                   </div>
                   <div style={{ flex: 1, borderTop: '1px solid #EBEBEB' }} />
                 </div>
               ))}
               {/* Half-hour lines */}
               {Array.from({ length: EH - SH }, (_, i) => (
-                <div key={`hf${i}`} style={{ position: 'absolute', top: i * WHH + WHH / 2, left: 36, right: 0, borderTop: '1px dashed #F0F0F0' }} />
+                <div key={`hf${i}`} style={{ position: 'absolute', top: i * WHH + WHH / 2, left: 40, right: 0, borderTop: '1px dashed #F0F0F0' }} />
               ))}
               {/* Column dividers */}
               {weekDates.slice(1).map((_, i) => (
-                <div key={`wc${i}`} style={{ position: 'absolute', top: 0, bottom: 0, left: `calc(36px + (100% - 36px) * ${(i + 1) / 7})`, width: 1, background: '#F0F0F0' }} />
+                <div key={`wc${i}`} style={{ position: 'absolute', top: 0, bottom: 0, left: `calc(40px + (100% - 40px) * ${(i + 1) / 7})`, width: 1, background: '#F0F0F0' }} />
               ))}
               {/* Booking cards */}
               {weekDates.map((wd, di) => {
@@ -1955,7 +1955,7 @@ const Calendar = () => {
                 })
                 return laid.map(b => {
                   const top = (b.start - SH) * WHH
-                  const height = Math.max(b.dur * WHH - 2, 18)
+                  const height = Math.max(b.dur * WHH - 2, 26)
                   const sc = staffColorMap[b.staffId] || '#6BA3C7'
                   const colW = 1 / b.totalCols
                   const leftFrac = (di + b.col * colW) / 7
@@ -1964,12 +1964,12 @@ const Calendar = () => {
                   const timeStr = `${fmtAP(Math.floor(b.start))} - ${fmtAP(endH)}`
                   return (
                     <div key={b.id} onClick={() => { setSelectedDate(dk); setViewMode('Day') }}
-                      style={{ position: 'absolute', top, height, left: `calc(36px + (100% - 36px) * ${leftFrac} + 1px)`, width: `calc((100% - 36px) * ${widthFrac} - 2px)`, background: sc, borderRadius: 5, padding: '3px 5px', cursor: 'pointer', overflow: 'hidden', zIndex: 5, boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
-                      <p style={{ fontSize: 8, fontWeight: 500, color: '#111', margin: 0, lineHeight: 1.2 }}>{timeStr}</p>
-                      <p style={{ fontSize: 10, fontWeight: 700, color: '#111', margin: '1px 0 0', lineHeight: 1.2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                        {(b.customerName || '').split(' ')[0]}
+                      style={{ position: 'absolute', top, height, left: `calc(40px + (100% - 40px) * ${leftFrac} + 1px)`, width: `calc((100% - 40px) * ${widthFrac} - 2px)`, background: sc, borderRadius: 5, padding: '4px 6px', cursor: 'pointer', overflow: 'hidden', zIndex: 5, boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
+                      <p style={{ fontSize: 10, fontWeight: 600, color: '#111', margin: 0, lineHeight: 1.2 }}>{timeStr}</p>
+                      <p style={{ fontSize: 12, fontWeight: 700, color: '#111', margin: '2px 0 0', lineHeight: 1.2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        {b.customerName || 'Walk-in'}
                       </p>
-                      {height >= 40 && <p style={{ fontSize: 9, fontWeight: 500, color: '#222', margin: '1px 0 0', lineHeight: 1.1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{b.service}</p>}
+                      {height >= 36 && <p style={{ fontSize: 10, fontWeight: 500, color: '#222', margin: '1px 0 0', lineHeight: 1.2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{b.service}</p>}
                     </div>
                   )
                 })
@@ -1983,7 +1983,7 @@ const Calendar = () => {
                 if (ch < SH || ch > EH) return null
                 const top = (ch - SH) * WHH
                 return (
-                  <div style={{ position: 'absolute', top, left: `calc(36px + (100% - 36px) * ${todayIdx / 7})`, width: `calc((100% - 36px) / 7)`, height: 2, background: '#EF4444', zIndex: 15, pointerEvents: 'none' }}>
+                  <div style={{ position: 'absolute', top, left: `calc(40px + (100% - 40px) * ${todayIdx / 7})`, width: `calc((100% - 40px) / 7)`, height: 2, background: '#EF4444', zIndex: 15, pointerEvents: 'none' }}>
                     <div style={{ position: 'absolute', left: -3, top: -3, width: 8, height: 8, borderRadius: 4, background: '#EF4444' }} />
                   </div>
                 )
