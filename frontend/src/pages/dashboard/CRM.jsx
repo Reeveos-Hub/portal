@@ -85,15 +85,17 @@ export default function CRM() {
   const [newClientSaving, setNewClientSaving] = useState(false)
   const [newClientError, setNewClientError] = useState('')
 
-  /* ── Auto-open New Client from Dashboard Quick Actions ── */
+  /* ── Auto-open New Client from Dashboard Quick Actions / FAB ── */
   useEffect(() => {
     const action = searchParams.get('action')
     if (action === 'add') {
       setShowNewClient(true)
+      setNewClientForm({ name: '', phone: '', email: '', notes: '', source: '', tags: [], sendConsultation: true })
+      setNewClientError('')
       searchParams.delete('action')
       setSearchParams(searchParams, { replace: true })
     }
-  }, [])
+  }, [searchParams])
 
   // Load data based on view
   const loadDashboard = useCallback(async () => {
