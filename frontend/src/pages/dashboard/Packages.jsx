@@ -127,11 +127,11 @@ function ConfirmDialog({ open, onClose, onConfirm, title, message }) {
       <p style={{ fontSize: 14, color: '#6B7280', margin: '0 0 24px', lineHeight: 1.6 }}>{message}</p>
       <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
         <button onClick={onClose} style={{
-          padding: '10px 20px', borderRadius: 10, border: 'none', background: '#F3F4F6',
+          padding: '10px 20px', borderRadius: 999, border: 'none', background: '#F3F4F6',
           fontSize: 14, fontFamily: font, cursor: 'pointer', fontWeight: 600, color: '#111',
         }}>Cancel</button>
         <button onClick={onConfirm} style={{
-          padding: '10px 20px', borderRadius: 10, border: 'none', background: '#DC2626',
+          padding: '10px 20px', borderRadius: 999, border: 'none', background: '#DC2626',
           color: '#fff', fontSize: 14, fontFamily: font, cursor: 'pointer', fontWeight: 600,
         }}>Delete</button>
       </div>
@@ -388,7 +388,7 @@ export default function Packages() {
         {tab === 'templates' && (
           <button onClick={openCreateTemplate} style={{
             display: 'flex', alignItems: 'center', gap: 8,
-            padding: '10px 20px', borderRadius: 12, border: 'none',
+            padding: '10px 20px', borderRadius: 999, border: 'none',
             background: '#111', color: '#fff', fontSize: 14, fontWeight: 600,
             fontFamily: font, cursor: 'pointer',
           }}>
@@ -404,7 +404,7 @@ export default function Packages() {
             key={t.key}
             onClick={() => setTab(t.key)}
             style={{
-              padding: '9px 22px', borderRadius: 10, border: 'none',
+              padding: '9px 22px', borderRadius: 999, border: 'none',
               background: tab === t.key ? '#fff' : 'transparent',
               boxShadow: tab === t.key ? '0 1px 4px rgba(0,0,0,0.08)' : 'none',
               color: tab === t.key ? '#111' : '#6B7280',
@@ -428,7 +428,7 @@ export default function Packages() {
               <p style={{ fontSize: 16, fontWeight: 600, color: '#111', margin: '0 0 6px' }}>No templates yet</p>
               <p style={{ fontSize: 14, color: '#9CA3AF', margin: '0 0 20px' }}>Create a package template to get started</p>
               <button onClick={openCreateTemplate} style={{
-                padding: '10px 24px', borderRadius: 12, border: 'none',
+                padding: '10px 24px', borderRadius: 999, border: 'none',
                 background: '#111', color: '#fff', fontSize: 14, fontWeight: 600,
                 fontFamily: font, cursor: 'pointer',
               }}>
@@ -489,7 +489,7 @@ export default function Packages() {
                         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginTop: 4 }}>
                           {(Array.isArray(t.allowed_services) ? t.allowed_services : [t.allowed_services]).map((s, i) => (
                             <span key={i} style={{
-                              fontSize: 11, padding: '2px 8px', borderRadius: 6,
+                              fontSize: 11, padding: '2px 8px', borderRadius: 999,
                               background: '#F3F4F6', color: '#6B7280',
                             }}>{s}</span>
                           ))}
@@ -558,7 +558,7 @@ export default function Packages() {
                         <button
                           onClick={() => { setRedeemModal(pkg); setRedeemService('') }}
                           style={{
-                            padding: '8px 18px', borderRadius: 10, border: 'none',
+                            padding: '8px 18px', borderRadius: 999, border: 'none',
                             background: '#C9A84C', color: '#fff', fontSize: 13,
                             fontWeight: 600, fontFamily: font, cursor: 'pointer',
                             display: 'flex', alignItems: 'center', gap: 6,
@@ -689,11 +689,11 @@ export default function Packages() {
 
           <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end', marginTop: 8 }}>
             <button onClick={() => setTemplateModal(false)} style={{
-              padding: '10px 22px', borderRadius: 10, border: 'none', background: '#F3F4F6',
+              padding: '10px 22px', borderRadius: 999, border: 'none', background: '#F3F4F6',
               fontSize: 14, fontFamily: font, cursor: 'pointer', fontWeight: 600, color: '#111',
             }}>Cancel</button>
             <button onClick={handleSaveTemplate} disabled={saving} style={{
-              padding: '10px 22px', borderRadius: 10, border: 'none', background: '#111',
+              padding: '10px 22px', borderRadius: 999, border: 'none', background: '#111',
               color: '#fff', fontSize: 14, fontFamily: font, cursor: 'pointer', fontWeight: 600,
               opacity: saving ? 0.6 : 1,
             }}>
@@ -750,11 +750,11 @@ export default function Packages() {
 
         <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
           <button onClick={() => setRedeemModal(null)} style={{
-            padding: '10px 22px', borderRadius: 10, border: 'none', background: '#F3F4F6',
+            padding: '10px 22px', borderRadius: 999, border: 'none', background: '#F3F4F6',
             fontSize: 14, fontFamily: font, cursor: 'pointer', fontWeight: 600, color: '#111',
           }}>Cancel</button>
           <button onClick={handleRedeem} disabled={redeeming} style={{
-            padding: '10px 22px', borderRadius: 10, border: 'none', background: '#C9A84C',
+            padding: '10px 22px', borderRadius: 999, border: 'none', background: '#C9A84C',
             color: '#fff', fontSize: 14, fontFamily: font, cursor: 'pointer', fontWeight: 600,
             opacity: redeeming ? 0.6 : 1,
           }}>

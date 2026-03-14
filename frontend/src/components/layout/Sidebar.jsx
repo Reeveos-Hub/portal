@@ -258,7 +258,7 @@ function WaterfallChild({ child, index, total, isActive, onClick, baseDelay, pan
     }}>
       <TreeBranch index={index} total={total} />
       <button onClick={onClick} style={{
-        flex: 1, textAlign: 'left', padding: '7px 10px', borderRadius: 8, border: 'none',
+        flex: 1, textAlign: 'left', padding: '7px 10px', borderRadius: 999, border: 'none',
         cursor: child.locked ? 'not-allowed' : 'pointer',
         fontSize: 13, fontFamily: 'Figtree,system-ui,sans-serif',
         fontWeight: isActive ? 600 : 500,
@@ -316,7 +316,7 @@ function CollapsedPopover({ item, activePath, onNavigate }) {
           return (
             <button key={child.id} onClick={() => !child.locked && onNavigate(child.path)} style={{
               display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-              width: '100%', textAlign: 'left', padding: '8px 10px', borderRadius: 8, border: 'none',
+              width: '100%', textAlign: 'left', padding: '8px 10px', borderRadius: 999, border: 'none',
               cursor: child.locked ? 'not-allowed' : 'pointer',
               fontSize: 13, fontFamily: 'Figtree,system-ui,sans-serif',
               fontWeight: isActive ? 600 : 500,

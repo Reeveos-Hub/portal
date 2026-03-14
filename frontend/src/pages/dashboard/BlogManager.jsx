@@ -7,12 +7,12 @@ import api from '../../utils/api'
 
 /* ─── Style tokens ─── */
 const btnPrimary = {
-  background: '#C9A84C', color: '#fff', border: 'none', borderRadius: 8,
+  background: '#C9A84C', color: '#fff', border: 'none', borderRadius: 999,
   padding: '8px 16px', fontFamily: 'Figtree, sans-serif', fontWeight: 600,
   fontSize: 14, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 6,
 }
 const btnSecondary = {
-  background: '#111', color: '#fff', border: 'none', borderRadius: 8,
+  background: '#111', color: '#fff', border: 'none', borderRadius: 999,
   padding: '8px 16px', fontFamily: 'Figtree, sans-serif', fontWeight: 600,
   fontSize: 14, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 6,
 }
@@ -240,12 +240,12 @@ export default function BlogManager() {
                         <td style={{ padding: '12px 16px' }}>
                           <div style={{ display: 'flex', gap: 6 }}>
                             <button onClick={() => handleEdit(post)} title="Edit" style={{
-                              background: '#f5f5f5', border: 'none', borderRadius: 6,
+                              background: '#f5f5f5', border: 'none', borderRadius: 999,
                               padding: '6px 8px', cursor: 'pointer', color: '#111',
                               display: 'inline-flex', alignItems: 'center',
                             }}><IconEdit /></button>
                             <button onClick={() => setDeleteConfirm(post.id)} title="Delete" style={{
-                              background: '#f5f5f5', border: 'none', borderRadius: 6,
+                              background: '#f5f5f5', border: 'none', borderRadius: 999,
                               padding: '6px 8px', cursor: 'pointer', color: '#dc2626',
                               display: 'inline-flex', alignItems: 'center',
                             }}><IconTrash /></button>

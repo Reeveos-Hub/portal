@@ -247,12 +247,12 @@ const WalkthroughOverlay = () => {
               {isWelcome ? (
                 <>
                   <button onClick={skip} style={{ fontSize: 13, color: '#999', background: 'none', border: 'none', cursor: 'pointer', padding: '10px 14px', fontFamily: 'Figtree, sans-serif', fontWeight: 500 }}>Skip Tour</button>
-                  <button onClick={next} style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, padding: '14px 24px', borderRadius: 14, fontSize: 15, fontWeight: 700, background: '#C9A84C', color: '#111', border: 'none', cursor: 'pointer', fontFamily: 'Figtree, sans-serif' }}>
+                  <button onClick={next} style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, padding: '14px 24px', borderRadius: 999, fontSize: 15, fontWeight: 700, background: '#C9A84C', color: '#111', border: 'none', cursor: 'pointer', fontFamily: 'Figtree, sans-serif' }}>
                     Let's Go <ArrowRight size={16} />
                   </button>
                 </>
               ) : isComplete ? (
-                <button onClick={next} style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, padding: '16px 24px', borderRadius: 14, fontSize: 15, fontWeight: 700, background: '#111', color: '#fff', border: 'none', cursor: 'pointer', fontFamily: 'Figtree, sans-serif' }}>
+                <button onClick={next} style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, padding: '16px 24px', borderRadius: 999, fontSize: 15, fontWeight: 700, background: '#111', color: '#fff', border: 'none', cursor: 'pointer', fontFamily: 'Figtree, sans-serif' }}>
                   Go to Dashboard <ArrowRight size={16} />
                 </button>
               ) : isInteractive ? (
@@ -263,7 +263,7 @@ const WalkthroughOverlay = () => {
               ) : (
                 <>
                   {stepIndex > 1 && <button onClick={back} style={{ fontSize: 13, color: '#999', background: 'none', border: 'none', cursor: 'pointer', padding: '10px 14px', fontFamily: 'Figtree, sans-serif', fontWeight: 500 }}>Back</button>}
-                  <button onClick={next} style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, padding: '14px 24px', borderRadius: 14, fontSize: 15, fontWeight: 700, background: '#111', color: '#fff', border: 'none', cursor: 'pointer', fontFamily: 'Figtree, sans-serif' }}>
+                  <button onClick={next} style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, padding: '14px 24px', borderRadius: 999, fontSize: 15, fontWeight: 700, background: '#111', color: '#fff', border: 'none', cursor: 'pointer', fontFamily: 'Figtree, sans-serif' }}>
                     {stepIndex >= totalSteps - 2 ? 'Finish' : 'Next'} <ArrowRight size={16} />
                   </button>
                 </>

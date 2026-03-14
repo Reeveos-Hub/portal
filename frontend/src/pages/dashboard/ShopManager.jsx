@@ -177,7 +177,7 @@ export default function ShopManager() {
         <div style={{ display: 'flex', gap: 4 }}>
           {TABS.map(t => (
             <button key={t.id} onClick={() => setTab(t.id)} style={{
-              display: 'flex', alignItems: 'center', gap: 6, padding: '8px 14px', borderRadius: 10, border: 'none',
+              display: 'flex', alignItems: 'center', gap: 6, padding: '8px 14px', borderRadius: 999, border: 'none',
               background: tab === t.id ? '#111' : 'transparent', color: tab === t.id ? '#fff' : '#666',
               fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: "'Figtree', sans-serif",
             }}>

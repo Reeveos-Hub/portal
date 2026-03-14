@@ -1279,7 +1279,7 @@ const Calendar = () => {
     return (
       <div style={{
         position: 'absolute', top: drag.ghostTop + 1, left: 4, right: 4,
-        height: drag.ghostH - 2, borderRadius: 6,
+        height: drag.ghostH - 2, borderRadius: 999,
         background: bg, opacity: 0.85,
         boxShadow: `0 12px 36px ${bg}40, 0 0 0 2px #fff, 0 0 0 4px ${bg}`,
         zIndex: 40, transform: 'scale(1.03)',
@@ -1605,7 +1605,7 @@ const Calendar = () => {
                                 )}
 
                                 <button onClick={confirmProfileBlock} disabled={!profileStart || !profileEnd} style={{
-                                  width: '100%', padding: '12px 0', borderRadius: 12, border: 'none',
+                                  width: '100%', padding: '12px 0', borderRadius: 999, border: 'none',
                                   background: profileBlocked ? '#22C55E' : (!profileStart || !profileEnd) ? '#E5E5E5' : s.color,
                                   color: profileBlocked ? '#fff' : (!profileStart || !profileEnd) ? '#aaa' : '#fff',
                                   fontSize: 14, fontWeight: 700, cursor: (!profileStart || !profileEnd) ? 'not-allowed' : 'pointer',

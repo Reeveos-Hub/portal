@@ -507,7 +507,7 @@ const RotaBuilder = () => {
               Rota Templates
             </h2>
             <button onClick={openCreateTemplate} style={{
-              background: BLACK, color: '#fff', border: 'none', borderRadius: 10, padding: '9px 18px',
+              background: BLACK, color: '#fff', border: 'none', borderRadius: 999, padding: '9px 18px',
               fontFamily: FONT, fontSize: 13, fontWeight: 600, cursor: 'pointer',
               display: 'flex', alignItems: 'center', gap: 6,
             }}>
@@ -546,7 +546,7 @@ const RotaBuilder = () => {
                         <div style={{ display: 'flex', gap: 4, marginBottom: 10 }}>
                           {Array.from({ length: cycleLen }, (_, i) => i + 1).map(wk => (
                             <span key={wk} style={{
-                              fontSize: 11, padding: '3px 8px', borderRadius: 6,
+                              fontSize: 11, padding: '3px 8px', borderRadius: 999,
                               background: '#F3F4F6', color: '#6B7280', fontWeight: 500,
                             }}>
                               Wk {wk}
@@ -904,7 +904,7 @@ const RotaBuilder = () => {
 
           {/* Save Button */}
           <button onClick={saveTemplate} disabled={tplSaving} style={{
-            background: BLACK, color: '#fff', border: 'none', borderRadius: 10, padding: '12px 0',
+            background: BLACK, color: '#fff', border: 'none', borderRadius: 999, padding: '12px 0',
             fontFamily: FONT, fontSize: 14, fontWeight: 600, cursor: tplSaving ? 'default' : 'pointer',
             opacity: tplSaving ? 0.6 : 1, marginTop: 4, width: '100%',
           }}>
@@ -943,7 +943,7 @@ const RotaBuilder = () => {
             )}
           </div>
           <button onClick={saveAssignment} disabled={assignSaving} style={{
-            background: BLACK, color: '#fff', border: 'none', borderRadius: 10, padding: '12px 0',
+            background: BLACK, color: '#fff', border: 'none', borderRadius: 999, padding: '12px 0',
             fontFamily: FONT, fontSize: 14, fontWeight: 600, cursor: assignSaving ? 'default' : 'pointer',
             opacity: assignSaving ? 0.6 : 1, width: '100%',
           }}>
@@ -1001,7 +1001,7 @@ const RotaBuilder = () => {
             <div style={{ fontSize: 11, color: '#9CA3AF', marginTop: 4 }}>Leave empty to mark the entire day with this reason</div>
           </div>
           <button onClick={saveOverride} disabled={overrideSaving} style={{
-            background: BLACK, color: '#fff', border: 'none', borderRadius: 10, padding: '12px 0',
+            background: BLACK, color: '#fff', border: 'none', borderRadius: 999, padding: '12px 0',
             fontFamily: FONT, fontSize: 14, fontWeight: 600, cursor: overrideSaving ? 'default' : 'pointer',
             opacity: overrideSaving ? 0.6 : 1, width: '100%',
           }}>

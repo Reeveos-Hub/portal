@@ -205,7 +205,7 @@ export default function VideoMeetings() {
                 </div>
                 {m.meet_link && (
                   <a href={m.meet_link} target="_blank" rel="noopener noreferrer"
-                    style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '5px 14px', borderRadius: 8, border: 'none', background: isNow ? GOLD : '#111', color: isNow ? '#111' : '#fff', fontSize: 11, fontWeight: 600, textDecoration: 'none', fontFamily: "'Figtree', sans-serif" }}>
+                    style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '5px 14px', borderRadius: 999, border: 'none', background: isNow ? GOLD : '#111', color: isNow ? '#111' : '#fff', fontSize: 11, fontWeight: 600, textDecoration: 'none', fontFamily: "'Figtree', sans-serif" }}>
                     <ExternalLink size={12} /> {isNow ? 'Join Now' : 'Open'}
                   </a>
                 )}

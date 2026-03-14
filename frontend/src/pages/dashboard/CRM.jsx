@@ -211,7 +211,7 @@ export default function CRM() {
       <div style={{ display: 'flex', background: '#F5F5F5', borderRadius: 16, padding: 2 }}>
         {['All', 'Day', 'Week', 'Month'].map(v => {
           const val = v.toLowerCase()
-          return <button key={v} onClick={() => setPipelinePeriod(val)} style={{ padding: '5px 12px', borderRadius: 14, border: 'none', cursor: 'pointer', fontSize: 11, fontWeight: pipelinePeriod === val ? 700 : 500, background: pipelinePeriod === val ? '#fff' : 'transparent', color: pipelinePeriod === val ? '#111' : '#999', boxShadow: pipelinePeriod === val ? '0 1px 4px rgba(0,0,0,0.06)' : 'none', transition: 'all 0.15s', fontFamily: "'Figtree', sans-serif" }}>{v}</button>
+          return <button key={v} onClick={() => setPipelinePeriod(val)} style={{ padding: '5px 12px', borderRadius: 999, border: 'none', cursor: 'pointer', fontSize: 11, fontWeight: pipelinePeriod === val ? 700 : 500, background: pipelinePeriod === val ? '#fff' : 'transparent', color: pipelinePeriod === val ? '#111' : '#999', boxShadow: pipelinePeriod === val ? '0 1px 4px rgba(0,0,0,0.06)' : 'none', transition: 'all 0.15s', fontFamily: "'Figtree', sans-serif" }}>{v}</button>
         })}
       </div>
     </div>
@@ -243,7 +243,7 @@ export default function CRM() {
             <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
               {VIEWS.map(v => (
                 <button key={v.id} onClick={() => setView(v.id)} style={{
-                  display: 'flex', alignItems: 'center', gap: 3, padding: '5px 8px', borderRadius: 8, border: 'none',
+                  display: 'flex', alignItems: 'center', gap: 3, padding: '5px 8px', borderRadius: 999, border: 'none',
                   background: view === v.id ? '#111' : 'transparent', color: view === v.id ? '#fff' : '#888',
                   fontSize: 10, fontWeight: 600, cursor: 'pointer', fontFamily: "'Figtree', sans-serif",
                 }}>
@@ -268,7 +268,7 @@ export default function CRM() {
         <div style={{ display: 'flex', gap: 4 }}>
           {VIEWS.map(v => (
             <button key={v.id} onClick={() => setView(v.id)} style={{
-              display: 'flex', alignItems: 'center', gap: 6, padding: '8px 14px', borderRadius: 10, border: 'none',
+              display: 'flex', alignItems: 'center', gap: 6, padding: '8px 14px', borderRadius: 999, border: 'none',
               background: view === v.id ? '#111' : 'transparent', color: view === v.id ? '#fff' : '#666',
               fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: "'Figtree', sans-serif",
               transition: 'all 0.15s',

@@ -203,7 +203,7 @@ function TierGate({ feature, requiredTier }) {
         {feature} is available on the {requiredTier} plan. Upgrade to unlock detailed insights about your visitors.
       </p>
       <button style={{
-        padding: '12px 32px', fontSize: 14, fontWeight: 700, border: 'none', borderRadius: 10,
+        padding: '12px 32px', fontSize: 14, fontWeight: 700, border: 'none', borderRadius: 999,
         background: '#C9A84C', color: '#fff', cursor: 'pointer', fontFamily: "'Figtree', sans-serif",
         transition: 'opacity 0.15s',
       }}>
