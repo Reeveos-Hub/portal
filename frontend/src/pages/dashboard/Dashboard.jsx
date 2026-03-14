@@ -80,9 +80,9 @@ const TABLET_LAYOUT = [
   { i: 'trends',        x: 1, y: 2,  w: 1, h: 2 },
   { i: 'quickActions',  x: 0, y: 6,  w: 2, h: 2 },
   { i: 'activity',      x: 1, y: 4,  w: 1, h: 2 },
-  { i: 'weekGlance',    x: 0, y: 8,  w: 1, h: 2 },
+  { i: 'weekGlance',    x: 0, y: 8,  w: 1, h: 3 },
   { i: 'services',      x: 1, y: 8,  w: 1, h: 3 },
-  { i: 'staffToday',    x: 0, y: 10, w: 1, h: 3 },
+  { i: 'staffToday',    x: 0, y: 11, w: 1, h: 3 },
   { i: 'consultations', x: 1, y: 11, w: 1, h: 2 },
 ]
 
@@ -437,7 +437,7 @@ const Dashboard = () => {
               {hours.map((h, i) => (
                 <div key={h} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3, justifyContent: 'flex-end', height: '100%' }}>
                   {counts[i] > 0 && <span style={{ fontSize: 9, fontWeight: 700 }}>{counts[i]}</span>}
-                  <div style={{ width: '100%', borderRadius: 4, height: counts[i] > 0 ? `${Math.max((counts[i] / max) * 100, 15)}%` : 4, background: counts[i] > 0 ? '#111' : '#F3F4F6', transition: 'height 0.4s', minHeight: counts[i] > 0 ? 14 : 4 }} />
+                  <div style={{ width: '100%', borderRadius: 4, height: counts[i] > 0 ? `${Math.max((counts[i] / max) * 100, 15)}%` : 4, background: counts[i] > 0 ? '#C9A84C' : '#F3F4F6', transition: 'height 0.4s', minHeight: counts[i] > 0 ? 14 : 4 }} />
                   <span style={{ fontSize: 8, color: '#9CA3AF' }}>{h > 12 ? `${h-12}pm` : h === 12 ? '12pm' : `${h}am`}</span>
                 </div>
               ))}
@@ -452,7 +452,7 @@ const Dashboard = () => {
             <div style={{ position: 'absolute', top: -16, right: -16, width: 120, height: 120, background: '#fff', opacity: 0.05, borderRadius: '50%', filter: 'blur(30px)' }} />
             <div style={{ position: 'absolute', bottom: -16, left: -16, width: 90, height: 90, background: '#10B981', opacity: 0.1, borderRadius: '50%', filter: 'blur(20px)' }} />
             <div style={{ fontSize: 16, fontWeight: 700, color: '#fff', marginBottom: 14, position: 'relative', zIndex: 1 }}>Quick Actions</div>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: isTablet ? 8 : 10, flex: 1, position: 'relative', zIndex: 1 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: isTablet ? 'repeat(4, 1fr)' : '1fr 1fr', gap: isTablet ? 8 : 10, flex: 1, position: 'relative', zIndex: 1 }}>
               {(isRestaurant ? [
                 { icon: <Armchair size={20} color="#10B981" />, label: 'Walk-In', action: 'Walk-in' },
                 { icon: <CalendarCheck size={20} color="#D4A373" />, label: 'Reserve', action: 'Reserve' },
@@ -545,7 +545,7 @@ const Dashboard = () => {
                       <span style={{ fontWeight: 700 }}>{count}</span>
                     </div>
                     <div style={{ height: 5, borderRadius: 3, background: '#F3F4F6', overflow: 'hidden' }}>
-                      <div style={{ height: '100%', borderRadius: 3, background: '#111', width: `${(count / mx) * 100}%` }} />
+                      <div style={{ height: '100%', borderRadius: 3, background: '#C9A84C', width: `${(count / mx) * 100}%` }} />
                     </div>
                   </div>
                 </div>
@@ -573,7 +573,7 @@ const Dashboard = () => {
                     <span style={{ fontSize: 12, fontWeight: 700, color: '#6B7280' }}>{count} appt{count !== 1 ? 's' : ''}</span>
                   </div>
                   <div style={{ height: 6, borderRadius: 3, background: '#F3F4F6', overflow: 'hidden' }}>
-                    <div style={{ height: '100%', borderRadius: 3, background: '#111', width: `${(count / mx) * 100}%` }} />
+                    <div style={{ height: '100%', borderRadius: 3, background: '#C9A84C', width: `${(count / mx) * 100}%` }} />
                   </div>
                 </div>
               ))}
