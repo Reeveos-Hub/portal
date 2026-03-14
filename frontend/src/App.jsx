@@ -31,7 +31,7 @@ import Settings from './pages/dashboard/Settings'
 import BookingLink from './pages/dashboard/BookingLink'
 import OnlineBooking from './pages/dashboard/OnlineBooking'
 import Orders from './pages/dashboard/Orders'
-import Clients from './pages/dashboard/Clients'
+// Clients.jsx removed — redirects to /dashboard/crm?view=clients
 import ClientPipeline from './pages/dashboard/ClientPipeline'
 import CRMPage from './pages/dashboard/CRM'
 import ClientProfile from './pages/dashboard/ClientProfile'
