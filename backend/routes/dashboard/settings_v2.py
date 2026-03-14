@@ -44,6 +44,7 @@ DEFAULT_HOURS["sat"] = {"open": True, "start": "09:00", "end": "17:00"}
 DEFAULT_HOURS["sun"] = {"open": False}
 
 DEFAULT_NOTIFICATIONS = {
+    # Business-owner alerts
     "newBooking": {"email": True, "push": True, "sms": False},
     "bookingCancelled": {"email": True, "push": True, "sms": False},
     "bookingModified": {"email": True, "push": True, "sms": False},
@@ -52,6 +53,16 @@ DEFAULT_NOTIFICATIONS = {
     "noShow": {"email": True, "push": True, "sms": False},
     "dailySummary": {"enabled": True, "time": "07:00"},
     "newOrder": {"email": False, "push": True, "sms": True},
+    # Client-facing notifications
+    "clientBookingConfirmation": {"email": True, "sms": True},
+    "clientReminder24h": {"email": True, "sms": True},
+    "clientReminder2h": {"email": False, "sms": True},
+    "clientFormRequest": {"email": True, "sms": True},
+    "clientFormReminder": {"email": True, "sms": True},
+    "clientAftercare": {"email": True, "sms": False},
+    "clientReviewRequest": {"email": True, "sms": False},
+    "clientCancellation": {"email": True, "sms": True},
+    "clientRescheduled": {"email": True, "sms": True},
 }
 
 

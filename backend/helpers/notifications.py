@@ -62,6 +62,42 @@ def _get_resend_key():
 # TEMPLATE REGISTRY
 # ═══════════════════════════════════════════════════════
 
+# ═══════════════════════════════════════════════════════
+# TEMPLATE → NOTIFICATION PREFERENCE KEY
+# Maps sending templates to business notification_settings keys.
+# Templates NOT listed here are always sent (e.g. password_reset, email_verification).
+# ═══════════════════════════════════════════════════════
+
+TEMPLATE_TO_PREF = {
+    # Client-facing
+    "booking_confirmed": "clientBookingConfirmation",
+    "reservation_confirmed": "clientBookingConfirmation",
+    "reminder_24h": "clientReminder24h",
+    "reminder_2h": "clientReminder2h",
+    "form_request": "clientFormRequest",
+    "form_reminder": "clientFormReminder",
+    "aftercare": "clientAftercare",
+    "review_request": "clientReviewRequest",
+    "cancelled_by_client": "clientCancellation",
+    "cancelled_by_business": "clientCancellation",
+    "rescheduled": "clientRescheduled",
+    # Business-owner-facing
+    "daily_brief": "dailySummary",
+}
+
+
+def is_channel_enabled(business: dict, template: str, channel: str) -> bool:
+    """Check if a notification channel (email/sms) is enabled for a template.
+    Returns True if no preference is set (default to sending)."""
+    pref_key = TEMPLATE_TO_PREF.get(template)
+    if not pref_key:
+        return True  # No preference mapping = always send
+    prefs = (business.get("notifications") or {}).get(pref_key)
+    if not prefs or not isinstance(prefs, dict):
+        return True  # No preference set = default to sending
+    return bool(prefs.get(channel, True))
+
+
 EMAIL_TEMPLATE_MAP = {
     "booking_confirmed": "booking_confirmed",
     "reservation_confirmed": "reservation_confirmed",
@@ -367,20 +403,28 @@ async def notify(
     sms_only: bool = False,
     dedup_key: str = None,
 ) -> dict:
-    """Send both email and SMS for a notification event."""
+    """Send both email and SMS for a notification event.
+    Respects business notification preferences — skips channels the owner turned off."""
     results = {"email": None, "sms": None}
 
-    if not sms_only and email:
+    email_enabled = is_channel_enabled(business, template, "email")
+    sms_enabled = is_channel_enabled(business, template, "sms")
+
+    if not sms_only and email and email_enabled:
         results["email"] = await send_templated_email(
             to=email, template=template, business=business,
             data=data, dedup_key=f"email_{dedup_key}" if dedup_key else None,
         )
+    elif not email_enabled:
+        logger.info(f"Email skipped for {template} — disabled in business preferences")
 
-    if not email_only and phone:
+    if not email_only and phone and sms_enabled:
         results["sms"] = await send_templated_sms(
             to=phone, template=template, business=business,
             data=data, dedup_key=f"sms_{dedup_key}" if dedup_key else None,
         )
+    elif not sms_enabled:
+        logger.info(f"SMS skipped for {template} — disabled in business preferences")
 
     return results
 

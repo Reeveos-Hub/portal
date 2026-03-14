@@ -46,14 +46,23 @@ for (let h = 0; h < 24; h++) {
 }
 
 const NOTIFICATION_EVENTS = [
-  { key: 'newBooking', label: 'New booking' },
-  { key: 'bookingCancelled', label: 'Booking cancelled' },
-  { key: 'bookingModified', label: 'Booking modified' },
-  { key: 'newReview', label: 'New review' },
-  { key: 'paymentReceived', label: 'Payment received' },
-  { key: 'noShow', label: 'No-show' },
-  { key: 'dailySummary', label: 'Daily summary' },
-  { key: 'newOrder', label: 'New order', for: 'restaurant' },
+  { key: 'newBooking', label: 'New booking', section: 'owner' },
+  { key: 'bookingCancelled', label: 'Booking cancelled', section: 'owner' },
+  { key: 'bookingModified', label: 'Booking modified', section: 'owner' },
+  { key: 'newReview', label: 'New review', section: 'owner' },
+  { key: 'paymentReceived', label: 'Payment received', section: 'owner' },
+  { key: 'noShow', label: 'No-show', section: 'owner' },
+  { key: 'dailySummary', label: 'Daily summary', section: 'owner' },
+  { key: 'newOrder', label: 'New order', for: 'restaurant', section: 'owner' },
+  { key: 'clientBookingConfirmation', label: 'Booking confirmation', section: 'client' },
+  { key: 'clientReminder24h', label: '24-hour reminder', section: 'client' },
+  { key: 'clientReminder2h', label: '2-hour reminder', section: 'client' },
+  { key: 'clientFormRequest', label: 'Consultation form request', section: 'client' },
+  { key: 'clientFormReminder', label: 'Form reminder (if not completed)', section: 'client' },
+  { key: 'clientAftercare', label: 'Aftercare instructions', section: 'client' },
+  { key: 'clientReviewRequest', label: 'Review request', section: 'client' },
+  { key: 'clientCancellation', label: 'Cancellation confirmation', section: 'client' },
+  { key: 'clientRescheduled', label: 'Reschedule confirmation', section: 'client' },
 ]
 
 const INTEGRATIONS = [
@@ -854,7 +863,11 @@ const Settings = () => {
 
         {activeTab === 'notifications' && (
           <div className="bg-white border border-gray-100 rounded-2xl shadow-[0_2px_10px_rgba(0,0,0,0.03)] p-6">
-            <h2 className="text-xl font-heading font-semibold mb-4">Notification Preferences</h2>
+            <h2 className="text-xl font-heading font-semibold mb-1">Notification Preferences</h2>
+            <p className="text-sm text-gray-500 mb-6">Control which emails and SMS messages are sent automatically.</p>
+
+            <h3 className="text-sm font-bold text-primary uppercase tracking-wide mb-3">Your Alerts</h3>
+            <p className="text-xs text-gray-400 mb-3">Notifications sent to you (the business owner / team).</p>
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
@@ -866,7 +879,7 @@ const Settings = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {NOTIFICATION_EVENTS.filter((e) => e.key !== 'dailySummary' && (!e.for || e.for === businessType)).map((ev) => (
+                  {NOTIFICATION_EVENTS.filter((e) => e.section === 'owner' && e.key !== 'dailySummary' && (!e.for || e.for === businessType)).map((ev) => (
                     <tr key={ev.key} className="border-b border-border/50">
                       <td className="py-2">{ev.label}</td>
                       <td className="text-center">
@@ -874,6 +887,35 @@ const Settings = () => {
                       </td>
                       <td className="text-center">
                         <input type="checkbox" checked={!!notifications[ev.key]?.push} onChange={(e) => updateNotification(ev.key, 'push', e.target.checked)} />
+                      </td>
+                      <td className="text-center">
+                        <input type="checkbox" checked={!!notifications[ev.key]?.sms} onChange={(e) => updateNotification(ev.key, 'sms', e.target.checked)} />
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            <div className="mt-8 mb-4 border-t border-border pt-6">
+              <h3 className="text-sm font-bold text-primary uppercase tracking-wide mb-3">Client Notifications</h3>
+              <p className="text-xs text-gray-400 mb-3">Automatic emails and SMS sent to your clients. Turn off channels you don't want.</p>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b">
+                    <th className="text-left py-2 font-medium">Event</th>
+                    <th className="text-center py-2 font-medium">Email</th>
+                    <th className="text-center py-2 font-medium">SMS</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {NOTIFICATION_EVENTS.filter((e) => e.section === 'client').map((ev) => (
+                    <tr key={ev.key} className="border-b border-border/50">
+                      <td className="py-2">{ev.label}</td>
+                      <td className="text-center">
+                        <input type="checkbox" checked={!!notifications[ev.key]?.email} onChange={(e) => updateNotification(ev.key, 'email', e.target.checked)} />
                       </td>
                       <td className="text-center">
                         <input type="checkbox" checked={!!notifications[ev.key]?.sms} onChange={(e) => updateNotification(ev.key, 'sms', e.target.checked)} />

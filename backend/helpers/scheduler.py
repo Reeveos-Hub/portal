@@ -102,7 +102,7 @@ async def _run_scheduler():
 async def _send_booking_reminders():
     """Send 24h and 2h booking reminders via new template system."""
     from database import get_database
-    from helpers.notifications import send_templated_email, send_templated_sms
+    from helpers.notifications import send_templated_email, send_templated_sms, is_channel_enabled
 
     db = get_database()
     if not db:
@@ -154,7 +154,7 @@ async def _send_booking_reminders():
 
         booking_id = str(booking["_id"])
 
-        if email:
+        if email and is_channel_enabled(business, template, "email"):
             try:
                 await send_templated_email(
                     to=email, template=template, business=business,
@@ -164,7 +164,7 @@ async def _send_booking_reminders():
             except Exception as e:
                 logger.error(f"24h email reminder failed: {e}")
 
-        if phone:
+        if phone and is_channel_enabled(business, template, "sms"):
             try:
                 await send_templated_sms(
                     to=phone, template=template, business=business,
@@ -188,7 +188,7 @@ async def _process_aftercare_queue():
     Now uses new template system.
     """
     from database import get_database
-    from helpers.notifications import send_templated_email
+    from helpers.notifications import send_templated_email, is_channel_enabled
 
     db = get_database()
     if not db:
@@ -221,6 +221,10 @@ async def _process_aftercare_queue():
 
         if not client_email:
             await db.aftercare_queue.update_one({"_id": item["_id"]}, {"$set": {"sent": True, "skipped": True}})
+            continue
+
+        if not is_channel_enabled(biz, "aftercare", "email"):
+            await db.aftercare_queue.update_one({"_id": item["_id"]}, {"$set": {"sent": True, "skipped": True, "skip_reason": "disabled_in_preferences"}})
             continue
 
         try:
