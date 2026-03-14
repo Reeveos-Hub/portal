@@ -474,6 +474,28 @@ const Calendar = () => {
     }
   }, [data, searchParams])
 
+  /* ── Auto-open new booking panel from Dashboard Quick Actions ── */
+  const autoActionRef = useRef(false)
+  useEffect(() => {
+    if (autoActionRef.current) return
+    const action = searchParams.get('action')
+    if (!action || !bid) return
+    autoActionRef.current = true
+    if (action === 'new') {
+      setEditingId(null)
+      setBookForm(f => ({
+        ...f, date: selectedDate, time: '', staffId: '', customerName: '', customerPhone: '', customerEmail: '', serviceId: '', notes: ''
+      }))
+      setBookError('')
+      setShowBook(true)
+      if (bookServices.length === 0) {
+        api.get(`/services-v2/business/${bid}`).then(r => setBookServices((r.categories || []).flatMap(c => c.services || []))).catch(() => {})
+      }
+    }
+    searchParams.delete('action')
+    setSearchParams(searchParams, { replace: true })
+  }, [bid, searchParams])
+
   // Live polling — refresh every 15 seconds without showing loading spinner
   useEffect(() => {
     if (!bid) return

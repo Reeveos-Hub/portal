@@ -3,7 +3,7 @@
  * Card grid list + full profile view with activity timeline, preferences, spend insights
  */
 import { useState, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import {
   Search, Plus, X, Phone, Mail, MapPin, Calendar, Clock, Star,
   ChevronRight, Edit3, Send, Check, AlertTriangle,
@@ -43,6 +43,7 @@ const FILTER_TABS = [
 
 const Clients = () => {
   const navigate = useNavigate()
+  const [searchParams, setSearchParams] = useSearchParams()
   const { business, businessType, loading: bizLoading } = useBusiness()
   const isRestaurant = businessType === 'restaurant'
   const bid = business?.id ?? business?._id
@@ -70,6 +71,16 @@ const Clients = () => {
   const [showTherapistDropdown, setShowTherapistDropdown] = useState(false)
   const [staffList, setStaffList] = useState([])
   const [toast, setToast] = useState(null)
+
+  /* ── Auto-open Add Client from Dashboard Quick Actions ── */
+  useEffect(() => {
+    const action = searchParams.get('action')
+    if (action === 'add') {
+      setAddGuestModal(true)
+      searchParams.delete('action')
+      setSearchParams(searchParams, { replace: true })
+    }
+  }, [])
 
   useEffect(() => {
     if (!bid) { setLoading(false); return }

@@ -10,7 +10,7 @@ import {
   Users, CalendarCheck, Clock, PoundSterling, Armchair, ArrowRight,
   Search, TrendingUp, TrendingDown, RefreshCw,
   LayoutGrid, Plus, RotateCcw, Lock, Unlock, EyeOff, X, Move, Grip,
-  FileText, ClipboardList
+  FileText, ClipboardList, UserPlus
 } from 'lucide-react'
 import { useBusiness } from '../../contexts/BusinessContext'
 import api from '../../utils/api'
@@ -390,8 +390,8 @@ const Dashboard = () => {
   const handleQuickAction = (action) => {
     if (editMode) return
     switch (action) {
-      case 'New Appointment': case 'Reserve': navigate('/dashboard/calendar'); break
-      case 'Walk-in': navigate('/dashboard/calendar'); break
+      case 'New Appointment': case 'Reserve': navigate('/dashboard/calendar?action=new'); break
+      case 'New Client': navigate('/dashboard/clients?action=add'); break
       case 'Schedule': navigate('/dashboard/bookings'); break
       case 'Forms': navigate('/dashboard/consultation-forms'); break
     }
@@ -451,17 +451,17 @@ const Dashboard = () => {
             <div style={{ position: 'absolute', top: -16, right: -16, width: 120, height: 120, background: '#fff', opacity: 0.05, borderRadius: '50%', filter: 'blur(30px)' }} />
             <div style={{ position: 'absolute', bottom: -16, left: -16, width: 90, height: 90, background: '#10B981', opacity: 0.1, borderRadius: '50%', filter: 'blur(20px)' }} />
             <div style={{ fontSize: 16, fontWeight: 700, color: '#fff', marginBottom: 14, position: 'relative', zIndex: 1 }}>Quick Actions</div>
-            <div style={{ display: 'grid', gridTemplateColumns: isTablet ? 'repeat(4, 1fr)' : '1fr 1fr', gap: isTablet ? 8 : 10, flex: 1, position: 'relative', zIndex: 1 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: isTablet ? 8 : 10, flex: 1, position: 'relative', zIndex: 1 }}>
               {(isRestaurant ? [
                 { icon: <Armchair size={20} color="#10B981" />, label: 'Walk-In', action: 'Walk-in' },
                 { icon: <CalendarCheck size={20} color="#D4A373" />, label: 'Reserve', action: 'Reserve' },
                 { icon: <Clock size={20} color="#EF4444" style={{ opacity: 0.7 }} />, label: 'Block Tbl', action: 'Schedule' },
                 { icon: <FileText size={20} color="#93C5FD" />, label: 'Run Sheet', action: 'Schedule' },
               ] : [
-                { icon: <CalendarCheck size={20} color="#C9A84C" />, label: 'New Appointment', action: 'New Appointment' },
-                { icon: <Armchair size={20} color="#10B981" />, label: 'Walk-in Client', action: 'Walk-in' },
-                { icon: <FileText size={20} color="#93C5FD" />, label: "Today's Schedule", action: 'Schedule' },
-                { icon: <ClipboardList size={20} color="#C4B5FD" />, label: 'Consultation Forms', action: 'Forms' },
+                { icon: <CalendarCheck size={20} color="#C9A84C" />, label: 'New Appt', action: 'New Appointment' },
+                { icon: <UserPlus size={20} color="#3B82F6" />, label: 'New Client', action: 'New Client' },
+                { icon: <FileText size={20} color="#93C5FD" />, label: 'Schedule', action: 'Schedule' },
+                { icon: <ClipboardList size={20} color="#C4B5FD" />, label: 'Forms', action: 'Forms' },
               ]).map((a, i) => (
                 <div key={i} onClick={() => handleQuickAction(a.action)} style={{
                   background: 'rgba(255,255,255,0.1)', borderRadius: 12, padding: 14,
