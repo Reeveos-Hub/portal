@@ -244,7 +244,7 @@ const App = () => {
               <Route path="services" element={<Services />} />
               <Route path="online-booking" element={<OnlineBooking />} />
               <Route path="orders" element={<Orders />} />
-              <Route path="clients" element={<Clients />} />
+              <Route path="clients" element={<Navigate to="/dashboard/crm?view=clients" replace />} />
               <Route path="pipeline" element={<ClientPipeline />} />
               <Route path="crm" element={<CRMPage />} />
               <Route path="crm/client/:clientId" element={<ClientProfile />} />

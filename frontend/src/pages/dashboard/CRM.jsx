@@ -78,6 +78,20 @@ export default function CRM() {
   const [interactionModal, setInteractionModal] = useState(false)
   const [pipelinePeriod, setPipelinePeriod] = useState('all')
   const [pipelineDate, setPipelineDate] = useState(new Date().toISOString().slice(0, 10))
+  const [showNewClient, setShowNewClient] = useState(false)
+  const [newClientForm, setNewClientForm] = useState({ name: '', phone: '', email: '', notes: '', source: '', tags: [], sendConsultation: true })
+  const [newClientSaving, setNewClientSaving] = useState(false)
+  const [newClientError, setNewClientError] = useState('')
+
+  /* ── Auto-open New Client from Dashboard Quick Actions ── */
+  useEffect(() => {
+    const action = searchParams.get('action')
+    if (action === 'add') {
+      setShowNewClient(true)
+      searchParams.delete('action')
+      setSearchParams(searchParams, { replace: true })
+    }
+  }, [])
 
   // Load data based on view
   const loadDashboard = useCallback(async () => {
@@ -155,6 +169,25 @@ export default function CRM() {
     } catch (e) { console.error(e) }
   }
 
+  const createNewClient = async () => {
+    const f = newClientForm
+    if (!f.name.trim() || f.name.trim().length < 2) { setNewClientError('Name is required (min 2 characters)'); return }
+    if (!f.phone.trim() && !f.email.trim()) { setNewClientError('At least one of phone or email required'); return }
+    setNewClientSaving(true); setNewClientError('')
+    try {
+      const res = await api.post(`/clients-v2/business/${bid}`, {
+        name: f.name.trim(), phone: f.phone.trim(), email: f.email.trim(),
+        notes: f.notes.trim() || undefined, tags: f.tags.length ? f.tags : undefined,
+      })
+      if (res.warning) { setNewClientError(res.warning); setNewClientSaving(false); return }
+      setShowNewClient(false)
+      setNewClientForm({ name: '', phone: '', email: '', notes: '', source: '', tags: [], sendConsultation: true })
+      loadClients(); loadDashboard()
+      if (res.client?.id) openClient({ id: res.client.id })
+    } catch (e) { setNewClientError(e.message || 'Failed to create client') }
+    setNewClientSaving(false)
+  }
+
   const pipelineDateLabel = new Date(pipelineDate + 'T12:00').toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' })
   const pipelineIsToday = pipelineDate === new Date().toISOString().slice(0, 10)
   const ChevL = () => <svg width={14} height={14} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round"><path d="M15 18l-6-6 6-6"/></svg>
@@ -206,14 +239,20 @@ export default function CRM() {
             </button>
           ))}
         </div>
-        {view === 'clients' && (
-          <div style={{ position: 'relative' }}>
-            <Search style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', width: 14, height: 14, color: '#999' }} />
-            <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search clients..."
-              style={{ paddingLeft: 32, padding: '7px 12px 7px 32px', border: '1px solid #E0E0E0', borderRadius: 10, fontSize: 13, width: 220, outline: 'none', fontFamily: "'Figtree', sans-serif" }} />
-          </div>
-        )}
-        {view === 'pipeline' && <PipelineDatePill />}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          {view === 'clients' && (
+            <div style={{ position: 'relative' }}>
+              <Search style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', width: 14, height: 14, color: '#999' }} />
+              <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search clients..."
+                style={{ paddingLeft: 32, padding: '7px 12px 7px 32px', border: '1px solid #E0E0E0', borderRadius: 10, fontSize: 13, width: 220, outline: 'none', fontFamily: "'Figtree', sans-serif" }} />
+            </div>
+          )}
+          {view === 'pipeline' && <PipelineDatePill />}
+          <button onClick={() => { setShowNewClient(true); setNewClientForm({ name: '', phone: '', email: '', notes: '', source: '', tags: [], sendConsultation: true }); setNewClientError('') }}
+          style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 16px', borderRadius: 20, border: 'none', background: '#111', color: '#fff', fontSize: 12, fontWeight: 700, cursor: 'pointer', fontFamily: "'Figtree', sans-serif", flexShrink: 0 }}>
+          <UserPlus size={14} /> New Client
+        </button>
+        </div>
       </div>
 
       {/* ── Content ── */}
@@ -236,6 +275,108 @@ export default function CRM() {
               onViewProfile={() => { const cid = clientDetail?.client?.id || selectedClient?.id || selectedClient; navigate(`/dashboard/crm/client/${cid}`) }} />
           </>
         )}
+      </div>
+
+      {/* ── New Client Side Panel ── */}
+      {showNewClient && <div onClick={() => setShowNewClient(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.2)', zIndex: 200 }} />}
+      <div style={{
+        position: 'fixed', top: 0, right: 0, bottom: 0, width: 400, maxWidth: '90vw',
+        background: '#fff', zIndex: 201, boxShadow: showNewClient ? '0 8px 40px rgba(0,0,0,0.15)' : 'none',
+        transform: showNewClient ? 'translateX(0)' : 'translateX(100%)',
+        transition: 'transform 0.25s ease', display: 'flex', flexDirection: 'column',
+        pointerEvents: showNewClient ? 'auto' : 'none', fontFamily: "'Figtree', sans-serif",
+      }}>
+        {/* Header */}
+        <div style={{ padding: '16px 20px', borderBottom: '1px solid #EBEBEB', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0 }}>
+          <div>
+            <div style={{ fontSize: 16, fontWeight: 800, color: '#111' }}>New Client</div>
+            <div style={{ fontSize: 11, color: '#999', marginTop: 2 }}>Add to your client database</div>
+          </div>
+          <button onClick={() => setShowNewClient(false)} style={{ width: 32, height: 32, borderRadius: 8, background: '#F5F5F5', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <X size={14} color="#999" />
+          </button>
+        </div>
+
+        {/* Form */}
+        <div style={{ flex: 1, overflowY: 'auto', padding: '16px 20px', display: 'flex', flexDirection: 'column', gap: 14 }}>
+          {/* Name */}
+          <div>
+            <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: '#555', letterSpacing: 0.3, textTransform: 'uppercase', marginBottom: 4 }}>Full name *</label>
+            <input type="text" value={newClientForm.name} onChange={e => setNewClientForm(f => ({ ...f, name: e.target.value }))}
+              placeholder="e.g. Sophie Williams" style={{ width: '100%', padding: '10px 12px', border: '1.5px solid #EBEBEB', borderRadius: 10, fontSize: 13, fontFamily: "'Figtree', sans-serif", boxSizing: 'border-box', outline: 'none', background: '#FAFAF8' }} />
+          </div>
+
+          {/* Phone + Email */}
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+            <div>
+              <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: '#555', letterSpacing: 0.3, textTransform: 'uppercase', marginBottom: 4 }}>Mobile *</label>
+              <input type="tel" value={newClientForm.phone} onChange={e => setNewClientForm(f => ({ ...f, phone: e.target.value }))}
+                placeholder="07xxx xxx xxx" style={{ width: '100%', padding: '10px 12px', border: '1.5px solid #EBEBEB', borderRadius: 10, fontSize: 13, fontFamily: "'Figtree', sans-serif", boxSizing: 'border-box', outline: 'none', background: '#FAFAF8' }} />
+            </div>
+            <div>
+              <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: '#555', letterSpacing: 0.3, textTransform: 'uppercase', marginBottom: 4 }}>Email</label>
+              <input type="email" value={newClientForm.email} onChange={e => setNewClientForm(f => ({ ...f, email: e.target.value }))}
+                placeholder="sophie@email.com" style={{ width: '100%', padding: '10px 12px', border: '1.5px solid #EBEBEB', borderRadius: 10, fontSize: 13, fontFamily: "'Figtree', sans-serif", boxSizing: 'border-box', outline: 'none', background: '#FAFAF8' }} />
+            </div>
+          </div>
+
+          {/* How did you hear */}
+          <div>
+            <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: '#555', letterSpacing: 0.3, textTransform: 'uppercase', marginBottom: 4 }}>How did you hear about us?</label>
+            <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+              {['Instagram', 'TikTok', 'Google', 'Friend', 'Returning', 'Other'].map(s => (
+                <span key={s} onClick={() => setNewClientForm(f => ({ ...f, source: f.source === s ? '' : s }))}
+                  style={{ padding: '5px 12px', borderRadius: 20, border: `1px solid ${newClientForm.source === s ? '#111' : '#EBEBEB'}`, background: newClientForm.source === s ? '#111' : '#fff', fontSize: 11, fontWeight: newClientForm.source === s ? 600 : 500, color: newClientForm.source === s ? '#fff' : '#666', cursor: 'pointer', transition: 'all 0.15s' }}>
+                  {s}
+                </span>
+              ))}
+            </div>
+          </div>
+
+          {/* Notes */}
+          <div>
+            <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: '#555', letterSpacing: 0.3, textTransform: 'uppercase', marginBottom: 4 }}>Staff notes</label>
+            <textarea value={newClientForm.notes} onChange={e => setNewClientForm(f => ({ ...f, notes: e.target.value }))}
+              placeholder="Preferences, allergies, treatment history..." rows={2}
+              style={{ width: '100%', padding: '10px 12px', border: '1.5px solid #EBEBEB', borderRadius: 10, fontSize: 13, fontFamily: "'Figtree', sans-serif", boxSizing: 'border-box', outline: 'none', resize: 'none', background: '#FAFAF8' }} />
+          </div>
+
+          {/* Tags */}
+          <div>
+            <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: '#555', letterSpacing: 0.3, textTransform: 'uppercase', marginBottom: 4 }}>Tags</label>
+            <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+              {['VIP', 'New Client', 'Sensitive Skin', 'Medical Flag'].map(t => (
+                <span key={t} onClick={() => setNewClientForm(f => ({ ...f, tags: f.tags.includes(t) ? f.tags.filter(x => x !== t) : [...f.tags, t] }))}
+                  style={{ padding: '4px 10px', borderRadius: 16, background: newClientForm.tags.includes(t) ? (t === 'VIP' ? '#C9A84C' : t === 'Medical Flag' ? '#EF4444' : '#111') : '#F5F5F5', color: newClientForm.tags.includes(t) ? '#fff' : '#666', fontSize: 10, fontWeight: newClientForm.tags.includes(t) ? 700 : 600, cursor: 'pointer', transition: 'all 0.15s' }}>
+                  {t}
+                </span>
+              ))}
+            </div>
+          </div>
+
+          {/* Consultation form toggle */}
+          <div style={{ borderTop: '1px solid #F3F4F6', paddingTop: 14 }}>
+            <label onClick={() => setNewClientForm(f => ({ ...f, sendConsultation: !f.sendConsultation }))}
+              style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer' }}>
+              <div style={{ width: 20, height: 20, borderRadius: 5, border: `2px solid ${newClientForm.sendConsultation ? '#C9A84C' : '#D1D5DB'}`, background: newClientForm.sendConsultation ? '#C9A84C' : '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.15s', flexShrink: 0 }}>
+                {newClientForm.sendConsultation && <svg width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="#fff" strokeWidth="3" strokeLinecap="round"><path d="M3 8l4 4 6-7" /></svg>}
+              </div>
+              <span style={{ fontSize: 12, fontWeight: 600, color: '#111' }}>Send consultation form after creation</span>
+            </label>
+            <div style={{ fontSize: 10, color: '#999', marginTop: 4, paddingLeft: 28 }}>Client receives a link via SMS + email to complete their medical history</div>
+          </div>
+
+          {newClientError && <div style={{ padding: '8px 12px', borderRadius: 8, background: '#FEF2F2', border: '1px solid #FECACA', fontSize: 12, color: '#B91C1C', fontWeight: 500 }}>{newClientError}</div>}
+        </div>
+
+        {/* Footer */}
+        <div style={{ padding: '14px 20px', borderTop: '1px solid #EBEBEB', display: 'flex', gap: 10, flexShrink: 0 }}>
+          <button onClick={() => setShowNewClient(false)} style={{ flex: 1, padding: 12, borderRadius: 12, border: '1px solid #EBEBEB', background: '#fff', fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: "'Figtree', sans-serif", color: '#666' }}>Cancel</button>
+          <button onClick={createNewClient} disabled={newClientSaving}
+            style={{ flex: 1, padding: 12, borderRadius: 12, border: 'none', background: '#111', color: '#fff', fontSize: 13, fontWeight: 700, cursor: newClientSaving ? 'default' : 'pointer', fontFamily: "'Figtree', sans-serif", opacity: newClientSaving ? 0.6 : 1 }}>
+            {newClientSaving ? 'Creating...' : 'Create Client'}
+          </button>
+        </div>
       </div>
 
       {/* ── Interaction Modal ── */}

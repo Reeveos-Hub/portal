@@ -391,7 +391,7 @@ const Dashboard = () => {
     if (editMode) return
     switch (action) {
       case 'New Appointment': case 'Reserve': navigate('/dashboard/calendar?action=new'); break
-      case 'New Client': navigate('/dashboard/clients?action=add'); break
+      case 'New Client': navigate('/dashboard/crm?action=add'); break
       case 'Schedule': navigate('/dashboard/bookings'); break
       case 'Forms': navigate('/dashboard/consultation-forms'); break
     }
