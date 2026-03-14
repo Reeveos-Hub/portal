@@ -688,7 +688,7 @@ const Dashboard = () => {
             <>
               <button onClick={() => navigate('/dashboard/booking-link')} style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '5px 10px', borderRadius: 16, border: 'none', background: '#111', color: '#fff', fontSize: 10, fontWeight: 700, cursor: 'pointer', fontFamily: "'Figtree', sans-serif" }}>
                 <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" /></svg>
-                Booking
+                Your Booking Link
               </button>
               <div style={{ flex: 1 }} />
               <button onClick={() => setDashSearchOpen(true)} style={{ width: 30, height: 30, borderRadius: '50%', border: 'none', background: searchFilter ? '#11111112' : '#F5F5F5', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -708,7 +708,7 @@ const Dashboard = () => {
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
           <button onClick={() => navigate('/dashboard/booking-link')} className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-full text-xs font-bold hover:bg-[#1a1a1a] shadow-md transition-all">
             <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" /></svg>
-            Booking Link
+            Your Booking Link
           </button>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
