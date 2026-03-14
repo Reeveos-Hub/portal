@@ -295,7 +295,7 @@ export default function CRM() {
       {/* ── Content ── */}
       <div style={{ flex: 1, overflow: 'hidden', display: 'flex' }}>
         <div style={{ flex: 1, overflowY: 'auto', overflowX: view === 'pipeline' ? 'auto' : 'hidden' }}>
-          {view === 'dashboard' && <DashboardView data={dashboard} onClientClick={openClient} />}
+          {view === 'dashboard' && <DashboardView data={dashboard} onClientClick={openClient} onNavigate={(v, filter) => { setView(v); if (filter) setSearch(filter) }} />}
           {view === 'pipeline' && <PipelineView data={pipelineData} onClientClick={openClient} moveClient={moveClient} dragItem={dragItem} setDragItem={setDragItem} period={pipelinePeriod} selectedDate={pipelineDate} />}
           {view === 'clients' && <ClientListView clients={clients} search={search} onClientClick={openClient} />}
           {view === 'analytics' && <AnalyticsView data={analyticsData} />}
@@ -431,9 +431,19 @@ export default function CRM() {
 // ═══════════════════════════════════════════════════════════════
 // DASHBOARD VIEW
 // ═══════════════════════════════════════════════════════════════
-function DashboardView({ data, onClientClick }) {
+function DashboardView({ data, onClientClick, onNavigate }) {
   if (!data) return <div style={{ padding: 40, textAlign: 'center', color: '#999' }}>Loading dashboard...</div>
   const { kpis, pipeline, health_distribution, recent_activity, sources } = data
+  const nav = useNavigate()
+
+  const kpiActions = {
+    'Total Clients': () => onNavigate('clients'),
+    'New This Week': () => onNavigate('clients', 'new'),
+    'Revenue MTD': () => onNavigate('analytics'),
+    'At Risk': () => onNavigate('pipeline', 'at_risk'),
+    'Shop Orders': () => nav('/dashboard/orders'),
+    'Tasks Due': null,
+  }
 
   return (
     <div style={{ padding: 20, maxWidth: 1200, margin: '0 auto' }}>
@@ -446,27 +456,40 @@ function DashboardView({ data, onClientClick }) {
           { label: 'At Risk', value: kpis.at_risk_count, Icon: AlertTriangle, color: '#EF4444' },
           { label: 'Shop Orders', value: kpis.shop_orders || 0, Icon: ShoppingBag, color: GOLD, sub: kpis.pending_shop_orders > 0 ? `${kpis.pending_shop_orders} pending` : null },
           { label: 'Tasks Due', value: kpis.tasks_due, Icon: CheckCircle, color: '#8B5CF6' },
-        ].map(k => (
-          <div key={k.label} style={{ background: '#fff', borderRadius: 14, padding: '16px 18px', border: '1px solid #EBEBEB' }}>
+        ].map(k => {
+          const action = kpiActions[k.label]
+          return (
+          <div key={k.label} onClick={action || undefined}
+            style={{ background: '#fff', borderRadius: 14, padding: '16px 18px', border: '1px solid #EBEBEB', cursor: action ? 'pointer' : 'default', transition: 'all 0.15s' }}
+            onMouseEnter={e => { if (action) e.currentTarget.style.borderColor = '#C9A84C' }}
+            onMouseLeave={e => { e.currentTarget.style.borderColor = '#EBEBEB' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
               <span style={{ fontSize: 11, fontWeight: 700, color: '#888', textTransform: 'uppercase' }}>{k.label}</span>
               <k.Icon size={16} color={k.color} />
             </div>
             <div style={{ fontSize: 24, fontWeight: 800, color: '#111' }}>{k.value}</div>
             {k.sub && <div style={{ fontSize: 10, color: '#999', marginTop: 4 }}>{k.sub}</div>}
+            {action && <div style={{ fontSize: 9, color: '#C9A84C', fontWeight: 600, marginTop: 4 }}>View →</div>}
           </div>
-        ))}
+          )
+        })}
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
         {/* Pipeline Summary */}
         <div style={{ background: '#fff', borderRadius: 14, padding: 18, border: '1px solid #EBEBEB' }}>
-          <h3 style={{ fontSize: 14, fontWeight: 700, color: '#111', margin: '0 0 14px' }}>Pipeline</h3>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
+            <h3 style={{ fontSize: 14, fontWeight: 700, color: '#111', margin: 0 }}>Pipeline</h3>
+            <button onClick={() => onNavigate('pipeline')} style={{ fontSize: 10, fontWeight: 600, color: '#C9A84C', background: 'none', border: 'none', cursor: 'pointer', fontFamily: "'Figtree', sans-serif" }}>View all →</button>
+          </div>
           {(pipeline.stages || []).map(s => {
             const count = pipeline.counts[s.id] || 0
             const total = kpis.total_clients || 1
             return (
-              <div key={s.id} style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
+              <div key={s.id} onClick={() => onNavigate('pipeline')}
+                style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8, cursor: 'pointer', padding: '4px 0', borderRadius: 6, transition: 'background 0.1s' }}
+                onMouseEnter={e => { e.currentTarget.style.background = '#F9FAFB' }}
+                onMouseLeave={e => { e.currentTarget.style.background = 'transparent' }}>
                 <div style={{ width: 8, height: 8, borderRadius: '50%', background: s.color, flexShrink: 0 }} />
                 <span style={{ fontSize: 12, fontWeight: 600, color: '#333', flex: 1 }}>{s.label}</span>
                 <span style={{ fontSize: 12, fontWeight: 700, color: '#111' }}>{count}</span>
@@ -478,11 +501,17 @@ function DashboardView({ data, onClientClick }) {
           })}
         </div>
 
-        {/* Health Distribution */}
+        {/* Retention Distribution */}
         <div style={{ background: '#fff', borderRadius: 14, padding: 18, border: '1px solid #EBEBEB' }}>
-          <h3 style={{ fontSize: 14, fontWeight: 700, color: '#111', margin: '0 0 14px' }}>Client Retention</h3>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
+            <h3 style={{ fontSize: 14, fontWeight: 700, color: '#111', margin: 0 }}>Client Retention</h3>
+            <button onClick={() => onNavigate('clients')} style={{ fontSize: 10, fontWeight: 600, color: '#C9A84C', background: 'none', border: 'none', cursor: 'pointer', fontFamily: "'Figtree', sans-serif" }}>View all →</button>
+          </div>
           {Object.entries(health_distribution || {}).map(([k, v]) => (
-            <div key={k} style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
+            <div key={k} onClick={() => onNavigate('clients')}
+              style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8, cursor: 'pointer', padding: '4px 0', borderRadius: 6, transition: 'background 0.1s' }}
+              onMouseEnter={e => { e.currentTarget.style.background = '#F9FAFB' }}
+              onMouseLeave={e => { e.currentTarget.style.background = 'transparent' }}>
               <div style={{ width: 8, height: 8, borderRadius: '50%', background: HEALTH_COLORS[k], flexShrink: 0 }} />
               <span style={{ fontSize: 12, fontWeight: 600, color: '#333', flex: 1 }}>{RETENTION_LABELS[k] || k}</span>
               <span style={{ fontSize: 12, fontWeight: 700, color: '#111' }}>{v}</span>
