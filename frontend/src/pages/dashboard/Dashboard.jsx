@@ -511,8 +511,8 @@ const Dashboard = () => {
             <div style={{ fontSize: 11, color: '#9CA3AF', marginBottom: 12 }}>Key performance indicators</div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
               {[
-                { label: 'BOOKINGS', value: summary?.period?.totalBookings || totalCovers, color: '#111' },
-                { label: 'REVENUE', value: `£${(summary?.period?.totalRevenue || revenue).toLocaleString()}`, color: '#22C55E' },
+                { label: 'BOOKINGS', value: summary?.period?.bookings || totalCovers, color: '#111' },
+                { label: 'REVENUE', value: `£${(summary?.period?.revenue || revenue).toLocaleString()}`, color: '#22C55E' },
                 { label: 'AVG VALUE', value: totalCovers > 0 ? `£${Math.round(revenue / totalCovers)}` : '—', color: '#C9A84C' },
                 { label: 'COMPLETION', value: totalCovers > 0 ? `${Math.round((completed / totalCovers) * 100)}%` : '—', color: '#8B5CF6' },
               ].map((m, i) => (
@@ -558,7 +558,7 @@ const Dashboard = () => {
 
       case 'staffToday': {
         const staff = {}
-        todayBookings.forEach(b => { const n = b.staff_name || b.staffName || b.therapist || 'Unassigned'; staff[n] = (staff[n] || 0) + 1 })
+        todayBookings.forEach(b => { const n = b.staff_name || b.staffName || b.staff || b.therapist || 'Unassigned'; staff[n] = (staff[n] || 0) + 1 })
         const sorted = Object.entries(staff).sort((a, b) => b[1] - a[1])
         const mx = sorted[0]?.[1] || 1
         return (
