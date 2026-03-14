@@ -968,6 +968,18 @@ const Calendar = () => {
 
     const narrow = isFullscreen || (typeof window !== 'undefined' && window.innerWidth < 1024)
 
+    // CSS Grid: card heights are variable, so calculate Pop position from actual DOM element
+    let popTop = (a.start - SH) * HH + a.dur * HH + 6
+    if (useNewGrid && !narrow && gridRef.current) {
+      const cardEl = gridRef.current.querySelector(`[data-booking-id="${a.id}"]`)
+      if (cardEl) {
+        const gridRect = gridRef.current.getBoundingClientRect()
+        const cardRect = cardEl.getBoundingClientRect()
+        const scrollTop = scrollRef.current?.scrollTop || 0
+        popTop = cardRect.bottom - gridRect.top + scrollTop + 6
+      }
+    }
+
     return (
       <>
         {narrow && <div onClick={e => { e.stopPropagation(); setSelA(null) }} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.3)', zIndex: 10001 }} />}
@@ -977,7 +989,7 @@ const Calendar = () => {
           background: '#fff', borderRadius: '20px 20px 0 0',
           boxShadow: '0 -8px 40px rgba(0,0,0,0.15)',
         } : {
-          position: 'absolute', top: (a.start - SH) * HH + a.dur * HH + 6, left: 4, right: 4,
+          position: 'absolute', top: popTop, left: 4, right: 4,
           background: '#fff', borderRadius: 16, zIndex: 50,
           boxShadow: '0 16px 48px rgba(0,0,0,0.16), 0 2px 8px rgba(0,0,0,0.06)',
           border: '1px solid #EBEBEB', overflow: 'hidden',
@@ -1726,6 +1738,7 @@ const Calendar = () => {
             </div>
 
             {useNewGrid ? (
+              <div style={{ flex: 1, position: 'relative', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
               <CalendarGrid
                 staffColumns={staffColumns}
                 filteredBookings={filteredBookings}
@@ -1761,8 +1774,14 @@ const Calendar = () => {
                 scrollRef={scrollRef}
                 gridRef={gridRef}
                 staffColRefs={staffColRefs}
-                PopComponent={Pop}
               />
+              {/* Pop detail panel — anchored to card element position */}
+              {selA && (() => {
+                const a = filteredBookings.find(b => b.id === selA)
+                if (!a || drag) return null
+                return <Pop a={a} />
+              })()}
+              </div>
             ) : (
             <div ref={scrollRef} style={{ flex: 1, overflow: 'auto', position: 'relative' }}>
               <div ref={gridRef} style={{ display: 'flex', minHeight: totHrs * HH }}>
