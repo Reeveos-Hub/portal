@@ -83,6 +83,7 @@ const Dashboard = () => {
   const [activity, setActivity] = useState([])
   const [loading, setLoading] = useState(true)
   const [searchFilter, setSearchFilter] = useState('')
+  const [dashSearchOpen, setDashSearchOpen] = useState(false)
   const [waitlistCount, setWaitlistCount] = useState(0)
   const [consultationStats, setConsultationStats] = useState({ total: 0, pending_review: 0, expiring_soon: 0, blocked: 0, clear: 0 })
 
@@ -640,6 +641,47 @@ const Dashboard = () => {
     <div className="flex flex-col h-full overflow-hidden" style={{ fontFamily: "'Figtree', sans-serif" }}>
 
       {/* ── Toolbar ── */}
+      {(typeof window !== 'undefined' && window.innerWidth < 1024) ? (
+        <div style={{ padding: '6px 10px', display: 'flex', alignItems: 'center', gap: 6, borderBottom: '1px solid #E5E7EB', flexShrink: 0, background: '#fff' }}>
+          {dashSearchOpen ? (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6, flex: 1, background: '#F5F5F5', borderRadius: 16, padding: '0 10px', height: 32 }}>
+              <Search size={13} color="#777" />
+              <input autoFocus value={searchFilter} onChange={e => setSearchFilter(e.target.value)} onBlur={() => { if (!searchFilter) setDashSearchOpen(false) }} placeholder="Search clients, appointments..." style={{ border: 'none', background: 'transparent', outline: 'none', fontSize: 11, color: '#111', width: '100%', fontWeight: 500, fontFamily: "'Figtree', sans-serif" }} />
+              <button onClick={() => { setSearchFilter(''); setDashSearchOpen(false) }} style={{ border: 'none', background: 'none', cursor: 'pointer', color: '#999', fontSize: 14, padding: 0, lineHeight: 1 }}>×</button>
+            </div>
+          ) : editMode ? (
+            <>
+              <button onClick={() => { setEditMode(false); setShowLibrary(false) }} style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '5px 10px', borderRadius: 16, border: 'none', background: '#111', color: '#fff', fontSize: 10, fontWeight: 700, cursor: 'pointer', fontFamily: "'Figtree', sans-serif" }}>
+                <LayoutGrid size={11} /> Done
+              </button>
+              <div style={{ flex: 1 }} />
+              <button onClick={() => setShowLibrary(!showLibrary)} style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '5px 10px', borderRadius: 16, border: 'none', background: '#F5F5F5', fontSize: 10, fontWeight: 600, color: '#777', cursor: 'pointer', fontFamily: "'Figtree', sans-serif" }}>
+                <Plus size={11} /> Widgets
+              </button>
+              <button onClick={resetLayout} style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '5px 10px', borderRadius: 16, border: 'none', background: '#F5F5F5', fontSize: 10, fontWeight: 600, color: '#999', cursor: 'pointer', fontFamily: "'Figtree', sans-serif" }}>
+                <RotateCcw size={11} /> Reset
+              </button>
+            </>
+          ) : (
+            <>
+              <button onClick={() => navigate('/dashboard/booking-link')} style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '5px 10px', borderRadius: 16, border: 'none', background: '#111', color: '#fff', fontSize: 10, fontWeight: 700, cursor: 'pointer', fontFamily: "'Figtree', sans-serif" }}>
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" /></svg>
+                Booking
+              </button>
+              <div style={{ flex: 1 }} />
+              <button onClick={() => setDashSearchOpen(true)} style={{ width: 30, height: 30, borderRadius: '50%', border: 'none', background: searchFilter ? '#11111112' : '#F5F5F5', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <Search size={13} color="#777" />
+              </button>
+              <button onClick={() => { setLoading(true); loadDashboard() }} style={{ width: 30, height: 30, borderRadius: '50%', border: 'none', background: '#F5F5F5', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <RefreshCw size={13} color="#777" />
+              </button>
+              <button onClick={() => setEditMode(true)} style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '5px 10px', borderRadius: 16, border: 'none', background: '#F5F5F5', fontSize: 10, fontWeight: 600, color: '#777', cursor: 'pointer', fontFamily: "'Figtree', sans-serif" }}>
+                <LayoutGrid size={11} /> Edit
+              </button>
+            </>
+          )}
+        </div>
+      ) : (
       <div style={{ padding: '12px 24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #E5E7EB', flexShrink: 0, background: '#fff' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
           <button onClick={() => navigate('/dashboard/booking-link')} className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-full text-xs font-bold hover:bg-[#1a1a1a] shadow-md transition-all">
@@ -672,6 +714,7 @@ const Dashboard = () => {
           )}
         </div>
       </div>
+      )}
 
       <div style={{ display: 'flex', flex: 1, minHeight: 0 }}>
         {/* ── Widget Library ── */}
