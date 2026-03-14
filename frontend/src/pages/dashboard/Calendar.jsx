@@ -2018,7 +2018,7 @@ const Calendar = () => {
             {/* Calendar / Schedule toggle */}
             <div style={{ display: 'flex', background: '#F5F5F5', borderRadius: 20, padding: 3, margin: '10px 16px', gap: 2 }}>
               {['calendar', 'schedule'].map(m => (
-                <button key={m} onClick={() => setMonthMode(m)} style={{ flex: 1, padding: '7px 0', borderRadius: 18, border: 'none', cursor: 'pointer', fontSize: 12, fontWeight: monthMode === m ? 700 : 500, background: monthMode === m ? '#fff' : 'transparent', color: monthMode === m ? '#111' : '#999', boxShadow: monthMode === m ? '0 2px 6px rgba(0,0,0,0.06)' : 'none', textTransform: 'capitalize', fontFamily: "'Figtree', sans-serif" }}>{m}</button>
+                <button key={m} onClick={() => setMonthMode(m)} style={{ flex: 1, padding: '8px 0', borderRadius: 18, border: 'none', cursor: 'pointer', fontSize: 13, fontWeight: monthMode === m ? 700 : 500, background: monthMode === m ? '#fff' : 'transparent', color: monthMode === m ? '#111' : '#999', boxShadow: monthMode === m ? '0 2px 6px rgba(0,0,0,0.06)' : 'none', textTransform: 'capitalize', fontFamily: "'Figtree', sans-serif" }}>{m}</button>
               ))}
             </div>
 
@@ -2026,13 +2026,13 @@ const Calendar = () => {
               <div style={{ padding: '4px 14px 20px' }}>
                 {/* Day headers */}
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', marginBottom: 4 }}>
-                  {DY.map(d => <div key={d} style={{ textAlign: 'center', fontSize: 10, fontWeight: 600, color: '#999', padding: '4px 0' }}>{d.charAt(0)}</div>)}
+                  {DY.map(d => <div key={d} style={{ textAlign: 'center', fontSize: 11, fontWeight: 600, color: '#999', padding: '6px 0' }}>{d}</div>)}
                 </div>
                 {/* Calendar grid */}
                 {monthGrid.map((week, wi) => (
                   <div key={wi} style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)' }}>
                     {week.map((day, di) => {
-                      if (!day) return <div key={di} style={{ minHeight: 64 }} />
+                      if (!day) return <div key={di} style={{ minHeight: 80 }} />
                       const d = new Date(selectedDate + 'T12:00')
                       const dk = `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(day)}`
                       const isTdy = dk === dateKey(new Date())
@@ -2040,21 +2040,21 @@ const Calendar = () => {
                       const hol = UK_HOLIDAYS[dk]
                       return (
                         <button key={di} onClick={() => { setSelectedDate(dk); setViewMode('Day') }}
-                          style={{ minHeight: 64, border: 'none', cursor: 'pointer', background: isTdy ? '#FFF9F0' : 'transparent', display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '4px 1px', borderTop: `1px solid #EBEBEB`, borderLeft: di > 0 ? '1px solid #EBEBEB' : 'none', fontFamily: "'Figtree', sans-serif" }}>
-                          <div style={{ width: isTdy ? 28 : 24, height: isTdy ? 28 : 24, borderRadius: 14, background: isTdy ? '#C9A84C' : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                            <span style={{ fontSize: 13, fontWeight: isTdy ? 700 : 500, color: isTdy ? '#fff' : di >= 5 ? '#CCC' : '#111' }}>{day}</span>
+                          style={{ minHeight: 80, border: 'none', cursor: 'pointer', background: isTdy ? '#FFF9F0' : 'transparent', display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '6px 2px', borderTop: `1px solid #EBEBEB`, borderLeft: di > 0 ? '1px solid #EBEBEB' : 'none', fontFamily: "'Figtree', sans-serif" }}>
+                          <div style={{ width: isTdy ? 32 : 28, height: isTdy ? 32 : 28, borderRadius: 16, background: isTdy ? '#C9A84C' : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                            <span style={{ fontSize: 14, fontWeight: isTdy ? 700 : 500, color: isTdy ? '#fff' : di >= 5 ? '#CCC' : '#111' }}>{day}</span>
                           </div>
                           {dayBk.length > 0 && (
-                            <div style={{ marginTop: 2, display: 'flex', gap: 2, flexWrap: 'wrap', justifyContent: 'center' }}>
+                            <div style={{ marginTop: 4, display: 'flex', gap: 3, flexWrap: 'wrap', justifyContent: 'center' }}>
                               {Array.from({ length: Math.min(dayBk.length, 4) }).map((_, i) => {
                                 const bk = dayBk[i]
                                 const sc = bk ? (staffColorMap[bk.staffId] || STAFF_PALETTES[i % STAFF_PALETTES.length]) : STAFF_PALETTES[i]
-                                return <div key={i} style={{ width: 5, height: 5, borderRadius: 3, background: sc }} />
+                                return <div key={i} style={{ width: 6, height: 6, borderRadius: 3, background: sc }} />
                               })}
-                              {dayBk.length > 4 && <span style={{ fontSize: 7, fontWeight: 700, color: '#999' }}>+{dayBk.length - 4}</span>}
+                              {dayBk.length > 4 && <span style={{ fontSize: 9, fontWeight: 700, color: '#999' }}>+{dayBk.length - 4}</span>}
                             </div>
                           )}
-                          {hol && <span style={{ fontSize: 7, fontWeight: 600, color: hol.t === 'bank' ? '#10B981' : '#C9A84C', marginTop: 1, textAlign: 'center', lineHeight: 1.1 }}>{hol.l.split(' ').slice(0, 2).join(' ')}</span>}
+                          {hol && <span style={{ fontSize: 9, fontWeight: 600, color: hol.t === 'bank' ? '#10B981' : '#C9A84C', marginTop: 2, textAlign: 'center', lineHeight: 1.1 }}>{hol.l.split(' ').slice(0, 2).join(' ')}</span>}
                         </button>
                       )
                     })}
@@ -2079,7 +2079,7 @@ const Calendar = () => {
                   if (events.length === 0) return null
                   return (
                     <div key={wi}>
-                      <div style={{ padding: '14px 16px 6px', color: '#999', fontSize: 11, fontWeight: 600, letterSpacing: 1 }}>{label}</div>
+                      <div style={{ padding: '14px 16px 6px', color: '#999', fontSize: 12, fontWeight: 600, letterSpacing: 1 }}>{label}</div>
                       {events.map((ev, ei) => {
                         const isTdy = dateKey(ev.date) === dateKey(new Date())
                         const showDate = ei === 0 || dateKey(ev.date) !== dateKey(events[ei - 1]?.date)
@@ -2087,16 +2087,16 @@ const Calendar = () => {
                         return (
                           <div key={ei} onClick={() => { if (ev.type === 'booking') { setSelectedDate(ev.dk); setViewMode('Day') } }}
                             style={{ display: 'flex', alignItems: 'center', padding: '6px 16px', gap: 12, cursor: ev.type === 'booking' ? 'pointer' : 'default' }}>
-                            <div style={{ width: 44, textAlign: 'center', flexShrink: 0 }}>
+                            <div style={{ width: 48, textAlign: 'center', flexShrink: 0 }}>
                               {showDate && (<div>
-                                <div style={{ fontSize: 10, fontWeight: 600, color: isTdy ? '#C9A84C' : '#999' }}>{DY[dow]}</div>
-                                <div style={{ width: isTdy ? 34 : 26, height: isTdy ? 34 : 26, borderRadius: isTdy ? 17 : 13, background: isTdy ? '#C9A84C' : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '2px auto 0' }}>
-                                  <span style={{ fontSize: isTdy ? 15 : 14, fontWeight: isTdy ? 700 : 500, color: isTdy ? '#fff' : ev.date.getMonth() === d.getMonth() ? '#111' : '#CCC' }}>{ev.date.getDate()}</span>
+                                <div style={{ fontSize: 11, fontWeight: 600, color: isTdy ? '#C9A84C' : '#999' }}>{DY[dow]}</div>
+                                <div style={{ width: isTdy ? 36 : 30, height: isTdy ? 36 : 30, borderRadius: isTdy ? 18 : 15, background: isTdy ? '#C9A84C' : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '2px auto 0' }}>
+                                  <span style={{ fontSize: isTdy ? 16 : 15, fontWeight: isTdy ? 700 : 500, color: isTdy ? '#fff' : ev.date.getMonth() === d.getMonth() ? '#111' : '#CCC' }}>{ev.date.getDate()}</span>
                                 </div>
                               </div>)}
                             </div>
-                            <div style={{ flex: 1, padding: '10px 14px', borderRadius: 10, background: ev.type === 'bank' ? '#10B981' : ev.type === 'note' ? '#0EA5E9' : ev.type === 'booking' ? '#F5EDD6' : '#F5F5F5' }}>
-                              <span style={{ fontSize: 14, fontWeight: 600, color: (ev.type === 'bank' || ev.type === 'note') ? '#fff' : '#111', fontFamily: "'Figtree', sans-serif" }}>{ev.label}</span>
+                            <div style={{ flex: 1, padding: '12px 16px', borderRadius: 10, background: ev.type === 'bank' ? '#10B981' : ev.type === 'note' ? '#0EA5E9' : ev.type === 'booking' ? '#F5EDD6' : '#F5F5F5' }}>
+                              <span style={{ fontSize: 15, fontWeight: 600, color: (ev.type === 'bank' || ev.type === 'note') ? '#fff' : '#111', fontFamily: "'Figtree', sans-serif" }}>{ev.label}</span>
                             </div>
                           </div>
                         )
