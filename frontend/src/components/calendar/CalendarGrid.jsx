@@ -71,6 +71,8 @@ const CalendarGrid = ({
   gridRef,
   staffColRefs = { current: {} },
   // Pop component rendered by parent Calendar.jsx, not inside grid
+  PopComponent = null,
+  useNewGrid = false,
 }) => {
   const totHrs = EH - SH
   const totalSlots = totHrs * SLOTS_PER_HR
@@ -206,7 +208,8 @@ const CalendarGrid = ({
         </div>
 
         {/* Detail panel — rendered by parent's Pop component */}
-        {/* Pop detail panel rendered by parent Calendar.jsx, not inside grid */}
+        {/* Pop detail panel */}
+        {sel && !isDragging && PopComponent && <PopComponent a={a} />}
       </>
     )
   }

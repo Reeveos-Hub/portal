@@ -93,7 +93,7 @@ const UK_HOLIDAYS = {
 }
 const pad2 = n => String(n).padStart(2, '0')
 const dateKey = d => `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`
-const WHH = 64 // compressed hour height for week view
+const WHH = 72 // compressed hour height for week view
 const Spark = ({ data, color }) => {
   const w = 50, h = 16
   const max = Math.max(...data), min = Math.min(...data)
@@ -968,32 +968,46 @@ const Calendar = () => {
 
     const narrow = isFullscreen || (typeof window !== 'undefined' && window.innerWidth < 1024)
 
-    // CSS Grid: card heights are variable, so calculate Pop position from actual DOM element
-    let popTop = (a.start - SH) * HH + a.dur * HH + 6
-    if (useNewGrid && !narrow && gridRef.current) {
-      const cardEl = gridRef.current.querySelector(`[data-booking-id="${a.id}"]`)
-      if (cardEl) {
-        const gridRect = gridRef.current.getBoundingClientRect()
-        const cardRect = cardEl.getBoundingClientRect()
-        const scrollTop = scrollRef.current?.scrollTop || 0
-        popTop = cardRect.bottom - gridRect.top + scrollTop + 6
+    // CSS Grid: use fixed positioning anchored to actual card element
+    let popStyle
+    if (narrow) {
+      popStyle = {
+        position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 10002,
+        maxWidth: 480, margin: '0 auto', maxHeight: '80vh', overflowY: 'auto',
+        background: '#fff', borderRadius: '20px 20px 0 0',
+        boxShadow: '0 -8px 40px rgba(0,0,0,0.15)',
+      }
+    } else if (useNewGrid) {
+      // New grid: fixed position below the actual card element
+      const cardEl = document.querySelector(`[data-booking-id="${a.id}"]`)
+      const cr = cardEl ? cardEl.getBoundingClientRect() : { bottom: 300, left: 200, width: 300 }
+      popStyle = {
+        position: 'fixed',
+        top: Math.min(cr.bottom + 6, window.innerHeight - 420),
+        left: cr.left,
+        width: Math.max(cr.width, 340),
+        maxHeight: 400,
+        overflowY: 'auto',
+        zIndex: 50,
+        background: '#fff', borderRadius: 16,
+        boxShadow: '0 16px 48px rgba(0,0,0,0.16), 0 2px 8px rgba(0,0,0,0.06)',
+        border: '1px solid #EBEBEB', overflow: 'hidden',
+      }
+    } else {
+      // Old grid: absolute position below card
+      const popTop = (a.start - SH) * HH + a.dur * HH + 6
+      popStyle = {
+        position: 'absolute', top: popTop, left: 4, right: 4,
+        background: '#fff', borderRadius: 16, zIndex: 50,
+        boxShadow: '0 16px 48px rgba(0,0,0,0.16), 0 2px 8px rgba(0,0,0,0.06)',
+        border: '1px solid #EBEBEB', overflow: 'hidden',
       }
     }
 
     return (
       <>
-        {narrow && <div onClick={e => { e.stopPropagation(); setSelA(null) }} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.3)', zIndex: 10001 }} />}
-        <div data-po="1" onClick={e => e.stopPropagation()} style={narrow ? {
-          position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 10002,
-          maxWidth: 480, margin: '0 auto', maxHeight: '80vh', overflowY: 'auto',
-          background: '#fff', borderRadius: '20px 20px 0 0',
-          boxShadow: '0 -8px 40px rgba(0,0,0,0.15)',
-        } : {
-          position: 'absolute', top: popTop, left: 4, right: 4,
-          background: '#fff', borderRadius: 16, zIndex: 50,
-          boxShadow: '0 16px 48px rgba(0,0,0,0.16), 0 2px 8px rgba(0,0,0,0.06)',
-          border: '1px solid #EBEBEB', overflow: 'hidden',
-        }}>
+        {(narrow || useNewGrid) && <div onClick={e => { e.stopPropagation(); setSelA(null) }} style={{ position: 'fixed', inset: 0, background: narrow ? 'rgba(0,0,0,0.3)' : 'transparent', zIndex: narrow ? 10001 : 49 }} />}
+        <div data-po="1" onClick={e => e.stopPropagation()} style={popStyle}>
           {narrow && <div style={{ display: 'flex', justifyContent: 'center', padding: '10px 0 4px' }}><div style={{ width: 36, height: 4, borderRadius: 2, background: '#D1D5DB' }} /></div>}
           <div style={{ height: 4, background: bg }} />
           <div style={{ padding: '14px 16px' }}>
@@ -1738,7 +1752,7 @@ const Calendar = () => {
             </div>
 
             {useNewGrid ? (
-              <div style={{ flex: 1, position: 'relative', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+              <div style={{ flex: 1, position: 'relative', display: 'flex', flexDirection: 'column' }}>
               <CalendarGrid
                 staffColumns={staffColumns}
                 filteredBookings={filteredBookings}
@@ -1774,13 +1788,10 @@ const Calendar = () => {
                 scrollRef={scrollRef}
                 gridRef={gridRef}
                 staffColRefs={staffColRefs}
+                PopComponent={Pop}
+                useNewGrid={true}
               />
-              {/* Pop detail panel — anchored to card element position */}
-              {selA && (() => {
-                const a = filteredBookings.find(b => b.id === selA)
-                if (!a || drag) return null
-                return <Pop a={a} />
-              })()}
+              {/* Pop handled inside CalendarGrid scroll container */}
               </div>
             ) : (
             <div ref={scrollRef} style={{ flex: 1, overflow: 'auto', position: 'relative' }}>
