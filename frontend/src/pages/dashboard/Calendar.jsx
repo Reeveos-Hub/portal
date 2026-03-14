@@ -10,6 +10,7 @@ import { useBusiness } from '../../contexts/BusinessContext'
 import api from '../../utils/api'
 import RestaurantCalendar from './RestaurantCalendar'
 import AppLoader from '../../components/shared/AppLoader'
+import CalendarGrid from '../../components/calendar/CalendarGrid'
 
 /* ───────────────────── Constants ───────────────────── */
 const SH = 8, EH = 24, HH = 80, TCW = 52
@@ -176,6 +177,7 @@ const Calendar = () => {
 
   const isRestaurant = businessType === 'restaurant'
   const isToday = selectedDate === new Date().toISOString().slice(0, 10)
+  const useNewGrid = searchParams.get('grid') === 'new'
 
   /* ── Add Booking Modal State ── */
   const [bookServices, setBookServices] = useState([])
@@ -1723,6 +1725,45 @@ const Calendar = () => {
               ))}
             </div>
 
+            {useNewGrid ? (
+              <CalendarGrid
+                staffColumns={staffColumns}
+                filteredBookings={filteredBookings}
+                blocks={blocks}
+                allBookings={bookings}
+                isToday={isToday}
+                tp={tp}
+                ts={ts}
+                isFullscreen={isFullscreen}
+                selA={selA}
+                hovA={hovA}
+                drag={drag}
+                checkedInTimes={checkedInTimes}
+                newCalBookingIds={newCalBookingIds}
+                gc={gc}
+                setHovA={setHovA}
+                setSelA={setSelA}
+                setHovS={setHovS}
+                setHovSlot={setHovSlot}
+                setHoverCol={setHoverCol}
+                setHoverRow={setHoverRow}
+                onClickSlot={(staffId, timeStr) => {
+                  setEditingId(null)
+                  setBookForm(f => ({ ...f, date: selectedDate, time: timeStr, staffId, customerName: '', customerPhone: '', customerEmail: '', serviceId: '', notes: '' }))
+                  setBookError('')
+                  setShowBook(true)
+                  if (bid && bookServices.length === 0) {
+                    api.get(`/services-v2/business/${bid}`).then(r => setBookServices((r.categories || []).flatMap(c => c.services || []))).catch(() => {})
+                  }
+                }}
+                startDragMove={startDragMove}
+                startDragResize={startDragResize}
+                scrollRef={scrollRef}
+                gridRef={gridRef}
+                staffColRefs={staffColRefs}
+                PopComponent={Pop}
+              />
+            ) : (
             <div ref={scrollRef} style={{ flex: 1, overflow: 'auto', position: 'relative' }}>
               <div ref={gridRef} style={{ display: 'flex', minHeight: totHrs * HH }}>
                 <div style={{ width: TCW, flexShrink: 0, position: 'sticky', left: 0, zIndex: 5, background: '#FFFFFF' }}>
@@ -1816,6 +1857,7 @@ const Calendar = () => {
                 </div>
               )}
             </div>
+            )}
           </div>
         </div>}
 
