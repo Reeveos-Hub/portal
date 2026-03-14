@@ -93,7 +93,7 @@ const UK_HOLIDAYS = {
 }
 const pad2 = n => String(n).padStart(2, '0')
 const dateKey = d => `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`
-const WHH = 72 // compressed hour height for week view
+const WHH = 80 // week view hour height — same as day view for readable cards
 const Spark = ({ data, color }) => {
   const w = 50, h = 16
   const max = Math.max(...data), min = Math.min(...data)
@@ -1903,9 +1903,9 @@ const Calendar = () => {
                 return (
                   <div key={i} onClick={() => { setSelectedDate(dateKey(d)); setViewMode('Day') }}
                     style={{ flex: 1, textAlign: 'center', padding: '8px 2px 6px', cursor: 'pointer', borderLeft: i > 0 ? '1px solid #F0F0F0' : 'none', borderTop: isTd ? '3px solid #C9A84C' : '3px solid transparent', transition: 'background 0.15s' }}>
-                    <div style={{ fontSize: 9, fontWeight: 600, color: isTd ? '#C9A84C' : '#999', letterSpacing: 0.5 }}>{DY[i]}</div>
-                    <div style={{ fontSize: 16, fontWeight: isTd ? 800 : 600, color: isTd ? '#C9A84C' : '#111', marginTop: 2 }}>{d.getDate()}</div>
-                    <div style={{ fontSize: 9, fontWeight: 600, color: '#BBB', marginTop: 1 }}>{dayBk.length > 0 ? `${dayBk.length} appt${dayBk.length > 1 ? 's' : ''}` : ''}</div>
+                    <div style={{ fontSize: 11, fontWeight: 600, color: isTd ? '#C9A84C' : '#999', letterSpacing: 0.5 }}>{DY[i]}</div>
+                    <div style={{ fontSize: 18, fontWeight: isTd ? 800 : 600, color: isTd ? '#C9A84C' : '#111', marginTop: 2 }}>{d.getDate()}</div>
+                    <div style={{ fontSize: 10, fontWeight: 600, color: '#BBB', marginTop: 1 }}>{dayBk.length > 0 ? `${dayBk.length} appt${dayBk.length > 1 ? 's' : ''}` : ''}</div>
                   </div>
                 )
               })}
@@ -1916,7 +1916,7 @@ const Calendar = () => {
               {Array.from({ length: EH - SH }, (_, i) => (
                 <div key={i} style={{ position: 'absolute', top: i * WHH, width: '100%', display: 'flex' }}>
                   <div style={{ width: 40, flexShrink: 0, textAlign: 'right', paddingRight: 4 }}>
-                    <span style={{ fontSize: 10, fontWeight: 500, color: '#999' }}>{fmtAP(SH + i)}</span>
+                    <span style={{ fontSize: 11, fontWeight: 500, color: '#999' }}>{fmtAP(SH + i)}</span>
                   </div>
                   <div style={{ flex: 1, borderTop: '1px solid #EBEBEB' }} />
                 </div>
@@ -1966,7 +1966,7 @@ const Calendar = () => {
                 })
                 return laid.map(b => {
                   const top = (b.start - SH) * WHH
-                  const height = Math.max(b.dur * WHH - 2, 26)
+                  const height = Math.max(b.dur * WHH - 2, 30)
                   const sc = staffColorMap[b.staffId] || '#6BA3C7'
                   const colW = 1 / b.totalCols
                   const leftFrac = (di + b.col * colW) / 7
@@ -1975,12 +1975,12 @@ const Calendar = () => {
                   const timeStr = `${fmtAP(Math.floor(b.start))} - ${fmtAP(endH)}`
                   return (
                     <div key={b.id} onClick={() => { setSelectedDate(dk); setViewMode('Day') }}
-                      style={{ position: 'absolute', top, height, left: `calc(40px + (100% - 40px) * ${leftFrac} + 1px)`, width: `calc((100% - 40px) * ${widthFrac} - 2px)`, background: sc, borderRadius: 5, padding: '4px 6px', cursor: 'pointer', overflow: 'hidden', zIndex: 5, boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
-                      <p style={{ fontSize: 10, fontWeight: 600, color: '#111', margin: 0, lineHeight: 1.2 }}>{timeStr}</p>
-                      <p style={{ fontSize: 12, fontWeight: 700, color: '#111', margin: '2px 0 0', lineHeight: 1.2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      style={{ position: 'absolute', top, height, left: `calc(40px + (100% - 40px) * ${leftFrac} + 1px)`, width: `calc((100% - 40px) * ${widthFrac} - 2px)`, background: sc, borderRadius: 5, padding: '5px 7px', cursor: 'pointer', overflow: 'hidden', zIndex: 5, boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
+                      <p style={{ fontSize: 11, fontWeight: 600, color: '#111', margin: 0, lineHeight: 1.2 }}>{timeStr}</p>
+                      <p style={{ fontSize: 13, fontWeight: 700, color: '#111', margin: '2px 0 0', lineHeight: 1.2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                         {b.customerName || 'Walk-in'}
                       </p>
-                      {height >= 36 && <p style={{ fontSize: 10, fontWeight: 500, color: '#222', margin: '1px 0 0', lineHeight: 1.2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{b.service}</p>}
+                      {height >= 36 && <p style={{ fontSize: 11, fontWeight: 500, color: '#222', margin: '1px 0 0', lineHeight: 1.2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{b.service}</p>}
                     </div>
                   )
                 })
