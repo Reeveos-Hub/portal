@@ -73,6 +73,26 @@ const RotateCcwIcon = () => <svg width={14} height={14} viewBox="0 0 24 24" fill
 const CalendarPlusIcon = () => <svg width={14} height={14} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="12" y1="14" x2="12" y2="20"/><line x1="9" y1="17" x2="15" y2="17"/></svg>
 
 /* Mini sparkline */
+const DY = ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN']
+const UK_HOLIDAYS = {
+  '2026-01-01': { l: "New Year's Day", t: 'bank' },
+  '2026-03-15': { l: "Mother's Day", t: 'note' },
+  '2026-03-29': { l: 'Clocks Go Forward', t: 'note' },
+  '2026-04-03': { l: 'Good Friday', t: 'bank' },
+  '2026-04-06': { l: 'Easter Monday', t: 'bank' },
+  '2026-05-04': { l: 'Early May Bank Holiday', t: 'bank' },
+  '2026-05-25': { l: 'Spring Bank Holiday', t: 'bank' },
+  '2026-06-21': { l: "Father's Day", t: 'note' },
+  '2026-08-31': { l: 'Summer Bank Holiday', t: 'bank' },
+  '2026-10-25': { l: 'Clocks Go Back', t: 'note' },
+  '2026-10-31': { l: 'Halloween', t: 'note' },
+  '2026-11-05': { l: 'Bonfire Night', t: 'note' },
+  '2026-12-25': { l: 'Christmas Day', t: 'bank' },
+  '2026-12-28': { l: 'Boxing Day (sub)', t: 'bank' },
+}
+const pad2 = n => String(n).padStart(2, '0')
+const dateKey = d => `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`
+const WHH = 48 // compressed hour height for week view
 const Spark = ({ data, color }) => {
   const w = 50, h = 16
   const max = Math.max(...data), min = Math.min(...data)
@@ -117,6 +137,7 @@ const Calendar = () => {
     return urlDate || new Date().toISOString().slice(0, 10)
   })
   const [viewMode, setViewMode] = useState('Day')
+  const [monthMode, setMonthMode] = useState('calendar') // 'calendar' or 'schedule'
   const [cm, setCm] = useState('service')
   const [showBook, setShowBook] = useState(false)
   const [editingId, setEditingId] = useState(null) // null = new booking, string = editing existing
@@ -572,11 +593,34 @@ const Calendar = () => {
   }, [])
 
   /* ── Navigation ── */
-  const goPrev = () => { const d = new Date(selectedDate); d.setDate(d.getDate() - 1); setSelectedDate(d.toISOString().slice(0, 10)) }
-  const goNext = () => { const d = new Date(selectedDate); d.setDate(d.getDate() + 1); setSelectedDate(d.toISOString().slice(0, 10)) }
+  const goPrev = () => {
+    const d = new Date(selectedDate + 'T12:00')
+    if (viewMode === 'Month') d.setMonth(d.getMonth() - 1)
+    else if (viewMode === 'Week') d.setDate(d.getDate() - 7)
+    else d.setDate(d.getDate() - 1)
+    setSelectedDate(d.toISOString().slice(0, 10))
+  }
+  const goNext = () => {
+    const d = new Date(selectedDate + 'T12:00')
+    if (viewMode === 'Month') d.setMonth(d.getMonth() + 1)
+    else if (viewMode === 'Week') d.setDate(d.getDate() + 7)
+    else d.setDate(d.getDate() + 1)
+    setSelectedDate(d.toISOString().slice(0, 10))
+  }
   const goToday = () => setSelectedDate(new Date().toISOString().slice(0, 10))
 
-  const dateLabel = new Date(selectedDate + 'T12:00').toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' })
+  const dateLabel = (() => {
+    const d = new Date(selectedDate + 'T12:00')
+    if (viewMode === 'Month') return d.toLocaleDateString('en-GB', { month: 'long', year: 'numeric' })
+    if (viewMode === 'Week') {
+      const mon = new Date(d); mon.setDate(d.getDate() - d.getDay() + (d.getDay() === 0 ? -6 : 1))
+      const sun = new Date(mon); sun.setDate(mon.getDate() + 6)
+      const mf = mon.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })
+      const sf = sun.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })
+      return `${mf} – ${sf}`
+    }
+    return d.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' })
+  })()
 
   /* ── Derived data ── */
   const staffColumns = data?.staff || []
@@ -592,6 +636,57 @@ const Calendar = () => {
     }
     return true
   })
+
+  /* ── Week/Month computed helpers ── */
+  const weekDates = useMemo(() => {
+    const d = new Date(selectedDate + 'T12:00')
+    const dow = d.getDay() === 0 ? 6 : d.getDay() - 1 // Monday-based
+    const mon = new Date(d); mon.setDate(d.getDate() - dow)
+    return Array.from({ length: 7 }, (_, i) => { const dd = new Date(mon); dd.setDate(mon.getDate() + i); return dd })
+  }, [selectedDate])
+
+  const monthGrid = useMemo(() => {
+    const d = new Date(selectedDate + 'T12:00')
+    const first = new Date(d.getFullYear(), d.getMonth(), 1)
+    const last = new Date(d.getFullYear(), d.getMonth() + 1, 0)
+    const startDow = (first.getDay() + 6) % 7 // Monday-based
+    const weeks = []; let week = Array(startDow).fill(null)
+    for (let day = 1; day <= last.getDate(); day++) {
+      week.push(day)
+      if (week.length === 7) { weeks.push(week); week = [] }
+    }
+    if (week.length) weeks.push([...week, ...Array(7 - week.length).fill(null)])
+    return weeks
+  }, [selectedDate])
+
+  const scheduleWeeks = useMemo(() => {
+    const d = new Date(selectedDate + 'T12:00')
+    const first = new Date(d.getFullYear(), d.getMonth(), 1)
+    const last = new Date(d.getFullYear(), d.getMonth() + 1, 0)
+    const weeks = []; let cur = new Date(first); cur.setDate(cur.getDate() - ((cur.getDay() + 6) % 7))
+    while (cur <= last || weeks.length < 5) {
+      const days = Array.from({ length: 7 }, (_, i) => { const dd = new Date(cur); dd.setDate(cur.getDate() + i); return dd })
+      weeks.push(days); cur.setDate(cur.getDate() + 7)
+      if (weeks.length >= 6) break
+    }
+    return weeks
+  }, [selectedDate])
+
+  const bookingsByDate = useMemo(() => {
+    const m = {}
+    filteredBookings.forEach(b => {
+      const dk = b.date || selectedDate
+      if (!m[dk]) m[dk] = []
+      m[dk].push(b)
+    })
+    return m
+  }, [filteredBookings, selectedDate])
+
+  const staffColorMap = useMemo(() => {
+    const m = {}
+    ;(staffColumns || []).forEach((s, i) => { m[s.id] = s.color || STAFF_PALETTES[i % STAFF_PALETTES.length] })
+    return m
+  }, [staffColumns])
 
   /* ── Auto-size layout: minimum card height + separator gaps between adjacent bookings ── */
   const MIN_CARD = 52
@@ -1473,8 +1568,8 @@ const Calendar = () => {
             <p style={{ marginTop: 16, fontSize: 14, color: '#888' }}>Loading calendar...</p>
           </div>
         </div>
-      ) : (
-        <div style={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
+      ) : (<>
+        {viewMode === 'Day' && <div style={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
           <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
             <div style={{ display: 'flex', height: 60, borderBottom: '1px solid #EBEBEB', background: '#fff', flexShrink: 0, zIndex: profileOpen ? 50 : 10 }}>
               <div style={{ width: TCW, flexShrink: 0 }} />
@@ -1722,8 +1817,196 @@ const Calendar = () => {
               )}
             </div>
           </div>
-        </div>
-      )}
+        </div>}
+
+        {/* ═══ WEEK VIEW ═══ */}
+        {viewMode === 'Week' && (
+          <div style={{ flex: 1, overflow: 'auto', background: '#fff', fontFamily: "'Figtree', sans-serif" }}>
+            {/* Day column headers */}
+            <div style={{ display: 'flex', position: 'sticky', top: 0, zIndex: 10, background: '#fff', borderBottom: '1px solid #EBEBEB' }}>
+              <div style={{ width: 36, flexShrink: 0 }} />
+              {weekDates.map((d, i) => {
+                const isTd = dateKey(d) === dateKey(new Date())
+                const dayBk = bookingsByDate[dateKey(d)] || []
+                return (
+                  <div key={i} onClick={() => { setSelectedDate(dateKey(d)); setViewMode('Day') }}
+                    style={{ flex: 1, textAlign: 'center', padding: '8px 2px 6px', cursor: 'pointer', borderLeft: i > 0 ? '1px solid #F0F0F0' : 'none', borderTop: isTd ? '3px solid #C9A84C' : '3px solid transparent', transition: 'background 0.15s' }}>
+                    <div style={{ fontSize: 9, fontWeight: 600, color: isTd ? '#C9A84C' : '#999', letterSpacing: 0.5 }}>{DY[i]}</div>
+                    <div style={{ fontSize: 16, fontWeight: isTd ? 800 : 600, color: isTd ? '#C9A84C' : '#111', marginTop: 2 }}>{d.getDate()}</div>
+                    <div style={{ fontSize: 9, fontWeight: 600, color: '#BBB', marginTop: 1 }}>{dayBk.length > 0 ? `${dayBk.length} appt${dayBk.length > 1 ? 's' : ''}` : ''}</div>
+                  </div>
+                )
+              })}
+            </div>
+            {/* Time grid */}
+            <div style={{ position: 'relative', height: (EH - SH) * WHH }}>
+              {/* Hour lines + labels */}
+              {Array.from({ length: EH - SH }, (_, i) => (
+                <div key={i} style={{ position: 'absolute', top: i * WHH, width: '100%', display: 'flex' }}>
+                  <div style={{ width: 36, flexShrink: 0, textAlign: 'right', paddingRight: 4 }}>
+                    <span style={{ fontSize: 9, fontWeight: 500, color: '#BBB' }}>{fmtAP(SH + i)}</span>
+                  </div>
+                  <div style={{ flex: 1, borderTop: '1px solid #EBEBEB' }} />
+                </div>
+              ))}
+              {/* Half-hour lines */}
+              {Array.from({ length: EH - SH }, (_, i) => (
+                <div key={`hf${i}`} style={{ position: 'absolute', top: i * WHH + WHH / 2, left: 36, right: 0, borderTop: '1px dashed #F0F0F0' }} />
+              ))}
+              {/* Column dividers */}
+              {weekDates.slice(1).map((_, i) => (
+                <div key={`wc${i}`} style={{ position: 'absolute', top: 0, bottom: 0, left: `calc(36px + (100% - 36px) * ${(i + 1) / 7})`, width: 1, background: '#F0F0F0' }} />
+              ))}
+              {/* Booking cards */}
+              {weekDates.map((wd, di) => {
+                const dk = dateKey(wd)
+                const dayBookings = (bookingsByDate[dk] || []).filter(b => {
+                  if (statusFilter !== 'all' && b.status !== statusFilter) return false
+                  if (staffFilter !== 'all' && b.staffId !== staffFilter) return false
+                  return true
+                })
+                return dayBookings.map(b => {
+                  const [h, m] = (b.time || '09:00').split(':').map(Number)
+                  const start = h + m / 60
+                  const dur = (b.duration || 30) / 60
+                  const top = (start - SH) * WHH
+                  const height = Math.max(dur * WHH - 1, 16)
+                  const sc = staffColorMap[b.staffId] || '#6BA3C7'
+                  return (
+                    <div key={b.id} onClick={() => { setSelectedDate(dk); setViewMode('Day') }}
+                      style={{ position: 'absolute', top, height, left: `calc(36px + (100% - 36px) * ${di / 7} + 2px)`, width: `calc((100% - 36px) / 7 - 4px)`, background: `${sc}18`, borderLeft: `3px solid ${sc}`, borderRadius: 4, padding: '2px 4px', cursor: 'pointer', overflow: 'hidden', zIndex: 5 }}>
+                      <p style={{ fontSize: 9, fontWeight: 700, color: sc, margin: 0, lineHeight: 1.1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        {(b.customerName || '').split(' ')[0]}
+                      </p>
+                      {height >= 28 && <p style={{ fontSize: 8, fontWeight: 600, color: `${sc}99`, margin: 0, lineHeight: 1.1 }}>{fmtAP(h)}</p>}
+                    </div>
+                  )
+                })
+              })}
+              {/* Current time indicator */}
+              {(() => {
+                const now = new Date(), todayStr = dateKey(now)
+                const todayIdx = weekDates.findIndex(d => dateKey(d) === todayStr)
+                if (todayIdx === -1) return null
+                const ch = now.getHours() + now.getMinutes() / 60
+                if (ch < SH || ch > EH) return null
+                const top = (ch - SH) * WHH
+                return (
+                  <div style={{ position: 'absolute', top, left: `calc(36px + (100% - 36px) * ${todayIdx / 7})`, width: `calc((100% - 36px) / 7)`, height: 2, background: '#EF4444', zIndex: 15, pointerEvents: 'none' }}>
+                    <div style={{ position: 'absolute', left: -3, top: -3, width: 8, height: 8, borderRadius: 4, background: '#EF4444' }} />
+                  </div>
+                )
+              })()}
+            </div>
+            {/* Staff legend */}
+            <div style={{ display: 'flex', gap: 12, padding: '12px 16px', borderTop: '1px solid #EBEBEB', flexWrap: 'wrap' }}>
+              {staffColumns.map((s, i) => (
+                <div key={s.id} style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+                  <div style={{ width: 8, height: 8, borderRadius: 4, background: staffColorMap[s.id] || STAFF_PALETTES[i] }} />
+                  <span style={{ fontSize: 11, fontWeight: 600, color: '#555' }}>{s.name}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* ═══ MONTH VIEW ═══ */}
+        {viewMode === 'Month' && (
+          <div style={{ flex: 1, overflow: 'auto', background: '#fff', fontFamily: "'Figtree', sans-serif" }}>
+            {/* Calendar / Schedule toggle */}
+            <div style={{ display: 'flex', background: '#F5F5F5', borderRadius: 20, padding: 3, margin: '10px 16px', gap: 2 }}>
+              {['calendar', 'schedule'].map(m => (
+                <button key={m} onClick={() => setMonthMode(m)} style={{ flex: 1, padding: '7px 0', borderRadius: 18, border: 'none', cursor: 'pointer', fontSize: 12, fontWeight: monthMode === m ? 700 : 500, background: monthMode === m ? '#fff' : 'transparent', color: monthMode === m ? '#111' : '#999', boxShadow: monthMode === m ? '0 2px 6px rgba(0,0,0,0.06)' : 'none', textTransform: 'capitalize', fontFamily: "'Figtree', sans-serif" }}>{m}</button>
+              ))}
+            </div>
+
+            {monthMode === 'calendar' ? (
+              <div style={{ padding: '4px 14px 20px' }}>
+                {/* Day headers */}
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', marginBottom: 4 }}>
+                  {DY.map(d => <div key={d} style={{ textAlign: 'center', fontSize: 10, fontWeight: 600, color: '#999', padding: '4px 0' }}>{d.charAt(0)}</div>)}
+                </div>
+                {/* Calendar grid */}
+                {monthGrid.map((week, wi) => (
+                  <div key={wi} style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)' }}>
+                    {week.map((day, di) => {
+                      if (!day) return <div key={di} style={{ minHeight: 64 }} />
+                      const d = new Date(selectedDate + 'T12:00')
+                      const dk = `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(day)}`
+                      const isTdy = dk === dateKey(new Date())
+                      const dayBk = bookingsByDate[dk] || []
+                      const hol = UK_HOLIDAYS[dk]
+                      return (
+                        <button key={di} onClick={() => { setSelectedDate(dk); setViewMode('Day') }}
+                          style={{ minHeight: 64, border: 'none', cursor: 'pointer', background: isTdy ? '#FFF9F0' : 'transparent', display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '4px 1px', borderTop: `1px solid #EBEBEB`, borderLeft: di > 0 ? '1px solid #EBEBEB' : 'none', fontFamily: "'Figtree', sans-serif" }}>
+                          <div style={{ width: isTdy ? 28 : 24, height: isTdy ? 28 : 24, borderRadius: 14, background: isTdy ? '#C9A84C' : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                            <span style={{ fontSize: 13, fontWeight: isTdy ? 700 : 500, color: isTdy ? '#fff' : di >= 5 ? '#CCC' : '#111' }}>{day}</span>
+                          </div>
+                          {dayBk.length > 0 && (
+                            <div style={{ marginTop: 2, display: 'flex', gap: 2, flexWrap: 'wrap', justifyContent: 'center' }}>
+                              {Array.from({ length: Math.min(dayBk.length, 4) }).map((_, i) => {
+                                const bk = dayBk[i]
+                                const sc = bk ? (staffColorMap[bk.staffId] || STAFF_PALETTES[i % STAFF_PALETTES.length]) : STAFF_PALETTES[i]
+                                return <div key={i} style={{ width: 5, height: 5, borderRadius: 3, background: sc }} />
+                              })}
+                              {dayBk.length > 4 && <span style={{ fontSize: 7, fontWeight: 700, color: '#999' }}>+{dayBk.length - 4}</span>}
+                            </div>
+                          )}
+                          {hol && <span style={{ fontSize: 7, fontWeight: 600, color: hol.t === 'bank' ? '#10B981' : '#C9A84C', marginTop: 1, textAlign: 'center', lineHeight: 1.1 }}>{hol.l.split(' ').slice(0, 2).join(' ')}</span>}
+                        </button>
+                      )
+                    })}
+                  </div>
+                ))}
+              </div>
+            ) : (
+              /* Schedule mode */
+              <div style={{ padding: '0 0 20px' }}>
+                {scheduleWeeks.map((days, wi) => {
+                  const s = days[0], e = days[6]
+                  const label = `${s.toLocaleDateString('en-GB', { month: 'short' }).toUpperCase()} ${s.getDate()} – ${e.getDate()}`
+                  const d = new Date(selectedDate + 'T12:00')
+                  const events = []
+                  days.forEach(day => {
+                    const dk = dateKey(day)
+                    const hol = UK_HOLIDAYS[dk]
+                    if (hol) events.push({ date: day, label: hol.l, type: hol.t })
+                    const dayBk = bookingsByDate[dk] || []
+                    if (dayBk.length > 0) events.push({ date: day, label: `${dayBk.length} appointment${dayBk.length > 1 ? 's' : ''}`, type: 'booking', dk })
+                  })
+                  if (events.length === 0) return null
+                  return (
+                    <div key={wi}>
+                      <div style={{ padding: '14px 16px 6px', color: '#999', fontSize: 11, fontWeight: 600, letterSpacing: 1 }}>{label}</div>
+                      {events.map((ev, ei) => {
+                        const isTdy = dateKey(ev.date) === dateKey(new Date())
+                        const showDate = ei === 0 || dateKey(ev.date) !== dateKey(events[ei - 1]?.date)
+                        const dow = (ev.date.getDay() + 6) % 7
+                        return (
+                          <div key={ei} onClick={() => { if (ev.type === 'booking') { setSelectedDate(ev.dk); setViewMode('Day') } }}
+                            style={{ display: 'flex', alignItems: 'center', padding: '6px 16px', gap: 12, cursor: ev.type === 'booking' ? 'pointer' : 'default' }}>
+                            <div style={{ width: 44, textAlign: 'center', flexShrink: 0 }}>
+                              {showDate && (<div>
+                                <div style={{ fontSize: 10, fontWeight: 600, color: isTdy ? '#C9A84C' : '#999' }}>{DY[dow]}</div>
+                                <div style={{ width: isTdy ? 34 : 26, height: isTdy ? 34 : 26, borderRadius: isTdy ? 17 : 13, background: isTdy ? '#C9A84C' : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '2px auto 0' }}>
+                                  <span style={{ fontSize: isTdy ? 15 : 14, fontWeight: isTdy ? 700 : 500, color: isTdy ? '#fff' : ev.date.getMonth() === d.getMonth() ? '#111' : '#CCC' }}>{ev.date.getDate()}</span>
+                                </div>
+                              </div>)}
+                            </div>
+                            <div style={{ flex: 1, padding: '10px 14px', borderRadius: 10, background: ev.type === 'bank' ? '#10B981' : ev.type === 'note' ? '#0EA5E9' : ev.type === 'booking' ? '#F5EDD6' : '#F5F5F5' }}>
+                              <span style={{ fontSize: 14, fontWeight: 600, color: (ev.type === 'bank' || ev.type === 'note') ? '#fff' : '#111', fontFamily: "'Figtree', sans-serif" }}>{ev.label}</span>
+                            </div>
+                          </div>
+                        )
+                      })}
+                    </div>
+                  )
+                })}
+              </div>
+            )}
+          </div>
+        )}
+      </>)}
 
       {/* ═══ UNDO TOAST ═══ */}
       {undoToast && (

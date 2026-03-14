@@ -92,6 +92,61 @@ async def _query_both_collections(db, business_id, bid_str, date_param, collecti
     return result
 
 
+async def _query_date_range(db, business_id, bid_str, date_from, date_to, collection_names):
+    """Query multiple collections for a date range (inclusive). Used by week/month views."""
+    all_raw = []
+    bid_values = list(set([v for v in [business_id, bid_str] if v]))
+    bid_oid_values = []
+    for v in bid_values:
+        try:
+            bid_oid_values.append(ObjectId(v))
+        except Exception:
+            pass
+    all_bid_values = bid_values + bid_oid_values
+
+    for coll_name in collection_names:
+        coll = db[coll_name]
+        for bid_field in ["business_id", "businessId"]:
+            try:
+                cursor = coll.find({
+                    bid_field: {"$in": all_bid_values},
+                    "date": {"$gte": date_from, "$lte": date_to},
+                    "status": {"$nin": ["cancelled"]},
+                })
+                docs = await cursor.to_list(length=1000)
+                all_raw.extend(docs)
+            except Exception:
+                pass
+
+    # Deduplicate by _id
+    seen = set()
+    result = []
+    for doc in all_raw:
+        doc_id = str(doc.get("_id", ""))
+        if doc_id and doc_id not in seen:
+            seen.add(doc_id)
+            result.append(doc)
+    return result
+
+
+def _calc_date_range(date_str: str, view: str):
+    """Calculate dateFrom/dateTo for a given view mode."""
+    d = datetime.strptime(date_str, "%Y-%m-%d").date()
+    if view == "week":
+        # Monday-based week
+        mon = d - timedelta(days=d.weekday())
+        sun = mon + timedelta(days=6)
+        return mon.isoformat(), sun.isoformat()
+    elif view == "month":
+        from calendar import monthrange
+        _, last_day = monthrange(d.year, d.month)
+        first = d.replace(day=1)
+        last = d.replace(day=last_day)
+        return first.isoformat(), last.isoformat()
+    else:
+        return date_str, date_str
+
+
 @router.get("/business/{business_id}")
 async def get_calendar(
     business_id: str,
@@ -115,10 +170,19 @@ async def get_calendar(
     if not staff_list:
         staff_list = [{"id": "default", "name": "All", "avatar": None}]
 
-    bookings_raw = await _query_both_collections(
-        db, business_id, bid_str, date_param,
-        ["appointments", "bookings"]
-    )
+    # Calculate date range based on view mode
+    date_from, date_to = _calc_date_range(date_param, view.lower())
+
+    if view.lower() in ("week", "month"):
+        bookings_raw = await _query_date_range(
+            db, business_id, bid_str, date_from, date_to,
+            ["appointments", "bookings"]
+        )
+    else:
+        bookings_raw = await _query_both_collections(
+            db, business_id, bid_str, date_param,
+            ["appointments", "bookings"]
+        )
 
     # Build service color map from menu
     svc_color_map = {}
@@ -153,6 +217,7 @@ async def get_calendar(
 
         bookings.append({
             "id": nb["id"],
+            "date": b.get("date", date_param),
             "staffId": nb["staffId"] or "default",
             "staffName": b.get("staff_name") or b.get("staffName", ""),
             "time": nb["time"] or "09:00",
@@ -174,10 +239,12 @@ async def get_calendar(
             "roomName": b.get("roomName", ""),
         })
 
-    bookings.sort(key=lambda x: x.get("time", ""))
+    bookings.sort(key=lambda x: (x.get("date", ""), x.get("time", "")))
 
     return {
         "date": date_param,
+        "dateFrom": date_from,
+        "dateTo": date_to,
         "view": view,
         "openingHours": {"open": "09:00", "close": "20:00"},
         "staff": [{"id": _safe_str(st.get("id")), "name": st.get("name"), "avatar": st.get("avatar")} for st in staff_list],
