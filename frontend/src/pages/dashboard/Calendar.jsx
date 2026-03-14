@@ -2025,58 +2025,87 @@ const Calendar = () => {
         )
       })()}
 
-      {/* ── Block Time Modal ── */}
-      {showBlockTime && (
-        <>
-          <div onClick={() => setShowBlockTime(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.3)', zIndex: 9998 }} />
-          <div style={{ position: 'fixed', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', zIndex: 9999, background: '#fff', borderRadius: 20, padding: '28px', width: 420, maxWidth: '92vw', boxShadow: '0 20px 60px rgba(0,0,0,0.2)', fontFamily: "'Figtree', sans-serif" }}>
-            <div style={{ fontSize: 18, fontWeight: 700, color: '#111', marginBottom: 20 }}>Block Time</div>
-            {/* Presets */}
-            <div style={{ display: 'flex', gap: 6, marginBottom: 16, flexWrap: 'wrap' }}>
+      {/* ── Block Time Side Panel ── */}
+      {showBlockTime && <div onClick={() => setShowBlockTime(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.2)', zIndex: 200 }} />}
+      <div style={{
+        position: 'fixed', top: 0, right: 0, bottom: 0, width: 400, maxWidth: '90vw',
+        background: '#fff', zIndex: 201, boxShadow: showBlockTime ? '0 8px 40px rgba(0,0,0,0.15)' : 'none',
+        transform: showBlockTime ? 'translateX(0)' : 'translateX(100%)',
+        transition: 'transform 0.25s ease', display: 'flex', flexDirection: 'column',
+        pointerEvents: showBlockTime ? 'auto' : 'none', fontFamily: "'Figtree', sans-serif",
+      }}>
+        {/* Header */}
+        <div style={{ padding: '16px 20px', borderBottom: '1px solid #EBEBEB', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0 }}>
+          <div>
+            <div style={{ fontSize: 16, fontWeight: 800, color: '#111' }}>Block Time</div>
+            <div style={{ fontSize: 11, color: '#999', marginTop: 2 }}>Mark staff as unavailable</div>
+          </div>
+          <button onClick={() => setShowBlockTime(false)} style={{ width: 32, height: 32, borderRadius: 8, background: '#F5F5F5', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#999" strokeWidth="2" strokeLinecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+        </div>
+
+        {/* Form */}
+        <div style={{ flex: 1, overflowY: 'auto', padding: '16px 20px', display: 'flex', flexDirection: 'column', gap: 14 }}>
+          {/* Presets */}
+          <div>
+            <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: '#555', letterSpacing: 0.3, textTransform: 'uppercase', marginBottom: 4 }}>Type</label>
+            <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
               {[{ id: 'lunch', label: 'Lunch', start: '12:00', end: '13:00' }, { id: 'staff_meeting', label: 'Staff Meeting', start: '09:00', end: '10:00' }, { id: 'training', label: 'Training', start: '14:00', end: '16:00' }, { id: 'personal', label: 'Personal', start: '10:00', end: '11:00' }, { id: 'custom', label: 'Custom', start: '', end: '' }].map(p => (
-                <button key={p.id} onClick={() => setBlockForm(f => ({ ...f, preset: p.id, start_time: p.start, end_time: p.end, reason: p.id === 'custom' ? f.reason : p.label }))} style={{ padding: '6px 14px', borderRadius: 20, border: '1px solid', fontSize: 12, fontWeight: 600, cursor: 'pointer', background: blockForm.preset === p.id ? '#111' : '#fff', color: blockForm.preset === p.id ? '#fff' : '#666', borderColor: blockForm.preset === p.id ? '#111' : '#E5E7EB' }}>{p.label}</button>
+                <button key={p.id} onClick={() => setBlockForm(f => ({ ...f, preset: p.id, start_time: p.start, end_time: p.end, reason: p.id === 'custom' ? f.reason : p.label }))}
+                  style={{ padding: '5px 12px', borderRadius: 20, border: `1px solid ${blockForm.preset === p.id ? '#111' : '#EBEBEB'}`, fontSize: 11, fontWeight: blockForm.preset === p.id ? 600 : 500, cursor: 'pointer', background: blockForm.preset === p.id ? '#111' : '#fff', color: blockForm.preset === p.id ? '#fff' : '#666', transition: 'all 0.15s' }}>{p.label}</button>
               ))}
             </div>
-            {/* Staff */}
-            <div style={{ marginBottom: 12 }}>
-              <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: '#333', marginBottom: 6 }}>Staff member</label>
-              <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-                {staffColumns.map(s => (
-                  <button key={s.id} onClick={() => setBlockForm(f => ({ ...f, staff_id: s.id }))} style={{ padding: '6px 12px', borderRadius: 8, border: '1px solid', fontSize: 11, fontWeight: 600, cursor: 'pointer', background: blockForm.staff_id === s.id ? '#111' : '#fff', color: blockForm.staff_id === s.id ? '#fff' : '#666', borderColor: blockForm.staff_id === s.id ? '#111' : '#E5E7EB' }}>{s.name}</button>
-                ))}
-              </div>
-            </div>
-            {/* Times */}
-            <div style={{ display: 'flex', gap: 12, marginBottom: 12 }}>
-              <div style={{ flex: 1 }}>
-                <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: '#333', marginBottom: 6 }}>Start</label>
-                <input type="text" placeholder="09:00" value={blockForm.start_time} onChange={e => setBlockForm(f => ({ ...f, start_time: e.target.value }))} style={{ width: '100%', padding: '10px 12px', borderRadius: 10, border: '1px solid #E5E7EB', fontSize: 14, fontFamily: "'Figtree', sans-serif" }} />
-              </div>
-              <div style={{ flex: 1 }}>
-                <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: '#333', marginBottom: 6 }}>End</label>
-                <input type="text" placeholder="17:00" value={blockForm.end_time} onChange={e => setBlockForm(f => ({ ...f, end_time: e.target.value }))} style={{ width: '100%', padding: '10px 12px', borderRadius: 10, border: '1px solid #E5E7EB', fontSize: 14, fontFamily: "'Figtree', sans-serif" }} />
-              </div>
-            </div>
-            {blockForm.preset === 'custom' && (
-              <div style={{ marginBottom: 12 }}>
-                <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: '#333', marginBottom: 6 }}>Reason</label>
-                <input type="text" placeholder="e.g. Dentist appointment" value={blockForm.reason} onChange={e => setBlockForm(f => ({ ...f, reason: e.target.value }))} style={{ width: '100%', padding: '10px 12px', borderRadius: 10, border: '1px solid #E5E7EB', fontSize: 14, fontFamily: "'Figtree', sans-serif" }} />
-              </div>
-            )}
-            <div style={{ display: 'flex', gap: 10, marginTop: 16 }}>
-              <button onClick={() => setShowBlockTime(false)} style={{ flex: 1, padding: '12px 0', borderRadius: 12, border: '1px solid #EBEBEB', background: '#fff', fontSize: 14, fontWeight: 600, color: '#111', cursor: 'pointer', fontFamily: "'Figtree', sans-serif" }}>Cancel</button>
-              <button onClick={async () => {
-                if (!blockForm.staff_id || !blockForm.start_time || !blockForm.end_time) return
-                try {
-                  await api.post(`/blocked-times/business/${bid}`, { staff_id: blockForm.staff_id, date: selectedDate, start_time: blockForm.start_time, end_time: blockForm.end_time, preset: blockForm.preset, reason: blockForm.reason || blockForm.preset })
-                  setShowBlockTime(false)
-                  fetchCalendarData(false)
-                } catch (err) { console.error('Block time failed:', err) }
-              }} style={{ flex: 1, padding: '12px 0', borderRadius: 12, border: 'none', background: '#111', fontSize: 14, fontWeight: 600, color: '#fff', cursor: 'pointer', fontFamily: "'Figtree', sans-serif", boxShadow: '0 2px 8px rgba(17,17,17,0.2)' }}>Block Time</button>
+          </div>
+
+          {/* Staff */}
+          <div>
+            <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: '#555', letterSpacing: 0.3, textTransform: 'uppercase', marginBottom: 4 }}>Staff member</label>
+            <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+              {staffColumns.map(s => (
+                <button key={s.id} onClick={() => setBlockForm(f => ({ ...f, staff_id: s.id }))}
+                  style={{ padding: '6px 12px', borderRadius: 10, border: `1.5px solid ${blockForm.staff_id === s.id ? '#C9A84C' : '#EBEBEB'}`, fontSize: 11, fontWeight: 600, cursor: 'pointer', background: blockForm.staff_id === s.id ? '#F5F0E4' : '#FAFAF8', color: blockForm.staff_id === s.id ? '#92700C' : '#666', transition: 'all 0.15s' }}>{s.name}</button>
+              ))}
             </div>
           </div>
-        </>
-      )}
+
+          {/* Times */}
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+            <div>
+              <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: '#555', letterSpacing: 0.3, textTransform: 'uppercase', marginBottom: 4 }}>Start</label>
+              <input type="text" placeholder="09:00" value={blockForm.start_time} onChange={e => setBlockForm(f => ({ ...f, start_time: e.target.value }))}
+                style={{ width: '100%', padding: '10px 12px', borderRadius: 10, border: '1.5px solid #EBEBEB', fontSize: 13, fontFamily: "'Figtree', sans-serif", boxSizing: 'border-box', outline: 'none', background: '#FAFAF8' }} />
+            </div>
+            <div>
+              <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: '#555', letterSpacing: 0.3, textTransform: 'uppercase', marginBottom: 4 }}>End</label>
+              <input type="text" placeholder="17:00" value={blockForm.end_time} onChange={e => setBlockForm(f => ({ ...f, end_time: e.target.value }))}
+                style={{ width: '100%', padding: '10px 12px', borderRadius: 10, border: '1.5px solid #EBEBEB', fontSize: 13, fontFamily: "'Figtree', sans-serif", boxSizing: 'border-box', outline: 'none', background: '#FAFAF8' }} />
+            </div>
+          </div>
+
+          {/* Custom reason */}
+          {blockForm.preset === 'custom' && (
+            <div>
+              <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: '#555', letterSpacing: 0.3, textTransform: 'uppercase', marginBottom: 4 }}>Reason</label>
+              <input type="text" placeholder="e.g. Dentist appointment" value={blockForm.reason} onChange={e => setBlockForm(f => ({ ...f, reason: e.target.value }))}
+                style={{ width: '100%', padding: '10px 12px', borderRadius: 10, border: '1.5px solid #EBEBEB', fontSize: 13, fontFamily: "'Figtree', sans-serif", boxSizing: 'border-box', outline: 'none', background: '#FAFAF8' }} />
+            </div>
+          )}
+        </div>
+
+        {/* Footer */}
+        <div style={{ padding: '14px 20px', borderTop: '1px solid #EBEBEB', display: 'flex', gap: 10, flexShrink: 0 }}>
+          <button onClick={() => setShowBlockTime(false)} style={{ flex: 1, padding: 12, borderRadius: 12, border: '1px solid #EBEBEB', background: '#fff', fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: "'Figtree', sans-serif", color: '#666' }}>Cancel</button>
+          <button onClick={async () => {
+            if (!blockForm.staff_id || !blockForm.start_time || !blockForm.end_time) return
+            try {
+              await api.post(`/blocked-times/business/${bid}`, { staff_id: blockForm.staff_id, date: selectedDate, start_time: blockForm.start_time, end_time: blockForm.end_time, preset: blockForm.preset, reason: blockForm.reason || blockForm.preset })
+              setShowBlockTime(false)
+              fetchCalendarData(false)
+            } catch (err) { console.error('Block time failed:', err) }
+          }} style={{ flex: 1, padding: 12, borderRadius: 12, border: 'none', background: '#111', fontSize: 13, fontWeight: 700, color: '#fff', cursor: 'pointer', fontFamily: "'Figtree', sans-serif" }}>Block Time</button>
+        </div>
+      </div>
 
       {/* FAB handled by SupportBot — includes New Appointment, Walk-in, Chat Support */}
     </div>
