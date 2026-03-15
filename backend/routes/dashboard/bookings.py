@@ -211,7 +211,16 @@ async def cancel_reservation(
             }
         }
     )
-    
+
+    # Delete from Google Calendar if synced
+    try:
+        from helpers.gcal_sync import delete_gcal_event
+        business = await db.businesses.find_one({"_id": reservation.get("businessId")})
+        if business:
+            await delete_gcal_event(reservation, business)
+    except Exception:
+        pass
+
     return {"detail": "Reservation cancelled successfully"}
 
 

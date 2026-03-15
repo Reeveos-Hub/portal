@@ -772,6 +772,13 @@ async def create_booking(request: Request, business_slug: str, payload: dict):
 
     await db.bookings.insert_one(doc)
 
+    # ── Google Calendar Sync (silent) ──
+    try:
+        from helpers.gcal_sync import sync_booking_to_gcal
+        await sync_booking_to_gcal(doc, business)
+    except Exception:
+        pass
+
     # ── G11: Auto-schedule patch test for first-time microneedling/peel clients ──
     if biz_type == "services" and svc:
         _svc_lower = ((svc.get("name") or "") + " " + (svc.get("category") or "")).lower()

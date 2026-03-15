@@ -581,6 +581,13 @@ async def staff_create_booking(
 
     await db.bookings.insert_one(doc)
 
+    # ── Google Calendar Sync (silent — skips if not connected) ──
+    try:
+        from helpers.gcal_sync import sync_booking_to_gcal
+        await sync_booking_to_gcal(doc, business)
+    except Exception as e:
+        logger.warning(f"GCal sync skipped: {e}")
+
     # ── Recurring appointments — generate series ──
     recurrence = payload.get("recurrence")  # {rule: "weekly"|"2weekly"|"3weekly"|"4weekly"|"6weekly"|"8weekly", count: 2-52}
     series_ids = [doc["_id"]]
