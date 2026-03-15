@@ -46,41 +46,46 @@ async def _run_scheduler():
                     result = await process_drip_queue()
                     if result.get("processed", 0) > 0:
                         logger.info(f"Drip queue: processed {result['processed']} enrollments")
-                    last_drip = now
                 except Exception as e:
                     logger.error(f"Drip queue error: {e}")
+                finally:
+                    last_drip = now
 
             # ─── Send Booking Reminders ─── #
             if (now - last_reminder).total_seconds() >= reminder_interval:
                 try:
                     await _send_booking_reminders()
-                    last_reminder = now
                 except Exception as e:
                     logger.error(f"Booking reminder error: {e}")
+                finally:
+                    last_reminder = now
 
             # ─── Process Aftercare Email Queue ─── #
             if (now - last_aftercare).total_seconds() >= aftercare_interval:
                 try:
                     await _process_aftercare_queue()
-                    last_aftercare = now
                 except Exception as e:
                     logger.error(f"Aftercare queue error: {e}")
+                finally:
+                    last_aftercare = now
 
             # ─── Medical Quick-Check (4 days before appointment) ─── #
             if (now - last_quickcheck).total_seconds() >= quickcheck_interval:
                 try:
                     await _send_medical_quickchecks()
-                    last_quickcheck = now
                 except Exception as e:
                     logger.error(f"Medical quickcheck error: {e}")
+                finally:
+                    last_quickcheck = now
 
             # ─── Insights Report Drip ─── #
             if (now - last_insights).total_seconds() >= insights_interval:
                 try:
                     await _send_insights_drip_emails()
-                    last_insights = now
                 except Exception as e:
                     logger.error(f"Insights drip error: {e}")
+                finally:
+                    last_insights = now
 
             # ─── AI Agent Tasks ─── #
             try:
@@ -105,7 +110,7 @@ async def _send_booking_reminders():
     from helpers.notifications import send_templated_email, send_templated_sms, is_channel_enabled
 
     db = get_database()
-    if not db:
+    if db is None:
         return
 
     now = datetime.utcnow()
@@ -191,7 +196,7 @@ async def _process_aftercare_queue():
     from helpers.notifications import send_templated_email, is_channel_enabled
 
     db = get_database()
-    if not db:
+    if db is None:
         return
 
     now = datetime.utcnow()
@@ -275,7 +280,7 @@ async def _send_medical_quickchecks():
     from helpers.email import send_medical_quickcheck
 
     db = get_database()
-    if not db:
+    if db is None:
         return
 
     now = datetime.utcnow()
@@ -362,7 +367,7 @@ async def _send_insights_drip_emails():
     from helpers.email import send_insights_reminder
 
     db = get_database()
-    if not db:
+    if db is None:
         return
 
     now = datetime.utcnow()
