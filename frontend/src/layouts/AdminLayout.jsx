@@ -5,7 +5,7 @@ import {
   Globe, FileText, Settings, LogOut, ChevronLeft, ChevronRight,
   Building2, CalendarCheck, MessageSquare, Star, AlertTriangle,
   CreditCard, ScrollText, Bug, Megaphone, ShieldCheck, Linkedin,
-  Search, Crosshair, BookOpen, Wallet, Sun, Moon, Handshake, HelpCircle
+  Search, Crosshair, BookOpen, Wallet, Sun, Moon, Handshake, HelpCircle, TrendingUp
 } from 'lucide-react'
 import { ADMIN_BASE, adminPath } from '../utils/domain'
 
