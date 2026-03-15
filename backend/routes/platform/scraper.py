@@ -781,6 +781,28 @@ async def bulk_delete(body: BulkLeadsRequest):
     return {"deleted": r.deleted_count}
 
 
+@router.delete("/leads")
+async def delete_all_leads(
+    source: Optional[str] = None,
+    vertical: Optional[str] = None,
+    city: Optional[str] = None,
+    status: Optional[str] = None,
+):
+    """Delete ALL leads matching the given filters. No filter = wipe everything."""
+    db = get_database()
+    q: Dict[str, Any] = {}
+    if source:
+        q["source"] = source
+    if vertical:
+        q["vertical"] = {"$regex": vertical, "$options": "i"}
+    if city:
+        q["city"] = {"$regex": city, "$options": "i"}
+    if status:
+        q["status"] = status
+    r = await db.sales_leads.delete_many(q)
+    return {"deleted": r.deleted_count}
+
+
 @router.post("/leads/{lead_id}/push-outreach")
 async def push_to_outreach(lead_id: str, campaign_id: Optional[str] = None):
     db = get_database()
