@@ -1250,6 +1250,13 @@ async def list_leads(
             q["$or"] = [{"instagram": _not_empty}, {"facebook": _not_empty}, {"tiktok": _not_empty}]
         elif enrichment == "none":
             q["email_enriched"] = {"$ne": True}
+        elif enrichment == "dojo_only":
+            q["dojo_eligible"] = True
+            q["reeveos_eligible"] = {"$ne": True}
+        elif enrichment == "reeveos":
+            q["reeveos_eligible"] = True
+        elif enrichment == "dojo":
+            q["dojo_eligible"] = True
     if search:
         q["name"] = {"$regex": search, "$options": "i"}
     leads = []
