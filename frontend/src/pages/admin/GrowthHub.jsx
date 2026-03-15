@@ -352,6 +352,26 @@ export default function GrowthHub() {
     }
   }
 
+  async function deleteAll() {
+    if (!confirm(`Delete ALL ${leadsTotal.toLocaleString()} leads? This cannot be undone.`)) return
+    try {
+      // Build query params matching current filters
+      const params = new URLSearchParams()
+      if (leadsFilter.source)   params.set('source', leadsFilter.source)
+      if (leadsFilter.vertical) params.set('vertical', leadsFilter.vertical)
+      if (leadsFilter.city)     params.set('city', leadsFilter.city)
+      if (leadsFilter.status)   params.set('status', leadsFilter.status)
+      const qs = params.toString()
+      const r = await adminApi.delete(`/scraper/leads${qs ? '?' + qs : ''}`)
+      setSelectedLeads(new Set())
+      setLeadsPage(0)
+      loadLeads(0)
+      loadStats()
+    } catch (e) {
+      console.error('Delete all error:', e)
+    }
+  }
+
   async function bulkEnrich() {
     if (!selectedLeads.size) return
     try {
@@ -883,6 +903,11 @@ export default function GrowthHub() {
           <button style={S.btn('ghost')} onClick={() => loadLeads(leadsPage)}>
             <IconRefresh /> Refresh
           </button>
+          {leadsTotal > 0 && (
+            <button style={S.btn('danger')} onClick={deleteAll}>
+              <IconTrash /> Delete All ({leadsTotal.toLocaleString()})
+            </button>
+          )}
         </div>
 
         {/* Bulk actions */}
