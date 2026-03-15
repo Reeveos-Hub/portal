@@ -14,6 +14,7 @@ Security notes:
 from __future__ import annotations
 
 import asyncio
+import html as html_mod
 import json
 import logging
 import os
@@ -260,22 +261,46 @@ def _venues_from_nd(nd: dict) -> List[dict]:
     return []
 
 
-def _ld_url_map(html: str) -> Dict[str, str]:
+def _normalise(name: str) -> str:
+    """Normalise a business name for matching — unescape HTML entities, lowercase, strip punctuation."""
+    name = html_mod.unescape(name)
+    name = re.sub(r'[&\/\-]', ' ', name)
+    name = re.sub(r'[^\w\s]', '', name)
+    return re.sub(r'\s+', ' ', name).strip().lower()
+
+
+def _ld_url_map(html_content: str) -> Dict[str, str]:
     """
-    Build a name -> individual_url lookup from all ld+json blocks.
-    Fresha/Treatwell embed each venue as a HealthAndBeautyBusiness block
-    with both 'name' and 'url' pointing to the real listing page.
-    Used to enrich __NEXT_DATA__ venues that lack a direct URL.
+    Build a normalised-name -> individual_url lookup from all ld+json blocks.
+    Also indexes by /a/ slug extracted from URL for fuzzy matching.
     """
     mapping: Dict[str, str] = {}
-    for block in _json_ld(html):
+    # Also extract all /a/ hrefs directly from HTML as a fallback
+    href_urls = re.findall(r'href="(https://www\.fresha\.com/a/[a-z0-9\-]+)"', html_content)
+    for url in href_urls:
+        # Extract readable words from the slug (before the random ID at end)
+        slug = url.split('/a/')[-1]
+        # Remove the random 8-char ID at the end (e.g. -a361gesg)
+        slug_words = re.sub(r'-[a-z0-9]{8}$', '', slug)
+        slug_key = slug_words.replace('-', ' ').strip()
+        if slug_key:
+            mapping[f"__slug__{slug_key}"] = url
+
+    for block in _json_ld(html_content):
         items = block if isinstance(block, list) else [block]
         for item in items:
             if isinstance(item, dict) and item.get("name") and item.get("url"):
-                name = item["name"].strip().lower()
                 url = item["url"]
-                if url.startswith("http") and name:
-                    mapping[name] = url
+                if not url.startswith("http"):
+                    continue
+                # Index by normalised name
+                norm = _normalise(item["name"])
+                if norm:
+                    mapping[norm] = url
+                # Also index by raw lowercase name for exact matches
+                raw = item["name"].strip().lower()
+                if raw:
+                    mapping[raw] = url
     return mapping
 
 
@@ -346,9 +371,23 @@ def _parse_venue(venue: dict, city: str, platform: str, vertical: str, url: str,
                        "Booksy": "https://booksy.com", "Vagaro": "https://www.vagaro.com"}
             individual_url = domains.get(platform, "") + individual_url
 
-    # If still no URL, try the ld+json name→url lookup map
+    # If still no URL, try multiple name lookup strategies
     if not individual_url and url_map and name:
+        # Strategy 1: exact lowercase match
         individual_url = url_map.get(name.lower(), "")
+        # Strategy 2: normalised match (handles HTML entities, punctuation)
+        if not individual_url:
+            individual_url = url_map.get(_normalise(name), "")
+        # Strategy 3: slug-word match — find a slug that contains all words of the name
+        if not individual_url:
+            name_words = set(_normalise(name).split())
+            if len(name_words) >= 2:
+                for key, url in url_map.items():
+                    if key.startswith("__slug__"):
+                        slug_words = set(key[8:].split())
+                        if name_words.issubset(slug_words) or slug_words.issubset(name_words):
+                            individual_url = url
+                            break
 
     listing_url = individual_url if individual_url else url
 
