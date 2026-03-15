@@ -16,6 +16,7 @@ from __future__ import annotations
 import asyncio
 import html as html_mod
 import json
+import urllib.parse
 import logging
 import os
 import random
@@ -578,6 +579,211 @@ async def _enrich_email(website: str) -> Optional[str]:
 
 
 # ═══════════════════════════════════════════════════════════
+# GOOGLE SEARCH + YELL ENRICHMENT
+# ═══════════════════════════════════════════════════════════
+
+def _parse_google_results(html_content: str) -> Dict[str, Any]:
+    """
+    Extract social handles and website from Google search result snippets.
+    Works on both desktop and mobile Google HTML.
+    No API key needed — uses proxy to avoid blocks.
+    """
+    found: Dict[str, Any] = {}
+
+    # Extract all URLs from result links
+    all_urls = re.findall(
+        r'href="(https?://(?:www\.)?(?:instagram|facebook|tiktok|twitter|x)\.com/[^"&]{3,80})"',
+        html_content, re.IGNORECASE
+    )
+
+    _blacklist = {
+        "instagram.com", "facebook.com", "tiktok.com", "twitter.com", "x.com",
+        "instagram.com/p/", "instagram.com/reel", "instagram.com/explore",
+        "instagram.com/stories", "facebook.com/sharer", "facebook.com/share",
+        "facebook.com/login", "twitter.com/intent", "facebook.com/groups",
+    }
+
+    for url in all_urls:
+        url_lower = url.lower()
+        # Skip blacklisted patterns
+        if any(b in url_lower for b in _blacklist):
+            continue
+
+        if "instagram.com" in url_lower and "instagram" not in found:
+            handle = re.sub(r"https?://(?:www\.)?instagram\.com/", "", url).strip("/").split("?")[0].split("/")[0]
+            if handle and len(handle) >= 2 and not handle.startswith("p/"):
+                found["instagram"] = handle
+
+        elif "facebook.com" in url_lower and "facebook" not in found:
+            handle = re.sub(r"https?://(?:www\.)?facebook\.com/(?:pages/)?", "", url).strip("/").split("?")[0].split("/")[0]
+            if handle and len(handle) >= 3 and handle not in ("login", "sharer", "share", "groups", "events"):
+                found["facebook"] = handle
+
+        elif "tiktok.com" in url_lower and "tiktok" not in found:
+            handle = re.sub(r"https?://(?:www\.)?tiktok\.com/@?", "", url).strip("/").split("?")[0].split("/")[0]
+            if handle and len(handle) >= 2:
+                found["tiktok"] = handle.lstrip("@")
+
+        elif ("twitter.com" in url_lower or "x.com" in url_lower) and "twitter" not in found:
+            handle = re.sub(r"https?://(?:www\.)?(?:twitter|x)\.com/", "", url).strip("/").split("?")[0].split("/")[0]
+            if handle and len(handle) >= 2 and handle not in ("intent", "share", "home", "login"):
+                found["twitter"] = handle
+
+    # Also extract website from search results if not in socials
+    website_matches = re.findall(
+        r'href="(https?://(?!(?:www\.)?(?:google|instagram|facebook|tiktok|twitter|x|fresha|treatwell|booksy|vagaro|yell)\.)[^"]{10,80})"',
+        html_content
+    )
+    if website_matches and "website" not in found:
+        for w in website_matches[:3]:
+            if not any(x in w.lower() for x in ["google", "cache:", "translate"]):
+                found["website"] = w
+                break
+
+    return found
+
+
+async def _google_search_enrichment(name: str, city: str) -> Dict[str, Any]:
+    """
+    Run targeted Google searches to find social media profiles for a business.
+    Three searches: Instagram, Facebook/TikTok combined, then website fallback.
+    Uses proxy to avoid Google blocking.
+    """
+    result: Dict[str, Any] = {}
+    name_clean = re.sub(r"[^\w\s]", "", name).strip()
+    city_clean = city.strip()
+
+    searches = [
+        # Instagram targeted
+        f'"{name_clean}" {city_clean} site:instagram.com',
+        # Facebook + TikTok
+        f'"{name_clean}" {city_clean} site:facebook.com OR site:tiktok.com',
+        # General — finds website + any social
+        f'"{name_clean}" {city_clean} beauty salon',
+    ]
+
+    for query in searches:
+        # Stop early if we have Instagram (most valuable)
+        if result.get("instagram") and (result.get("facebook") or result.get("tiktok")):
+            break
+
+        encoded = urllib.parse.quote_plus(query)
+        url = f"https://www.google.com/search?q={encoded}&num=10&hl=en&gl=gb"
+
+        html_content = await _fetch(url, timeout=20)
+        if not html_content:
+            await asyncio.sleep(2)
+            continue
+
+        # Check if Google served a captcha
+        if "detected unusual traffic" in html_content.lower() or "captcha" in html_content.lower():
+            logger.warning(f"Google captcha triggered for: {name}")
+            await asyncio.sleep(random.uniform(5, 10))
+            continue
+
+        parsed = _parse_google_results(html_content)
+        for k, v in parsed.items():
+            if v and not result.get(k):
+                result[k] = v
+
+        await asyncio.sleep(random.uniform(2.0, 4.0))
+
+    return result
+
+
+async def _yell_enrichment(name: str, city: str) -> Dict[str, Any]:
+    """
+    Search Yell.com for the business — finds phone, website, address.
+    Yell has near-complete UK business coverage.
+    """
+    result: Dict[str, Any] = {}
+    encoded_name = urllib.parse.quote_plus(name)
+    encoded_city = urllib.parse.quote_plus(city)
+    url = f"https://www.yell.com/ucs/UcsSearchAction.do?keywords={encoded_name}&location={encoded_city}&pageNum=1"
+
+    html_content = await _fetch(url, timeout=20)
+    if not html_content:
+        return result
+
+    # Extract first result's phone
+    phone_match = re.search(
+        r'data-phone="([^"]+)"',
+        html_content
+    )
+    if phone_match:
+        result["phone"] = phone_match.group(1).strip()
+
+    # Extract website link from first result
+    website_match = re.search(
+        r'class="[^"]*businessCapsule--website[^"]*"[^>]*href="([^"]+)"',
+        html_content
+    )
+    if website_match:
+        result["website"] = website_match.group(1).strip()
+
+    # Fallback — look for any phone pattern near the business name
+    if not result.get("phone"):
+        # Find name in HTML then look for nearby phone
+        name_idx = html_content.lower().find(name.lower()[:20])
+        if name_idx > -1:
+            nearby = html_content[name_idx:name_idx + 500]
+            phone_nearby = re.search(r"(0[\d\s]{9,12}|\+44[\d\s]{9,12})", nearby)
+            if phone_nearby:
+                result["phone"] = re.sub(r"\s+", "", phone_nearby.group(1))
+
+    return result
+
+
+async def _full_enrichment(lead: dict) -> Dict[str, Any]:
+    """
+    Master enrichment function — runs all stages in sequence.
+    Stage 1: Website + Fresha listing (existing)
+    Stage 2: Google search for socials
+    Stage 3: Yell for phone/website fallback
+    Merges everything, existing values take priority.
+    """
+    name = lead.get("name", "")
+    city = lead.get("city", "")
+    website = lead.get("website", "")
+    source_url = lead.get("source_url", "")
+
+    # Start with existing data so we don't overwrite already-found values
+    result: Dict[str, Any] = {
+        "email":     lead.get("email", ""),
+        "phone":     lead.get("phone", ""),
+        "website":   website,
+        "instagram": lead.get("instagram", ""),
+        "facebook":  lead.get("facebook", ""),
+        "tiktok":    lead.get("tiktok", ""),
+        "twitter":   lead.get("twitter", ""),
+    }
+
+    # Stage 1 — website + Fresha listing
+    stage1 = await _enrich_lead_data(website, source_url)
+    for k, v in stage1.items():
+        if v and not result.get(k):
+            result[k] = v
+
+    # Stage 2 — Google search (only if still missing socials)
+    missing_socials = not result.get("instagram") or not result.get("facebook")
+    if missing_socials and name and city:
+        stage2 = await _google_search_enrichment(name, city)
+        for k, v in stage2.items():
+            if v and not result.get(k):
+                result[k] = v
+        await asyncio.sleep(random.uniform(1.0, 2.0))
+
+    # Stage 3 — Yell (only if missing phone or website)
+    if (not result.get("phone") or not result.get("website")) and name and city:
+        stage3 = await _yell_enrichment(name, city)
+        for k, v in stage3.items():
+            if v and not result.get(k):
+                result[k] = v
+
+    return result
+
+
+# ═══════════════════════════════════════════════════════════
 # JOB RUNNER
 # ═══════════════════════════════════════════════════════════
 
@@ -780,22 +986,24 @@ async def enrich_lead(lead_id: str, background_tasks: BackgroundTasks):
 
     async def _do():
         db2 = get_database()
-        data = await _enrich_lead_data(website, source_url)
+        data = await _full_enrichment(lead)
         await db2.sales_leads.update_one(
             {"_id": ObjectId(lead_id)},
             {"$set": {
-                "email": data["email"],
-                "instagram": data["instagram"],
-                "facebook": data["facebook"],
-                "tiktok": data["tiktok"],
-                "twitter": data["twitter"],
+                "email":     data.get("email", ""),
+                "phone":     data.get("phone", "") or lead.get("phone", ""),
+                "website":   data.get("website", "") or lead.get("website", ""),
+                "instagram": data.get("instagram", ""),
+                "facebook":  data.get("facebook", ""),
+                "tiktok":    data.get("tiktok", ""),
+                "twitter":   data.get("twitter", ""),
                 "email_enriched": True,
                 "email_enriched_at": datetime.utcnow(),
             }},
         )
 
     background_tasks.add_task(_do)
-    return {"message": "Enrichment started", "lead_id": lead_id}
+    return {"message": "Full enrichment started (website + Google + Yell)", "lead_id": lead_id}
 
 
 @router.post("/leads/bulk-enrich")
@@ -806,23 +1014,23 @@ async def bulk_enrich(body: BulkLeadsRequest, background_tasks: BackgroundTasks)
             try:
                 lead = await db2.sales_leads.find_one({"_id": ObjectId(lid)})
                 if lead and not lead.get("email_enriched"):
-                    website = lead.get("website", "")
-                    source_url = lead.get("source_url", "")
-                    if website or source_url:
-                        data = await _enrich_lead_data(website, source_url)
-                        await db2.sales_leads.update_one(
-                            {"_id": ObjectId(lid)},
-                            {"$set": {
-                                "email": data["email"],
-                                "instagram": data["instagram"],
-                                "facebook": data["facebook"],
-                                "tiktok": data["tiktok"],
-                                "twitter": data["twitter"],
-                                "email_enriched": True,
-                                "email_enriched_at": datetime.utcnow(),
-                            }},
-                        )
-                        await asyncio.sleep(random.uniform(1.5, 3.5))
+                    data = await _full_enrichment(lead)
+                    await db2.sales_leads.update_one(
+                        {"_id": ObjectId(lid)},
+                        {"$set": {
+                            "email":     data.get("email", ""),
+                            "phone":     data.get("phone", "") or lead.get("phone", ""),
+                            "website":   data.get("website", "") or lead.get("website", ""),
+                            "instagram": data.get("instagram", ""),
+                            "facebook":  data.get("facebook", ""),
+                            "tiktok":    data.get("tiktok", ""),
+                            "twitter":   data.get("twitter", ""),
+                            "email_enriched": True,
+                            "email_enriched_at": datetime.utcnow(),
+                        }},
+                    )
+                    # Longer delay between leads — Google needs breathing room
+                    await asyncio.sleep(random.uniform(3.0, 6.0))
             except Exception as exc:
                 logger.error(f"Bulk enrich {lid}: {exc}")
 
