@@ -208,6 +208,9 @@ export default function GrowthHub() {
   const [activeJob, setActiveJob] = useState(null)
   const pollRef = useRef(null)
   const [jobError, setJobError] = useState(null)
+  const [chUploading, setChUploading] = useState(false)
+  const [chUploadResult, setChUploadResult] = useState(null)
+  const fileInputRef = useRef(null)
 
   // Leads state
   const [leads, setLeads] = useState([])
@@ -400,6 +403,29 @@ export default function GrowthHub() {
       setTimeout(() => loadLeads(leadsPage), 4000)
     } catch (e) {
       console.error('Bulk enrich error:', e)
+    }
+  }
+
+  async function uploadChCsv(file) {
+    if (!file) return
+    setChUploading(true)
+    setChUploadResult(null)
+    try {
+      const arrayBuffer = await file.arrayBuffer()
+      const bytes = new Uint8Array(arrayBuffer)
+      const r = await adminFetch(
+        `${API}/scraper/companies-house/import?filename=${encodeURIComponent(file.name)}`,
+        { method: 'POST', body: bytes, headers: { 'Content-Type': 'application/octet-stream' } }
+      )
+      if (!r.ok) { const e = await r.json().catch(() => ({})); throw new Error(e.detail || `HTTP ${r.status}`) }
+      const res = await r.json()
+      setChUploadResult(res)
+      startPoll(res.job_id)
+      setRunning(true)
+    } catch (e) {
+      setChUploadResult({ error: e.message })
+    } finally {
+      setChUploading(false)
     }
   }
 
@@ -803,6 +829,56 @@ export default function GrowthHub() {
             )}
           </div>
         </div>
+
+        {/* Companies House CSV Import */}
+        {platform === 'companies_house' && (
+          <div style={{ ...S.card, marginBottom: 20, borderColor: '#38bdf8' }}>
+            <div style={{ fontSize: 15, fontWeight: 700, color: '#38bdf8', marginBottom: 4 }}>
+              Companies House — Bulk CSV Import
+            </div>
+            <div style={{ color: MUTED, fontSize: 13, marginBottom: 16 }}>
+              Download the free CSV from Companies House then upload it here.
+              We filter it to beauty, wellness and fitness businesses automatically.
+              No API key. No limits. ~105,000 UK businesses.
+            </div>
+
+            <div style={{ background: '#0f1f3d', borderRadius: 8, padding: '12px 16px', marginBottom: 16 }}>
+              <div style={{ color: '#38bdf8', fontWeight: 600, fontSize: 13, marginBottom: 8 }}>How to download:</div>
+              <ol style={{ color: MUTED, fontSize: 13, margin: 0, paddingLeft: 20, lineHeight: 1.8 }}>
+                <li>Go to <a href="https://download.companieshouse.gov.uk/en_output.html" target="_blank" rel="noreferrer" style={{ color: '#38bdf8' }}>download.companieshouse.gov.uk</a></li>
+                <li>Download <strong style={{ color: TEXT }}>"BasicCompanyDataAsOneFile"</strong> ZIP (~600MB)</li>
+                <li>Upload the ZIP or extracted CSV below</li>
+              </ol>
+            </div>
+
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept=".csv,.zip"
+              style={{ display: 'none' }}
+              onChange={e => uploadChCsv(e.target.files[0])}
+            />
+
+            <button
+              style={{ ...S.btn(), opacity: chUploading ? 0.6 : 1 }}
+              onClick={() => fileInputRef.current?.click()}
+              disabled={chUploading}
+            >
+              {chUploading ? '⏳ Processing...' : '📂 Upload CSV / ZIP'}
+            </button>
+
+            {chUploadResult && !chUploadResult.error && (
+              <div style={{ marginTop: 12, color: '#4ade80', fontSize: 13 }}>
+                Import started — Job ID: {chUploadResult.job_id}. Check the Jobs tab for progress.
+              </div>
+            )}
+            {chUploadResult?.error && (
+              <div style={{ marginTop: 12, color: '#f87171', fontSize: 13 }}>
+                Error: {chUploadResult.error}
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Progress panel */}
         {activeJob && (
