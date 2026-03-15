@@ -47,7 +47,7 @@ const BookingLink = () => {
   return (
     <div className="space-y-6">
       {/* Booking Link Card */}
-      <div className="bg-white rounded-xl border border-border p-6 shadow-sm relative overflow-hidden">
+      <div className="bg-white rounded-xl border border-gray-200 p-6 relative overflow-hidden">
         <div className="absolute top-0 right-0 w-40 h-40 bg-primary/5 rounded-bl-full -mr-12 -mt-12" />
         <div className="relative z-10">
           <div className="flex items-center gap-2 mb-2">
@@ -79,7 +79,7 @@ const BookingLink = () => {
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {stats.map((s, i) => (
-          <div key={i} className="bg-white rounded-xl border border-border p-5 shadow-sm">
+          <div key={i} className="bg-white rounded-xl border border-gray-200 p-5">
             <div className="flex justify-between items-start mb-3">
               <div>
                 <p className="text-xs font-bold text-gray-500 uppercase tracking-wider">{s.label}</p>
@@ -100,7 +100,7 @@ const BookingLink = () => {
       {/* Channels & Widget Section */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Booking Channels */}
-        <div className="lg:col-span-2 bg-white rounded-2xl border border-gray-100 shadow-[0_2px_10px_rgba(0,0,0,0.03)] overflow-hidden">
+        <div className="lg:col-span-2 bg-white rounded-xl border border-gray-200 overflow-hidden">
           <div className="p-4 border-b border-gray-100">
             <div className="flex items-center gap-1.5">
               <button onClick={() => setActiveChannelTab('channels')}
@@ -125,7 +125,7 @@ const BookingLink = () => {
           {activeChannelTab === 'channels' ? (
             <div className="p-6 space-y-4">
               {channels.map((ch, i) => (
-                <div key={i} className="flex items-start gap-4 p-4 rounded-lg border border-border hover:border-primary/30 hover:shadow-sm transition-all">
+                <div key={i} className="flex items-start gap-4 p-4 rounded-xl border border-gray-200 hover:border-gray-300 transition-all">
                   <div className={`w-10 h-10 rounded-lg ${ch.color} flex items-center justify-center shrink-0`}>
                     <BrandIcon type={ch.icon} />
                   </div>
@@ -146,14 +146,14 @@ const BookingLink = () => {
           ) : (
             <div className="p-6 space-y-4">
               <p className="text-sm text-gray-500">Add this code to your website to embed a booking widget. It automatically adapts to your site's design.</p>
-              <div className="bg-gray-50 border border-border rounded-lg p-4 font-mono text-xs text-primary overflow-x-auto">
+              <div className="bg-gray-50 border border-gray-200 rounded-xl p-4 font-mono text-xs text-primary overflow-x-auto">
                 {embedCode}
               </div>
               <div className="flex gap-3">
-                <button onClick={() => navigator.clipboard.writeText(embedCode)} className="text-sm font-bold text-primary border border-border px-4 py-2 rounded-lg hover:bg-gray-50 flex items-center gap-2 shadow-sm">
+                <button onClick={() => navigator.clipboard.writeText(embedCode)} className="text-sm font-bold text-primary border border-gray-200 px-4 py-2 rounded-full hover:bg-gray-50 flex items-center gap-2 shadow-sm">
                   <Copy className="w-3.5 h-3.5" /> Copy Code
                 </button>
-                <button className="text-sm font-bold text-gray-500 border border-border px-4 py-2 rounded-lg hover:bg-gray-50 flex items-center gap-2">
+                <button className="text-sm font-bold text-gray-500 border border-gray-200 px-4 py-2 rounded-full hover:bg-gray-50 flex items-center gap-2">
                   <Palette className="w-3.5 h-3.5" /> Customise
                 </button>
               </div>
@@ -162,7 +162,7 @@ const BookingLink = () => {
         </div>
 
         {/* Mobile Preview */}
-        <div className="bg-white rounded-xl border border-border p-6 shadow-sm flex flex-col items-center">
+        <div className="bg-white rounded-xl border border-gray-200 p-6 flex flex-col items-center">
           <h3 className="font-heading font-bold text-lg text-primary mb-4 self-start">Mobile Preview</h3>
           <div className="w-[220px] h-[420px] bg-gray-900 rounded-[2rem] p-2 shadow-xl">
             <div className="w-full h-full bg-white rounded-[1.5rem] overflow-hidden flex flex-col">
