@@ -28,6 +28,7 @@ from uuid import uuid4
 
 import httpx
 from bson import ObjectId
+import fastapi
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query
 from pydantic import BaseModel
 
@@ -1061,165 +1062,15 @@ async def _scrape_fht(db, city: str, vertical: str, job_id: str, max_leads: int)
 
 
 # ═══════════════════════════════════════════════════════════
-# COMPANIES HOUSE SCRAPER
-# Uses the API with date-range partitioning to bypass 10K cap
-# Requires COMPANIES_HOUSE_API_KEY in backend/.env
+# COMPANIES HOUSE — stub (CSV import used instead)
 # ═══════════════════════════════════════════════════════════
 
-_CH_SIC_CODES = ["96020", "96040", "93130", "96090"]
-_CH_SIC_VERTICALS = {
-    "96020": "beauty",
-    "96040": "wellness",
-    "93130": "gym",
-    "96090": "beauty",
-}
-
-
-async def _ch_fetch(url: str, api_key: str) -> Optional[dict]:
-    """Fetch Companies House API with Basic Auth (API key as username)."""
-    import base64 as b64
-    credentials = b64.b64encode(f"{api_key}:".encode()).decode()
-    try:
-        async with httpx.AsyncClient(timeout=20) as client:
-            r = await client.get(
-                url,
-                headers={
-                    "Authorization": f"Basic {credentials}",
-                    "Accept": "application/json",
-                }
-            )
-            if r.status_code == 200:
-                return r.json()
-            if r.status_code == 429:
-                await asyncio.sleep(10)
-                return None
-            logger.info(f"CH API {r.status_code}: {url}")
-            return None
-    except Exception as exc:
-        logger.error(f"CH API error: {exc}")
-        return None
-
-
 async def _scrape_companies_house(db, city: str, vertical: str, job_id: str, max_leads: int):
-    """
-    Queries Companies House Advanced Search API by SIC code.
-    Partitions by incorporation year to bypass the 10K result cap.
-    Requires COMPANIES_HOUSE_API_KEY env var.
-    """
-    api_key = os.environ.get("COMPANIES_HOUSE_API_KEY", "")
-    if not api_key:
-        logger.error("COMPANIES_HOUSE_API_KEY not set in environment")
-        await _set(db, job_id, error="COMPANIES_HOUSE_API_KEY not configured. Add it to backend/.env")
-        return
-
-    base = "https://api.company-information.service.gov.uk"
-    added = 0
-
-    # Partition by year ranges to stay under 10K cap per query
-    year_ranges = [
-        ("2015-01-01", "2018-12-31"),
-        ("2019-01-01", "2021-12-31"),
-        ("2022-01-01", "2024-12-31"),
-        ("2010-01-01", "2014-12-31"),
-        ("2000-01-01", "2009-12-31"),
-        ("1990-01-01", "1999-12-31"),
-    ]
-
-    sic_codes = _CH_SIC_CODES
-    if vertical and vertical in ["gym", "fitness"]:
-        sic_codes = ["93130"]
-    elif vertical and vertical in ["wellness", "massage", "spa"]:
-        sic_codes = ["96040"]
-    else:
-        sic_codes = ["96020", "96090"]
-
-    for sic in sic_codes:
-        vert_label = _CH_SIC_VERTICALS.get(sic, "beauty")
-
-        for date_from, date_to in year_ranges:
-            if added >= max_leads:
-                break
-
-            job = await db.scraper_jobs.find_one({"job_id": job_id}, {"status": 1})
-            if job and job.get("status") == "cancelled":
-                return
-
-            start = 0
-            page_size = 500
-
-            while start < 10000 and added < max_leads:
-                url = (
-                    f"{base}/advanced-search/companies"
-                    f"?sic_codes={sic}"
-                    f"&company_status=active"
-                    f"&incorporated_from={date_from}"
-                    f"&incorporated_to={date_to}"
-                    f"&size={page_size}"
-                    f"&start_index={start}"
-                )
-
-                data = await _ch_fetch(url, api_key)
-                if not data:
-                    break
-
-                items = data.get("items", [])
-                if not items:
-                    break
-
-                for item in items:
-                    if added >= max_leads:
-                        break
-
-                    company_name = item.get("company_name", "").strip().title()
-                    if not company_name:
-                        continue
-
-                    addr = item.get("registered_office_address", {})
-                    item_city = (
-                        addr.get("locality") or
-                        addr.get("region") or
-                        addr.get("postal_code", "")[:2]
-                    ).strip()
-
-                    # City filter
-                    if city and city.lower() not in "uk" and city.lower() not in item_city.lower():
-                        continue
-
-                    lead = {
-                        "name": company_name,
-                        "city": item_city or "UK",
-                        "vertical": vert_label,
-                        "current_platform": "Companies House",
-                        "source": "companies_house_scrape",
-                        "source_url": f"https://find-and-update.company-information.service.gov.uk/company/{item.get('company_number','')}",
-                        "website": "",
-                        "phone": "",
-                        "email": "",
-                        "rating": 0,
-                        "review_count": 0,
-                        "address_line_1": addr.get("address_line_1", ""),
-                        "postcode": addr.get("postal_code", ""),
-                        "company_number": item.get("company_number", ""),
-                        "sic_code": sic,
-                        "incorporated": item.get("date_of_creation", ""),
-                        "scraped_at": datetime.utcnow(),
-                    }
-
-                    ins, dup = await _save_lead(db, lead)
-                    if ins:
-                        added += 1
-                        await _inc(db, job_id, leads_added=1, leads_found=1)
-                    elif dup:
-                        await _inc(db, job_id, leads_found=1, duplicates=1)
-
-                await _inc(db, job_id, pages_scraped=1)
-
-                total = data.get("hits", 0)
-                start += page_size
-                if start >= min(total, 10000):
-                    break
-
-                await asyncio.sleep(random.uniform(0.5, 1.2))  # respect 600 req/5min limit
+    """Placeholder — Companies House uses CSV import, not this scraper."""
+    await _set(db, job_id,
+        status="failed",
+        error="Use the Companies House CSV import instead: Growth Hub → Companies House → Upload CSV"
+    )
 
 
 _SCRAPERS = {
@@ -1521,6 +1372,232 @@ async def delete_all_leads(
         q["status"] = status
     r = await db.sales_leads.delete_many(q)
     return {"deleted": r.deleted_count}
+
+
+# ═══════════════════════════════════════════════════════════
+# COMPANIES HOUSE CSV IMPORT
+# Download from: download.companieshouse.gov.uk
+# Free, no API key, no caps — full 5M company dataset
+# ═══════════════════════════════════════════════════════════
+
+_CH_TARGET_SICS = {
+    "96020": "beauty",   # Hairdressing and other beauty treatment
+    "96040": "wellness", # Physical well-being activities (massage, sauna, etc)
+    "93130": "gym",      # Fitness facilities
+    "96090": "beauty",   # Other personal service activities
+    "86900": "aesthetics", # Other human health activities (med aesthetics)
+    "96030": "beauty",   # Funeral and related activities — skip in filter
+}
+
+_CH_SKIP_SICS = {"96030"}  # Funeral services — not our target
+
+
+@router.post("/companies-house/import")
+async def import_companies_house_csv(
+    background_tasks: BackgroundTasks,
+    file: bytes = fastapi.Body(..., media_type="application/octet-stream"),
+    filename: str = fastapi.Query("BasicCompanyDataAsOneFile.csv"),
+):
+    """
+    Accept a Companies House CSV file upload and process it in background.
+    Filters by target SIC codes and imports matching active companies as leads.
+
+    CSV column layout (Companies House BasicCompanyData format):
+      0  CompanyName
+      1  CompanyNumber
+      2  RegAddress.CareOf
+      3  RegAddress.POBox
+      4  RegAddress.AddressLine1
+      5  RegAddress.AddressLine2
+      6  RegAddress.PostTown      ← city
+      7  RegAddress.County
+      8  RegAddress.Country
+      9  RegAddress.PostCode
+      10 CompanyCategory
+      11 CompanyStatus            ← filter: Active
+      12 CountryOfOrigin
+      13 DissolutionDate
+      14 IncorporationDate
+      15 Accounts.AccountRefDay
+      16 Accounts.AccountRefMonth
+      17 Accounts.NextDueDate
+      18 Accounts.LastMadeUpDate
+      19 Accounts.AccountCategory
+      20 Returns.NextDueDate
+      21 Returns.LastMadeUpDate
+      22 Mortgages.NumMortCharges
+      23 Mortgages.NumMortOutstanding
+      24 Mortgages.NumMortPartSatisfied
+      25 Mortgages.NumMortSatisfied
+      26 SICCode.SicText_1        ← primary SIC
+      27 SICCode.SicText_2
+      28 SICCode.SicText_3
+      29 SICCode.SicText_4
+      ...
+    """
+    db = get_database()
+    import_id = str(uuid4())
+
+    # Store import job
+    await db.scraper_jobs.insert_one({
+        "job_id": import_id,
+        "platform": "companies_house",
+        "city": "UK",
+        "vertical": "beauty",
+        "max_leads": 999999,
+        "status": "queued",
+        "progress": {"pages_scraped": 0, "leads_found": 0, "leads_added": 0, "duplicates": 0},
+        "created_at": datetime.utcnow(),
+        "started_at": None,
+        "completed_at": None,
+        "error": None,
+        "source": "csv_import",
+        "filename": filename,
+    })
+
+    background_tasks.add_task(_process_ch_csv, import_id, file)
+    return {"job_id": import_id, "status": "queued", "message": "CSV import started"}
+
+
+async def _process_ch_csv(import_id: str, file_bytes: bytes):
+    """Process Companies House CSV in background — filter, dedupe, import."""
+    import csv
+    import io
+    import zipfile
+
+    from database import get_database as _gdb
+    db = _gdb()
+    await _set(db, import_id, status="running", started_at=datetime.utcnow())
+
+    added = 0
+    found = 0
+    dups = 0
+    rows_processed = 0
+
+    try:
+        # Handle both .zip and .csv uploads
+        raw = file_bytes
+        if raw[:2] == b'PK':  # ZIP magic bytes
+            with zipfile.ZipFile(io.BytesIO(raw)) as zf:
+                csv_name = next((n for n in zf.namelist() if n.endswith('.csv')), None)
+                if not csv_name:
+                    await _set(db, import_id, status="failed", error="No CSV found in ZIP")
+                    return
+                raw = zf.read(csv_name)
+
+        text = raw.decode('utf-8', errors='replace')
+        reader = csv.reader(io.StringIO(text))
+
+        header = next(reader, None)  # skip header row
+
+        batch = []
+
+        for row in reader:
+            rows_processed += 1
+
+            if len(row) < 27:
+                continue
+
+            # Only active companies
+            status = row[11].strip().lower()
+            if status != "active":
+                continue
+
+            # Extract SIC codes from columns 26-29
+            sic_texts = [row[i].strip() for i in range(26, min(30, len(row)))]
+            sic_codes_found = []
+            for st in sic_texts:
+                if not st:
+                    continue
+                # Format: "96020 - Hairdressing and other beauty treatment"
+                code_match = re.match(r'^(\d{5})', st)
+                if code_match:
+                    code = code_match.group(1)
+                    if code in _CH_TARGET_SICS and code not in _CH_SKIP_SICS:
+                        sic_codes_found.append(code)
+
+            if not sic_codes_found:
+                continue
+
+            found += 1
+            primary_sic = sic_codes_found[0]
+            vertical = _CH_TARGET_SICS.get(primary_sic, "beauty")
+
+            company_name = row[0].strip().title()
+            company_number = row[1].strip()
+            city = row[6].strip()  # PostTown
+            postcode = row[9].strip()
+            address_line1 = row[4].strip()
+
+            if not company_name:
+                continue
+
+            lead = {
+                "name": company_name,
+                "city": city or postcode[:2] if postcode else "UK",
+                "vertical": vertical,
+                "current_platform": "Companies House",
+                "source": "companies_house_scrape",
+                "source_url": f"https://find-and-update.company-information.service.gov.uk/company/{company_number}",
+                "website": "",
+                "phone": "",
+                "email": "",
+                "rating": 0,
+                "review_count": 0,
+                "address_line_1": address_line1,
+                "postcode": postcode,
+                "company_number": company_number,
+                "sic_code": primary_sic,
+                "incorporated": row[14].strip(),
+                "scraped_at": datetime.utcnow(),
+            }
+
+            batch.append(lead)
+
+            # Process in batches of 500
+            if len(batch) >= 500:
+                for l in batch:
+                    ins, dup = await _save_lead(db, l)
+                    if ins:
+                        added += 1
+                    elif dup:
+                        dups += 1
+
+                await db.scraper_jobs.update_one(
+                    {"job_id": import_id},
+                    {"$set": {
+                        "progress.leads_found": found,
+                        "progress.leads_added": added,
+                        "progress.duplicates": dups,
+                        "progress.pages_scraped": rows_processed // 10000,
+                    }}
+                )
+                batch = []
+                await asyncio.sleep(0.1)  # yield to event loop
+
+        # Final batch
+        for l in batch:
+            ins, dup = await _save_lead(db, l)
+            if ins:
+                added += 1
+            elif dup:
+                dups += 1
+
+        await _set(db, import_id,
+            status="completed",
+            completed_at=datetime.utcnow(),
+            **{
+                "progress.leads_found": found,
+                "progress.leads_added": added,
+                "progress.duplicates": dups,
+                "progress.pages_scraped": rows_processed // 10000,
+            }
+        )
+        logger.info(f"CH CSV import {import_id}: {added} added, {dups} dups, {found} matched from {rows_processed} rows")
+
+    except Exception as exc:
+        logger.error(f"CH CSV import failed: {exc}")
+        await _set(db, import_id, status="failed", error=str(exc), completed_at=datetime.utcnow())
 
 
 @router.post("/leads/{lead_id}/push-outreach")
