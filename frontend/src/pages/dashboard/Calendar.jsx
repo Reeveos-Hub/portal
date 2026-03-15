@@ -177,7 +177,7 @@ const Calendar = () => {
 
   const isRestaurant = businessType === 'restaurant'
   const isToday = selectedDate === new Date().toISOString().slice(0, 10)
-  const useNewGrid = searchParams.get('grid') === 'new'
+  const useNewGrid = searchParams.get('grid') !== 'old'
 
   /* ── Add Booking Modal State ── */
   const [bookServices, setBookServices] = useState([])
