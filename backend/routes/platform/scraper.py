@@ -262,11 +262,23 @@ def _venues_from_nd(nd: dict) -> List[dict]:
 
 def _venues_from_ld(html: str) -> List[dict]:
     venues = []
+    seen_urls: set = set()
     for block in _json_ld(html):
         if isinstance(block, list):
-            venues += [{"_ld": item} for item in block if isinstance(item, dict)]
-        elif isinstance(block, dict) and block.get("@type"):
-            venues.append({"_ld": block})
+            for item in block:
+                if isinstance(item, dict) and item.get("@type") and item.get("name"):
+                    url = item.get("url", "")
+                    # Deduplicate — Fresha repeats each venue ~3 times in ld+json
+                    key = url or item.get("name", "")
+                    if key and key not in seen_urls:
+                        seen_urls.add(key)
+                        venues.append({"_ld": item})
+        elif isinstance(block, dict) and block.get("@type") and block.get("name"):
+            url = block.get("url", "")
+            key = url or block.get("name", "")
+            if key and key not in seen_urls:
+                seen_urls.add(key)
+                venues.append({"_ld": block})
     return venues
 
 
@@ -301,13 +313,31 @@ def _parse_venue(venue: dict, city: str, platform: str, vertical: str, url: str)
     if not name:
         return None
 
+    # For ld+json venues (Fresha/Treatwell), the url field IS the individual listing page
+    # Use it as source_url so "View original" links to the actual business, not the search page
+    if "_ld" in venue:
+        individual_url = venue["_ld"].get("url", "")
+        listing_url = individual_url if individual_url else url
+    else:
+        # For __NEXT_DATA__ venues, try common url/slug fields
+        individual_url = (
+            venue.get("url") or venue.get("listingUrl") or venue.get("profileUrl") or
+            venue.get("href") or ""
+        )
+        if individual_url and not individual_url.startswith("http"):
+            # Relative URL — prepend platform domain
+            domains = {"Fresha": "https://www.fresha.com", "Treatwell": "https://www.treatwell.co.uk",
+                       "Booksy": "https://booksy.com", "Vagaro": "https://www.vagaro.com"}
+            individual_url = domains.get(platform, "") + individual_url
+        listing_url = individual_url if individual_url else url
+
     return {
         "name": name,
         "city": (city_val or city).strip(),
         "vertical": vertical,
         "current_platform": platform,
         "source": f"{platform.lower()}_scrape",
-        "source_url": url,
+        "source_url": listing_url,
         "website": (website or "").strip(),
         "phone": (phone_val or "").strip(),
         "rating": rating,
