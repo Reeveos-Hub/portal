@@ -141,6 +141,22 @@ const IconGlobe = () => (
     <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
   </svg>
 )
+const IconInstagram = () => (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+    <rect width="20" height="20" x="2" y="2" rx="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/>
+    <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/>
+  </svg>
+)
+const IconFacebook = () => (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+    <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/>
+  </svg>
+)
+const IconTikTok = () => (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+    <path d="M9 12a4 4 0 1 0 4 4V4a5 5 0 0 0 5 5"/>
+  </svg>
+)
 
 
 // ─── Helpers ──────────────────────────────────────────────────────
@@ -512,18 +528,26 @@ export default function GrowthHub() {
                   </div>
                 )}
 
-                {/* Instagram */}
-                {lead.instagram && (
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                    <div style={{ width: 32, height: 32, borderRadius: 8, background: '#1e1e1e', display: 'flex', alignItems: 'center', justifyContent: 'center', color: MUTED, flexShrink: 0 }}>
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect width="20" height="20" x="2" y="2" rx="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>
+                {/* Social handles */}
+                {[
+                  { key: 'instagram', label: 'Instagram', icon: <IconInstagram />, color: '#E1306C', url: h => `https://instagram.com/${h}` },
+                  { key: 'facebook',  label: 'Facebook',  icon: <IconFacebook />,  color: '#1877F2', url: h => `https://facebook.com/${h}` },
+                  { key: 'tiktok',    label: 'TikTok',    icon: <IconTikTok />,    color: '#69C9D0', url: h => `https://tiktok.com/@${h}` },
+                  { key: 'twitter',   label: 'Twitter/X', icon: <IconGlobe />,     color: '#1DA1F2', url: h => `https://x.com/${h}` },
+                ].map(s => lead[s.key] ? (
+                  <div key={s.key} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                    <div style={{ width: 32, height: 32, borderRadius: 8, background: '#1e1e1e', display: 'flex', alignItems: 'center', justifyContent: 'center', color: s.color, flexShrink: 0 }}>
+                      {s.icon}
                     </div>
                     <div>
-                      <div style={{ fontSize: 11, color: MUTED, marginBottom: 2 }}>Instagram</div>
-                      <span style={{ color: TEXT, fontSize: 13 }}>{lead.instagram}</span>
+                      <div style={{ fontSize: 11, color: MUTED, marginBottom: 2 }}>{s.label}</div>
+                      <a href={s.url(lead[s.key])} target="_blank" rel="noreferrer"
+                         style={{ color: s.color, fontSize: 13, textDecoration: 'none' }}>
+                        @{lead[s.key]}
+                      </a>
                     </div>
                   </div>
-                )}
+                ) : null)}
               </div>
             </div>
 
@@ -995,11 +1019,18 @@ export default function GrowthHub() {
                     <td style={{ ...S.td, color: MUTED }}>{lead.city}</td>
                     <td style={{ ...S.td, color: MUTED }}>{lead.vertical}</td>
                     <td style={S.td}>
-                      {lead.email ? (
-                        <a href={`mailto:${lead.email}`} style={{ color: GOLD, fontSize: 12 }}>{lead.email}</a>
-                      ) : (
-                        <span style={{ color: MUTED, fontSize: 12 }}>—</span>
-                      )}
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                        {lead.email ? (
+                          <a href={`mailto:${lead.email}`} style={{ color: GOLD, fontSize: 12 }}>{lead.email}</a>
+                        ) : (
+                          <span style={{ color: MUTED, fontSize: 12 }}>—</span>
+                        )}
+                        <div style={{ display: 'flex', gap: 4 }}>
+                          {lead.instagram && <span title={`@${lead.instagram}`} style={{ color: '#E1306C', fontSize: 11 }}>IG</span>}
+                          {lead.facebook && <span title={`@${lead.facebook}`} style={{ color: '#1877F2', fontSize: 11 }}>FB</span>}
+                          {lead.tiktok && <span title={`@${lead.tiktok}`} style={{ color: '#69C9D0', fontSize: 11 }}>TT</span>}
+                        </div>
+                      </div>
                     </td>
                     <td style={S.td}>
                       {(() => {
@@ -1019,9 +1050,9 @@ export default function GrowthHub() {
                     </td>
                     <td style={S.td}>
                       <div style={{ display: 'flex', gap: 6 }}>
-                        {lead.website && !lead.email_enriched && (
+                        {!lead.email_enriched && (lead.website || lead.source_url) && (
                           <button
-                            title="Find email"
+                            title="Enrich: find email + social handles"
                             style={{ ...S.btn('ghost'), padding: '4px 8px', fontSize: 12 }}
                             onClick={() => enrichLead(lead._id)}
                           >
