@@ -787,11 +787,449 @@ async def _full_enrichment(lead: dict) -> Dict[str, Any]:
 # JOB RUNNER
 # ═══════════════════════════════════════════════════════════
 
+# ═══════════════════════════════════════════════════════════
+# MTI SCRAPER — Massage Training Institute
+# Single page, all data in dopoint() JS calls
+# ═══════════════════════════════════════════════════════════
+
+async def _scrape_mti(db, city: str, vertical: str, job_id: str, max_leads: int):
+    """
+    MTI embeds ALL therapists as dopoint() calls on one page.
+    No pagination, no auth, no anti-scraping — single request.
+    City/vertical filters applied after extraction (data is UK-wide).
+    """
+    url = "https://www.massagetraining.co.uk/therapists/"
+    html = await _fetch(url, timeout=30)
+    if not html:
+        logger.warning("MTI: failed to fetch therapists page")
+        return
+
+    # Extract all dopoint() calls
+    # Pattern: dopoint('Name', 'lat,lng', '<html>', 'id', '', '');
+    pattern = re.compile(
+        r"dopoint\('([^']*)',\s*'([^']*)',\s*'(.*?)',\s*'(\d+)',\s*'[^']*',\s*'[^']*'\);",
+        re.DOTALL
+    )
+
+    added = 0
+    seen_ids: set = set()
+
+    for m in pattern.finditer(html):
+        if added >= max_leads:
+            break
+
+        job = await db.scraper_jobs.find_one({"job_id": job_id}, {"status": 1})
+        if job and job.get("status") == "cancelled":
+            break
+
+        name = html_mod.unescape(m.group(1)).strip()
+        coords = m.group(2).strip()
+        info_html = m.group(3)
+        therapist_id = m.group(4)
+
+        if not name or therapist_id in seen_ids:
+            continue
+        seen_ids.add(therapist_id)
+
+        # Extract city from info HTML: <p>CityName</p>
+        city_match = re.search(r'<h3>[^<]*</h3><p>([^<]+)</p>', info_html)
+        therapist_city = city_match.group(1).strip() if city_match else "UK"
+
+        # Extract phone
+        phone_match = re.search(r'<p>(0[\d\s]{9,13}|07[\d\s]{9,11}|\+44[\d\s]{9,12})</p>', info_html)
+        phone = re.sub(r'\s+', '', phone_match.group(1)) if phone_match else ""
+
+        # Extract profile URL
+        url_match = re.search(r'href="([^"]+/therapists/\d+-[^"]+)"', info_html)
+        profile_url = url_match.group(1) if url_match else ""
+        if profile_url and not profile_url.startswith("http"):
+            profile_url = f"https://www.massagetraining.co.uk{profile_url}"
+
+        # City filter — skip if city param given and doesn't match
+        if city and city.lower() not in "uk" and city.lower() not in therapist_city.lower():
+            continue
+
+        lead = {
+            "name": name,
+            "city": therapist_city,
+            "vertical": "massage",
+            "current_platform": "MTI",
+            "source": "mti_scrape",
+            "source_url": profile_url or url,
+            "website": "",
+            "phone": phone,
+            "rating": 0,
+            "review_count": 0,
+            "scraped_at": datetime.utcnow(),
+        }
+
+        ins, dup = await _save_lead(db, lead)
+        if ins:
+            added += 1
+            await _inc(db, job_id, leads_added=1, leads_found=1)
+        elif dup:
+            await _inc(db, job_id, leads_found=1, duplicates=1)
+
+    await _inc(db, job_id, pages_scraped=1)
+    logger.info(f"MTI: extracted {added} leads")
+
+
+# ═══════════════════════════════════════════════════════════
+# FHT SCRAPER — Federation of Holistic Therapists
+# 143 pages of listings → profile fetch for each
+# Requires browser-like headers to bypass HTTP 406
+# ═══════════════════════════════════════════════════════════
+
+async def _fetch_fht(url: str) -> Optional[str]:
+    """
+    FHT profile pages return 406 without full browser headers.
+    This function sends a complete browser header set to bypass it.
+    """
+    proxy_url = _proxy()
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
+        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8",
+        "Accept-Language": "en-GB,en;q=0.9",
+        "Accept-Encoding": "gzip, deflate, br",
+        "Connection": "keep-alive",
+        "Upgrade-Insecure-Requests": "1",
+        "Sec-Fetch-Dest": "document",
+        "Sec-Fetch-Mode": "navigate",
+        "Sec-Fetch-Site": "same-origin",
+        "Sec-Fetch-User": "?1",
+        "Cache-Control": "max-age=0",
+        "Referer": "https://www.fht.org.uk/directory-list",
+        "DNT": "1",
+    }
+    try:
+        async with httpx.AsyncClient(
+            proxies={"http://": proxy_url, "https://": proxy_url},
+            timeout=25, follow_redirects=True, verify=False,
+        ) as client:
+            r = await client.get(url, headers=headers)
+            if r.status_code == 200:
+                return r.text
+            if r.status_code == 429:
+                await asyncio.sleep(15)
+                return None
+            logger.info(f"FHT fetch {r.status_code}: {url}")
+            return None
+    except Exception as exc:
+        logger.error(f"FHT fetch error {url}: {exc}")
+        return None
+
+
+def _parse_fht_profile(html: str, profile_url: str) -> Optional[dict]:
+    """Extract structured data from an FHT therapist profile page."""
+    if not html:
+        return None
+
+    def _field(class_name: str) -> str:
+        m = re.search(
+            rf'class="[^"]*{re.escape(class_name)}[^"]*"[^>]*>(.*?)</',
+            html, re.DOTALL
+        )
+        return re.sub(r'<[^>]+>', ' ', m.group(1)).strip() if m else ""
+
+    # Business name — from title or field
+    name_m = re.search(r'<h1[^>]*class="[^"]*page-title[^"]*"[^>]*>([^<]+)</h1>', html)
+    if not name_m:
+        name_m = re.search(r'<title>([^|<]+)', html)
+    name = html_mod.unescape(name_m.group(1)).strip() if name_m else ""
+    if not name or name.lower() in ("directory", "fht"):
+        return None
+
+    # Address fields
+    locality_m = re.search(r'class="[^"]*locality[^"]*"[^>]*>([^<]+)<', html)
+    postal_m = re.search(r'class="[^"]*postal-code[^"]*"[^>]*>([^<]+)<', html)
+    city = locality_m.group(1).strip() if locality_m else ""
+    postcode = postal_m.group(1).strip() if postal_m else ""
+
+    # Phone
+    phone_m = re.search(r'href="tel:([^"]+)"', html)
+    if not phone_m:
+        phone_m = re.search(r'(0\d{10}|07\d{9}|\+44\d{10})', html)
+    phone = phone_m.group(1).strip() if phone_m else ""
+
+    # Email
+    email_m = re.search(r'href="mailto:([^"]+)"', html)
+    email = email_m.group(1).strip().lower() if email_m else ""
+
+    # Website
+    web_m = re.search(
+        r'field--name-field-website[^>]*>[^<]*<a[^>]*href="([^"]+)"',
+        html, re.DOTALL
+    )
+    website = web_m.group(1).strip() if web_m else ""
+
+    # Therapies — structured list
+    therapies_m = re.findall(r'field--name-field-therapies[^>]*>.*?<li[^>]*>([^<]+)', html, re.DOTALL)
+    vertical = therapies_m[0].strip().lower() if therapies_m else "holistic"
+
+    if not city:
+        # Try to get city from postcode area
+        if postcode:
+            city = postcode.split()[0] if postcode else "UK"
+
+    return {
+        "name": name,
+        "city": city or postcode or "UK",
+        "vertical": vertical[:50],
+        "current_platform": "FHT",
+        "source": "fht_scrape",
+        "source_url": profile_url,
+        "website": website,
+        "phone": phone,
+        "email": email,
+        "rating": 0,
+        "review_count": 0,
+        "scraped_at": datetime.utcnow(),
+    }
+
+
+async def _scrape_fht(db, city: str, vertical: str, job_id: str, max_leads: int):
+    """
+    Phase 1: Crawl 143 listing pages to collect profile URLs.
+    Phase 2: Fetch each profile page for full contact data.
+    Profile pages require browser headers (HTTP 406 workaround).
+    """
+    base = "https://www.fht.org.uk"
+    profile_urls: List[str] = []
+
+    # Phase 1 — collect profile URLs from listing pages
+    page = 0
+    while True:
+        job = await db.scraper_jobs.find_one({"job_id": job_id}, {"status": 1})
+        if job and job.get("status") == "cancelled":
+            return
+
+        url = f"{base}/directory-list?page={page}"
+        html = await _fetch_fht(url)
+        if not html:
+            break
+
+        # Extract profile links: <a href="/users/...">
+        links = re.findall(r'href="(/users/[a-z0-9\-]+)"', html)
+        new_links = [f"{base}{l}" for l in links if l not in profile_urls]
+        profile_urls.extend(new_links)
+
+        await _inc(db, job_id, pages_scraped=1)
+
+        # Check if there's a next page
+        if 'pager__item--next' not in html:
+            break
+
+        page += 1
+        if page > 145:  # safety cap
+            break
+
+        await asyncio.sleep(random.uniform(1.5, 3.0))
+
+    logger.info(f"FHT: collected {len(profile_urls)} profile URLs")
+
+    # Phase 2 — fetch each profile
+    added = 0
+    for profile_url in profile_urls:
+        if added >= max_leads:
+            break
+
+        job = await db.scraper_jobs.find_one({"job_id": job_id}, {"status": 1})
+        if job and job.get("status") == "cancelled":
+            break
+
+        html = await _fetch_fht(profile_url)
+        if not html:
+            await asyncio.sleep(1)
+            continue
+
+        lead = _parse_fht_profile(html, profile_url)
+        if not lead:
+            continue
+
+        # City filter
+        if city and city.lower() not in "uk" and city.lower() not in lead.get("city", "").lower():
+            continue
+
+        ins, dup = await _save_lead(db, lead)
+        if ins:
+            added += 1
+            await _inc(db, job_id, leads_added=1, leads_found=1)
+        elif dup:
+            await _inc(db, job_id, leads_found=1, duplicates=1)
+
+        await asyncio.sleep(random.uniform(1.0, 2.5))
+
+
+# ═══════════════════════════════════════════════════════════
+# COMPANIES HOUSE SCRAPER
+# Uses the API with date-range partitioning to bypass 10K cap
+# Requires COMPANIES_HOUSE_API_KEY in backend/.env
+# ═══════════════════════════════════════════════════════════
+
+_CH_SIC_CODES = ["96020", "96040", "93130", "96090"]
+_CH_SIC_VERTICALS = {
+    "96020": "beauty",
+    "96040": "wellness",
+    "93130": "gym",
+    "96090": "beauty",
+}
+
+
+async def _ch_fetch(url: str, api_key: str) -> Optional[dict]:
+    """Fetch Companies House API with Basic Auth (API key as username)."""
+    import base64 as b64
+    credentials = b64.b64encode(f"{api_key}:".encode()).decode()
+    try:
+        async with httpx.AsyncClient(timeout=20) as client:
+            r = await client.get(
+                url,
+                headers={
+                    "Authorization": f"Basic {credentials}",
+                    "Accept": "application/json",
+                }
+            )
+            if r.status_code == 200:
+                return r.json()
+            if r.status_code == 429:
+                await asyncio.sleep(10)
+                return None
+            logger.info(f"CH API {r.status_code}: {url}")
+            return None
+    except Exception as exc:
+        logger.error(f"CH API error: {exc}")
+        return None
+
+
+async def _scrape_companies_house(db, city: str, vertical: str, job_id: str, max_leads: int):
+    """
+    Queries Companies House Advanced Search API by SIC code.
+    Partitions by incorporation year to bypass the 10K result cap.
+    Requires COMPANIES_HOUSE_API_KEY env var.
+    """
+    api_key = os.environ.get("COMPANIES_HOUSE_API_KEY", "")
+    if not api_key:
+        logger.error("COMPANIES_HOUSE_API_KEY not set in environment")
+        await _set(db, job_id, error="COMPANIES_HOUSE_API_KEY not configured. Add it to backend/.env")
+        return
+
+    base = "https://api.company-information.service.gov.uk"
+    added = 0
+
+    # Partition by year ranges to stay under 10K cap per query
+    year_ranges = [
+        ("2015-01-01", "2018-12-31"),
+        ("2019-01-01", "2021-12-31"),
+        ("2022-01-01", "2024-12-31"),
+        ("2010-01-01", "2014-12-31"),
+        ("2000-01-01", "2009-12-31"),
+        ("1990-01-01", "1999-12-31"),
+    ]
+
+    sic_codes = _CH_SIC_CODES
+    if vertical and vertical in ["gym", "fitness"]:
+        sic_codes = ["93130"]
+    elif vertical and vertical in ["wellness", "massage", "spa"]:
+        sic_codes = ["96040"]
+    else:
+        sic_codes = ["96020", "96090"]
+
+    for sic in sic_codes:
+        vert_label = _CH_SIC_VERTICALS.get(sic, "beauty")
+
+        for date_from, date_to in year_ranges:
+            if added >= max_leads:
+                break
+
+            job = await db.scraper_jobs.find_one({"job_id": job_id}, {"status": 1})
+            if job and job.get("status") == "cancelled":
+                return
+
+            start = 0
+            page_size = 500
+
+            while start < 10000 and added < max_leads:
+                url = (
+                    f"{base}/advanced-search/companies"
+                    f"?sic_codes={sic}"
+                    f"&company_status=active"
+                    f"&incorporated_from={date_from}"
+                    f"&incorporated_to={date_to}"
+                    f"&size={page_size}"
+                    f"&start_index={start}"
+                )
+
+                data = await _ch_fetch(url, api_key)
+                if not data:
+                    break
+
+                items = data.get("items", [])
+                if not items:
+                    break
+
+                for item in items:
+                    if added >= max_leads:
+                        break
+
+                    company_name = item.get("company_name", "").strip().title()
+                    if not company_name:
+                        continue
+
+                    addr = item.get("registered_office_address", {})
+                    item_city = (
+                        addr.get("locality") or
+                        addr.get("region") or
+                        addr.get("postal_code", "")[:2]
+                    ).strip()
+
+                    # City filter
+                    if city and city.lower() not in "uk" and city.lower() not in item_city.lower():
+                        continue
+
+                    lead = {
+                        "name": company_name,
+                        "city": item_city or "UK",
+                        "vertical": vert_label,
+                        "current_platform": "Companies House",
+                        "source": "companies_house_scrape",
+                        "source_url": f"https://find-and-update.company-information.service.gov.uk/company/{item.get('company_number','')}",
+                        "website": "",
+                        "phone": "",
+                        "email": "",
+                        "rating": 0,
+                        "review_count": 0,
+                        "address_line_1": addr.get("address_line_1", ""),
+                        "postcode": addr.get("postal_code", ""),
+                        "company_number": item.get("company_number", ""),
+                        "sic_code": sic,
+                        "incorporated": item.get("date_of_creation", ""),
+                        "scraped_at": datetime.utcnow(),
+                    }
+
+                    ins, dup = await _save_lead(db, lead)
+                    if ins:
+                        added += 1
+                        await _inc(db, job_id, leads_added=1, leads_found=1)
+                    elif dup:
+                        await _inc(db, job_id, leads_found=1, duplicates=1)
+
+                await _inc(db, job_id, pages_scraped=1)
+
+                total = data.get("hits", 0)
+                start += page_size
+                if start >= min(total, 10000):
+                    break
+
+                await asyncio.sleep(random.uniform(0.5, 1.2))  # respect 600 req/5min limit
+
+
 _SCRAPERS = {
     "fresha": _scrape_fresha,
     "treatwell": _scrape_treatwell,
     "booksy": _scrape_booksy,
     "vagaro": _scrape_vagaro,
+    "mti": _scrape_mti,
+    "fht": _scrape_fht,
+    "companies_house": _scrape_companies_house,
 }
 
 
