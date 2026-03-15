@@ -984,7 +984,7 @@ export default function GrowthHub() {
                   <th style={S.th}>Business</th>
                   <th style={S.th}>City</th>
                   <th style={S.th}>Vertical</th>
-                  <th style={S.th}>Email</th>
+                  <th style={S.th}>Data</th>
                   <th style={S.th}>Source</th>
                   <th style={S.th}>Rating</th>
                   <th style={S.th}>Status</th>
@@ -1019,17 +1019,71 @@ export default function GrowthHub() {
                     <td style={{ ...S.td, color: MUTED }}>{lead.city}</td>
                     <td style={{ ...S.td, color: MUTED }}>{lead.vertical}</td>
                     <td style={S.td}>
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-                        {lead.email ? (
-                          <a href={`mailto:${lead.email}`} style={{ color: GOLD, fontSize: 12 }}>{lead.email}</a>
-                        ) : (
-                          <span style={{ color: MUTED, fontSize: 12 }}>—</span>
-                        )}
-                        <div style={{ display: 'flex', gap: 4 }}>
-                          {lead.instagram && <span title={`@${lead.instagram}`} style={{ color: '#E1306C', fontSize: 11 }}>IG</span>}
-                          {lead.facebook && <span title={`@${lead.facebook}`} style={{ color: '#1877F2', fontSize: 11 }}>FB</span>}
-                          {lead.tiktok && <span title={`@${lead.tiktok}`} style={{ color: '#69C9D0', fontSize: 11 }}>TT</span>}
-                        </div>
+                      <div style={{ display: 'flex', gap: 5, alignItems: 'center', flexWrap: 'wrap' }}>
+                        {/* Email */}
+                        <span title={lead.email || 'No email'} style={{
+                          width: 24, height: 24, borderRadius: 6, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                          background: lead.email ? '#1a2e1a' : '#1a1a1a',
+                          color: lead.email ? '#4ade80' : '#333',
+                          cursor: lead.email ? 'pointer' : 'default',
+                          flexShrink: 0,
+                        }}
+                          onClick={lead.email ? () => window.open(`mailto:${lead.email}`) : undefined}
+                        >
+                          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
+                        </span>
+                        {/* Phone */}
+                        <span title={lead.phone || 'No phone'} style={{
+                          width: 24, height: 24, borderRadius: 6, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                          background: lead.phone ? '#1a2540' : '#1a1a1a',
+                          color: lead.phone ? '#60a5fa' : '#333', flexShrink: 0,
+                        }}>
+                          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 13 19.79 19.79 0 0 1 1.61 4.4 2 2 0 0 1 3.6 2.21h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 9.91a16 16 0 0 0 6.08 6.08l.91-.91a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+                        </span>
+                        {/* Website */}
+                        <span title={lead.website || 'No website'} style={{
+                          width: 24, height: 24, borderRadius: 6, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                          background: lead.website ? '#2a1a2a' : '#1a1a1a',
+                          color: lead.website ? '#c084fc' : '#333',
+                          cursor: lead.website ? 'pointer' : 'default', flexShrink: 0,
+                        }}
+                          onClick={lead.website ? () => window.open(lead.website, '_blank') : undefined}
+                        >
+                          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+                        </span>
+                        {/* Instagram */}
+                        <span title={lead.instagram ? `@${lead.instagram}` : 'No Instagram'} style={{
+                          width: 24, height: 24, borderRadius: 6, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                          background: lead.instagram ? '#2e1020' : '#1a1a1a',
+                          color: lead.instagram ? '#E1306C' : '#333',
+                          cursor: lead.instagram ? 'pointer' : 'default', flexShrink: 0,
+                        }}
+                          onClick={lead.instagram ? () => window.open(`https://instagram.com/${lead.instagram}`, '_blank') : undefined}
+                        >
+                          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><rect width="20" height="20" x="2" y="2" rx="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>
+                        </span>
+                        {/* Facebook */}
+                        <span title={lead.facebook ? `${lead.facebook}` : 'No Facebook'} style={{
+                          width: 24, height: 24, borderRadius: 6, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                          background: lead.facebook ? '#0f1f3d' : '#1a1a1a',
+                          color: lead.facebook ? '#1877F2' : '#333',
+                          cursor: lead.facebook ? 'pointer' : 'default', flexShrink: 0,
+                        }}
+                          onClick={lead.facebook ? () => window.open(`https://facebook.com/${lead.facebook}`, '_blank') : undefined}
+                        >
+                          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg>
+                        </span>
+                        {/* TikTok */}
+                        <span title={lead.tiktok ? `@${lead.tiktok}` : 'No TikTok'} style={{
+                          width: 24, height: 24, borderRadius: 6, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                          background: lead.tiktok ? '#0f2a2a' : '#1a1a1a',
+                          color: lead.tiktok ? '#69C9D0' : '#333',
+                          cursor: lead.tiktok ? 'pointer' : 'default', flexShrink: 0,
+                        }}
+                          onClick={lead.tiktok ? () => window.open(`https://tiktok.com/@${lead.tiktok}`, '_blank') : undefined}
+                        >
+                          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M9 12a4 4 0 1 0 4 4V4a5 5 0 0 0 5 5"/></svg>
+                        </span>
                       </div>
                     </td>
                     <td style={S.td}>
