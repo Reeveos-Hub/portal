@@ -167,6 +167,7 @@ export default function GrowthHub() {
   const [running, setRunning] = useState(false)
   const [activeJob, setActiveJob] = useState(null)
   const pollRef = useRef(null)
+  const [jobError, setJobError] = useState(null)
 
   // Leads state
   const [leads, setLeads] = useState([])
@@ -260,13 +261,29 @@ export default function GrowthHub() {
 
   async function startDiscovery() {
     setRunning(true)
-    setActiveJob(null)
+    setJobError(null)
+    // Show immediate placeholder so user sees something happened
+    setActiveJob({
+      job_id: null,
+      platform,
+      city,
+      vertical,
+      max_leads: maxLeads,
+      status: 'queued',
+      progress: { pages_scraped: 0, leads_found: 0, leads_added: 0, duplicates: 0 },
+    })
     try {
       const res = await api.post('/scraper/jobs', { platform, city, vertical, max_leads: maxLeads })
+      if (!res || !res.job_id) {
+        throw new Error('No job ID returned from server')
+      }
+      setActiveJob(prev => ({ ...prev, job_id: res.job_id, status: 'queued' }))
       startPoll(res.job_id)
     } catch (e) {
       console.error('Start job error:', e)
+      setJobError(e?.message || 'Failed to start discovery. Check the Jobs tab for details.')
       setRunning(false)
+      setActiveJob(null)
     }
   }
 
@@ -555,13 +572,28 @@ export default function GrowthHub() {
             </div>
 
             {isActive && (
-              <div style={{ height: 4, background: BORDER, borderRadius: 4, overflow: 'hidden' }}>
-                <div style={{
-                  height: '100%', background: GOLD, borderRadius: 4,
-                  animation: 'pulse 1.5s ease-in-out infinite',
-                  width: `${Math.min(100, ((prog.leads_added || 0) / (activeJob.max_leads || 200)) * 100)}%`,
-                  minWidth: 20, transition: 'width 0.5s',
-                }} />
+              <div style={{ marginTop: 8 }}>
+                <div style={{ height: 6, background: BORDER, borderRadius: 4, overflow: 'hidden' }}>
+                  {(prog.leads_added || 0) === 0 ? (
+                    /* Indeterminate animation when no leads yet */
+                    <div style={{
+                      height: '100%', background: GOLD, borderRadius: 4,
+                      width: '30%',
+                      animation: 'scan 1.8s ease-in-out infinite',
+                    }} />
+                  ) : (
+                    /* Determinate progress once leads start coming in */
+                    <div style={{
+                      height: '100%', background: GOLD, borderRadius: 4,
+                      width: `${Math.min(100, ((prog.leads_added || 0) / (activeJob.max_leads || 200)) * 100)}%`,
+                      transition: 'width 0.6s ease',
+                    }} />
+                  )}
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 5, fontSize: 11, color: MUTED }}>
+                  <span>Scraping {activeJob.platform} — {activeJob.vertical} in {activeJob.city}</span>
+                  <span>{prog.leads_added || 0} / {activeJob.max_leads || maxLeads} leads</span>
+                </div>
               </div>
             )}
 
@@ -579,6 +611,11 @@ export default function GrowthHub() {
             {activeJob.error && (
               <div style={{ marginTop: 12, color: '#f87171', fontSize: 13, background: '#2e1010', padding: '8px 12px', borderRadius: 8 }}>
                 Error: {activeJob.error}
+              </div>
+            )}
+            {jobError && (
+              <div style={{ marginTop: 12, color: '#f87171', fontSize: 13, background: '#2e1010', padding: '8px 12px', borderRadius: 8 }}>
+                {jobError}
               </div>
             )}
           </div>
@@ -893,6 +930,11 @@ export default function GrowthHub() {
     <div style={S.wrap}>
       <style>{`
         @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.6} }
+        @keyframes scan {
+          0% { transform: translateX(-100%); }
+          50% { transform: translateX(233%); }
+          100% { transform: translateX(233%); }
+        }
         button:disabled { opacity: 0.4; cursor: not-allowed; }
         input[type=number]::-webkit-inner-spin-button { opacity:0.4 }
         select option { background: #1e1e1e; color: #e8e8e8; }
