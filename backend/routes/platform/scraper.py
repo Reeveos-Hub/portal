@@ -1380,16 +1380,115 @@ async def delete_all_leads(
 # Free, no API key, no caps — full 5M company dataset
 # ═══════════════════════════════════════════════════════════
 
+# ALL Dojo-supported business types mapped to SIC codes
+# Source: Dojo Merchant Acceptance Guide (Sep 2023)
+# These are businesses we can sell BOTH Dojo card machines AND ReeveOS to
 _CH_TARGET_SICS = {
-    "96020": "beauty",   # Hairdressing and other beauty treatment
-    "96040": "wellness", # Physical well-being activities (massage, sauna, etc)
-    "93130": "gym",      # Fitness facilities
-    "96090": "beauty",   # Other personal service activities
-    "86900": "aesthetics", # Other human health activities (med aesthetics)
-    "96030": "beauty",   # Funeral and related activities — skip in filter
+    # Beauty & Aesthetics (ReeveOS + Dojo)
+    "96020": "beauty",        # Hairdressing and beauty treatment
+    "96040": "wellness",      # Physical well-being (massage, sauna, spa)
+    "96090": "beauty",        # Other personal service activities
+    # Hospitality — Restaurants, Cafes, Takeaways (ReeveOS + Dojo)
+    "56101": "restaurant",    # Licensed restaurants
+    "56102": "restaurant",    # Unlicensed restaurants and cafes
+    "56103": "takeaway",      # Take-away food shops
+    "56210": "catering",      # Event catering
+    "56290": "food_service",  # Other food service
+    "56301": "bar",           # Licensed clubs
+    "56302": "bar",           # Unlicensed clubs
+    "56303": "pub",           # Bars and public houses
+    # Hotels & Accommodation (Dojo)
+    "55100": "hotel",         # Hotels and similar
+    "55201": "hotel",         # Holiday centres
+    "55202": "hotel",         # Youth hostels
+    "55209": "hotel",         # Other short-stay accommodation
+    "55300": "campsite",      # Caravan/camping parks
+    "55900": "accommodation", # Other accommodation
+    # Automotive (Dojo)
+    "45111": "automotive",    # New car sales
+    "45112": "automotive",    # Used car sales
+    "45190": "automotive",    # Other motor vehicle sales
+    "45201": "automotive",    # Car maintenance and repair
+    "45202": "automotive",    # Other vehicle maintenance
+    "45320": "automotive",    # Motor vehicle parts retail
+    "45400": "automotive",    # Motorcycle sales and repair
+    # Dental (Dojo)
+    "86230": "dental",        # Dental practice activities
+    # Medical / Health Practitioners (Dojo)
+    "86210": "medical",       # General medical practice
+    "86220": "medical",       # Specialist medical practice
+    "86900": "aesthetics",    # Other human health (aesthetics clinics)
+    # Pharmacy / Chemist (Dojo)
+    "47730": "pharmacy",      # Dispensing chemist
+    # Retail — Grocery, Convenience, Newsagent (Dojo)
+    "47110": "retail",        # Non-specialised food retail
+    "47190": "retail",        # Other non-specialised retail
+    "47220": "retail",        # Butchers
+    "47230": "retail",        # Fishmongers
+    "47240": "retail",        # Bakeries
+    "47250": "retail",        # Beverage retail
+    "47260": "retail",        # Tobacco retail
+    "47610": "retail",        # Book stores
+    "47620": "retail",        # Newsagents
+    # Retail — Specialist (Dojo)
+    "47520": "retail",        # Hardware/DIY/paint
+    "47530": "retail",        # Carpets and flooring
+    "47641": "retail",        # Sports goods (bikes etc)
+    "47710": "retail",        # Clothing
+    "47720": "retail",        # Footwear and leather
+    "47740": "retail",        # Medical and orthopaedic goods
+    "47750": "retail",        # Cosmetics and toiletries
+    "47760": "retail",        # Florists and garden
+    "47762": "retail",        # Pet shops
+    "47770": "retail",        # Watches and jewellery
+    "47782": "retail",        # Opticians
+    "47789": "retail",        # Other specialist retail
+    # Building trades — face-to-face types (Dojo)
+    "43210": "trades",        # Electrical installation
+    "43220": "trades",        # Plumbing and heating
+    "43290": "trades",        # Other construction installation
+    "43310": "trades",        # Plastering
+    "43320": "trades",        # Joinery
+    "43330": "trades",        # Floor and wall covering
+    "43341": "trades",        # Painting and decorating
+    "43342": "trades",        # Glazing
+    "43390": "trades",        # Other building finishing
+    # Taxi / Private Hire (Dojo)
+    "49320": "transport",     # Taxi operation
+    "49390": "transport",     # Other passenger transport
+    # Sports (Dojo)
+    "93110": "sports",        # Operation of sports facilities
+    "93120": "sports",        # Sports clubs (football, rugby etc)
+    "93130": "gym",           # Fitness facilities
+    "93190": "sports",        # Other sports activities
+    # Services (Dojo)
+    "74202": "photography",   # Photography studios
+    "75000": "veterinary",    # Vets
+    "81210": "cleaning",      # General cleaning
+    "81220": "cleaning",      # Specialist cleaning
+    "81291": "pest_control",  # Pest control
+    "81300": "landscaping",   # Landscape services / tree surgeons
+    "96010": "laundry",       # Laundry and dry cleaning
+    # Entertainment (Dojo)
+    "59140": "cinema",        # Cinemas
+    "90010": "entertainment", # Performing arts
+    "90040": "entertainment", # Operation of arts facilities
+    # Funeral (Dojo — with restrictions)
+    "96030": "funeral",       # Funeral and related activities
 }
 
-_CH_SKIP_SICS = {"96030"}  # Funeral services — not our target
+# No SIC codes to skip — we include funeral since Dojo supports it
+_CH_SKIP_SICS: set = set()
+
+# Which SIC codes are ALSO ReeveOS targets (bookings/EPOS)
+_REEVEOS_SICS = {
+    "96020", "96040", "96090",           # Beauty/wellness/personal services
+    "56101", "56102", "56103",           # Restaurants/cafes/takeaways
+    "56210", "56290", "56301", "56302", "56303",  # Catering/bars/clubs
+    "55100", "55201", "55202", "55209",  # Hotels/accommodation
+    "86900", "86230",                    # Aesthetics/dental
+    "93110", "93120", "93130", "93190",  # Sports/gym
+}
 
 
 @router.post("/companies-house/import")
