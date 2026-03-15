@@ -181,7 +181,7 @@ const Calendar = () => {
 
   /* ── Add Booking Modal State ── */
   const [bookServices, setBookServices] = useState([])
-  const [bookForm, setBookForm] = useState({ customerName: '', customerPhone: '', customerEmail: '', serviceId: '', staffId: '', date: '', time: '', notes: '' })
+  const [bookForm, setBookForm] = useState({ customerName: '', customerPhone: '', customerEmail: '', serviceId: '', staffId: '', date: '', time: '', notes: '', recurrence: null })
   const [bookSaving, setBookSaving] = useState(false)
   const [bookError, setBookError] = useState('')
   const [selPackages, setSelPackages] = useState([])
@@ -396,6 +396,7 @@ const Calendar = () => {
           staffId: bookForm.staffId || undefined,
           service: svc ? { id: svc.id || svc._id, name: svc.name, duration: svc.duration || 60, price: svc.price || 0 } : undefined,
           notes: bookForm.notes.trim(),
+          recurrence: bookForm.recurrence || undefined,
         })
       }
       setShowBook(false); setEditingId(null)
@@ -2249,6 +2250,27 @@ const Calendar = () => {
             <label style={{ fontSize: 11, fontWeight: 700, color: '#888', textTransform: 'uppercase', letterSpacing: 0.5 }}>Notes</label>
             <textarea value={bookForm.notes} onChange={e => setBookForm(f => ({ ...f, notes: e.target.value }))} rows={2} placeholder="Optional notes..." style={{ width: '100%', padding: '10px 12px', border: '1px solid #E0E0E0', borderRadius: 10, fontSize: 14, fontFamily: "'Figtree', sans-serif", marginTop: 4, resize: 'vertical', outline: 'none', boxSizing: 'border-box' }} />
           </div>
+          {!editingId && (
+            <div style={{ marginTop: 12 }}>
+              <label style={{ fontSize: 11, fontWeight: 700, color: '#888', textTransform: 'uppercase', letterSpacing: 0.5 }}>Repeat</label>
+              <div style={{ display: 'flex', gap: 8, marginTop: 4 }}>
+                <select value={bookForm.recurrence?.rule || ''} onChange={e => setBookForm(f => ({ ...f, recurrence: e.target.value ? { rule: e.target.value, count: f.recurrence?.count || 5 } : null }))} style={{ flex: 1, padding: '10px 12px', border: '1px solid #E0E0E0', borderRadius: 10, fontSize: 13, fontFamily: "'Figtree',sans-serif", outline: 'none', background: '#fff' }}>
+                  <option value="">No repeat</option>
+                  <option value="weekly">Every week</option>
+                  <option value="2weekly">Every 2 weeks</option>
+                  <option value="3weekly">Every 3 weeks</option>
+                  <option value="4weekly">Every 4 weeks</option>
+                  <option value="6weekly">Every 6 weeks</option>
+                  <option value="8weekly">Every 8 weeks</option>
+                </select>
+                {bookForm.recurrence && (
+                  <select value={bookForm.recurrence.count || 5} onChange={e => setBookForm(f => ({ ...f, recurrence: { ...f.recurrence, count: parseInt(e.target.value) } }))} style={{ width: 110, padding: '10px 12px', border: '1px solid #E0E0E0', borderRadius: 10, fontSize: 13, fontFamily: "'Figtree',sans-serif", outline: 'none', background: '#fff' }}>
+                    {[2,3,4,5,6,8,10,12].map(n => <option key={n} value={n}>{n} appointments</option>)}
+                  </select>
+                )}
+              </div>
+            </div>
+          )}
         </div>
         {bookError && <p style={{ color: '#DC2626', fontSize: 13, fontWeight: 600, margin: 0, padding: '0 20px 8px' }}>{bookError}</p>}
         <div style={{ padding: '12px 20px 20px', borderTop: '1px solid #EBEBEB', flexShrink: 0, background: '#FAFAFA' }}>
