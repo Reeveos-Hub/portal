@@ -761,12 +761,22 @@ async def enrich_lead(lead_id: str, background_tasks: BackgroundTasks):
         raise HTTPException(400, "Lead has no website to enrich from")
     website = lead["website"]
 
+    source_url = lead.get("source_url", "")
+
     async def _do():
         db2 = get_database()
-        email = await _enrich_email(website)
+        data = await _enrich_lead_data(website, source_url)
         await db2.sales_leads.update_one(
             {"_id": ObjectId(lead_id)},
-            {"$set": {"email": email or "", "email_enriched": True, "email_enriched_at": datetime.utcnow()}},
+            {"$set": {
+                "email": data["email"],
+                "instagram": data["instagram"],
+                "facebook": data["facebook"],
+                "tiktok": data["tiktok"],
+                "twitter": data["twitter"],
+                "email_enriched": True,
+                "email_enriched_at": datetime.utcnow(),
+            }},
         )
 
     background_tasks.add_task(_do)
@@ -780,14 +790,24 @@ async def bulk_enrich(body: BulkLeadsRequest, background_tasks: BackgroundTasks)
         for lid in body.lead_ids:
             try:
                 lead = await db2.sales_leads.find_one({"_id": ObjectId(lid)})
-                if lead and lead.get("website") and not lead.get("email_enriched"):
-                    email = await _enrich_email(lead["website"])
-                    await db2.sales_leads.update_one(
-                        {"_id": ObjectId(lid)},
-                        {"$set": {"email": email or "", "email_enriched": True,
-                                  "email_enriched_at": datetime.utcnow()}},
-                    )
-                    await asyncio.sleep(random.uniform(1.5, 3.5))
+                if lead and not lead.get("email_enriched"):
+                    website = lead.get("website", "")
+                    source_url = lead.get("source_url", "")
+                    if website or source_url:
+                        data = await _enrich_lead_data(website, source_url)
+                        await db2.sales_leads.update_one(
+                            {"_id": ObjectId(lid)},
+                            {"$set": {
+                                "email": data["email"],
+                                "instagram": data["instagram"],
+                                "facebook": data["facebook"],
+                                "tiktok": data["tiktok"],
+                                "twitter": data["twitter"],
+                                "email_enriched": True,
+                                "email_enriched_at": datetime.utcnow(),
+                            }},
+                        )
+                        await asyncio.sleep(random.uniform(1.5, 3.5))
             except Exception as exc:
                 logger.error(f"Bulk enrich {lid}: {exc}")
 
