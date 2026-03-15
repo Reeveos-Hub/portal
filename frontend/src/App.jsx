@@ -105,6 +105,7 @@ import AdminSecurity from './pages/admin/AdminSecurity'
 import Library from './pages/admin/Library'
 import AdminHelpCentre from './pages/admin/AdminHelpCentre'
 import AdminPartners from './pages/admin/AdminPartners'
+import GrowthHub from './pages/admin/GrowthHub'
 
 import Onboarding from './pages/onboarding/Onboarding'
 
@@ -178,6 +179,7 @@ const App = () => {
             <Route path="security" element={<AdminSecurity />} />
             <Route path="library" element={<Library />} />
               <Route path="partners" element={<AdminPartners />} />
+              <Route path="growth-hub" element={<GrowthHub />} />
           </Route>
           {/* Catch /admin/* and redirect to root-level routes */}
           <Route path="/admin" element={<Navigate to="/" replace />} />
