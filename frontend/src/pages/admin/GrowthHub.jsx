@@ -357,13 +357,13 @@ export default function GrowthHub() {
     card: { background: CARD, border: `1px solid ${BORDER}`, borderRadius: 10, padding: 20 },
     label: { color: MUTED, fontSize: 11, fontWeight: 600, textTransform: 'uppercase', letterSpacing: 1, marginBottom: 6 },
     select: {
-      background: '#1e1e1e', border: `1px solid ${BORDER}`, borderRadius: 8,
-      color: TEXT, padding: '9px 12px', fontSize: 13, fontFamily: FIG, width: '100%',
-      cursor: 'pointer', outline: 'none', colorScheme: 'dark',
+      border: `1px solid ${BORDER}`, borderRadius: 8,
+      padding: '9px 12px', fontSize: 13, fontFamily: FIG, width: '100%',
+      cursor: 'pointer', outline: 'none',
     },
     input: {
-      background: '#1e1e1e', border: `1px solid ${BORDER}`, borderRadius: 8,
-      color: TEXT, padding: '9px 12px', fontSize: 13, fontFamily: FIG, width: '100%', outline: 'none',
+      border: `1px solid ${BORDER}`, borderRadius: 8,
+      padding: '9px 12px', fontSize: 13, fontFamily: FIG, width: '100%', outline: 'none',
     },
     btn: (variant = 'primary') => ({
       padding: '9px 18px', borderRadius: 8, fontSize: 13, fontWeight: 600,
