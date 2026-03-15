@@ -31,10 +31,13 @@ const MUTED = '#777'
 const FIG = "'Figtree', system-ui, sans-serif"
 
 const PLATFORMS = [
-  { id: 'fresha', label: 'Fresha', color: '#00b67a' },
-  { id: 'treatwell', label: 'Treatwell', color: '#6c47ff' },
-  { id: 'booksy', label: 'Booksy', color: '#1B5299' },
-  { id: 'vagaro', label: 'Vagaro', color: '#f4760b' },
+  { id: 'fresha',           label: 'Fresha',           color: '#00b67a', group: 'Booking Platforms' },
+  { id: 'treatwell',        label: 'Treatwell',        color: '#6c47ff', group: 'Booking Platforms' },
+  { id: 'booksy',           label: 'Booksy',           color: '#1B5299', group: 'Booking Platforms' },
+  { id: 'vagaro',           label: 'Vagaro',           color: '#f4760b', group: 'Booking Platforms' },
+  { id: 'fht',              label: 'FHT',              color: '#C9A84C', group: 'Professional Bodies' },
+  { id: 'mti',              label: 'MTI',              color: '#a78bfa', group: 'Professional Bodies' },
+  { id: 'companies_house',  label: 'Companies House',  color: '#38bdf8', group: 'Open Data' },
 ]
 
 const VERTICALS = [
@@ -775,7 +778,13 @@ export default function GrowthHub() {
               disabled={isActive}
             />
             <div style={{ color: MUTED, fontSize: 12, marginTop: 4 }}>
-              ~{Math.round(maxLeads * 0.05)} MB proxy data estimated
+              {platform === 'companies_house'
+                ? 'Requires COMPANIES_HOUSE_API_KEY in backend/.env — free from developer.company-information.service.gov.uk'
+                : platform === 'fht'
+                ? 'FHT scrape takes longer — fetches 7,100 individual profiles. Run overnight.'
+                : platform === 'mti'
+                ? 'MTI is instant — all 250 massage therapists in one page'
+                : `~${Math.round(maxLeads * 0.05)} MB proxy data estimated`}
             </div>
           </div>
 
@@ -909,7 +918,11 @@ export default function GrowthHub() {
             }}
           >
             <option value="">All Sources</option>
-            {PLATFORMS.map(p => <option key={p.id} value={`${p.id}_scrape`}>{p.label}</option>)}
+            {PLATFORMS.map(p => (
+              <option key={p.id} value={p.id === 'companies_house' ? 'companies_house_scrape' : `${p.id}_scrape`}>
+                {p.label}
+              </option>
+            ))}
           </select>
           <select
             style={{ ...S.select, width: 130 }}
