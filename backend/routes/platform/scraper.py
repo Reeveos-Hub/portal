@@ -260,6 +260,25 @@ def _venues_from_nd(nd: dict) -> List[dict]:
     return []
 
 
+def _ld_url_map(html: str) -> Dict[str, str]:
+    """
+    Build a name -> individual_url lookup from all ld+json blocks.
+    Fresha/Treatwell embed each venue as a HealthAndBeautyBusiness block
+    with both 'name' and 'url' pointing to the real listing page.
+    Used to enrich __NEXT_DATA__ venues that lack a direct URL.
+    """
+    mapping: Dict[str, str] = {}
+    for block in _json_ld(html):
+        items = block if isinstance(block, list) else [block]
+        for item in items:
+            if isinstance(item, dict) and item.get("name") and item.get("url"):
+                name = item["name"].strip().lower()
+                url = item["url"]
+                if url.startswith("http") and name:
+                    mapping[name] = url
+    return mapping
+
+
 def _venues_from_ld(html: str) -> List[dict]:
     venues = []
     seen_urls: set = set()
@@ -282,7 +301,7 @@ def _venues_from_ld(html: str) -> List[dict]:
     return venues
 
 
-def _parse_venue(venue: dict, city: str, platform: str, vertical: str, url: str) -> Optional[dict]:
+def _parse_venue(venue: dict, city: str, platform: str, vertical: str, url: str, url_map: Optional[Dict[str, str]] = None) -> Optional[dict]:
     if "_ld" in venue:
         ld = venue["_ld"]
         name = ld.get("name", "")
@@ -313,23 +332,25 @@ def _parse_venue(venue: dict, city: str, platform: str, vertical: str, url: str)
     if not name:
         return None
 
-    # For ld+json venues (Fresha/Treatwell), the url field IS the individual listing page
-    # Use it as source_url so "View original" links to the actual business, not the search page
+    # Resolve individual business listing URL
+    # Priority: ld+json url field → __NEXT_DATA__ url fields → name lookup in url_map → fallback to search page
     if "_ld" in venue:
         individual_url = venue["_ld"].get("url", "")
-        listing_url = individual_url if individual_url else url
     else:
-        # For __NEXT_DATA__ venues, try common url/slug fields
         individual_url = (
             venue.get("url") or venue.get("listingUrl") or venue.get("profileUrl") or
             venue.get("href") or ""
         )
         if individual_url and not individual_url.startswith("http"):
-            # Relative URL — prepend platform domain
             domains = {"Fresha": "https://www.fresha.com", "Treatwell": "https://www.treatwell.co.uk",
                        "Booksy": "https://booksy.com", "Vagaro": "https://www.vagaro.com"}
             individual_url = domains.get(platform, "") + individual_url
-        listing_url = individual_url if individual_url else url
+
+    # If still no URL, try the ld+json name→url lookup map
+    if not individual_url and url_map and name:
+        individual_url = url_map.get(name.lower(), "")
+
+    listing_url = individual_url if individual_url else url
 
     return {
         "name": name,
@@ -369,10 +390,11 @@ async def _scrape_fresha(db, city: str, vertical: str, job_id: str, max_leads: i
         if not venues:
             logger.info(f"Fresha: no venues page {page} ({city}/{vertical})")
             break
+        url_map = _ld_url_map(html)
         for v in venues:
             if added >= max_leads:
                 break
-            lead = _parse_venue(v, city, "Fresha", vertical, url)
+            lead = _parse_venue(v, city, "Fresha", vertical, url, url_map)
             if not lead:
                 continue
             ins, dup = await _save_lead(db, lead)
@@ -409,10 +431,11 @@ async def _scrape_treatwell(db, city: str, vertical: str, job_id: str, max_leads
         venues = _venues_from_nd(_next_data(html)) or _venues_from_ld(html)
         if not venues:
             break
+        url_map = _ld_url_map(html)
         for v in venues:
             if added >= max_leads:
                 break
-            lead = _parse_venue(v, city, "Treatwell", vertical, url)
+            lead = _parse_venue(v, city, "Treatwell", vertical, url, url_map)
             if not lead:
                 continue
             ins, dup = await _save_lead(db, lead)
@@ -443,10 +466,11 @@ async def _scrape_booksy(db, city: str, vertical: str, job_id: str, max_leads: i
         venues = _venues_from_nd(_next_data(html)) or _venues_from_ld(html)
         if not venues:
             break
+        url_map = _ld_url_map(html)
         for v in venues:
             if added >= max_leads:
                 break
-            lead = _parse_venue(v, city, "Booksy", vertical, url)
+            lead = _parse_venue(v, city, "Booksy", vertical, url, url_map)
             if not lead:
                 continue
             ins, dup = await _save_lead(db, lead)
@@ -474,9 +498,10 @@ async def _scrape_vagaro(db, city: str, vertical: str, job_id: str, max_leads: i
     if not html:
         return
     venues = _venues_from_nd(_next_data(html)) or _venues_from_ld(html)
+    url_map = _ld_url_map(html)
     added = 0
     for v in venues[:max_leads]:
-        lead = _parse_venue(v, city, "Vagaro", vertical, url)
+        lead = _parse_venue(v, city, "Vagaro", vertical, url, url_map)
         if not lead:
             continue
         ins, dup = await _save_lead(db, lead)
