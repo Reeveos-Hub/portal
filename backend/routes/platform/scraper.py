@@ -724,6 +724,7 @@ async def list_leads(
     city: Optional[str] = None,
     status: Optional[str] = None,
     has_email: Optional[bool] = Query(None),
+    enrichment: Optional[str] = None,
     search: Optional[str] = None,
 ):
     db = get_database()
@@ -740,6 +741,20 @@ async def list_leads(
         q["email"] = {"$nin": ["", None]}
     elif has_email is False:
         q["$or"] = [{"email": ""}, {"email": {"$exists": False}}, {"email": None}]
+    if enrichment:
+        _not_empty = {"$nin": ["", None]}
+        if enrichment == "email":
+            q["email"] = _not_empty
+        elif enrichment == "phone":
+            q["phone"] = _not_empty
+        elif enrichment == "website":
+            q["website"] = _not_empty
+        elif enrichment == "instagram":
+            q["instagram"] = _not_empty
+        elif enrichment == "socials":
+            q["$or"] = [{"instagram": _not_empty}, {"facebook": _not_empty}, {"tiktok": _not_empty}]
+        elif enrichment == "none":
+            q["email_enriched"] = {"$ne": True}
     if search:
         q["name"] = {"$regex": search, "$options": "i"}
     leads = []
