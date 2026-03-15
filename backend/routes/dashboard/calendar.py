@@ -248,6 +248,9 @@ async def get_calendar(
             "source": nb["source"],
             "roomId": b.get("roomId", ""),
             "roomName": b.get("roomName", ""),
+            "series_id": b.get("series_id"),
+            "series_index": b.get("series_index"),
+            "series_total": b.get("series_total"),
         })
 
     bookings.sort(key=lambda x: (x.get("date", ""), x.get("time", "")))
@@ -575,13 +578,55 @@ async def staff_create_booking(
 
     await db.bookings.insert_one(doc)
 
+    # ── Recurring appointments — generate series ──
+    recurrence = payload.get("recurrence")  # {rule: "weekly"|"2weekly"|"3weekly"|"4weekly"|"6weekly"|"8weekly", count: 2-52}
+    series_ids = [doc["_id"]]
+    if recurrence and isinstance(recurrence, dict):
+        rule = recurrence.get("rule", "")
+        count = min(52, max(0, int(recurrence.get("count", 0) or 0)))
+        week_map = {"weekly": 1, "2weekly": 2, "3weekly": 3, "4weekly": 4, "6weekly": 6, "8weekly": 8}
+        weeks = week_map.get(rule, 0)
+        if weeks > 0 and count > 0:
+            import uuid
+            series_id = f"series_{uuid.uuid4().hex[:12]}"
+            # Tag the first booking with the series
+            await db.bookings.update_one({"_id": doc["_id"]}, {"$set": {
+                "series_id": series_id, "series_index": 0, "series_total": count + 1,
+                "recurrence": {"rule": rule, "weeks": weeks, "count": count},
+            }})
+            base_date = datetime.strptime(booking_date, "%Y-%m-%d")
+            future_docs = []
+            for i in range(1, count + 1):
+                future_date = base_date + timedelta(weeks=weeks * i)
+                future_ref = "".join(random.choices(string.ascii_uppercase + string.digits, k=6))
+                future_doc = {
+                    **doc,
+                    "_id": f"bkg_{datetime.utcnow().strftime('%Y%m%d%H%M%S')}_{biz_id[:8]}_{i}",
+                    "reference": future_ref,
+                    "date": future_date.strftime("%Y-%m-%d"),
+                    "endTime": _mins_to_end(booking_time, duration),
+                    "series_id": series_id,
+                    "series_index": i,
+                    "series_total": count + 1,
+                    "recurrence": {"rule": rule, "weeks": weeks, "count": count},
+                    "createdAt": datetime.utcnow(),
+                    "updatedAt": datetime.utcnow(),
+                }
+                future_docs.append(future_doc)
+                series_ids.append(future_doc["_id"])
+            if future_docs:
+                await db.bookings.insert_many(future_docs)
+                logger.info(f"Recurring series {series_id}: {len(future_docs)+1} bookings created")
+
     return {
         "id": doc["_id"],
         "reference": ref,
         "status": "confirmed",
         "firstVisit": is_first_appointment,
         "duration": duration,
-        "message": f"Booking created{' (+15min first visit buffer)' if is_first_appointment else ''}",
+        "series_count": len(series_ids),
+        "series_ids": series_ids if len(series_ids) > 1 else None,
+        "message": f"Booking created{' (+15min first visit buffer)' if is_first_appointment else ''}{f' — {len(series_ids)} recurring bookings' if len(series_ids) > 1 else ''}",
     }
 
 

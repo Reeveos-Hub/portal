@@ -1330,3 +1330,68 @@ def _block_applies_on_date(block_doc: dict, check: date) -> bool:
     if rule == "weekly":
         return (check - base).days % 7 == 0
     return False
+
+
+# ═══════════════════════════════════════════════════════════════
+# RECURRING SERIES MANAGEMENT
+# ═══════════════════════════════════════════════════════════════
+
+@router.get("/business/{business_id}/series/{series_id}")
+async def get_series(
+    business_id: str, series_id: str,
+    tenant: TenantContext = Depends(verify_business_access),
+):
+    """List all bookings in a recurring series."""
+    db = get_database()
+    docs = await db.bookings.find({
+        "businessId": business_id, "series_id": series_id,
+    }).sort("date", 1).to_list(100)
+    if not docs:
+        raise HTTPException(404, "Series not found")
+    return {
+        "series_id": series_id,
+        "total": len(docs),
+        "bookings": [{
+            "id": str(d["_id"]), "date": d.get("date"), "time": d.get("time"),
+            "status": d.get("status"), "series_index": d.get("series_index", 0),
+            "customer": d.get("customer", {}).get("name", ""),
+            "service": d.get("service", {}).get("name", "") if isinstance(d.get("service"), dict) else str(d.get("service", "")),
+        } for d in docs],
+    }
+
+
+@router.post("/business/{business_id}/series/{series_id}/cancel-all")
+async def cancel_series(
+    business_id: str, series_id: str,
+    tenant: TenantContext = Depends(verify_business_access),
+):
+    """Cancel ALL future bookings in a recurring series."""
+    db = get_database()
+    today = datetime.utcnow().strftime("%Y-%m-%d")
+    result = await db.bookings.update_many(
+        {
+            "businessId": business_id, "series_id": series_id,
+            "date": {"$gte": today},
+            "status": {"$in": ["confirmed", "pending"]},
+        },
+        {"$set": {"status": "cancelled", "cancelled_at": datetime.utcnow(), "cancelled_by": "staff_series"}},
+    )
+    return {"cancelled": result.modified_count, "series_id": series_id}
+
+
+@router.post("/business/{business_id}/series/{series_id}/cancel-from/{from_index}")
+async def cancel_series_from(
+    business_id: str, series_id: str, from_index: int,
+    tenant: TenantContext = Depends(verify_business_access),
+):
+    """Cancel this booking and all future bookings in the series (from a specific index)."""
+    db = get_database()
+    result = await db.bookings.update_many(
+        {
+            "businessId": business_id, "series_id": series_id,
+            "series_index": {"$gte": from_index},
+            "status": {"$in": ["confirmed", "pending"]},
+        },
+        {"$set": {"status": "cancelled", "cancelled_at": datetime.utcnow(), "cancelled_by": "staff_series"}},
+    )
+    return {"cancelled": result.modified_count, "series_id": series_id, "from_index": from_index}
