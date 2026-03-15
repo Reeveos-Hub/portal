@@ -76,6 +76,7 @@ from routes import (
     documents_router,
     reports_api_router,
     accounts_router,
+    scraper_router,
 )
 
 
