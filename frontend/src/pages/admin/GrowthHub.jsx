@@ -196,6 +196,7 @@ export default function GrowthHub() {
   const [leadsPage, setLeadsPage] = useState(0)
   const [leadsFilter, setLeadsFilter] = useState({ search: '', source: '', status: '', city: '' })
   const [selectedLeads, setSelectedLeads] = useState(new Set())
+  const [selectedLead, setSelectedLead] = useState(null)
   const [leadsLoading, setLeadsLoading] = useState(false)
 
   // Jobs state
@@ -374,6 +375,187 @@ export default function GrowthHub() {
     } else {
       setSelectedLeads(new Set(leads.map(l => l._id)))
     }
+  }
+
+  // ── Lead Detail Panel ────────────────────────────────────────
+
+  function renderLeadPanel() {
+    const lead = selectedLead
+    if (!lead) return null
+    const plat = PLATFORMS.find(p => lead.source?.startsWith(p.id))
+    return (
+      <>
+        {/* Backdrop */}
+        <div
+          onClick={() => setSelectedLead(null)}
+          style={{
+            position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)',
+            zIndex: 1000, backdropFilter: 'blur(2px)',
+          }}
+        />
+        {/* Panel */}
+        <div style={{
+          position: 'fixed', top: 0, right: 0, bottom: 0, width: 420,
+          background: '#161616', borderLeft: `1px solid #2a2a2a`,
+          zIndex: 1001, overflowY: 'auto', fontFamily: FIG,
+          display: 'flex', flexDirection: 'column',
+        }}>
+          {/* Header */}
+          <div style={{ padding: '20px 24px', borderBottom: `1px solid #2a2a2a`, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+            <div>
+              <div style={{ fontSize: 16, fontWeight: 700, color: TEXT, marginBottom: 4 }}>{lead.name}</div>
+              <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                <span style={{ color: plat?.color || GOLD, fontWeight: 600, fontSize: 12 }}>{lead.current_platform}</span>
+                <span style={{ color: MUTED, fontSize: 12 }}>·</span>
+                <span style={{ color: MUTED, fontSize: 12 }}>{lead.city}</span>
+                <span style={{ color: MUTED, fontSize: 12 }}>·</span>
+                <span style={{ color: MUTED, fontSize: 12 }}>{lead.vertical}</span>
+              </div>
+            </div>
+            <button
+              onClick={() => setSelectedLead(null)}
+              style={{ background: 'none', border: 'none', color: MUTED, cursor: 'pointer', fontSize: 20, lineHeight: 1, padding: 4 }}
+            >×</button>
+          </div>
+
+          {/* Body */}
+          <div style={{ padding: '20px 24px', flex: 1 }}>
+
+            {/* Status + Rating row */}
+            <div style={{ display: 'flex', gap: 10, marginBottom: 20 }}>
+              <Badge status={lead.status} />
+              {lead.rating > 0 && (
+                <span style={{ color: GOLD, fontSize: 13, fontWeight: 600 }}>
+                  ★ {lead.rating?.toFixed(1)}
+                  {lead.review_count > 0 && <span style={{ color: MUTED, fontWeight: 400 }}> ({lead.review_count} reviews)</span>}
+                </span>
+              )}
+            </div>
+
+            {/* Contact info */}
+            <div style={{ background: CARD, border: `1px solid #2a2a2a`, borderRadius: 10, padding: '16px', marginBottom: 16 }}>
+              <div style={{ color: MUTED, fontSize: 11, fontWeight: 600, textTransform: 'uppercase', letterSpacing: 1, marginBottom: 12 }}>Contact</div>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                {/* Email */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                  <div style={{ width: 32, height: 32, borderRadius: 8, background: '#1e1e1e', display: 'flex', alignItems: 'center', justifyContent: 'center', color: MUTED, flexShrink: 0 }}>
+                    <IconMail />
+                  </div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontSize: 11, color: MUTED, marginBottom: 2 }}>Email</div>
+                    {lead.email ? (
+                      <a href={`mailto:${lead.email}`} style={{ color: GOLD, fontSize: 13, textDecoration: 'none', wordBreak: 'break-all' }}>{lead.email}</a>
+                    ) : (
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                        <span style={{ color: MUTED, fontSize: 13 }}>Not found</span>
+                        {lead.website && !lead.email_enriched && (
+                          <button
+                            style={{ ...S.btn('ghost'), padding: '3px 8px', fontSize: 11 }}
+                            onClick={() => { enrichLead(lead._id); setSelectedLead({...lead, email_enriched: true}) }}
+                          >
+                            <IconZap /> Find
+                          </button>
+                        )}
+                        {lead.email_enriched && <span style={{ color: MUTED, fontSize: 11 }}>Searched — not public</span>}
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Phone */}
+                {lead.phone && (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                    <div style={{ width: 32, height: 32, borderRadius: 8, background: '#1e1e1e', display: 'flex', alignItems: 'center', justifyContent: 'center', color: MUTED, flexShrink: 0 }}>
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 13 19.79 19.79 0 0 1 1.61 4.4 2 2 0 0 1 3.6 2.21h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 9.91a16 16 0 0 0 6.08 6.08l.91-.91a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+                    </div>
+                    <div>
+                      <div style={{ fontSize: 11, color: MUTED, marginBottom: 2 }}>Phone</div>
+                      <a href={`tel:${lead.phone}`} style={{ color: TEXT, fontSize: 13, textDecoration: 'none' }}>{lead.phone}</a>
+                    </div>
+                  </div>
+                )}
+
+                {/* Website */}
+                {lead.website && (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                    <div style={{ width: 32, height: 32, borderRadius: 8, background: '#1e1e1e', display: 'flex', alignItems: 'center', justifyContent: 'center', color: MUTED, flexShrink: 0 }}>
+                      <IconGlobe />
+                    </div>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontSize: 11, color: MUTED, marginBottom: 2 }}>Website</div>
+                      <a href={lead.website} target="_blank" rel="noreferrer"
+                        style={{ color: GOLD, fontSize: 13, textDecoration: 'none', wordBreak: 'break-all' }}>
+                        {lead.website.replace(/^https?:\/\//, '')}
+                      </a>
+                    </div>
+                  </div>
+                )}
+
+                {/* Instagram */}
+                {lead.instagram && (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                    <div style={{ width: 32, height: 32, borderRadius: 8, background: '#1e1e1e', display: 'flex', alignItems: 'center', justifyContent: 'center', color: MUTED, flexShrink: 0 }}>
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect width="20" height="20" x="2" y="2" rx="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>
+                    </div>
+                    <div>
+                      <div style={{ fontSize: 11, color: MUTED, marginBottom: 2 }}>Instagram</div>
+                      <span style={{ color: TEXT, fontSize: 13 }}>{lead.instagram}</span>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Source info */}
+            <div style={{ background: CARD, border: `1px solid #2a2a2a`, borderRadius: 10, padding: '16px', marginBottom: 16 }}>
+              <div style={{ color: MUTED, fontSize: 11, fontWeight: 600, textTransform: 'uppercase', letterSpacing: 1, marginBottom: 12 }}>Source</div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                  <span style={{ color: MUTED, fontSize: 13 }}>Platform</span>
+                  <span style={{ color: plat?.color || GOLD, fontWeight: 600, fontSize: 13 }}>{lead.current_platform}</span>
+                </div>
+                {lead.source_url && (
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <span style={{ color: MUTED, fontSize: 13 }}>Listing</span>
+                    <a href={lead.source_url} target="_blank" rel="noreferrer"
+                       style={{ color: GOLD, fontSize: 12, textDecoration: 'none' }}>View original ↗</a>
+                  </div>
+                )}
+                {lead.scraped_at && (
+                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <span style={{ color: MUTED, fontSize: 13 }}>Scraped</span>
+                    <span style={{ color: TEXT, fontSize: 13 }}>{fmtDate(lead.scraped_at)}</span>
+                  </div>
+                )}
+                {lead.created_at && (
+                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <span style={{ color: MUTED, fontSize: 13 }}>Added</span>
+                    <span style={{ color: TEXT, fontSize: 13 }}>{fmtDate(lead.created_at)}</span>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Footer actions */}
+          <div style={{ padding: '16px 24px', borderTop: `1px solid #2a2a2a`, display: 'flex', gap: 8 }}>
+            <button
+              style={{ ...S.btn(), flex: 1 }}
+              onClick={() => { adminApi.post(`/scraper/leads/${lead._id}/push-outreach`); setSelectedLead(null) }}
+            >
+              <IconArrow /> Push to Outreach
+            </button>
+            <button
+              style={{ ...S.btn('danger'), padding: '9px 14px' }}
+              onClick={() => { deleteLead(lead._id); setSelectedLead(null) }}
+            >
+              <IconTrash />
+            </button>
+          </div>
+        </div>
+      </>
+    )
   }
 
   // ── Styles ────────────────────────────────────────────────────
@@ -772,7 +954,12 @@ export default function GrowthHub() {
                       />
                     </td>
                     <td style={S.td}>
-                      <div style={{ fontWeight: 600 }}>{lead.name}</div>
+                      <div
+                        style={{ fontWeight: 600, cursor: 'pointer', color: TEXT }}
+                        onClick={() => setSelectedLead(lead)}
+                      >
+                        {lead.name}
+                      </div>
                       {lead.website && (
                         <a href={lead.website} target="_blank" rel="noreferrer"
                            style={{ color: MUTED, fontSize: 12, textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 4 }}>
@@ -1011,6 +1198,7 @@ export default function GrowthHub() {
           {tab === 'jobs' && renderJobs()}
         </>
       )}
+      {renderLeadPanel()}
     </div>
   )
 }
