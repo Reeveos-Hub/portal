@@ -12,7 +12,8 @@ import {
   LayoutDashboard, Columns3, Users, BarChart3, Search, X, Phone, Mail,
   Calendar, Clock, ChevronRight, ArrowLeft, Plus, CheckCircle, AlertTriangle,
   TrendingUp, TrendingDown, Heart, Target, Star, Tag, FileText, MessageSquare,
-  Activity, DollarSign, Package, ShoppingBag, Clipboard, Send, UserPlus, Video
+  Activity, DollarSign, Package, ShoppingBag, Clipboard, Send, UserPlus, Video,
+  Download, Upload
 } from 'lucide-react'
 
 // ═══════════════════════════════════════════════════════════════
@@ -84,6 +85,8 @@ export default function CRM() {
   const [newClientForm, setNewClientForm] = useState({ name: '', phone: '', email: '', notes: '', source: '', tags: [], sendConsultation: true })
   const [newClientSaving, setNewClientSaving] = useState(false)
   const [newClientError, setNewClientError] = useState('')
+  const csvInputRef = useRef(null)
+  const [importResult, setImportResult] = useState(null)
 
   /* ── Auto-open New Client from Dashboard Quick Actions / FAB ── */
   useEffect(() => {
@@ -192,6 +195,42 @@ export default function CRM() {
     setNewClientSaving(false)
   }
 
+  const handleExportCSV = async () => {
+    if (!bid) return
+    try {
+      const res = await fetch(`/api/clients-v2/business/${bid}/export`, {
+        headers: { Authorization: `Bearer ${sessionStorage.getItem('token') || localStorage.getItem('token')}` },
+      })
+      if (!res.ok) throw new Error('Export failed')
+      const blob = await res.blob()
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url; a.download = 'clients.csv'; a.click()
+      URL.revokeObjectURL(url)
+    } catch (e) { console.error('Export error:', e) }
+  }
+
+  const handleImportCSV = async (e) => {
+    const file = e.target.files?.[0]
+    if (!file || !bid) return
+    setImportResult(null)
+    try {
+      const formData = new FormData()
+      formData.append('file', file)
+      const res = await fetch(`/api/clients-v2/business/${bid}/import`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${sessionStorage.getItem('token') || localStorage.getItem('token')}` },
+        body: formData,
+      })
+      const data = await res.json()
+      setImportResult(data)
+      loadClients()
+    } catch (err) {
+      setImportResult({ error: err.message })
+    }
+    if (csvInputRef.current) csvInputRef.current.value = ''
+  }
+
   const pipelineDateLabel = new Date(pipelineDate + 'T12:00').toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' })
   const pipelineIsToday = pipelineDate === new Date().toISOString().slice(0, 10)
   const ChevL = () => <svg width={14} height={14} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round"><path d="M15 18l-6-6 6-6"/></svg>
@@ -256,6 +295,18 @@ export default function CRM() {
                   <Search size={13} color="#777" />
                 </button>
               )}
+              {view === 'clients' && (
+                <>
+                  <button onClick={handleExportCSV} title="Export clients CSV"
+                    style={{ width: 30, height: 30, borderRadius: '50%', border: 'none', background: '#F5F5F5', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <Download size={13} color="#777" />
+                  </button>
+                  <button onClick={() => csvInputRef.current?.click()} title="Import clients CSV"
+                    style={{ width: 30, height: 30, borderRadius: '50%', border: 'none', background: '#F5F5F5', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <Upload size={13} color="#777" />
+                  </button>
+                </>
+              )}
               <button onClick={() => { setShowNewClient(true); setNewClientForm({ name: '', phone: '', email: '', notes: '', source: '', tags: [], sendConsultation: true }); setNewClientError('') }}
                 style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '5px 10px', borderRadius: 16, border: 'none', background: '#111', color: '#fff', fontSize: 10, fontWeight: 700, cursor: 'pointer', fontFamily: "'Figtree', sans-serif", flexShrink: 0 }}>
                 <UserPlus size={11} /> New
@@ -286,12 +337,42 @@ export default function CRM() {
             </div>
           )}
           {view === 'pipeline' && <PipelineDatePill />}
+          {view === 'clients' && (
+            <>
+              <button onClick={handleExportCSV} title="Export clients CSV"
+                style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '7px 14px', borderRadius: 20, border: '1px solid #E0E0E0', background: '#fff', fontSize: 12, fontWeight: 600, cursor: 'pointer', color: '#555', fontFamily: "'Figtree', sans-serif" }}>
+                <Download size={14} /> Export
+              </button>
+              <button onClick={() => csvInputRef.current?.click()} title="Import clients CSV"
+                style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '7px 14px', borderRadius: 20, border: '1px solid #E0E0E0', background: '#fff', fontSize: 12, fontWeight: 600, cursor: 'pointer', color: '#555', fontFamily: "'Figtree', sans-serif" }}>
+                <Upload size={14} /> Import
+              </button>
+            </>
+          )}
           <button onClick={() => { setShowNewClient(true); setNewClientForm({ name: '', phone: '', email: '', notes: '', source: '', tags: [], sendConsultation: true }); setNewClientError('') }}
           style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 16px', borderRadius: 20, border: 'none', background: '#111', color: '#fff', fontSize: 12, fontWeight: 700, cursor: 'pointer', fontFamily: "'Figtree', sans-serif", flexShrink: 0 }}>
           <UserPlus size={14} /> New Client
         </button>
         </div>
       </div>
+      )}
+
+      {/* ── Hidden CSV file input ── */}
+      <input type="file" ref={csvInputRef} accept=".csv" onChange={handleImportCSV} style={{ display: 'none' }} />
+
+      {/* ── Import result toast ── */}
+      {importResult && (
+        <div style={{ position: 'fixed', top: 20, right: 20, zIndex: 9999, background: importResult.error ? '#FEE2E2' : '#ECFDF5', border: `1px solid ${importResult.error ? '#FECACA' : '#A7F3D0'}`, borderRadius: 12, padding: '12px 20px', boxShadow: '0 4px 12px rgba(0,0,0,0.1)', maxWidth: 340, fontFamily: "'Figtree', sans-serif" }}>
+          {importResult.error ? (
+            <p style={{ fontSize: 13, color: '#991B1B', margin: 0 }}>Import failed: {importResult.error}</p>
+          ) : (
+            <div>
+              <p style={{ fontSize: 13, fontWeight: 700, color: '#065F46', margin: '0 0 4px' }}>Import Complete</p>
+              <p style={{ fontSize: 12, color: '#047857', margin: 0 }}>{importResult.imported} imported · {importResult.duplicates} duplicates skipped · {importResult.errors} errors</p>
+            </div>
+          )}
+          <button onClick={() => setImportResult(null)} style={{ position: 'absolute', top: 6, right: 10, border: 'none', background: 'none', cursor: 'pointer', fontSize: 16, color: '#999' }}>×</button>
+        </div>
       )}
 
       {/* ── Content ── */}
