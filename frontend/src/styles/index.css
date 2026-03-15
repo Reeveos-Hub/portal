@@ -165,6 +165,7 @@ input[type="time"] {
 
 /* Selects */
 .admin-shell select {
+  color-scheme: dark !important;
   font-weight: 500 !important;
   color: #E5E7EB !important;
   border-radius: 8px !important;
@@ -202,6 +203,7 @@ input[type="time"] {
 .admin-shell input[type="password"],
 .admin-shell input[type="search"],
 .admin-shell textarea {
+  color-scheme: dark !important;
   color: #E5E7EB !important;
   background-color: #1F2937 !important;
   border-color: #374151 !important;
