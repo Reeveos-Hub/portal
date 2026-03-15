@@ -103,6 +103,7 @@ import AdminErrors from './pages/admin/AdminErrors'
 import AdminSettings from './pages/admin/AdminSettings'
 import AdminSecurity from './pages/admin/AdminSecurity'
 import Library from './pages/admin/Library'
+import AdminHelpCentre from './pages/admin/AdminHelpCentre'
 import AdminPartners from './pages/admin/AdminPartners'
 
 import Onboarding from './pages/onboarding/Onboarding'
@@ -168,6 +169,7 @@ const App = () => {
             <Route path="email-marketing" element={<AdminEmailMarketing />} />
             <Route path="seo" element={<AdminSEO />} />
             <Route path="content" element={<AdminContent />} />
+            <Route path="help-centre" element={<AdminHelpCentre />} />
             <Route path="analytics" element={<AdminAnalytics />} />
             <Route path="health" element={<AdminHealth />} />
             <Route path="audit" element={<AdminAudit />} />
@@ -302,6 +304,7 @@ const App = () => {
               <Route path="email-marketing" element={<AdminEmailMarketing />} />
               <Route path="seo" element={<AdminSEO />} />
               <Route path="content" element={<AdminContent />} />
+            <Route path="help-centre" element={<AdminHelpCentre />} />
               <Route path="analytics" element={<AdminAnalytics />} />
               <Route path="health" element={<AdminHealth />} />
               <Route path="audit" element={<AdminAudit />} />
@@ -327,3 +330,4 @@ const App = () => {
 }
 
 export default App
+
