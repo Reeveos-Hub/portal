@@ -359,7 +359,7 @@ export default function GrowthHub() {
     select: {
       background: '#1e1e1e', border: `1px solid ${BORDER}`, borderRadius: 8,
       color: TEXT, padding: '9px 12px', fontSize: 13, fontFamily: FIG, width: '100%',
-      cursor: 'pointer', outline: 'none',
+      cursor: 'pointer', outline: 'none', colorScheme: 'dark',
     },
     input: {
       background: '#1e1e1e', border: `1px solid ${BORDER}`, borderRadius: 8,
@@ -895,6 +895,8 @@ export default function GrowthHub() {
         @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.6} }
         button:disabled { opacity: 0.4; cursor: not-allowed; }
         input[type=number]::-webkit-inner-spin-button { opacity:0.4 }
+        select option { background: #1e1e1e; color: #e8e8e8; }
+        select option:checked { background: #C9A84C22; color: #C9A84C; }
       `}</style>
 
       <div style={S.header}>
