@@ -5,7 +5,7 @@ import {
   Globe, FileText, Settings, LogOut, ChevronLeft, ChevronRight,
   Building2, CalendarCheck, MessageSquare, Star, AlertTriangle,
   CreditCard, ScrollText, Bug, Megaphone, ShieldCheck, Linkedin,
-  Search, Crosshair, BookOpen, Wallet, Sun, Moon, Handshake
+  Search, Crosshair, BookOpen, Wallet, Sun, Moon, Handshake, ExternalLink, HelpCircle
 } from 'lucide-react'
 import { ADMIN_BASE, adminPath } from '../utils/domain'
 
@@ -47,6 +47,7 @@ const NAV_SECTIONS = [
     items: [
       { id: 'seo', label: 'SEO Pages', icon: Globe, path: adminPath('/seo') },
       { id: 'content', label: 'Content Engine', icon: FileText, path: adminPath('/content') },
+      { id: 'help-centre', label: 'Help Centre', icon: HelpCircle, path: 'https://cms.reeveos.app/admin', external: true },
     ],
   },
   {
@@ -488,7 +489,7 @@ export default function AdminLayout() {
                 return (
                   <button
                     key={item.id}
-                    onClick={() => navigate(item.path)}
+                    onClick={() => item.external ? window.open(item.path, '_blank') : navigate(item.path)}
                     title={collapsed ? item.label : undefined}
                     style={{
                       display: 'flex', alignItems: 'center', gap: 10,
@@ -507,7 +508,12 @@ export default function AdminLayout() {
                     onMouseOut={e => { if (!active) { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = t.navText } }}
                   >
                     <Icon size={16} strokeWidth={active ? 2.2 : 1.5} style={{ flexShrink: 0, color: active ? t.navActiveIcon : t.navIcon, transition: 'color 180ms' }} />
-                    {!collapsed && <span style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.label}</span>}
+                    {!collapsed && (
+                      <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', flex: 1 }}>{item.label}</span>
+                    )}
+                    {!collapsed && item.external && (
+                      <ExternalLink size={11} style={{ flexShrink: 0, opacity: 0.5 }} />
+                    )}
                   </button>
                 )
               })}
@@ -582,3 +588,4 @@ export default function AdminLayout() {
     </div>
   )
 }
+
