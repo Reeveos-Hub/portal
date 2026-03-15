@@ -415,6 +415,12 @@ async def get_availability(
         raise HTTPException(400, "Invalid date format")
 
     biz_id = str(business["_id"])
+
+    # Check for business closure on this date
+    from routes.dashboard.blocked_times import is_business_closed
+    if await is_business_closed(db, biz_id, date_param):
+        return {"date": date_param, "slots": [], "closed": True, "message": "Business is closed on this date"}
+
     bs = business.get("booking_settings") or {}
     bp = business.get("bookingPage") or {}
     bp_s = bp.get("settings") or {}
@@ -478,6 +484,12 @@ async def create_booking(request: Request, business_slug: str, payload: dict):
 
     biz_id = str(business["_id"])
     biz_type = "restaurant" if business.get("category") == "restaurant" else "services"
+
+    # Check for business closure
+    booking_date = payload.get("date", "")
+    from routes.dashboard.blocked_times import is_business_closed
+    if booking_date and await is_business_closed(db, biz_id, booking_date):
+        raise HTTPException(400, "Business is closed on this date. Please choose another day.")
 
     # Generate reference
     # Atomic reference counter — prevents collisions under concurrent bookings

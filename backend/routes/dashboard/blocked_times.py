@@ -18,8 +18,8 @@ import logging
 logger = logging.getLogger("blocked_times")
 router = APIRouter(prefix="/blocked-times", tags=["blocked-times"])
 
-VALID_PRESETS = {"lunch", "staff_meeting", "training", "personal", "custom"}
-VALID_REPEAT_RULES = {"none", "daily", "weekly"}
+VALID_PRESETS = {"lunch", "staff_meeting", "training", "personal", "custom", "closure", "bank_holiday"}
+VALID_REPEAT_RULES = {"none", "daily", "weekly", "yearly"}
 
 
 @router.post("/business/{business_id}")
@@ -38,7 +38,12 @@ async def create_blocked_time(
     block_date = (payload.get("date") or "").strip()
 
     if not start_time or not end_time:
-        raise HTTPException(400, "start_time and end_time are required")
+        # All-day closures don't need times
+        if reason_preset in ("closure", "bank_holiday"):
+            start_time = "00:00"
+            end_time = "23:59"
+        else:
+            raise HTTPException(400, "start_time and end_time are required")
     if not block_date:
         raise HTTPException(400, "date is required")
     if reason_preset not in VALID_PRESETS:
@@ -149,6 +154,8 @@ def _expand_repeating_block(block: dict, from_date: str, to_date: str) -> list:
         delta = timedelta(days=1)
     elif block["repeat_rule"] == "weekly":
         delta = timedelta(weeks=1)
+    elif block["repeat_rule"] == "yearly":
+        delta = timedelta(days=365)
     else:
         return [block]
 
@@ -190,3 +197,96 @@ async def delete_blocked_time(
 
     logger.info(f"Blocked time deleted: {block_id} business={business_id}")
     return {"ok": True}
+
+
+@router.post("/business/{business_id}/closure")
+async def create_closure(
+    business_id: str,
+    payload: dict = Body(...),
+    tenant: TenantContext = Depends(verify_business_access),
+):
+    """Create a business closure — blocks ALL staff for full day(s).
+    Accepts a date range: start_date to end_date (inclusive)."""
+    start_date = (payload.get("start_date") or payload.get("date") or "").strip()
+    end_date = (payload.get("end_date") or start_date).strip()
+    reason = (payload.get("reason") or "Business closed").strip()[:200]
+    preset = (payload.get("reason_preset") or "closure").strip().lower()
+    repeat = (payload.get("repeat_rule") or "none").strip().lower()
+
+    if not start_date:
+        raise HTTPException(400, "start_date is required")
+
+    try:
+        sd = date.fromisoformat(start_date)
+        ed = date.fromisoformat(end_date)
+    except ValueError:
+        raise HTTPException(400, "Invalid date format. Use YYYY-MM-DD.")
+
+    if ed < sd:
+        raise HTTPException(400, "end_date must be on or after start_date")
+    if (ed - sd).days > 31:
+        raise HTTPException(400, "Closure cannot exceed 31 days")
+
+    db = get_database()
+    created = []
+    current = sd
+    while current <= ed:
+        doc = {
+            "business_id": business_id,
+            "staff_id": "",  # Empty = whole business
+            "date": current.isoformat(),
+            "start_time": "00:00",
+            "end_time": "23:59",
+            "reason": reason,
+            "reason_preset": preset if preset in ("closure", "bank_holiday") else "closure",
+            "repeat_rule": repeat if repeat in VALID_REPEAT_RULES else "none",
+            "is_closure": True,
+            "created_by": tenant.user_id,
+            "created_at": datetime.utcnow(),
+        }
+        result = await db.blocked_times.insert_one(doc)
+        doc["id"] = str(result.inserted_id)
+        created.append(doc["id"])
+        current += timedelta(days=1)
+
+    logger.info(f"Closure created: {len(created)} days for business={business_id} ({start_date} to {end_date})")
+    return {"ok": True, "days_blocked": len(created), "ids": created}
+
+
+@router.get("/business/{business_id}/closures")
+async def list_closures(
+    business_id: str,
+    from_date: str = Query(None, alias="from"),
+    to_date: str = Query(None, alias="to"),
+    tenant: TenantContext = Depends(verify_business_access),
+):
+    """List business closures (whole-business blocks)."""
+    db = get_database()
+    query = {
+        "business_id": business_id,
+        "$or": [{"is_closure": True}, {"reason_preset": {"$in": ["closure", "bank_holiday"]}}],
+    }
+    if from_date:
+        query["date"] = {"$gte": from_date}
+    if to_date:
+        query.setdefault("date", {})["$lte"] = to_date
+
+    docs = await db.blocked_times.find(query).sort("date", 1).to_list(200)
+    return {"closures": [
+        {"id": str(d["_id"]), "date": d.get("date"), "reason": d.get("reason"), "reason_preset": d.get("reason_preset")}
+        for d in docs
+    ]}
+
+
+async def is_business_closed(db, business_id: str, check_date: str) -> bool:
+    """Check if a business has a closure on a given date. Used by booking flow."""
+    closure = await db.blocked_times.find_one({
+        "business_id": business_id,
+        "date": check_date,
+        "$or": [
+            {"is_closure": True},
+            {"reason_preset": {"$in": ["closure", "bank_holiday"]}},
+            {"staff_id": "", "start_time": "00:00", "end_time": "23:59"},
+        ],
+    })
+    return closure is not None
