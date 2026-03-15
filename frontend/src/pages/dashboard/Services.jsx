@@ -138,6 +138,7 @@ const Services = () => {
       deposit_amount: svc.deposit_amount || 0, require_full_payment: svc.require_full_payment || false,
       require_consultation: svc.require_consultation || false, require_consent: svc.require_consent || false,
       require_patch_test: svc.require_patch_test || false, min_booking_notice: svc.min_booking_notice || 0,
+      is_group: svc.is_group || false, max_capacity: svc.max_capacity || 1,
     })
     setVariants(svc.variants || [])
     setNewVar({name:'',duration_minutes:60,price:0})
@@ -575,6 +576,24 @@ const Services = () => {
                   ))}
                   <button onClick={()=>navigate('/dashboard/consumables')} className="text-[10px] font-semibold text-[#C9A84C] hover:underline" style={{fontFamily:"'Figtree',sans-serif"}}>Manage all consumables &rarr;</button>
                 </div>)}
+              </div>
+              <div className="pt-4 border-t border-[#F0EDE7]">
+                <label className="block text-[11px] font-semibold text-[#111] mb-2">Group booking</label>
+                <p className="text-[10px] text-[#8A8780] mb-3">Enable for classes, workshops, or group treatments. Multiple clients book the same slot.</p>
+                <div className="flex items-center gap-3 mb-2">
+                  <button onClick={()=>setEditing(d=>({...d,is_group:!d.is_group}))} className={`relative w-10 h-5 rounded-full transition-colors ${editing.is_group ? 'bg-[#C9A84C]' : 'bg-[#E8E4DD]'}`}>
+                    <div className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform ${editing.is_group ? 'translate-x-5' : 'translate-x-0.5'}`} />
+                  </button>
+                  <span className="text-[11px] font-medium text-[#111]">{editing.is_group ? 'Group service' : 'Individual service'}</span>
+                </div>
+                {editing.is_group && (
+                  <div className="flex items-center gap-2 mt-2">
+                    <span className="text-[10px] text-[#8A8780]">Max capacity</span>
+                    <input type="number" min="2" max="100" value={editing.max_capacity || 8} onChange={e=>setEditing(d=>({...d,max_capacity:Math.max(2,Math.min(100,parseInt(e.target.value)||2))}))}
+                      className="w-16 px-2 py-1.5 border border-[#E8E4DD] rounded-lg text-[12px] font-semibold text-center" style={{fontFamily:"'Figtree',sans-serif"}} />
+                    <span className="text-[10px] text-[#8A8780]">clients per session</span>
+                  </div>
+                )}
               </div>
               <div className="pt-4 border-t border-[#F0EDE7]">
                 <button onClick={()=>setDeleteConfirm(selected)} className="text-[11px] font-semibold text-[#dc2626] hover:underline" style={{fontFamily:"'Figtree',sans-serif"}}>Delete this {isFood?'item':'treatment'}</button>
