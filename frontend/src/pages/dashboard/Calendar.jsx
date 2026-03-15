@@ -2033,38 +2033,54 @@ const Calendar = () => {
             </div>
 
             {monthMode === 'calendar' ? (
-              <div style={{ padding: '4px 14px 20px' }}>
+              <div style={{ padding: '4px 8px 20px' }}>
                 {/* Day headers */}
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', marginBottom: 4 }}>
-                  {DY.map(d => <div key={d} style={{ textAlign: 'center', fontSize: 13, fontWeight: 600, color: '#999', padding: '8px 0' }}>{d}</div>)}
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', marginBottom: 2 }}>
+                  {DY.map(d => <div key={d} style={{ textAlign: 'center', fontSize: 12, fontWeight: 600, color: '#999', padding: '6px 0' }}>{d}</div>)}
                 </div>
                 {/* Calendar grid */}
                 {monthGrid.map((week, wi) => (
-                  <div key={wi} style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)' }}>
+                  <div key={wi} style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', minHeight: 100 }}>
                     {week.map((day, di) => {
-                      if (!day) return <div key={di} style={{ minHeight: 90 }} />
+                      if (!day) return <div key={di} style={{ minHeight: 100, borderTop: '1px solid #EBEBEB', borderLeft: di > 0 ? '1px solid #EBEBEB' : 'none' }} />
                       const d = new Date(selectedDate + 'T12:00')
                       const dk = `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(day)}`
                       const isTdy = dk === dateKey(new Date())
                       const dayBk = bookingsByDate[dk] || []
                       const hol = UK_HOLIDAYS[dk]
+                      const maxShow = 3
+                      const shown = dayBk.slice(0, maxShow)
+                      const extra = dayBk.length - maxShow
                       return (
                         <button key={di} onClick={() => { setSelectedDate(dk); setViewMode('Day') }}
-                          style={{ minHeight: 90, border: 'none', cursor: 'pointer', background: isTdy ? '#FFF9F0' : 'transparent', display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '8px 2px', borderTop: `1px solid #EBEBEB`, borderLeft: di > 0 ? '1px solid #EBEBEB' : 'none', fontFamily: "'Figtree', sans-serif" }}>
-                          <div style={{ width: isTdy ? 36 : 30, height: isTdy ? 36 : 30, borderRadius: 18, background: isTdy ? '#C9A84C' : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                            <span style={{ fontSize: 16, fontWeight: isTdy ? 700 : 500, color: isTdy ? '#fff' : di >= 5 ? '#CCC' : '#111' }}>{day}</span>
+                          style={{ minHeight: 100, border: 'none', cursor: 'pointer', background: isTdy ? '#FFF9F0' : 'transparent', display: 'flex', flexDirection: 'column', alignItems: 'stretch', padding: '4px 3px', borderTop: '1px solid #EBEBEB', borderLeft: di > 0 ? '1px solid #EBEBEB' : 'none', fontFamily: "'Figtree', sans-serif", textAlign: 'left' }}>
+                          {/* Day number */}
+                          <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 3 }}>
+                            <div style={{ width: isTdy ? 30 : 'auto', height: isTdy ? 30 : 'auto', borderRadius: 15, background: isTdy ? '#C9A84C' : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: isTdy ? 0 : '2px 0' }}>
+                              <span style={{ fontSize: 14, fontWeight: isTdy ? 700 : 500, color: isTdy ? '#fff' : di >= 5 ? '#CCC' : '#111' }}>{day}</span>
+                            </div>
                           </div>
-                          {dayBk.length > 0 && (
-                            <div style={{ marginTop: 6, display: 'flex', gap: 3, flexWrap: 'wrap', justifyContent: 'center' }}>
-                              {Array.from({ length: Math.min(dayBk.length, 4) }).map((_, i) => {
-                                const bk = dayBk[i]
-                                const sc = bk ? (staffColorMap[bk.staffId] || STAFF_PALETTES[i % STAFF_PALETTES.length]) : STAFF_PALETTES[i]
-                                return <div key={i} style={{ width: 8, height: 8, borderRadius: 4, background: sc }} />
-                              })}
-                              {dayBk.length > 4 && <span style={{ fontSize: 11, fontWeight: 700, color: '#999' }}>+{dayBk.length - 4}</span>}
+                          {/* Holiday bar */}
+                          {hol && (
+                            <div style={{ background: hol.t === 'bank' ? '#10B981' : '#C9A84C', borderRadius: 3, padding: '2px 4px', marginBottom: 2 }}>
+                              <span style={{ fontSize: 10, fontWeight: 600, color: '#fff', lineHeight: 1.2 }}>{hol.l}</span>
                             </div>
                           )}
-                          {hol && <span style={{ fontSize: 10, fontWeight: 600, color: hol.t === 'bank' ? '#10B981' : '#C9A84C', marginTop: 3, textAlign: 'center', lineHeight: 1.1 }}>{hol.l.split(' ').slice(0, 2).join(' ')}</span>}
+                          {/* Booking previews */}
+                          {shown.map((bk, bi) => {
+                            const sc = staffColorMap[bk.staffId] || STAFF_PALETTES[bi % STAFF_PALETTES.length]
+                            const timeStr = bk.time || ''
+                            const h = parseInt(timeStr.split(':')[0]) || 0
+                            const shortTime = fmtAP(h)
+                            return (
+                              <div key={bi} style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '2px 3px', borderRadius: 3, marginBottom: 1, background: sc + '20', overflow: 'hidden' }}>
+                                <div style={{ width: 4, height: 14, borderRadius: 2, background: sc, flexShrink: 0 }} />
+                                <span style={{ fontSize: 10, fontWeight: 500, color: '#666', flexShrink: 0 }}>{shortTime}</span>
+                                <span style={{ fontSize: 11, fontWeight: 600, color: '#111', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{bk.customerName || bk.customer_name || 'Booking'}</span>
+                              </div>
+                            )
+                          })}
+                          {extra > 0 && <span style={{ fontSize: 10, fontWeight: 600, color: '#999', padding: '1px 4px' }}>+{extra} more</span>}
                         </button>
                       )
                     })}
