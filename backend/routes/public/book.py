@@ -260,6 +260,8 @@ async def get_booking_page(business_slug: str):
                 "price": int((s.get("price", 0) or 0) * 100),
                 "description": s.get("description", ""),
                 "variants": s.get("variants", []),
+                "is_group": s.get("is_group", False),
+                "max_capacity": s.get("max_capacity", 1),
                 "staffIds": [st.get("id") for st in business.get("staff", []) if st.get("id")],
                 "online": s.get("active", True),
             })

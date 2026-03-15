@@ -130,6 +130,8 @@ async def get_services_grouped(business_id: str, tenant: TenantContext = Depends
             "require_consent": s.get("require_consent", False),
             "require_patch_test": s.get("require_patch_test", False),
             "min_booking_notice": s.get("min_booking_notice", 0),
+            "is_group": s.get("is_group", False),
+            "max_capacity": s.get("max_capacity", 1),
         })
 
     categories = []
@@ -206,6 +208,8 @@ async def create_service(business_id: str, payload: dict = Body(...), tenant: Te
         "require_consent": bool(payload.get("require_consent", False)),
         "require_patch_test": bool(payload.get("require_patch_test", False)),
         "min_booking_notice": max(0, min(720, int(payload.get("min_booking_notice", 0) or 0))),
+        "is_group": bool(payload.get("is_group", False)),
+        "max_capacity": max(1, min(100, int(payload.get("max_capacity", 1) or 1))),
         "createdAt": datetime.utcnow(),
         "updatedAt": datetime.utcnow(),
     }
@@ -269,6 +273,10 @@ async def update_service(business_id: str, service_id: str, payload: dict = Body
         s["require_full_payment"] = bool(payload["require_full_payment"])
     if "min_booking_notice" in payload:
         s["min_booking_notice"] = max(0, min(720, int(payload["min_booking_notice"])))
+    if "is_group" in payload:
+        s["is_group"] = bool(payload["is_group"])
+    if "max_capacity" in payload:
+        s["max_capacity"] = max(1, min(100, int(payload["max_capacity"] or 1)))
     # Extended fields — forms
     if "require_consultation" in payload:
         s["require_consultation"] = bool(payload["require_consultation"])

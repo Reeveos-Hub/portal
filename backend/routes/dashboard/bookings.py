@@ -1395,3 +1395,146 @@ async def cancel_series_from(
         {"$set": {"status": "cancelled", "cancelled_at": datetime.utcnow(), "cancelled_by": "staff_series"}},
     )
     return {"cancelled": result.modified_count, "series_id": series_id, "from_index": from_index}
+
+
+# ═══════════════════════════════════════════════════════════════
+# GROUP BOOKINGS — classes, workshops, group treatments
+# ═══════════════════════════════════════════════════════════════
+
+@router.post("/business/{business_id}/group-slot")
+async def create_group_slot(
+    business_id: str, payload: dict = Body(...),
+    tenant: TenantContext = Depends(verify_business_access),
+):
+    """Create a group booking slot (e.g. Yoga class at 10am, capacity 8)."""
+    db = get_database()
+    service_id = payload.get("serviceId", "")
+    slot_date = payload.get("date", "")
+    slot_time = payload.get("time", "")
+    staff_id = payload.get("staffId", "")
+    max_cap = max(2, min(100, int(payload.get("max_capacity", 8) or 8)))
+    notes = (payload.get("notes") or "")[:500]
+
+    if not slot_date or not slot_time:
+        raise HTTPException(400, "date and time are required")
+
+    # Look up service from business menu
+    business = await db.businesses.find_one({"_id": business_id})
+    if not business:
+        from bson import ObjectId
+        try:
+            business = await db.businesses.find_one({"_id": ObjectId(business_id)})
+        except Exception:
+            pass
+    svc = next((s for s in (business or {}).get("menu", []) if s.get("id") == service_id), None)
+    svc_name = svc.get("name", "Group Session") if svc else "Group Session"
+    svc_dur = svc.get("duration_minutes", 60) if svc else 60
+    svc_price = svc.get("price", 0) if svc else 0
+
+    import random, string
+    ref = "".join(random.choices(string.ascii_uppercase + string.digits, k=6))
+
+    doc = {
+        "_id": f"grp_{datetime.utcnow().strftime('%Y%m%d%H%M%S')}_{business_id[:8]}",
+        "reference": ref,
+        "businessId": business_id,
+        "type": "group",
+        "status": "confirmed",
+        "service": {"id": service_id, "name": svc_name, "duration": svc_dur, "price": svc_price},
+        "staffId": staff_id,
+        "date": slot_date,
+        "time": slot_time,
+        "duration": svc_dur,
+        "max_capacity": max_cap,
+        "participants": [],
+        "notes": notes,
+        "source": "staff",
+        "createdAt": datetime.utcnow(),
+        "updatedAt": datetime.utcnow(),
+    }
+    await db.bookings.insert_one(doc)
+    return {"id": doc["_id"], "reference": ref, "max_capacity": max_cap, "participants": 0}
+
+
+@router.post("/business/{business_id}/group-slot/{slot_id}/add-participant")
+async def add_group_participant(
+    business_id: str, slot_id: str, payload: dict = Body(...),
+    tenant: TenantContext = Depends(verify_business_access),
+):
+    """Add a client to a group booking slot."""
+    db = get_database()
+    slot = await db.bookings.find_one({"_id": slot_id, "businessId": business_id, "type": "group"})
+    if not slot:
+        raise HTTPException(404, "Group slot not found")
+
+    participants = slot.get("participants", [])
+    max_cap = slot.get("max_capacity", 8)
+    if len(participants) >= max_cap:
+        raise HTTPException(400, f"Group is full ({max_cap}/{max_cap})")
+
+    name = (payload.get("name") or "").strip()
+    email = (payload.get("email") or "").strip().lower()
+    phone = (payload.get("phone") or "").strip()
+    if not name:
+        raise HTTPException(400, "Participant name is required")
+
+    # Check for duplicate
+    for p in participants:
+        if email and p.get("email", "").lower() == email:
+            raise HTTPException(400, f"{name} is already in this group")
+        if phone and p.get("phone") == phone:
+            raise HTTPException(400, f"{name} is already in this group")
+
+    participant = {
+        "id": f"p_{datetime.utcnow().strftime('%Y%m%d%H%M%S')}_{len(participants)}",
+        "name": name, "email": email, "phone": phone,
+        "added_at": datetime.utcnow().isoformat(),
+        "status": "confirmed",
+    }
+    await db.bookings.update_one(
+        {"_id": slot_id},
+        {"$push": {"participants": participant}, "$set": {"updatedAt": datetime.utcnow()}},
+    )
+    return {"participant": participant, "count": len(participants) + 1, "max_capacity": max_cap}
+
+
+@router.delete("/business/{business_id}/group-slot/{slot_id}/participant/{participant_id}")
+async def remove_group_participant(
+    business_id: str, slot_id: str, participant_id: str,
+    tenant: TenantContext = Depends(verify_business_access),
+):
+    """Remove a participant from a group booking."""
+    db = get_database()
+    result = await db.bookings.update_one(
+        {"_id": slot_id, "businessId": business_id, "type": "group"},
+        {"$pull": {"participants": {"id": participant_id}}, "$set": {"updatedAt": datetime.utcnow()}},
+    )
+    if result.modified_count == 0:
+        raise HTTPException(404, "Participant not found")
+    return {"removed": participant_id}
+
+
+@router.get("/business/{business_id}/group-slots")
+async def list_group_slots(
+    business_id: str,
+    from_date: str = Query(None, alias="from"),
+    to_date: str = Query(None, alias="to"),
+    tenant: TenantContext = Depends(verify_business_access),
+):
+    """List group booking slots with participant counts."""
+    db = get_database()
+    query = {"businessId": business_id, "type": "group", "status": {"$ne": "cancelled"}}
+    if from_date:
+        query["date"] = {"$gte": from_date}
+    if to_date:
+        query.setdefault("date", {})["$lte"] = to_date
+
+    docs = await db.bookings.find(query).sort("date", 1).to_list(200)
+    return {"slots": [{
+        "id": str(d["_id"]), "date": d.get("date"), "time": d.get("time"),
+        "service": d.get("service", {}).get("name", ""),
+        "staffId": d.get("staffId"), "max_capacity": d.get("max_capacity", 8),
+        "participants": len(d.get("participants", [])),
+        "participant_list": d.get("participants", []),
+        "status": d.get("status"),
+    } for d in docs]}

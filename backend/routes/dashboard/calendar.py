@@ -251,6 +251,9 @@ async def get_calendar(
             "series_id": b.get("series_id"),
             "series_index": b.get("series_index"),
             "series_total": b.get("series_total"),
+            "is_group": b.get("type") == "group",
+            "max_capacity": b.get("max_capacity"),
+            "participant_count": len(b.get("participants", [])) if b.get("type") == "group" else None,
         })
 
     bookings.sort(key=lambda x: (x.get("date", ""), x.get("time", "")))
