@@ -210,7 +210,7 @@ export default function GrowthHub() {
   const [leads, setLeads] = useState([])
   const [leadsTotal, setLeadsTotal] = useState(0)
   const [leadsPage, setLeadsPage] = useState(0)
-  const [leadsFilter, setLeadsFilter] = useState({ search: '', source: '', status: '', city: '' })
+  const [leadsFilter, setLeadsFilter] = useState({ search: '', source: '', status: '', city: '', enrichment: '' })
   const [selectedLeads, setSelectedLeads] = useState(new Set())
   const [selectedLead, setSelectedLead] = useState(null)
   const [leadsLoading, setLeadsLoading] = useState(false)
@@ -236,10 +236,11 @@ export default function GrowthHub() {
     setLeadsLoading(true)
     try {
       const params = new URLSearchParams({ skip: page * LIMIT, limit: LIMIT })
-      if (filters.search)  params.set('search', filters.search)
-      if (filters.source)  params.set('source', filters.source)
-      if (filters.status)  params.set('status', filters.status)
-      if (filters.city)    params.set('city', filters.city)
+      if (filters.search)     params.set('search', filters.search)
+      if (filters.source)     params.set('source', filters.source)
+      if (filters.status)     params.set('status', filters.status)
+      if (filters.city)       params.set('city', filters.city)
+      if (filters.enrichment) params.set('enrichment', filters.enrichment)
       const data = await adminApi.get(`/scraper/leads?${params}`)
       setLeads(data.leads || [])
       setLeadsTotal(data.total || 0)
@@ -923,6 +924,22 @@ export default function GrowthHub() {
             <option value="contacted">Contacted</option>
             <option value="interested">Interested</option>
             <option value="converted">Converted</option>
+          </select>
+          <select
+            style={{ ...S.select, width: 140 }}
+            value={leadsFilter.enrichment}
+            onChange={e => {
+              const f = { ...leadsFilter, enrichment: e.target.value }
+              setLeadsFilter(f); setLeadsPage(0); loadLeads(0, f)
+            }}
+          >
+            <option value="">Any Data</option>
+            <option value="email">Has Email</option>
+            <option value="phone">Has Phone</option>
+            <option value="website">Has Website</option>
+            <option value="instagram">Has Instagram</option>
+            <option value="socials">Has Any Social</option>
+            <option value="none">Not Enriched</option>
           </select>
           <button style={S.btn('ghost')} onClick={() => loadLeads(leadsPage)}>
             <IconRefresh /> Refresh
