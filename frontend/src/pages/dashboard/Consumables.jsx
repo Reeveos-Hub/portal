@@ -203,8 +203,8 @@ export default function Consumables() {
         api.get(`/consumables/business/${bid}`),
         api.get(`/consumables/business/${bid}/alerts`),
       ])
-      setItems(itemsRes.data?.consumables || itemsRes.data || [])
-      setAlerts(alertsRes.data?.alerts || alertsRes.data || [])
+      setItems(itemsRes.items || itemsRes.data?.items || [])
+      setAlerts(alertsRes.alerts || alertsRes.data?.alerts || [])
     } catch (e) {
       showToast(e.response?.data?.detail || 'Failed to load consumables', 'error')
     } finally {
@@ -217,12 +217,12 @@ export default function Consumables() {
   /* ── Filtering ──────────────────────────────────── */
   const filtered = items.filter(i => {
     if (catFilter !== 'all' && i.category !== catFilter) return false
-    if (showLowOnly && (i.current_stock || 0) > (i.minimum_stock || 0)) return false
+    if (showLowOnly && (i.current_stock || 0) > (i.low_stock_threshold || i.minimum_stock || 0)) return false
     if (search && !i.name.toLowerCase().includes(search.toLowerCase())) return false
     return true
   })
 
-  const lowCount = items.filter(i => (i.current_stock || 0) <= (i.minimum_stock || 0)).length
+  const lowCount = items.filter(i => (i.current_stock || 0) <= (i.low_stock_threshold || i.minimum_stock || 0)).length
 
   /* ── Add / Edit ─────────────────────────────────── */
   const emptyForm = { name: '', category: 'skincare', unit: '', cost_per_unit: '', current_stock: '', minimum_stock: '', supplier: '' }
@@ -241,7 +241,7 @@ export default function Consumables() {
       unit: item.unit || '',
       cost_per_unit: item.cost_per_unit ?? '',
       current_stock: item.current_stock ?? '',
-      minimum_stock: item.minimum_stock ?? '',
+      minimum_stock: item.low_stock_threshold ?? item.minimum_stock ?? '',
       supplier: item.supplier || '',
     })
     setItemModal({ open: true, editing: item })
@@ -254,16 +254,23 @@ export default function Consumables() {
       const payload = {
         name: form.name.trim(),
         category: form.category,
-        unit: form.unit.trim(),
+        unit: form.unit.trim() || 'pieces',
         cost_per_unit: parseFloat(form.cost_per_unit) || 0,
         current_stock: parseFloat(form.current_stock) || 0,
-        minimum_stock: parseFloat(form.minimum_stock) || 0,
+        low_stock_threshold: parseFloat(form.minimum_stock) || 0,
         supplier: form.supplier.trim(),
       }
       if (itemModal.editing) {
-        await api.patch(`/consumables/business/${bid}/${itemModal.editing.id}/adjust`, {
-          quantity: payload.current_stock - (itemModal.editing.current_stock || 0),
-          reason: 'Manual edit',
+        // Update fields via PATCH
+        await api.patch(`/consumables/business/${bid}/${itemModal.editing.id}`, {
+          name: payload.name,
+          category: payload.category,
+          unit: payload.unit,
+          cost_per_unit: payload.cost_per_unit,
+          low_stock_threshold: payload.low_stock_threshold,
+          supplier: payload.supplier,
+          current_stock: payload.current_stock,
+          reason: 'correction',
         })
         showToast('Consumable updated')
       } else {
@@ -292,12 +299,13 @@ export default function Consumables() {
 
   const submitAdjust = async () => {
     if (adjustQty === 0) { showToast('Quantity cannot be zero', 'error'); return }
-    if (!adjustReason.trim()) { showToast('Reason is required', 'error'); return }
+    if (!adjustReason) { showToast('Reason is required', 'error'); return }
     setAdjustSaving(true)
     try {
-      await api.patch(`/consumables/business/${bid}/${adjustModal.item.id}/adjust`, {
-        quantity: adjustQty,
-        reason: adjustReason.trim(),
+      const newStock = (adjustModal.item?.current_stock || 0) + adjustQty
+      await api.patch(`/consumables/business/${bid}/${adjustModal.item.id}`, {
+        current_stock: Math.max(0, newStock),
+        reason: adjustReason,
       })
       showToast('Stock adjusted')
       setAdjustModal({ open: false, item: null })
@@ -321,13 +329,15 @@ export default function Consumables() {
   }
 
   const submitLink = async () => {
-    if (!linkServiceId.trim()) { showToast('Service ID is required', 'error'); return }
+    if (!linkServiceId.trim()) { showToast('Service name is required', 'error'); return }
     setLinkSaving(true)
     try {
-      await api.post(`/consumables/business/${bid}/link-service`, {
-        consumable_id: linkModal.item.id,
-        service_id: linkServiceId.trim(),
-        qty_per_use: parseFloat(linkQty) || 1,
+      await api.post(`/consumables/business/${bid}/service-link`, {
+        service_name: linkServiceId.trim(),
+        items: [{
+          consumable_id: linkModal.item.id,
+          quantity_per_treatment: parseFloat(linkQty) || 1,
+        }],
       })
       showToast('Linked to service')
       setLinkModal({ open: false, item: null })
@@ -481,7 +491,7 @@ export default function Consumables() {
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
             {filtered.map(item => {
-              const isLow = (item.current_stock || 0) <= (item.minimum_stock || 0)
+              const isLow = (item.current_stock || 0) <= (item.low_stock_threshold || 0)
               return (
                 <div
                   key={item.id}
@@ -506,11 +516,11 @@ export default function Consumables() {
                   {/* Stock info */}
                   <div className="flex items-baseline gap-1 mb-2">
                     <span className="text-2xl font-bold text-[#111]">{item.current_stock ?? 0}</span>
-                    <span className="text-xs text-gray-400">/ {item.minimum_stock ?? 0} min</span>
+                    <span className="text-xs text-gray-400">/ {item.low_stock_threshold ?? 0} min</span>
                     {item.unit && <span className="text-xs text-gray-400 ml-1">{item.unit}</span>}
                   </div>
 
-                  <StockBar current={item.current_stock || 0} minimum={item.minimum_stock || 0} />
+                  <StockBar current={item.current_stock || 0} minimum={item.low_stock_threshold || 0} />
 
                   {/* Details row */}
                   <div className="flex items-center gap-4 mt-3 text-xs text-gray-400">
@@ -793,13 +803,17 @@ export default function Consumables() {
           </div>
           <div>
             <label className="block text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1.5">Reason</label>
-            <input
-              type="text"
+            <CustomSelect
               value={adjustReason}
-              onChange={e => setAdjustReason(e.target.value)}
-              placeholder="e.g. Restocked from supplier, Used for walk-in..."
-              className="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-xl focus:outline-none focus:border-[#C9A84C]"
-              style={font}
+              onChange={v => setAdjustReason(v)}
+              options={[
+                { value: 'stock_take', label: 'Stock take' },
+                { value: 'received', label: 'Received from supplier' },
+                { value: 'correction', label: 'Correction' },
+                { value: 'damaged', label: 'Damaged / expired' },
+                { value: 'donation', label: 'Donation / write-off' },
+              ]}
+              placeholder="Select a reason..."
             />
           </div>
           <div className="flex justify-end gap-3 pt-2">
@@ -828,12 +842,12 @@ export default function Consumables() {
       >
         <div className="space-y-4">
           <div>
-            <label className="block text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1.5">Service ID</label>
+            <label className="block text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1.5">Service Name</label>
             <input
               type="text"
               value={linkServiceId}
               onChange={e => setLinkServiceId(e.target.value)}
-              placeholder="Enter service ID"
+              placeholder="e.g. Microneedling Facial"
               className="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-xl focus:outline-none focus:border-[#C9A84C]"
               style={font}
             />

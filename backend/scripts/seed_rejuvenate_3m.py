@@ -74,16 +74,16 @@ SHOP_PRODUCTS = [
 ]
 
 CONSUMABLE_ITEMS = [
-    {"name": "Microneedling Cartridge (0.5mm)", "unit": "piece", "cost": 8.50, "qty": 45, "reorder": 10},
-    {"name": "Microneedling Cartridge (1.0mm)", "unit": "piece", "cost": 8.50, "qty": 30, "reorder": 10},
-    {"name": "Hyaluronic Acid Serum (30ml)", "unit": "bottle", "cost": 12.00, "qty": 18, "reorder": 5},
-    {"name": "BioRePeel Solution", "unit": "vial", "cost": 35.00, "qty": 12, "reorder": 4},
-    {"name": "Numbing Cream (30g tube)", "unit": "tube", "cost": 6.50, "qty": 25, "reorder": 8},
-    {"name": "Disposable Gloves (Box 100)", "unit": "box", "cost": 7.00, "qty": 8, "reorder": 3},
-    {"name": "Dermaplaning Blade", "unit": "piece", "cost": 1.20, "qty": 80, "reorder": 20},
-    {"name": "RF Needling Tip (25-pin)", "unit": "piece", "cost": 22.00, "qty": 15, "reorder": 5},
-    {"name": "Polynucleotide Vial (2ml)", "unit": "vial", "cost": 65.00, "qty": 10, "reorder": 3},
-    {"name": "Alcohol Swabs (Box 200)", "unit": "box", "cost": 4.50, "qty": 6, "reorder": 2},
+    {"name": "Microneedling Cartridge (0.5mm)", "unit": "pieces", "cost": 8.50, "qty": 45, "reorder": 10},
+    {"name": "Microneedling Cartridge (1.0mm)", "unit": "pieces", "cost": 8.50, "qty": 30, "reorder": 10},
+    {"name": "Hyaluronic Acid Serum (30ml)", "unit": "ml", "cost": 12.00, "qty": 18, "reorder": 5},
+    {"name": "BioRePeel Solution", "unit": "units", "cost": 35.00, "qty": 12, "reorder": 4},
+    {"name": "Numbing Cream (30g tube)", "unit": "g", "cost": 6.50, "qty": 25, "reorder": 8},
+    {"name": "Disposable Gloves (Box 100)", "unit": "packs", "cost": 7.00, "qty": 8, "reorder": 3},
+    {"name": "Dermaplaning Blade", "unit": "pieces", "cost": 1.20, "qty": 80, "reorder": 20},
+    {"name": "RF Needling Tip (25-pin)", "unit": "pieces", "cost": 22.00, "qty": 15, "reorder": 5},
+    {"name": "Polynucleotide Vial (2ml)", "unit": "units", "cost": 65.00, "qty": 10, "reorder": 3},
+    {"name": "Alcohol Swabs (Box 200)", "unit": "packs", "cost": 4.50, "qty": 6, "reorder": 2},
 ]
 
 
@@ -194,10 +194,13 @@ async def seed():
         await db.consumables.insert_one({
             "business_id": biz_id,
             "name": c["name"],
+            "category": "skincare" if "Serum" in c["name"] or "Cream" in c["name"] else "tools" if "Blade" in c["name"] or "Gloves" in c["name"] or "Swab" in c["name"] else "injectables" if "Polynucleotide" in c["name"] or "BioRePeel" in c["name"] else "other",
             "unit": c["unit"],
             "cost_per_unit": c["cost"],
-            "quantity_in_stock": c["qty"],
-            "reorder_level": c["reorder"],
+            "current_stock": c["qty"],
+            "low_stock_threshold": c["reorder"],
+            "supplier": "",
+            "status": "active",
             "active": True,
             "source": "seed",
             "created_at": three_months_ago,
