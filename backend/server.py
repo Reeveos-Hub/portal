@@ -63,6 +63,7 @@ from routes import (
     cash_and_tax_router,
     ops_router,
     library_router,
+    help_centre_router,
     studio_router,
     notifications_router,
     allergen_management_router,
@@ -294,6 +295,7 @@ app.include_router(pay_at_table_router)
 app.include_router(cash_and_tax_router)
 app.include_router(ops_router)
 app.include_router(library_router)
+app.include_router(help_centre_router)
 app.include_router(admin_partners_router)
 app.include_router(studio_router)
 app.include_router(notifications_router)
@@ -429,3 +431,4 @@ async def health_check():
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8000)
+
