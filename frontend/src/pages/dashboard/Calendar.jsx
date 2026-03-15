@@ -93,7 +93,7 @@ const UK_HOLIDAYS = {
 }
 const pad2 = n => String(n).padStart(2, '0')
 const dateKey = d => `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`
-const WHH = 80 // week view hour height — same as day view for readable cards
+const WHH = 90 // week view hour height — comfortable for 13" laptops
 const Spark = ({ data, color }) => {
   const w = 50, h = 16
   const max = Math.max(...data), min = Math.min(...data)
@@ -1966,21 +1966,31 @@ const Calendar = () => {
                 })
                 return laid.map(b => {
                   const top = (b.start - SH) * WHH
-                  const height = Math.max(b.dur * WHH - 2, 30)
+                  const height = Math.max(b.dur * WHH - 2, 34)
                   const sc = staffColorMap[b.staffId] || '#6BA3C7'
                   const colW = 1 / b.totalCols
                   const leftFrac = (di + b.col * colW) / 7
                   const widthFrac = colW / 7
                   const endH = Math.floor(b.end), endM = Math.round((b.end - endH) * 60)
                   const timeStr = `${fmtAP(Math.floor(b.start))} - ${fmtAP(endH)}`
+                  const isShort = height < 50
                   return (
                     <div key={b.id} onClick={() => { setSelectedDate(dk); setViewMode('Day') }}
-                      style={{ position: 'absolute', top, height, left: `calc(40px + (100% - 40px) * ${leftFrac} + 1px)`, width: `calc((100% - 40px) * ${widthFrac} - 2px)`, background: sc, borderRadius: 5, padding: '5px 7px', cursor: 'pointer', overflow: 'hidden', zIndex: 5, boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
-                      <p style={{ fontSize: 11, fontWeight: 600, color: '#111', margin: 0, lineHeight: 1.2 }}>{timeStr}</p>
-                      <p style={{ fontSize: 13, fontWeight: 700, color: '#111', margin: '2px 0 0', lineHeight: 1.2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                        {b.customerName || 'Walk-in'}
-                      </p>
-                      {height >= 36 && <p style={{ fontSize: 11, fontWeight: 500, color: '#222', margin: '1px 0 0', lineHeight: 1.2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{b.service}</p>}
+                      style={{ position: 'absolute', top, height, left: `calc(40px + (100% - 40px) * ${leftFrac} + 1px)`, width: `calc((100% - 40px) * ${widthFrac} - 2px)`, background: sc, borderRadius: 6, padding: isShort ? '3px 6px' : '6px 8px', cursor: 'pointer', overflow: 'hidden', zIndex: 5, boxShadow: '0 1px 3px rgba(0,0,0,0.1)', display: 'flex', flexDirection: isShort ? 'row' : 'column', alignItems: isShort ? 'center' : 'stretch', gap: isShort ? 4 : 0 }}>
+                      {isShort ? (
+                        <>
+                          <span style={{ fontSize: 10, fontWeight: 600, color: '#111', whiteSpace: 'nowrap', flexShrink: 0 }}>{fmtAP(Math.floor(b.start))}</span>
+                          <span style={{ fontSize: 12, fontWeight: 700, color: '#111', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1 }}>{b.customerName || 'Walk-in'}</span>
+                        </>
+                      ) : (
+                        <>
+                          <p style={{ fontSize: 11, fontWeight: 600, color: '#111', margin: 0, lineHeight: 1.3 }}>{timeStr}</p>
+                          <p style={{ fontSize: 13, fontWeight: 700, color: '#111', margin: '2px 0 0', lineHeight: 1.3, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                            {b.customerName || 'Walk-in'}
+                          </p>
+                          {height >= 56 && <p style={{ fontSize: 11, fontWeight: 500, color: '#222', margin: '1px 0 0', lineHeight: 1.2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{b.service}</p>}
+                        </>
+                      )}
                     </div>
                   )
                 })
@@ -2026,13 +2036,13 @@ const Calendar = () => {
               <div style={{ padding: '4px 14px 20px' }}>
                 {/* Day headers */}
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', marginBottom: 4 }}>
-                  {DY.map(d => <div key={d} style={{ textAlign: 'center', fontSize: 11, fontWeight: 600, color: '#999', padding: '6px 0' }}>{d}</div>)}
+                  {DY.map(d => <div key={d} style={{ textAlign: 'center', fontSize: 13, fontWeight: 600, color: '#999', padding: '8px 0' }}>{d}</div>)}
                 </div>
                 {/* Calendar grid */}
                 {monthGrid.map((week, wi) => (
                   <div key={wi} style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)' }}>
                     {week.map((day, di) => {
-                      if (!day) return <div key={di} style={{ minHeight: 80 }} />
+                      if (!day) return <div key={di} style={{ minHeight: 90 }} />
                       const d = new Date(selectedDate + 'T12:00')
                       const dk = `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(day)}`
                       const isTdy = dk === dateKey(new Date())
@@ -2040,21 +2050,21 @@ const Calendar = () => {
                       const hol = UK_HOLIDAYS[dk]
                       return (
                         <button key={di} onClick={() => { setSelectedDate(dk); setViewMode('Day') }}
-                          style={{ minHeight: 80, border: 'none', cursor: 'pointer', background: isTdy ? '#FFF9F0' : 'transparent', display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '6px 2px', borderTop: `1px solid #EBEBEB`, borderLeft: di > 0 ? '1px solid #EBEBEB' : 'none', fontFamily: "'Figtree', sans-serif" }}>
-                          <div style={{ width: isTdy ? 32 : 28, height: isTdy ? 32 : 28, borderRadius: 16, background: isTdy ? '#C9A84C' : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                            <span style={{ fontSize: 14, fontWeight: isTdy ? 700 : 500, color: isTdy ? '#fff' : di >= 5 ? '#CCC' : '#111' }}>{day}</span>
+                          style={{ minHeight: 90, border: 'none', cursor: 'pointer', background: isTdy ? '#FFF9F0' : 'transparent', display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '8px 2px', borderTop: `1px solid #EBEBEB`, borderLeft: di > 0 ? '1px solid #EBEBEB' : 'none', fontFamily: "'Figtree', sans-serif" }}>
+                          <div style={{ width: isTdy ? 36 : 30, height: isTdy ? 36 : 30, borderRadius: 18, background: isTdy ? '#C9A84C' : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                            <span style={{ fontSize: 16, fontWeight: isTdy ? 700 : 500, color: isTdy ? '#fff' : di >= 5 ? '#CCC' : '#111' }}>{day}</span>
                           </div>
                           {dayBk.length > 0 && (
-                            <div style={{ marginTop: 4, display: 'flex', gap: 3, flexWrap: 'wrap', justifyContent: 'center' }}>
+                            <div style={{ marginTop: 6, display: 'flex', gap: 3, flexWrap: 'wrap', justifyContent: 'center' }}>
                               {Array.from({ length: Math.min(dayBk.length, 4) }).map((_, i) => {
                                 const bk = dayBk[i]
                                 const sc = bk ? (staffColorMap[bk.staffId] || STAFF_PALETTES[i % STAFF_PALETTES.length]) : STAFF_PALETTES[i]
-                                return <div key={i} style={{ width: 6, height: 6, borderRadius: 3, background: sc }} />
+                                return <div key={i} style={{ width: 8, height: 8, borderRadius: 4, background: sc }} />
                               })}
-                              {dayBk.length > 4 && <span style={{ fontSize: 9, fontWeight: 700, color: '#999' }}>+{dayBk.length - 4}</span>}
+                              {dayBk.length > 4 && <span style={{ fontSize: 11, fontWeight: 700, color: '#999' }}>+{dayBk.length - 4}</span>}
                             </div>
                           )}
-                          {hol && <span style={{ fontSize: 9, fontWeight: 600, color: hol.t === 'bank' ? '#10B981' : '#C9A84C', marginTop: 2, textAlign: 'center', lineHeight: 1.1 }}>{hol.l.split(' ').slice(0, 2).join(' ')}</span>}
+                          {hol && <span style={{ fontSize: 10, fontWeight: 600, color: hol.t === 'bank' ? '#10B981' : '#C9A84C', marginTop: 3, textAlign: 'center', lineHeight: 1.1 }}>{hol.l.split(' ').slice(0, 2).join(' ')}</span>}
                         </button>
                       )
                     })}
