@@ -158,6 +158,8 @@ const Settings = () => {
   const [deleteModal, setDeleteModal] = useState(false)
   const [deleteConfirmName, setDeleteConfirmName] = useState('')
   const [specialHoursForm, setSpecialHoursForm] = useState({ date: '', open: true, start: '09:00', end: '17:00', label: '' })
+  const [closures, setClosures] = useState([])
+  const [closureForm, setClosureForm] = useState({ start_date: '', end_date: '', reason: '', reason_preset: 'closure' })
   const [mothershipEnabled, setMothershipEnabled] = useState(false)
   const [mothershipSettings, setMothershipSettings] = useState({ commission_type: 'percentage', default_rate: 30, chair_rental: 200, settlement_frequency: 'instant', shared_booking: true })
 
@@ -285,6 +287,41 @@ const Settings = () => {
     } finally {
       setSaving(false)
     }
+  }
+
+  const fetchClosures = useCallback(async () => {
+    if (!bizId) return
+    try {
+      const res = await api.get(`/blocked-times/business/${bizId}/closures`)
+      setClosures(res.closures || [])
+    } catch (e) { console.error('Failed to fetch closures', e) }
+  }, [bizId])
+
+  useEffect(() => { fetchClosures() }, [fetchClosures])
+
+  const addClosure = async () => {
+    if (!bizId || !closureForm.start_date) return
+    setSaving(true)
+    try {
+      await api.post(`/blocked-times/business/${bizId}/closure`, closureForm)
+      setClosureForm({ start_date: '', end_date: '', reason: '', reason_preset: 'closure' })
+      showToast('Closure scheduled ✓')
+      fetchClosures()
+    } catch (err) {
+      showToast(err?.detail || err.message || 'Failed')
+    } finally { setSaving(false) }
+  }
+
+  const removeClosure = async (id) => {
+    if (!bizId) return
+    setSaving(true)
+    try {
+      await api.delete(`/blocked-times/business/${bizId}/${id}`)
+      setClosures((prev) => prev.filter((c) => c.id !== id))
+      showToast('Closure removed')
+    } catch (err) {
+      showToast(err.message || 'Failed')
+    } finally { setSaving(false) }
   }
 
   const updateNotification = (eventKey, channel, value) => {
@@ -711,6 +748,53 @@ const Settings = () => {
                 </li>
               ))}
             </ul>
+
+            <h3 className="text-lg font-semibold mt-8 mb-2">Temporary Closures</h3>
+            <p className="text-xs text-gray-400 mb-3">Schedule shutdowns, bank holidays, or training days. All bookings will be blocked on these dates.</p>
+            <div className="flex flex-wrap gap-2 items-end">
+              <div>
+                <label className="block text-sm font-bold text-primary mb-1.5">Start Date</label>
+                <input type="date" value={closureForm.start_date} onChange={(e) => setClosureForm((f) => ({ ...f, start_date: e.target.value }))}
+                  className="w-full px-3 py-2.5 border border-border rounded-lg text-sm font-medium text-primary focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none" />
+              </div>
+              <div>
+                <label className="block text-sm font-bold text-primary mb-1.5">End Date</label>
+                <input type="date" value={closureForm.end_date || closureForm.start_date} onChange={(e) => setClosureForm((f) => ({ ...f, end_date: e.target.value }))}
+                  className="w-full px-3 py-2.5 border border-border rounded-lg text-sm font-medium text-primary focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none" />
+              </div>
+              <div>
+                <label className="block text-sm font-bold text-primary mb-1.5">Type</label>
+                <select value={closureForm.reason_preset} onChange={(e) => setClosureForm((f) => ({ ...f, reason_preset: e.target.value }))}
+                  className="w-full px-3 py-2.5 border border-border rounded-lg text-sm font-medium text-primary focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none bg-white">
+                  <option value="closure">Business Closure</option>
+                  <option value="bank_holiday">Bank Holiday</option>
+                  <option value="training">Staff Training</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-bold text-primary mb-1.5">Reason</label>
+                <input type="text" placeholder="e.g. Christmas shutdown" value={closureForm.reason} onChange={(e) => setClosureForm((f) => ({ ...f, reason: e.target.value }))}
+                  className="w-full px-3 py-2.5 border border-border rounded-lg text-sm font-medium text-primary focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none" />
+              </div>
+              <button onClick={addClosure} disabled={!closureForm.start_date || saving}
+                className="bg-primary text-white font-bold text-sm px-3 py-1.5 rounded-lg shadow-lg hover:bg-primary-hover transition-colors">
+                Schedule Closure
+              </button>
+            </div>
+            {closures.length > 0 && (
+              <ul className="mt-4 space-y-2">
+                {closures.map((c) => (
+                  <li key={c.id} className="flex justify-between items-center py-2 px-3 bg-red-50 border border-red-100 rounded">
+                    <span className="text-sm">
+                      <span className="font-semibold">{c.date}</span>
+                      {c.reason && <span className="text-gray-500"> — {c.reason}</span>}
+                      <span className="ml-2 text-xs px-2 py-0.5 bg-red-100 text-red-600 rounded-full">{c.reason_preset === 'bank_holiday' ? 'Bank Holiday' : c.reason_preset === 'training' ? 'Training' : 'Closed'}</span>
+                    </span>
+                    <button type="button" onClick={() => removeClosure(c.id)} className="text-red-500 text-sm hover:underline">Remove</button>
+                  </li>
+                ))}
+              </ul>
+            )}
             <div className="mt-6">
               <button onClick={saveHours}
               className="bg-[#111111] text-white font-bold text-xs px-5 py-2 rounded-full shadow-lg shadow-[#111111]/20 hover:bg-[#1a1a1a] transition-colors">
