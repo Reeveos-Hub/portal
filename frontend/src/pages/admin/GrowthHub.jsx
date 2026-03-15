@@ -585,9 +585,23 @@ export default function GrowthHub() {
             <div style={{ background: CARD, border: `1px solid #2a2a2a`, borderRadius: 10, padding: '16px', marginBottom: 16 }}>
               <div style={{ color: MUTED, fontSize: 11, fontWeight: 600, textTransform: 'uppercase', letterSpacing: 1, marginBottom: 12 }}>Source</div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <span style={{ color: MUTED, fontSize: 13 }}>Platform</span>
                   <span style={{ color: plat?.color || GOLD, fontWeight: 600, fontSize: 13 }}>{lead.current_platform}</span>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span style={{ color: MUTED, fontSize: 13 }}>Product fit</span>
+                  <div style={{ display: 'flex', gap: 6 }}>
+                    {lead.reeveos_eligible && (
+                      <span style={{ background: '#C9A84C22', color: '#C9A84C', fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 6 }}>ReeveOS + Dojo</span>
+                    )}
+                    {lead.dojo_eligible && !lead.reeveos_eligible && (
+                      <span style={{ background: '#1a2e1a', color: '#4ade80', fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 6 }}>Dojo Only</span>
+                    )}
+                    {lead.dojo_eligible && lead.reeveos_eligible && (
+                      <span style={{ background: '#1a2e1a', color: '#4ade80', fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 6 }}>Dojo ✓</span>
+                    )}
+                  </div>
                 </div>
                 {lead.source_url && (
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -1029,6 +1043,11 @@ export default function GrowthHub() {
             <option value="instagram">Has Instagram</option>
             <option value="socials">Has Any Social</option>
             <option value="none">Not Enriched</option>
+            <optgroup label="Product Fit">
+              <option value="dojo">Dojo Eligible</option>
+              <option value="reeveos">ReeveOS + Dojo</option>
+              <option value="dojo_only">Dojo Only</option>
+            </optgroup>
           </select>
           <button style={S.btn('ghost')} onClick={() => loadLeads(leadsPage)}>
             <IconRefresh /> Refresh
