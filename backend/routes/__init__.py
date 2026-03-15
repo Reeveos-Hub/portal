@@ -40,6 +40,7 @@ from .admin.core import router as admin_router
 from .admin.extended import router as admin_extended_router
 from .admin.command_centre import router as command_centre_router
 from .admin.library import router as library_router
+from .admin.help_centre import router as help_centre_router
 from .admin.partners import router as admin_partners_router
 
 # ─── Public ───
@@ -134,3 +135,4 @@ __all__ = [
     "consultation_router", "client_portal_router",
     "survey_router", "survey_admin_router",
 ]
+
