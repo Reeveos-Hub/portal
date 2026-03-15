@@ -1,5 +1,26 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
-import api from '../../utils/api'
+import adminFetch from '../../utils/adminFetch'
+
+const API = import.meta.env.VITE_API_URL || '/api'
+
+// Thin wrapper around adminFetch that matches the api.get/post/delete pattern
+const adminApi = {
+  async get(path) {
+    const r = await adminFetch(`${API}${path}`)
+    if (!r.ok) { const e = await r.json().catch(() => ({})); throw new Error(e.detail || `HTTP ${r.status}`) }
+    return r.json()
+  },
+  async post(path, data) {
+    const r = await adminFetch(`${API}${path}`, { method: 'POST', body: JSON.stringify(data) })
+    if (!r.ok) { const e = await r.json().catch(() => ({})); throw new Error(e.detail || `HTTP ${r.status}`) }
+    return r.json()
+  },
+  async delete(path) {
+    const r = await adminFetch(`${API}${path}`, { method: 'DELETE' })
+    if (!r.ok) { const e = await r.json().catch(() => ({})); throw new Error(e.detail || `HTTP ${r.status}`) }
+    return r.json()
+  },
+}
 
 const GOLD = '#C9A84C'
 const BG = '#111111'
@@ -187,7 +208,7 @@ export default function GrowthHub() {
 
   const loadStats = useCallback(async () => {
     try {
-      const data = await api.get('/scraper/stats')
+      const data = await adminApi.get('/scraper/stats')
       setStats(data)
     } catch (e) {
       console.error('Stats error:', e)
@@ -202,7 +223,7 @@ export default function GrowthHub() {
       if (filters.source)  params.set('source', filters.source)
       if (filters.status)  params.set('status', filters.status)
       if (filters.city)    params.set('city', filters.city)
-      const data = await api.get(`/scraper/leads?${params}`)
+      const data = await adminApi.get(`/scraper/leads?${params}`)
       setLeads(data.leads || [])
       setLeadsTotal(data.total || 0)
     } catch (e) {
@@ -214,7 +235,7 @@ export default function GrowthHub() {
 
   const loadJobs = useCallback(async () => {
     try {
-      const data = await api.get('/scraper/jobs?limit=30')
+      const data = await adminApi.get('/scraper/jobs?limit=30')
       setJobs(data.jobs || [])
       setJobsTotal(data.total || 0)
     } catch (e) {
@@ -239,7 +260,7 @@ export default function GrowthHub() {
     if (pollRef.current) clearInterval(pollRef.current)
     pollRef.current = setInterval(async () => {
       try {
-        const job = await api.get(`/scraper/jobs/${jobId}`)
+        const job = await adminApi.get(`/scraper/jobs/${jobId}`)
         setActiveJob(job)
         if (!['queued', 'running'].includes(job.status)) {
           clearInterval(pollRef.current)
@@ -273,7 +294,7 @@ export default function GrowthHub() {
       progress: { pages_scraped: 0, leads_found: 0, leads_added: 0, duplicates: 0 },
     })
     try {
-      const res = await api.post('/scraper/jobs', { platform, city, vertical, max_leads: maxLeads })
+      const res = await adminApi.post('/scraper/jobs', { platform, city, vertical, max_leads: maxLeads })
       if (!res || !res.job_id) {
         throw new Error('No job ID returned from server')
       }
@@ -289,7 +310,7 @@ export default function GrowthHub() {
 
   async function cancelJob(jobId) {
     try {
-      await api.delete(`/scraper/jobs/${jobId}`)
+      await adminApi.delete(`/scraper/jobs/${jobId}`)
       setRunning(false)
       if (pollRef.current) clearInterval(pollRef.current)
       loadJobs()
@@ -300,7 +321,7 @@ export default function GrowthHub() {
 
   async function enrichLead(leadId) {
     try {
-      await api.post(`/scraper/leads/${leadId}/enrich`)
+      await adminApi.post(`/scraper/leads/${leadId}/enrich`)
       setTimeout(() => loadLeads(leadsPage), 3000)
     } catch (e) {
       alert(e.message || 'Enrichment failed')
@@ -310,7 +331,7 @@ export default function GrowthHub() {
   async function deleteLead(leadId) {
     if (!confirm('Delete this lead?')) return
     try {
-      await api.delete(`/scraper/leads/${leadId}`)
+      await adminApi.delete(`/scraper/leads/${leadId}`)
       loadLeads(leadsPage)
       loadStats()
     } catch (e) {
@@ -321,7 +342,7 @@ export default function GrowthHub() {
   async function bulkDelete() {
     if (!selectedLeads.size || !confirm(`Delete ${selectedLeads.size} leads?`)) return
     try {
-      await api.post('/scraper/leads/bulk-delete', { lead_ids: [...selectedLeads] })
+      await adminApi.post('/scraper/leads/bulk-delete', { lead_ids: [...selectedLeads] })
       setSelectedLeads(new Set())
       loadLeads(leadsPage)
       loadStats()
@@ -333,7 +354,7 @@ export default function GrowthHub() {
   async function bulkEnrich() {
     if (!selectedLeads.size) return
     try {
-      await api.post('/scraper/leads/bulk-enrich', { lead_ids: [...selectedLeads] })
+      await adminApi.post('/scraper/leads/bulk-enrich', { lead_ids: [...selectedLeads] })
       setSelectedLeads(new Set())
       setTimeout(() => loadLeads(leadsPage), 4000)
     } catch (e) {
