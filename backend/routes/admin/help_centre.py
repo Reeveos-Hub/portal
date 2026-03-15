@@ -12,7 +12,7 @@ from bson import ObjectId
 import base64
 import logging
 
-import database
+from database import get_database as get_db
 from middleware.auth import get_current_admin
 
 router = APIRouter(prefix="/admin/help-centre", tags=["help-centre"], dependencies=[Depends(get_current_admin)])
@@ -95,7 +95,7 @@ class ArticleUpdate(BaseModel):
 
 @router.get("/categories")
 async def list_categories():
-    db = await database.get_db()
+    db = get_db()
     cats = await db.help_categories.find().sort("sort_order", 1).to_list(None)
     # Enrich with article count
     for cat in cats:
@@ -108,7 +108,7 @@ async def list_categories():
 
 @router.post("/categories")
 async def create_category(data: CategoryCreate):
-    db = await database.get_db()
+    db = get_db()
     # Check slug unique
     existing = await db.help_categories.find_one({"slug": data.slug})
     if existing:
@@ -125,7 +125,7 @@ async def create_category(data: CategoryCreate):
 
 @router.put("/categories/{category_id}")
 async def update_category(category_id: str, data: CategoryUpdate):
-    db = await database.get_db()
+    db = get_db()
     updates = {k: v for k, v in data.dict().items() if v is not None}
     if not updates:
         raise HTTPException(400, "No fields to update")
@@ -142,7 +142,7 @@ async def update_category(category_id: str, data: CategoryUpdate):
 
 @router.delete("/categories/{category_id}")
 async def delete_category(category_id: str):
-    db = await database.get_db()
+    db = get_db()
     # Don't delete if articles exist
     count = await db.help_articles.count_documents({"category_id": category_id})
     if count > 0:
@@ -163,7 +163,7 @@ async def list_articles(
     status: Optional[str] = Query(None),
     q: Optional[str] = Query(None),
 ):
-    db = await database.get_db()
+    db = get_db()
     query = {}
     if category_id:
         query["category_id"] = category_id
@@ -180,7 +180,7 @@ async def list_articles(
 
 @router.get("/articles/{article_id}")
 async def get_article(article_id: str):
-    db = await database.get_db()
+    db = get_db()
     article = await db.help_articles.find_one({"_id": ObjectId(article_id)})
     if not article:
         raise HTTPException(404, "Article not found")
@@ -189,7 +189,7 @@ async def get_article(article_id: str):
 
 @router.post("/articles")
 async def create_article(data: ArticleCreate):
-    db = await database.get_db()
+    db = get_db()
     existing = await db.help_articles.find_one({"slug": data.slug})
     if existing:
         raise HTTPException(400, f"Slug '{data.slug}' already exists")
@@ -205,7 +205,7 @@ async def create_article(data: ArticleCreate):
 
 @router.put("/articles/{article_id}")
 async def update_article(article_id: str, data: ArticleUpdate):
-    db = await database.get_db()
+    db = get_db()
     updates = {k: v for k, v in data.dict().items() if v is not None}
     if not updates:
         raise HTTPException(400, "No fields to update")
@@ -229,7 +229,7 @@ async def update_article(article_id: str, data: ArticleUpdate):
 
 @router.delete("/articles/{article_id}")
 async def delete_article(article_id: str):
-    db = await database.get_db()
+    db = get_db()
     result = await db.help_articles.delete_one({"_id": ObjectId(article_id)})
     if result.deleted_count == 0:
         raise HTTPException(404, "Article not found")
@@ -252,7 +252,7 @@ async def upload_screenshot(
     Stores as base64 data URI directly on the step object in MongoDB.
     Max 2MB per screenshot.
     """
-    db = await database.get_db()
+    db = get_db()
     article = await db.help_articles.find_one({"_id": ObjectId(article_id)})
     if not article:
         raise HTTPException(404, "Article not found")
@@ -299,7 +299,7 @@ async def seed_from_js(payload: dict):
     and insert them into MongoDB. Only runs if collections are empty.
     Idempotent — won't duplicate.
     """
-    db = await database.get_db()
+    db = get_db()
     categories = payload.get("categories", [])
     articles = payload.get("articles", [])
 
