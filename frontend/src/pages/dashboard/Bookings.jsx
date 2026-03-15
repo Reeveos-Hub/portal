@@ -5,7 +5,7 @@ import AppLoader from "../../components/shared/AppLoader"
 
 import { useState, useEffect, useRef, useCallback, Component } from 'react'
 import { useSearchParams, useNavigate } from 'react-router-dom'
-import { Search, ChevronRight, RefreshCw, Download, X, Check, Users, Armchair, Phone, Mail, Cake, Pencil, SlidersHorizontal, Clock, Calendar, Save, AlertTriangle, ExternalLink } from 'lucide-react'
+import { Search, ChevronRight, RefreshCw, Download, X, Check, Users, Phone, Pencil, Clock, Calendar, Save, AlertTriangle, ExternalLink } from 'lucide-react'
 import { useBusiness } from '../../contexts/BusinessContext'
 import api from '../../utils/api'
 
@@ -258,21 +258,22 @@ const Bookings = () => {
   const closeDetail = () => { setDetail(null); setDetailClient(null); setEditMode(false); setRescheduleMode(false); setSearchParams({}) }
 
   const displayBookings = bookings.filter(b => {
-    // Tab filtering
-    if (activeTab === 'waitlist') return b.status === 'waitlist'
-    if (activeTab === 'history') return ['completed', 'cancelled', 'no_show'].includes(b.status)
-    // 'all' tab: show everything except waitlist (waitlist has its own tab)
-    if (activeTab === 'all') return b.status !== 'waitlist'
+    if (activeTab !== 'all' && b.status !== activeTab) return false
     return true
   }).filter(b => {
-    // Search filtering (client-side on top of API search)
     if (!search) return true
     const q = search.toLowerCase()
     const name = (typeof b.customer === 'object' ? b.customer?.name : b.customerName) || ''
     const phone = (typeof b.customer === 'object' ? b.customer?.phone : b.customerPhone) || ''
     const svc = (typeof b.service === 'object' ? b.service?.name : b.service) || ''
-    return name.toLowerCase().includes(q) || phone.includes(q) || svc.toLowerCase().includes(q)
+    const staff = b.staffName || b.staff_name || ''
+    return name.toLowerCase().includes(q) || phone.includes(q) || svc.toLowerCase().includes(q) || staff.toLowerCase().includes(q)
   })
+
+  const statusCounts = {}
+  const STATUS_TABS = ['all', 'confirmed', 'pending', 'checked_in', 'completed', 'cancelled', 'no_show']
+  const STATUS_TAB_LABELS = { all: 'All', confirmed: 'Confirmed', pending: 'Pending', checked_in: isRestaurant ? 'Seated' : 'In Treatment', completed: 'Completed', cancelled: 'Cancelled', no_show: 'No-show' }
+  STATUS_TABS.forEach(t => { statusCounts[t] = t === 'all' ? bookings.length : bookings.filter(b => b.status === t).length })
 
   const STATUS_LABELS = {
     checked_in: isRestaurant ? 'Seated' : 'In Treatment',
@@ -293,152 +294,128 @@ const Bookings = () => {
 
   return (
     <div className="-m-6 lg:-m-8 flex flex-col h-[calc(100vh-4rem)]">
-      {/* Search & Controls */}
-      <div className="px-6 md:px-8 pt-6 pb-4 space-y-4 shrink-0">
-        <div className="relative max-w-2xl flex gap-2">
-          <div className="relative flex-1">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-            <input type="text" placeholder={isRestaurant ? "Search by guest name, phone..." : "Search by client name, phone..."} value={search} onChange={e => setSearch(e.target.value)}
-              className="w-full pl-11 pr-4 py-3 bg-white border border-gray-200 rounded-full shadow-sm focus:outline-none focus:ring-2 focus:ring-[#111111]/15 focus:border-[#111111]/30 text-sm font-medium transition-all"
-              style={{ fontFamily: "'Figtree', sans-serif" }} />
-          </div>
-          <button className="md:hidden bg-white border border-gray-200 text-gray-600 px-4 rounded-full shadow-sm hover:bg-gray-50"><SlidersHorizontal className="w-4 h-4" /></button>
+      {/* Search & Filter Pills */}
+      <div className="px-6 md:px-8 pt-6 pb-3 space-y-3 shrink-0">
+        <div className="relative max-w-md">
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+          <input type="text" placeholder={isRestaurant ? "Search by guest name, phone..." : "Search by client name, service..."} value={search} onChange={e => setSearch(e.target.value)}
+            className="w-full pl-11 pr-4 py-2.5 bg-white border border-gray-200 rounded-full focus:outline-none focus:border-[#111111]/30 text-sm font-medium transition-all"
+            style={{ fontFamily: "'Figtree', sans-serif" }} />
         </div>
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-          <div className="flex items-center gap-1.5">
-            {['all', 'waitlist', 'history'].map(t => {
-              const count = t === 'all' ? bookings.filter(b => b.status !== 'waitlist').length
-                : t === 'waitlist' ? bookings.filter(b => b.status === 'waitlist').length
-                : bookings.filter(b => ['completed', 'cancelled', 'no_show'].includes(b.status)).length
+        <div className="flex items-center justify-between gap-4 flex-wrap">
+          <div className="flex items-center gap-1">
+            {STATUS_TABS.map(t => {
+              const cnt = statusCounts[t] || 0
+              if (t !== 'all' && cnt === 0) return null
               return (
-              <button key={t} onClick={() => setActiveTab(t)}
-                className={`px-4 py-1.5 rounded-full font-bold text-xs transition-all ${
-                  activeTab === t
-                    ? 'bg-[#111111] text-white shadow-lg shadow-[#111111]/20'
-                    : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'
-                }`}
-                style={{ fontFamily: "'Figtree', sans-serif" }}>
-                {t === 'all' ? 'All Bookings' : t === 'waitlist' ? 'Waitlist' : 'History'}
-                {count > 0 && <span className={`ml-1.5 px-1.5 py-0.5 rounded-full text-[10px] ${activeTab === t ? 'bg-white/20' : 'bg-gray-200 text-gray-500'}`}>{count}</span>}
-              </button>
+                <button key={t} onClick={() => setActiveTab(t)}
+                  className="transition-all"
+                  style={{ padding: '5px 12px', borderRadius: 999, border: 'none', fontSize: 11, fontWeight: 700, cursor: 'pointer', fontFamily: "'Figtree', sans-serif", background: activeTab === t ? '#111' : 'transparent', color: activeTab === t ? '#fff' : '#999' }}>
+                  {STATUS_TAB_LABELS[t]}
+                  <span style={{ marginLeft: 4, fontSize: 9, opacity: 0.6 }}>{cnt}</span>
+                </button>
               )
             })}
           </div>
-          <div className="flex items-center gap-2 self-end sm:self-auto">
-            <button onClick={fetchBookings} className="w-8 h-8 rounded-lg flex items-center justify-center text-gray-400 hover:text-[#111111] hover:bg-[#111111]/5 transition-colors" title="Refresh"><RefreshCw className="w-4 h-4" /></button>
-            <button className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-bold bg-white border border-gray-200 text-gray-600 hover:text-[#111111] hover:border-[#111111]/20 shadow-sm transition-all"
-              style={{ fontFamily: "'Figtree', sans-serif" }}>
-              <Download className="w-3.5 h-3.5" /> <span className="hidden sm:inline">Export</span>
+          <div className="flex items-center gap-2">
+            <button onClick={() => fetchBookings(false)} className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-white border border-gray-200 text-gray-500 hover:text-[#111] hover:border-[#111]/20 transition-all" style={{ fontFamily: "'Figtree', sans-serif" }}>
+              <RefreshCw className="w-3.5 h-3.5" /> Refresh
+            </button>
+            <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-white border border-gray-200 text-gray-500 hover:text-[#111] hover:border-[#111]/20 transition-all" style={{ fontFamily: "'Figtree', sans-serif" }}>
+              <Download className="w-3.5 h-3.5" /> Export
             </button>
           </div>
         </div>
       </div>
 
-      {/* Results */}
+      {/* Compact Row Results */}
       <div className="flex-1 overflow-y-auto px-6 md:px-8 pb-8">
-        <h3 className="text-sm font-bold text-gray-500 mb-4">Showing {displayBookings.length} result{displayBookings.length !== 1 ? 's' : ''}</h3>
+        <p className="text-xs font-semibold text-gray-400 mb-2">{displayBookings.length} booking{displayBookings.length !== 1 ? 's' : ''}</p>
 
         {loading ? (
           <AppLoader message="Loading bookings..." />
         ) : displayBookings.length === 0 ? (
           <div className="bg-white border border-gray-200 rounded-xl shadow-sm p-12 text-center">
             <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4"><Users className="w-8 h-8 text-gray-400" /></div>
-            <h3 className="font-heading font-bold text-lg text-primary mb-2">No bookings found</h3>
+            <h3 className="font-bold text-lg text-[#111] mb-2" style={{ fontFamily: "'Figtree', sans-serif" }}>No bookings found</h3>
             <p className="text-sm text-gray-500">Try adjusting your filters or search terms.</p>
           </div>
         ) : (
-          <div className="space-y-4">
+          <div>
             {displayBookings.map(b => {
               const sc = STATUS_CONFIG[b.status] || STATUS_CONFIG.confirmed
               const statusLabel = b.status === 'checked_in' ? STATUS_LABELS.checked_in : sc.label
               const av = getAvatarColor(b.customerName)
               const primary = getPrimaryAction(b)
-              const guests = b.guests || b.partySize || parseInt(b.service?.match(/\d+/)?.[0]) || 2
-              const table = b.table || b.tableName
-              const phone = b.customerPhone || b.phone || b.customer?.phone
-              const email = b.customerEmail || b.email || b.customer?.email
+              const svcName = typeof b.service === 'object' ? b.service?.name : (b.service || b.serviceName || '')
+              const staffName = b.staffName || b.staff_name || 'Any'
               const time = formatTime(b.time)
+              const isNew = newBookingIds.has(b.id)
 
               return (
-                <div key={b.id} onClick={() => openDetail(b.id)}
-                  className={`bg-white rounded-xl border border-gray-200 shadow-[0_2px_10px_rgba(0,0,0,0.03)] hover:shadow-[0_10px_30px_-5px_rgba(17,17,17,0.1)] transition-all duration-200 p-5 flex flex-col md:flex-row gap-4 md:gap-5 items-start md:items-center cursor-pointer group relative overflow-hidden ${newBookingIds.has(b.id) ? 'animate-[slideInGlow_0.6s_ease-out] ring-2 ring-emerald-400/50' : ''}`}>
-                  <div className={`absolute left-0 top-0 bottom-0 w-1 ${sc.bar}`} />
-
-                  <div className="flex flex-row md:flex-col items-center md:items-start gap-3 md:gap-1 min-w-[100px] pl-2">
-                    <span className="text-xl font-bold text-gray-900">{time}</span>
-                    <span className={`px-2.5 py-1 rounded-full text-xs font-bold ${sc.bg} ${sc.text} border ${sc.border}`}>
-                      {b.lateMinutes ? `Late (${b.lateMinutes}m)` : statusLabel}
-                    </span>
+                <div key={b.id}
+                  onClick={() => openDetail(b.id)}
+                  onMouseEnter={e => e.currentTarget.classList.add('bk-hov')}
+                  onMouseLeave={e => e.currentTarget.classList.remove('bk-hov')}
+                  className={`group relative flex items-center py-3 px-2 border-b border-gray-100 cursor-pointer transition-colors ${isNew ? 'animate-[slideInGlow_0.6s_ease-out] ring-1 ring-emerald-400/40' : ''}`}
+                  style={{ fontFamily: "'Figtree', sans-serif" }}>
+                  {/* Status bar */}
+                  <div className="w-[3px] h-[30px] rounded-sm mr-3.5 shrink-0 transition-all" style={{ background: sc.bar.replace('bg-', '').includes('#') ? sc.bar : undefined, backgroundColor: sc.bar.startsWith('bg-') ? ({
+                    'bg-emerald-500': '#22C55E', 'bg-amber-400': '#F59E0B', 'bg-blue-500': '#3B82F6',
+                    'bg-gray-400': '#9CA3AF', 'bg-red-400': '#EF4444', 'bg-red-500': '#EF4444',
+                    'bg-yellow-400': '#EAB308', 'bg-gray-300': '#D1D5DB',
+                  })[sc.bar] || '#9CA3AF' : sc.bar }} />
+                  {/* Time */}
+                  <div className="w-[52px] shrink-0 text-right mr-4">
+                    <div className="text-sm font-bold text-[#111]">{time}</div>
+                    <div className="text-[9px] text-gray-300">{b.date || ''}</div>
                   </div>
-
-                  <div className="flex-1 flex items-center gap-4">
-                    <div className={`w-12 h-12 rounded-full ${av.bg} ${av.text} font-bold text-lg flex items-center justify-center shadow-sm shrink-0`}>{getInitials(b.customerName)}</div>
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <h4 className="text-lg font-bold text-gray-900 group-hover:text-primary transition-colors">{b.customerName}</h4>
-                        {b.vip && <span className="px-1.5 py-0.5 rounded bg-[#D4A373] text-[10px] font-bold text-white uppercase tracking-wide">VIP</span>}
-                      </div>
-                      <p className="text-sm text-gray-500 flex items-center gap-3 mt-0.5 flex-wrap">
-                        {phone && <span className="flex items-center gap-1"><Phone className="w-3 h-3" /> {phone}</span>}
-                        {phone && email && <span className="text-gray-300">|</span>}
-                        {email && <span className="flex items-center gap-1"><Mail className="w-3 h-3" /> {email}</span>}
-                        {b.occasion && <><span className="text-gray-300">|</span><span className="text-[#D4A373] font-medium flex items-center gap-1"><Cake className="w-3 h-3" /> {b.occasion}</span></>}
-                        {b.waitMinutes && <span className="flex items-center gap-1 text-gray-400"><Clock className="w-3 h-3" /> ~{b.waitMinutes}m wait</span>}
-                      </p>
-                    </div>
+                  {/* Divider */}
+                  <div className="w-px h-6 bg-gray-200 mr-4 shrink-0" />
+                  {/* Avatar */}
+                  <div className={`w-8 h-8 rounded-full ${av.bg} ${av.text} font-bold text-xs flex items-center justify-center mr-3 shrink-0`}>{getInitials(b.customerName)}</div>
+                  {/* Name + Service */}
+                  <div className="flex-1 min-w-0 mr-3">
+                    <div className="text-[13px] font-bold text-[#111] truncate">{b.customerName}</div>
+                    <div className="text-[10px] text-gray-300 truncate">{svcName}</div>
                   </div>
-
-                  <div className="flex flex-wrap gap-4 md:gap-6 items-center text-sm text-gray-600">
-                    {isRestaurant ? (
-                      <>
-                        <div className="flex items-center gap-2" title="Party Size">
-                          <div className="w-8 h-8 rounded-lg bg-gray-50 flex items-center justify-center text-gray-700 border border-gray-100"><Users className="w-4 h-4" /></div>
-                          <span className="font-semibold">{guests} Guest{guests !== 1 ? 's' : ''}</span>
-                        </div>
-                        <div className="flex items-center gap-2" title="Table">
-                          <div className={`w-8 h-8 rounded-lg bg-gray-50 flex items-center justify-center border border-gray-100 ${table ? 'text-gray-700' : 'text-gray-400'}`}><Armchair className="w-4 h-4" /></div>
-                          {table ? <span className="font-semibold">{table}</span> : <span className="font-medium text-gray-400 italic">Unassigned</span>}
-                        </div>
-                      </>
-                    ) : (
-                      <>
-                        <div className="flex items-center gap-2" title="Service">
-                          <div className="w-8 h-8 rounded-lg bg-gray-50 flex items-center justify-center text-gray-700 border border-gray-100"><Clock className="w-4 h-4" /></div>
-                          <span className="font-semibold">{b.service || b.serviceName || 'Treatment'}</span>
-                        </div>
-                        <div className="flex items-center gap-2" title="Therapist">
-                          <div className={`w-8 h-8 rounded-lg bg-gray-50 flex items-center justify-center border border-gray-100 ${b.staffName ? 'text-gray-700' : 'text-gray-400'}`}><Users className="w-4 h-4" /></div>
-                          {b.staffName ? <span className="font-semibold">{b.staffName}</span> : <span className="font-medium text-gray-400 italic">Any available</span>}
-                        </div>
-                      </>
-                    )}
+                  {/* Staff */}
+                  <div className="w-[70px] shrink-0 text-xs font-semibold text-gray-400 mr-3 truncate">{staffName}</div>
+                  {/* Status */}
+                  <div className="shrink-0 mr-3">
+                    <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold ${sc.bg} ${sc.text} border ${sc.border}`}>{statusLabel}</span>
                   </div>
-
-                  <div className="flex items-center gap-2 ml-auto mt-2 md:mt-0" onClick={e => e.stopPropagation()}>
+                  {/* Hover actions — slides in from right */}
+                  <div className="absolute right-2 top-0 bottom-0 flex items-center gap-2 opacity-0 translate-x-2 transition-all duration-200 pointer-events-none pl-8"
+                    style={{ background: 'linear-gradient(90deg, transparent 0%, #F7F7F7 24px, #F7F7F7 100%)' }}
+                    ref={el => {
+                      if (!el) return
+                      const row = el.parentElement
+                      const show = () => { el.style.opacity = '1'; el.style.transform = 'translateX(0)'; el.style.pointerEvents = 'auto'; row.style.background = '#F7F7F7' }
+                      const hide = () => { el.style.opacity = '0'; el.style.transform = 'translateX(8px)'; el.style.pointerEvents = 'none'; row.style.background = 'transparent' }
+                      row.addEventListener('mouseenter', show)
+                      row.addEventListener('mouseleave', hide)
+                    }}>
+                    {b.servicePrice && <span className="text-xs font-bold text-[#111]">£{b.servicePrice}</span>}
                     {primary && (
-                      <button onClick={primary.action} disabled={updating}
-                        className={`px-4 py-1.5 text-xs font-bold rounded-full shadow-lg transition-all ${primary.outline ? 'bg-white border border-[#111111]/20 text-[#111111] hover:bg-[#111111]/5 shadow-sm' : 'bg-[#111111] hover:bg-[#1a1a1a] text-white shadow-[#111111]/20'}`}
+                      <button onClick={e => { e.stopPropagation(); primary.action?.() }} disabled={updating}
+                        className="px-3.5 py-1 rounded-full text-[11px] font-bold bg-[#111] text-white whitespace-nowrap hover:scale-105 transition-transform"
                         style={{ fontFamily: "'Figtree', sans-serif" }}>
                         {primary.label}
                       </button>
                     )}
-                    <button onClick={() => { openDetail(b.id); setTimeout(startEdit, 500) }} className="w-8 h-8 flex items-center justify-center rounded-lg text-gray-400 hover:text-[#111111] hover:bg-[#111111]/5 transition-all" title="Edit"><Pencil className="w-3.5 h-3.5" /></button>
-                    <button onClick={() => confirmCancel(b.id)} className="w-8 h-8 flex items-center justify-center rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 transition-all" title="Cancel"><X className="w-3.5 h-3.5" /></button>
+                    <button onClick={e => { e.stopPropagation(); openDetail(b.id); setTimeout(startEdit, 500) }}
+                      className="w-7 h-7 rounded-lg flex items-center justify-center text-gray-300 hover:text-[#111] hover:bg-gray-200 transition-colors" title="Edit">
+                      <Pencil className="w-3.5 h-3.5" />
+                    </button>
+                    <button onClick={e => { e.stopPropagation(); confirmCancel(b.id) }}
+                      className="w-7 h-7 rounded-lg flex items-center justify-center text-gray-300 hover:text-red-500 hover:bg-red-50 transition-colors" title="Cancel">
+                      <X className="w-3.5 h-3.5" />
+                    </button>
                   </div>
                 </div>
               )
             })}
-          </div>
-        )}
-
-        {displayBookings.length > 0 && (
-          <div className="mt-8 flex items-center justify-between border-t border-gray-200 pt-6">
-            <div className="text-sm text-gray-500">Showing <span className="font-bold text-gray-900">1-{displayBookings.length}</span> of <span className="font-bold text-gray-900">{pagination.total || displayBookings.length}</span> results</div>
-            <div className="flex items-center gap-2">
-              <button className="px-3.5 py-1.5 rounded-full text-xs font-bold text-gray-300 bg-gray-50 cursor-not-allowed" style={{ fontFamily: "'Figtree', sans-serif" }}>Previous</button>
-              <button className="px-3 py-1.5 bg-[#111111] text-white rounded-full text-xs font-bold shadow-lg shadow-[#111111]/20" style={{ fontFamily: "'Figtree', sans-serif" }}>1</button>
-              <button className="px-3.5 py-1.5 rounded-full text-xs font-bold text-gray-500 hover:bg-gray-100 transition-all" style={{ fontFamily: "'Figtree', sans-serif" }}>Next</button>
-            </div>
           </div>
         )}
       </div>
