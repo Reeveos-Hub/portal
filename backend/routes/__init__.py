@@ -133,8 +133,10 @@ __all__ = [
     "cash_and_tax_router", "ops_router", "table_management_router", "tronc_router",
     "delivery_aggregation_router", "allergen_management_router", "accounting_router",
     "agent_router", "outreach_router", "outreach_webhook_router", "linkedin_router",
+    "help_centre_router",
     "scraper_router",
     "consultation_router", "client_portal_router",
     "survey_router", "survey_admin_router",
 ]
+
 
