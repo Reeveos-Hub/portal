@@ -2040,9 +2040,9 @@ const Calendar = () => {
                 </div>
                 {/* Calendar grid */}
                 {monthGrid.map((week, wi) => (
-                  <div key={wi} style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', minHeight: 100 }}>
+                  <div key={wi} style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', minHeight: 110 }}>
                     {week.map((day, di) => {
-                      if (!day) return <div key={di} style={{ minHeight: 100, borderTop: '1px solid #EBEBEB', borderLeft: di > 0 ? '1px solid #EBEBEB' : 'none' }} />
+                      if (!day) return <div key={di} style={{ minHeight: 110, borderTop: '1px solid #EBEBEB', borderLeft: di > 0 ? '1px solid #EBEBEB' : 'none' }} />
                       const d = new Date(selectedDate + 'T12:00')
                       const dk = `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(day)}`
                       const isTdy = dk === dateKey(new Date())
@@ -2053,7 +2053,7 @@ const Calendar = () => {
                       const extra = dayBk.length - maxShow
                       return (
                         <button key={di} onClick={() => { setSelectedDate(dk); setViewMode('Day') }}
-                          style={{ minHeight: 100, border: 'none', cursor: 'pointer', background: isTdy ? '#FFF9F0' : 'transparent', display: 'flex', flexDirection: 'column', alignItems: 'stretch', padding: '4px 3px', borderTop: '1px solid #EBEBEB', borderLeft: di > 0 ? '1px solid #EBEBEB' : 'none', fontFamily: "'Figtree', sans-serif", textAlign: 'left' }}>
+                          style={{ minHeight: 110, border: 'none', cursor: 'pointer', background: isTdy ? '#FFF9F0' : 'transparent', display: 'flex', flexDirection: 'column', alignItems: 'stretch', padding: '4px 3px', borderTop: '1px solid #EBEBEB', borderLeft: di > 0 ? '1px solid #EBEBEB' : 'none', fontFamily: "'Figtree', sans-serif", textAlign: 'left' }}>
                           {/* Day number */}
                           <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 3 }}>
                             <div style={{ width: isTdy ? 30 : 'auto', height: isTdy ? 30 : 'auto', borderRadius: 15, background: isTdy ? '#C9A84C' : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: isTdy ? 0 : '2px 0' }}>
@@ -2062,8 +2062,8 @@ const Calendar = () => {
                           </div>
                           {/* Holiday bar */}
                           {hol && (
-                            <div style={{ background: hol.t === 'bank' ? '#10B981' : '#C9A84C', borderRadius: 3, padding: '2px 4px', marginBottom: 2 }}>
-                              <span style={{ fontSize: 10, fontWeight: 600, color: '#fff', lineHeight: 1.2 }}>{hol.l}</span>
+                            <div style={{ background: hol.t === 'bank' ? '#10B981' : '#C9A84C', borderRadius: 4, padding: '3px 6px', marginBottom: 2 }}>
+                              <span style={{ fontSize: 11, fontWeight: 600, color: '#fff', lineHeight: 1.2 }}>{hol.l}</span>
                             </div>
                           )}
                           {/* Booking previews */}
@@ -2073,14 +2073,14 @@ const Calendar = () => {
                             const h = parseInt(timeStr.split(':')[0]) || 0
                             const shortTime = fmtAP(h)
                             return (
-                              <div key={bi} style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '2px 3px', borderRadius: 3, marginBottom: 1, background: sc + '20', overflow: 'hidden' }}>
-                                <div style={{ width: 4, height: 14, borderRadius: 2, background: sc, flexShrink: 0 }} />
-                                <span style={{ fontSize: 10, fontWeight: 500, color: '#666', flexShrink: 0 }}>{shortTime}</span>
-                                <span style={{ fontSize: 11, fontWeight: 600, color: '#111', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{bk.customerName || bk.customer_name || 'Booking'}</span>
+                              <div key={bi} style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '3px 4px', borderRadius: 4, marginBottom: 1, background: sc + '20', overflow: 'hidden' }}>
+                                <div style={{ width: 4, height: 16, borderRadius: 2, background: sc, flexShrink: 0 }} />
+                                <span style={{ fontSize: 11, fontWeight: 500, color: '#666', flexShrink: 0 }}>{shortTime}</span>
+                                <span style={{ fontSize: 12, fontWeight: 600, color: '#111', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{bk.customerName || bk.customer_name || 'Booking'}</span>
                               </div>
                             )
                           })}
-                          {extra > 0 && <span style={{ fontSize: 10, fontWeight: 600, color: '#999', padding: '1px 4px' }}>+{extra} more</span>}
+                          {extra > 0 && <span style={{ fontSize: 11, fontWeight: 600, color: '#999', padding: '2px 4px' }}>+{extra} more</span>}
                         </button>
                       )
                     })}
