@@ -52,6 +52,29 @@ def _auto_color(menu):
     return PRESET_PALETTE[idx]
 
 
+def _validate_variants(raw):
+    """Validate and sanitise service variants array."""
+    if not raw or not isinstance(raw, list):
+        return []
+    clean = []
+    for v in raw[:10]:
+        if not isinstance(v, dict):
+            continue
+        name = (v.get("name") or "").strip()[:50]
+        if not name:
+            continue
+        dur = max(15, min(480, int(v.get("duration_minutes", 60) or 60)))
+        price = max(0, float(v.get("price", 0) or 0))
+        buf = int(v.get("buffer_minutes", 0) or 0)
+        if buf not in [0, 5, 10, 15, 30]:
+            buf = max(0, min(30, buf))
+        clean.append({
+            "id": v.get("id") or f"var_{datetime.utcnow().strftime('%Y%m%d%H%M%S')}_{len(clean)}",
+            "name": name, "duration_minutes": dur, "price": price, "buffer_minutes": buf,
+        })
+    return clean
+
+
 @router.get("/business/{business_id}")
 async def get_services_grouped(business_id: str, tenant: TenantContext = Depends(verify_business_access)):
     """Run 4: Services grouped by category."""
@@ -88,6 +111,7 @@ async def get_services_grouped(business_id: str, tenant: TenantContext = Depends
             "duration": s.get("duration_minutes", 60),
             "buffer_minutes": s.get("buffer_minutes", 0),
             "price": int((s.get("price", 0) or 0) * 100),
+            "variants": s.get("variants", []),
             "staffIds": s.get("staffIds", []),
             "staffNames": staff_names,
             "online": s.get("online", True),
@@ -164,6 +188,7 @@ async def create_service(business_id: str, payload: dict = Body(...), tenant: Te
         "duration_minutes": duration,
         "buffer_minutes": buffer_minutes,
         "price": price / 100.0,
+        "variants": _validate_variants(payload.get("variants")),
         "staffIds": payload.get("staffIds") or [],
         "online": payload.get("online", True),
         "active": True,
@@ -229,6 +254,8 @@ async def update_service(business_id: str, service_id: str, payload: dict = Body
     # Extended fields — time blocks
     if "buffer_after" in payload:
         s["buffer_after"] = max(0, min(120, int(payload["buffer_after"])))
+    if "variants" in payload:
+        s["variants"] = _validate_variants(payload["variants"])
     if "processing_time" in payload:
         s["processing_time"] = max(0, min(120, int(payload["processing_time"])))
     if "prep_before" in payload:

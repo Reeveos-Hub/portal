@@ -259,6 +259,7 @@ async def get_booking_page(business_slug: str):
                 "buffer_minutes": s.get("buffer_minutes", 0),
                 "price": int((s.get("price", 0) or 0) * 100),
                 "description": s.get("description", ""),
+                "variants": s.get("variants", []),
                 "staffIds": [st.get("id") for st in business.get("staff", []) if st.get("id")],
                 "online": s.get("active", True),
             })
@@ -673,7 +674,18 @@ async def create_booking(request: Request, business_slug: str, payload: dict):
         svc = next((s for s in business.get("menu", []) if s.get("id") == payload.get("serviceId")), None)
         svc_buffer = (svc or {}).get("buffer_minutes", 0)
         svc_dur = (svc or {}).get("duration_minutes", 60)
-        doc["service"] = {"id": payload.get("serviceId"), "name": svc.get("name") if svc else "", "duration": svc_dur, "buffer_minutes": svc_buffer}
+        svc_name = svc.get("name") if svc else ""
+        svc_price = (svc or {}).get("price", 0)
+        variant_id = payload.get("variantId")
+        variant = None
+        if variant_id and svc:
+            variant = next((v for v in (svc.get("variants") or []) if v.get("id") == variant_id), None)
+        if variant:
+            svc_dur = variant.get("duration_minutes", svc_dur)
+            svc_buffer = variant.get("buffer_minutes", svc_buffer)
+            svc_price = variant.get("price", svc_price)
+            svc_name = f"{svc_name} — {variant.get('name', '')}"
+        doc["service"] = {"id": payload.get("serviceId"), "variantId": variant_id, "name": svc_name, "duration": svc_dur, "buffer_minutes": svc_buffer, "price": svc_price}
         doc["endTime"] = _add_minutes(booking_time, svc_dur)
         doc["duration"] = svc_dur
         doc["buffer_minutes"] = svc_buffer

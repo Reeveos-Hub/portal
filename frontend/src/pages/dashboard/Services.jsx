@@ -81,6 +81,8 @@ const Services = () => {
   const [addOns, setAddOns] = useState([])
   const [addOnTiers, setAddOnTiers] = useState([{count:1,price:''},{count:2,price:''},{count:3,price:''}])
   const [newAddOn, setNewAddOn] = useState({name:'',price:'',duration:''})
+  const [variants, setVariants] = useState([])
+  const [newVar, setNewVar] = useState({name:'',duration_minutes:60,price:0})
   const [addOnsLoading, setAddOnsLoading] = useState(false)
   const [consumables, setConsumables] = useState([])
   const [deleteConfirm, setDeleteConfirm] = useState(null)
@@ -137,6 +139,8 @@ const Services = () => {
       require_consultation: svc.require_consultation || false, require_consent: svc.require_consent || false,
       require_patch_test: svc.require_patch_test || false, min_booking_notice: svc.min_booking_notice || 0,
     })
+    setVariants(svc.variants || [])
+    setNewVar({name:'',duration_minutes:60,price:0})
     fetchAddOns(svc.id)
   }
 
@@ -146,7 +150,7 @@ const Services = () => {
     if (!bid || !selectedId) return
     setSaving(true)
     try {
-      await api.put('/services-v2/business/' + bid + '/' + selectedId, editing)
+      await api.put('/services-v2/business/' + bid + '/' + selectedId, {...editing, variants})
       const svcRes = await api.get('/services-v2/business/' + bid)
       const cats = svcRes.categories || []
       setCategories(cats)
@@ -403,6 +407,26 @@ const Services = () => {
                     </div>
                   </div>
                 )}
+              </div>
+              <div className="pt-4 border-t border-[#F0EDE7]">
+                <label className="block text-[12px] font-bold text-[#111] mb-1">Pricing Variants</label>
+                <p className="text-[10px] text-[#8A8780] mb-3">Different price/duration options (e.g. Express 30min vs Full 60min). Leave empty for single pricing.</p>
+                {variants.length > 0 && <div className="space-y-1.5 mb-3">
+                  {variants.map((v,i) => (
+                    <div key={v.id||i} className="flex items-center gap-2 bg-[#FAFAF8] border border-[#E8E4DD] rounded-lg px-3 py-2">
+                      <span className="text-[11px] font-semibold text-[#111] flex-1">{v.name}</span>
+                      <span className="text-[10px] text-[#8A8780]">{v.duration_minutes}min</span>
+                      <span className="text-[10px] text-[#8A8780]">&pound;{Number(v.price||0).toFixed(2)}</span>
+                      <button onClick={()=>setVariants(p=>p.filter((_,j)=>j!==i))} className="text-red-400 hover:text-red-600 text-[10px] font-bold">✕</button>
+                    </div>
+                  ))}
+                </div>}
+                <div className="flex gap-2 items-end">
+                  <div className="flex-1"><input type="text" placeholder="Name" value={newVar.name} onChange={e=>setNewVar(v=>({...v,name:e.target.value}))} className="w-full px-2 py-1.5 border border-[#E8E4DD] rounded-lg text-[11px]" style={{fontFamily:"'Figtree',sans-serif"}} /></div>
+                  <div className="w-16"><input type="number" placeholder="Mins" value={newVar.duration_minutes} onChange={e=>setNewVar(v=>({...v,duration_minutes:parseInt(e.target.value)||0}))} className="w-full px-2 py-1.5 border border-[#E8E4DD] rounded-lg text-[11px]" style={{fontFamily:"'Figtree',sans-serif"}} /></div>
+                  <div className="w-16"><input type="number" step="0.01" placeholder="£" value={newVar.price} onChange={e=>setNewVar(v=>({...v,price:parseFloat(e.target.value)||0}))} className="w-full px-2 py-1.5 border border-[#E8E4DD] rounded-lg text-[11px]" style={{fontFamily:"'Figtree',sans-serif"}} /></div>
+                  <button onClick={()=>{if(!newVar.name.trim())return;setVariants(p=>[...p,{...newVar,id:'var_'+Date.now()+'_'+p.length}]);setNewVar({name:'',duration_minutes:60,price:0})}} className="px-3 py-1.5 bg-[#111] text-white rounded-lg text-[10px] font-bold">Add</button>
+                </div>
               </div>
             </div>)}
 
