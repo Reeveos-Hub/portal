@@ -95,6 +95,17 @@ async def get_services_grouped(business_id: str, tenant: TenantContext = Depends
             "sortOrder": s.get("sortOrder", 0),
             "color": color,
             "required_equipment": s.get("required_equipment", []),
+            # Extended fields
+            "buffer_after": s.get("buffer_after", 0),
+            "processing_time": s.get("processing_time", 0),
+            "prep_before": s.get("prep_before", 0),
+            "require_deposit": s.get("require_deposit", False),
+            "deposit_amount": s.get("deposit_amount", 0),
+            "require_full_payment": s.get("require_full_payment", False),
+            "require_consultation": s.get("require_consultation", False),
+            "require_consent": s.get("require_consent", False),
+            "require_patch_test": s.get("require_patch_test", False),
+            "min_booking_notice": s.get("min_booking_notice", 0),
         })
 
     categories = []
@@ -159,6 +170,17 @@ async def create_service(business_id: str, payload: dict = Body(...), tenant: Te
         "sortOrder": len(menu),
         "color": color,
         "required_equipment": payload.get("required_equipment") or [],
+        # Extended fields
+        "buffer_after": max(0, min(120, int(payload.get("buffer_after", 0) or 0))),
+        "processing_time": max(0, min(120, int(payload.get("processing_time", 0) or 0))),
+        "prep_before": max(0, min(120, int(payload.get("prep_before", 0) or 0))),
+        "require_deposit": bool(payload.get("require_deposit", False)),
+        "deposit_amount": max(0, float(payload.get("deposit_amount", 0) or 0)),
+        "require_full_payment": bool(payload.get("require_full_payment", False)),
+        "require_consultation": bool(payload.get("require_consultation", False)),
+        "require_consent": bool(payload.get("require_consent", False)),
+        "require_patch_test": bool(payload.get("require_patch_test", False)),
+        "min_booking_notice": max(0, min(720, int(payload.get("min_booking_notice", 0) or 0))),
         "createdAt": datetime.utcnow(),
         "updatedAt": datetime.utcnow(),
     }
@@ -204,6 +226,29 @@ async def update_service(business_id: str, service_id: str, payload: dict = Body
         s["color"] = (payload["color"] or "")[:7]
     if "required_equipment" in payload:
         s["required_equipment"] = payload["required_equipment"] if isinstance(payload["required_equipment"], list) else []
+    # Extended fields — time blocks
+    if "buffer_after" in payload:
+        s["buffer_after"] = max(0, min(120, int(payload["buffer_after"])))
+    if "processing_time" in payload:
+        s["processing_time"] = max(0, min(120, int(payload["processing_time"])))
+    if "prep_before" in payload:
+        s["prep_before"] = max(0, min(120, int(payload["prep_before"])))
+    # Extended fields — booking and deposit
+    if "require_deposit" in payload:
+        s["require_deposit"] = bool(payload["require_deposit"])
+    if "deposit_amount" in payload:
+        s["deposit_amount"] = max(0, float(payload["deposit_amount"]))
+    if "require_full_payment" in payload:
+        s["require_full_payment"] = bool(payload["require_full_payment"])
+    if "min_booking_notice" in payload:
+        s["min_booking_notice"] = max(0, min(720, int(payload["min_booking_notice"])))
+    # Extended fields — forms
+    if "require_consultation" in payload:
+        s["require_consultation"] = bool(payload["require_consultation"])
+    if "require_consent" in payload:
+        s["require_consent"] = bool(payload["require_consent"])
+    if "require_patch_test" in payload:
+        s["require_patch_test"] = bool(payload["require_patch_test"])
     s["updatedAt"] = datetime.utcnow()
     menu[idx] = s
     await db.businesses.update_one(
